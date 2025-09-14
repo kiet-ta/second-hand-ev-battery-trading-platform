@@ -1,4 +1,4 @@
-# ⚡ Second-hand EV & Battery Trading Platform
+# Second-hand EV & Battery Trading Platform
 
 > A dedicated e-commerce platform for second-hand electric vehicles (EVs) and batteries, providing a safe, transparent, and AI-powered trading experience.
 
@@ -76,7 +76,7 @@ This project uses a `.env` file to configure API keys and environment-specific s
 
 ---
 
-## 💻 Installation
+## Installation
 
 *Installation steps will be added later.*
 Currently, the project uses **Docker and Docker Compose** for deployment.
