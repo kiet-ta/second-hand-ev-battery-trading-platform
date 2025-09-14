@@ -1,122 +1,92 @@
-# Electric Vehicle Dealer Management System
+# ⚡ Second-hand EV & Battery Trading Platform
+
+> A dedicated e-commerce platform for second-hand electric vehicles (EVs) and batteries, providing a safe, transparent, and AI-powered trading experience.
+
+---
 
 ## Overview
 
-The **Electric Vehicle Dealer Management System (EVDMS)** is a software platform designed to manage electric vehicle sales through authorized dealers.
-It provides a centralized system that connects **Dealers** and the **EV Manufacturer**, supporting:
+**Second-hand EV & Battery Trading Platform** is a system that allows users to post, search, and purchase used EVs and batteries.
+This project aims to build a **reliable and transparent marketplace** where users can confidently trade second-hand EVs and batteries, supported by **data-driven pricing suggestions** to ensure fair deals.
 
-* Product, stock, and distribution management for the manufacturer.
-* Sales, customer, and payment management for dealers.
-* Reporting, analytics, and demand forecasting for both sides.
+---
 
-## Features
+## Target Users
 
-### Dealer (Staff / Manager)
+* Individuals who want to buy or sell second-hand EVs or batteries
+* Small businesses, garages, or dealerships that resell used EVs and batteries
 
-* **Vehicle Information**: view vehicle catalog, configurations, prices, and compare models.
-* **Sales Management**: generate quotations, sales orders, and contracts; manage promotions; order vehicles from the manufacturer; track delivery status; support multiple payment methods (full payment, installment).
-* **Customer Management**: store customer records, manage test drive appointments, capture feedback and complaints.
-* **Reports**: sales performance per staff, customer and manufacturer debt reports.
+---
 
-### EV Manufacturer (Staff / Admin)
+## Core Features
 
-* **Product & Distribution Management**: manage vehicle models, versions, colors; track global stock; allocate vehicles to dealers; define wholesale prices, discounts, and dealer-specific promotions.
-* **Dealer Management**: manage contracts, sales targets, debts, and dealer accounts.
-* **Reports & Analytics**: sales by region and dealer, inventory status, sales velocity, demand forecasting with AI.
+### Member
 
-## Architecture
+* Register / log in (via email, phone number, or social accounts)
+* Manage profile, personal information, and transaction history
+* Post listings for EVs/batteries (including product info, images, and technical specs)
+* Get **AI-based price suggestions** based on platform market data
+* Search by brand, model, battery capacity, price, condition, mileage, year of manufacture
+* Add listings to favorites
+* Purchase via “Buy Now” or bidding
+* Online payment (e-wallet, banking, etc.)
+* Sign digital sales contracts
+* Rate and review buyers/sellers
+* Track transaction history
 
-**Tech Stack**
+### Admin
 
-* **Frontend**: React (JavaScript, Vite/CRA).
-* **Backend**: ASP.NET Core Web API (C#).
-* **Database**: MySQL.
-* **Containerization**: Docker & Docker Compose.
+* Manage users (approve, suspend, or block accounts)
+* Manage listings (approve, reject, mark as “verified”)
+* Handle transactions and disputes
+* Manage commission and transaction fees
+* Generate statistics and reports (sales, revenue, market trends)
 
-## Installation & Usage
+---
 
-### 1. Clone repository
+## ⚙️ Tech Stack
 
-```bash
-git clone https://github.com/your-username/ev-dealer-management.git
-cd ev-dealer-management
+| Layer            | Technology             |
+| ---------------- | ---------------------- |
+| Frontend         | React                  |
+| Backend          | ASP.NET                |
+| Database         | SQL Server             |
+| Containerization | Docker, Docker Compose |
+
+**Repository structure:**
+
+```
+root/
+├── frontend/
+└── backend/
 ```
 
-### 2. Environment variables
+---
 
-Create a `.env` file in the root directory:
+## Highlight Feature
 
-```env
-# Backend
-ASPNETCORE_ENVIRONMENT=Development
-ConnectionStrings__Default=server=db;port=3306;database=evdb;user=root;password=rootpassword;
+* **AI-powered price suggestions** to help sellers set competitive prices and help buyers evaluate fair deals.
 
-# Frontend
-VITE_API_URL=http://localhost:5000/api
-```
+---
 
-### 3. Docker Compose
+## Environment Variables
 
-`docker-compose.yml`:
+This project uses a `.env` file to configure API keys and environment-specific settings.
+(Details will be added later.)
 
-```yaml
-services:
-  db:
-    image: mysql:8.0
-    container_name: ev_mysql
-    restart: always
-    environment:
-      MYSQL_ROOT_PASSWORD: rootpassword
-      MYSQL_DATABASE: evdb
-    ports:
-      - "3307:3306"
-    volumes:
-      - db_data:/var/lib/mysql
+---
 
-  backend:
-    build: ./backend
-    container_name: ev_backend
-    depends_on:
-      - db
-    environment:
-      - ConnectionStrings__Default=server=db;port=3306;database=evdb;user=root;password=rootpassword
-    ports:
-      - "5000:5000"
+## 💻 Installation
 
-  frontend:
-    build: ./frontend
-    container_name: ev_frontend
-    depends_on:
-      - backend
-    environment:
-      - VITE_API_URL=http://localhost:5000/api
-    ports:
-      - "3000:3000"
+*Installation steps will be added later.*
+Currently, the project uses **Docker and Docker Compose** for deployment.
 
-volumes:
-  db_data:
-```
+---
 
-### 4. Run project
+## Team
 
-```bash
-docker-compose up --build
-```
-
-Access the services at:
-
-* Frontend: `http://localhost:3000`
-* Backend: `http://localhost:5000/api`
-* Database: `localhost:3307`
-
-## Roadmap
-
-* [ ] Authentication & Authorization (JWT).
-* [ ] Role-based access (Dealer Staff, Dealer Manager, EV Staff, Admin).
-* [ ] Realtime notifications (SignalR / WebSocket).
-* [ ] AI-powered demand forecasting.
-* [ ] Unit and integration testing.
-
-## Contributing
-
-Pull requests are welcome. Please open an issue first to discuss major changes.
+* **TAK1ST** (Project Leader)
+* Quynh Chi
+* Tecookie
+* CoCoIT
+* TUNAPI
