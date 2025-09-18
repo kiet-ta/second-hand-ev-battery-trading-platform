@@ -1,0 +1,138 @@
+.login-container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
+
+.login-header {
+    background-color: #77E4C8;
+    padding: 20px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 10px;
+}
+
+.logo {
+    width: 30px;
+    height: 30px;
+}
+
+.login-header h1 {
+    font-size: 24px;
+    color: #2ecc71;
+    margin: 0;
+}
+
+.login-header h2 {
+    font-size: 18px;
+    color: #333;
+    margin: 0 0 0 auto;
+}
+
+.login-content {
+    display: flex;
+    flex: 1;
+}
+
+.login-left {
+    flex: 1;
+    background-color: #e6f7f0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.vinfast-banner {
+    text-align: center;
+}
+
+.vinfast-banner img {
+    max-width: 100%;
+    height: auto;
+}
+
+.vinfast-banner p {
+    color: #666;
+    font-size: 12px;
+    margin-top: 5px;
+}
+
+.login-right {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #fff;
+}
+
+.login-box {
+    width: 300px;
+    padding: 20px;
+    text-align: center;
+}
+
+.login-input {
+    width: 100%;
+    padding: 10px;
+    margin: 10px 0;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.login-btn {
+    width: 100%;
+    padding: 10px;
+    background-color: #2ecc71;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.forgot-password {
+    display: block;
+    text-align: right;
+    color: #007bff;
+    margin: 10px 0;
+    text-decoration: none;
+}
+
+.divider {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #6b7280;
+    margin: 20px 0;
+}
+
+.divider span {
+    flex: 1;
+    height: 1px;
+    background: #e5e7eb;
+}
+
+.social-login {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+}
+
+.facebook-btn {
+    padding: 10px 20px;
+    background-color: #3b5998;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.signup-link {
+    margin-top: 20px;
+    color: #666;
+}
+
+.signup-link a {
+    color: #dc3545;
+    text-decoration: none;
+}
