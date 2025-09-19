@@ -6,7 +6,7 @@ import banner2 from '../assets/images/banner2.png';
 import banner3 from '../assets/images/banner3.png';
 import { Link } from 'react-router-dom';
 
-export default function LoginPage() {
+export default function RegisterPage() {
     const clientId =
         import.meta.env.VITE_GOOGLE_CLIENT_ID ||
         '301055344643-gel1moqvoq9flgf8978aje7j9frtci79.apps.googleusercontent.com';
@@ -14,7 +14,11 @@ export default function LoginPage() {
     const [user, setUser] = useState(null);
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
+    const [email, setEmail] = useState('');
+    const [fullname, setFullname] = useState('');
     const [currentSlide, setCurrentSlide] = useState(0);
+    const [confirmPassword, setConfirmPassword] = useState("");
+    const [error, setError] = useState("");
     const googleButtonRef = useRef(null);
 
     const slides = [
@@ -129,8 +133,28 @@ export default function LoginPage() {
 
     function handleSubmit(e) {
         e.preventDefault();
-        // TODO: call your backend login API here
         console.log('Local login with', { username, password });
+        if (!email || !password || !confirmPassword) {
+            setError("Please enter complete information!");
+            return;
+        }
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            setError("Email is not valid!");
+            return;
+        }
+        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$/;
+        if (!passwordRegex.test(password)) {
+            setError("Password must be ≥8 characters, contain uppercase, lowercase, numbers and special characters!");
+            return;
+        }
+        if (password !== confirmPassword) {
+            setError("Re-entered password does not match!");
+            return;
+        }
+
+        setError("");
+        alert("Đăng ký thành công ✅");
     }
 
     return (
@@ -139,7 +163,7 @@ export default function LoginPage() {
             <header className="login-header">
                 <img src={Logo} alt="Logo" className="logo" />
                 <h1>Cóc Mua Xe</h1>
-                <h2>Sign in</h2>
+                <h2>Sign Up</h2>
             </header>
 
             {/* Nội dung chính: banner + form */}
@@ -165,13 +189,24 @@ export default function LoginPage() {
                     <div className="login-box">
                         {!user ? (
                             <>
+
+                                <p className="signup-link">
+                                    Are you new? <Link to="/login">Sign In</Link>
+                                </p>
                                 <form onSubmit={handleSubmit}>
-                                    <p className='header-login'>Sign In</p>
+                                    <p className='header-login'>Create an account</p>
                                     <input
                                         type="text"
-                                        placeholder="Phone number / Username / Email"
-                                        value={username}
-                                        onChange={(e) => setUsername(e.target.value)}
+                                        placeholder="Full Name"
+                                        value={fullname}
+                                        onChange={(e) => setFullname(e.target.value)}
+                                        className="login-input"
+                                    />
+                                    <input
+                                        type="text"
+                                        placeholder="Email"
+                                        value={email}
+                                        onChange={(e) => setEmail(e.target.value)}
                                         className="login-input"
                                     />
                                     <input
@@ -181,14 +216,20 @@ export default function LoginPage() {
                                         onChange={(e) => setPassword(e.target.value)}
                                         className="login-input"
                                     />
+
+                                    <input
+                                        type="password"
+                                        placeholder="Re-enter password"
+                                        value={confirmPassword}
+                                        onChange={(e) => setConfirmPassword(e.target.value)}
+                                        className="login-input"
+                                    />
+
+                                    {error && <p style={{ color: "red" }}>{error}</p>}
                                     <button type="submit" className="login-btn">
-                                        SIGN IN
+                                        CREATE AN ACCOUNT
                                     </button>
                                 </form>
-
-                                <a href="#" className="forgot-password">
-                                    Forgot Password
-                                </a>
 
                                 <div className="divider">
                                     <span>OR</span>
@@ -198,9 +239,7 @@ export default function LoginPage() {
                                     <div ref={googleButtonRef} />
                                 </div>
 
-                                <p className="signup-link">
-                                    Are you new? <Link to="/register">Create an account</Link>
-                                </p>
+
                             </>
                         ) : (
                             <div className="user-info">
