@@ -1,13 +1,46 @@
 import React, { useEffect, useState, useRef } from 'react';
 import Logo from '../assets/images/Logo.png';
 import '../assets/styles/LoginPage.css'; // Create a CSS file for styling
+import banner1 from '../assets/images/banner1.png';
+import banner2 from '../assets/images/banner2.png';
+import banner3 from '../assets/images/banner3.png';
 
 export default function LoginPage() {
-    const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || "301055344643-gel1moqvoq9flgf8978aje7j9frtci79.apps.googleusercontent.com";
+    const clientId =
+        import.meta.env.VITE_GOOGLE_CLIENT_ID ||
+        '301055344643-gel1moqvoq9flgf8978aje7j9frtci79.apps.googleusercontent.com';
+
     const [user, setUser] = useState(null);
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
+    const [currentSlide, setCurrentSlide] = useState(0);
     const googleButtonRef = useRef(null);
+
+    const slides = [
+        {
+            id: 1,
+            image: banner1,
+            alt: "Xe điện nhập khẩu chính hãng"
+        },
+        {
+            id: 2,
+            image: banner2,
+            alt: "VinFast electric vehicles"
+        },
+        {
+            id: 3,
+            image: banner3,
+            alt: "Xe đạp - Xe điện Vĩnh Trường"
+        }
+    ];
+
+    useEffect(() => {
+        const slideInterval = setInterval(() => {
+            setCurrentSlide((prev) => (prev + 1) % slides.length);
+        }, 5000); // 5 giây
+
+        return () => clearInterval(slideInterval);
+    }, [slides.length]);
 
     useEffect(() => {
         const id = 'google-identity-script';
@@ -15,14 +48,18 @@ export default function LoginPage() {
             initGSI();
             return;
         }
-
         const script = document.createElement('script');
-        script.src = 'https://accounts.google.com/gsi/client';
+        script.src = 'https://accounts.google.com/gsi/client?hl=en';
         script.async = true;
         script.id = id;
         script.onload = () => initGSI();
         document.body.appendChild(script);
     }, []);
+    useEffect(() => {
+        if (!user && googleButtonRef.current) {
+            initGSI();
+        }
+    }, [user]);
 
     function parseJwt(token) {
         try {
@@ -31,7 +68,10 @@ export default function LoginPage() {
             const jsonPayload = decodeURIComponent(
                 atob(base64)
                     .split('')
-                    .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+                    .map(
+                        (c) =>
+                            '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
+                    )
                     .join('')
             );
             return JSON.parse(jsonPayload);
@@ -42,17 +82,16 @@ export default function LoginPage() {
 
     function initGSI() {
         if (!window.google?.accounts?.id) return;
-
         window.google.accounts.id.initialize({
             client_id: clientId,
             callback: handleCredentialResponse,
         });
-
         if (googleButtonRef.current) {
             window.google.accounts.id.renderButton(googleButtonRef.current, {
                 theme: 'outline',
                 size: 'large',
-                width: '250',
+                text: 'signin_with',
+                hl: 'en',
             });
         }
     }
@@ -74,10 +113,16 @@ export default function LoginPage() {
         if (user?.token) {
             fetch(`https://oauth2.googleapis.com/revoke?token=${user.token}`, {
                 method: 'POST',
-                headers: { 'Content-type': 'application/x-www-form-urlencoded' },
-            }).finally(() => setUser(null));
+                headers: {
+                    'Content-type': 'application/x-www-form-urlencoded',
+                },
+            }).finally(() => {
+                setUser(null);
+                initGSI();
+            });
         } else {
             setUser(null);
+            initGSI();
         }
     }
 
@@ -89,23 +134,38 @@ export default function LoginPage() {
 
     return (
         <div className="login-container">
+            {/* Header */}
             <header className="login-header">
-                <img src="/Logo.png" alt="Cóc Mua Xe Logo" className="logo" />
+                <img src={Logo} alt="Logo" className="logo" />
                 <h1>Cóc Mua Xe</h1>
                 <h2>Sign in</h2>
             </header>
-            <div className="login-content">
-                <div className="login-left">
-                    <div className="vinfast-banner">
-                        <img src="/vinfast-banner.jpg" alt="VinFast Banner" />
 
+            {/* Nội dung chính: banner + form */}
+            <div className="main-content">
+                {/* Banner bên trái */}
+                <div className="banner-container">
+                    <div className="relative w-full h-full">
+                        {slides.map((slide, index) => (
+                            <div
+                                key={slide.id}
+                                className={`banner-slide ${index === currentSlide ? 'active' : ''}`}
+                            >
+                                <img src={slide.image} alt={slide.alt} />
+
+                            </div>
+                        ))}
                     </div>
                 </div>
+
+
+                {/* Form login bên phải */}
                 <div className="login-right">
                     <div className="login-box">
                         {!user ? (
                             <>
                                 <form onSubmit={handleSubmit}>
+                                    <p className='header-login'>Sign In</p>
                                     <input
                                         type="text"
                                         placeholder="Phone number / Username / Email"
@@ -120,17 +180,26 @@ export default function LoginPage() {
                                         onChange={(e) => setPassword(e.target.value)}
                                         className="login-input"
                                     />
-                                    <button type="submit" className="login-btn">LOG IN</button>
+                                    <button type="submit" className="login-btn">
+                                        SIGN IN
+                                    </button>
                                 </form>
-                                <a href="#" className="forgot-password">Forgot Password</a>
+
+                                <a href="#" className="forgot-password">
+                                    Forgot Password
+                                </a>
+
                                 <div className="divider">
                                     <span>OR</span>
                                 </div>
+
                                 <div className="social-login">
-                                    <button className="facebook-btn">Facebook</button>
                                     <div ref={googleButtonRef} />
                                 </div>
-                                <p className="signup-link">Are you new? <a href="#">Create an account</a></p>
+
+                                <p className="signup-link">
+                                    Are you new? <a href="#">Create an account</a>
+                                </p>
                             </>
                         ) : (
                             <div className="user-info">
@@ -139,7 +208,9 @@ export default function LoginPage() {
                                     <strong>{user.name}</strong>
                                     <p>{user.email}</p>
                                 </div>
-                                <button onClick={signOut} className="logout-btn">Sign out</button>
+                                <button onClick={signOut} className="logout-btn">
+                                    Sign out
+                                </button>
                             </div>
                         )}
                     </div>
