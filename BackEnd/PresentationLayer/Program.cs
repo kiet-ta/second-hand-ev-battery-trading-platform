@@ -1,4 +1,6 @@
 
+using Net.payOS;
+
 namespace PresentationLayer
 {
     public class Program
@@ -10,6 +12,18 @@ namespace PresentationLayer
             // Add services to the container.
 
             builder.Services.AddControllers();
+            
+            // register PayOS via DI (Dependency Injection)
+            var payosConfig = builder.Configuration.GetSection("PayOS");
+
+            builder.Services.AddSingleton(sp =>
+            {
+                var clientId = payosConfig["ClientId"];
+                var apiKey = payosConfig["ApiKey"];
+                var checksumKey = payosConfig["ChecksumKey"];
+                return new PayOS(clientId, apiKey, checksumKey);
+            });
+
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
