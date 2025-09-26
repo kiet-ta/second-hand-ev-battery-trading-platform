@@ -16,7 +16,7 @@ function CardComponent({title, price, sales, image}) {
             />
         </div>
         <div class="flex justify-around content-center mt-3" >
-          <div class="w-32 h-12 text-left content-center flex-none font-semibold text-black overflow-hidden" style={{display: 'block', wordBreak: 'break-word'}}>{title}</div>
+          <div class="text-1xl w-32 h-12 text-left content-center flex-none font-semibold text-black overflow-hidden" style={{display: 'block', wordBreak: 'break-word'}}>{title}</div>
           <div class="w-1/4 flex justify-center items-center">
             <button type="button" class="bg-maincolor px-2 py-1 text-sm rounded-full flex items-center justify-center  text-white"><FiShoppingCart className="mr-1"/>Buy</button>
           </div>
