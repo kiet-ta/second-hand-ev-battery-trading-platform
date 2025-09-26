@@ -1,0 +1,15 @@
+{
+  "ExpandedNodes": [
+    "",
+    "\\BackEnd",
+    "\\BackEnd\\ApplicationLayer",
+    "\\BackEnd\\ApplicationLayer\\IServices",
+    "\\BackEnd\\ApplicationLayer\\Services",
+    "\\BackEnd\\Domain",
+    "\\BackEnd\\Domain\\DTO",
+    "\\BackEnd\\PresentationLayer",
+    "\\BackEnd\\PresentationLayer\\Properties",
+    "\\CSharpDbProject"
+  ],
+  "PreviewInSolutionExplorer": false
+}
