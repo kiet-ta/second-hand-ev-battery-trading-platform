@@ -1,11 +1,7 @@
 import { useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
-export default function Carousel({
-  images,
-  height = "h-64 sm:h-72 md:h-80 lg:h-96", // responsive height
-  width = "w-full max-w-3xl",               // responsive width
-}) {
+export default function Carousel({ images }) {
   const [current, setCurrent] = useState(0);
 
   const prevSlide = () => {
@@ -17,30 +13,27 @@ export default function Carousel({
   };
 
   return (
-    <div className={`${width} mx-auto`}>
-      {/* Main image + arrows */}
-      <div
-        className={`flex items-center justify-between ${height} bg-black/5 rounded-xl shadow-lg`}
-      >
+    <div className="w-full max-w-3xl mx-auto">
+      {/* Main Image */}
+      <div className="relative">
+        <img
+          src={images[current]}
+          alt={`slide-${current}`}
+          className="w-full h-96 object-cover rounded-xl shadow-lg"
+        />
+
         {/* Prev button */}
         <button
           onClick={prevSlide}
-          className="bg-black/40 text-white p-2 rounded-full hover:bg-black/60 ml-2"
+          className="absolute top-1/2 left-3 -translate-y-1/2 bg-black/40 text-white p-2 rounded-full hover:bg-black/60"
         >
           <ChevronLeft className="w-5 h-5" />
         </button>
 
-        {/* Main image */}
-        <img
-          src={images[current]}
-          alt={`slide-${current}`}
-          className="flex-1 h-full object-cover overflow-x-hidden mx-2 rounded-lg"
-        />
-
         {/* Next button */}
         <button
           onClick={nextSlide}
-          className="bg-black/40 text-white p-2 rounded-full hover:bg-black/60 mr-2"
+          className="absolute top-1/2 right-3 -translate-y-1/2 bg-black/40 text-white p-2 rounded-full hover:bg-black/60"
         >
           <ChevronRight className="w-5 h-5" />
         </button>
