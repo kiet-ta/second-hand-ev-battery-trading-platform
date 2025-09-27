@@ -24,13 +24,15 @@ public class PayOSController : ControllerBase
         string returnUrl = request.ReturnUrl;
         string cancelUrl = request.CancelUrl;
 
+        var domain = "http://localhost:5173/";
+
         var paymentData = new PaymentData(
            orderCode: orderCode,
            amount: amount,
            description: description,
            items: items,
-           cancelUrl: cancelUrl,
-           returnUrl: returnUrl
+           cancelUrl: domain + "payment/fail",
+           returnUrl: domain + "payment/success"
        );
 
         var result = await _payOS.createPaymentLink(paymentData);
