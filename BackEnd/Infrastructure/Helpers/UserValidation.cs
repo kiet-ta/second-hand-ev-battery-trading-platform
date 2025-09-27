@@ -26,7 +26,7 @@ namespace Helper
             RegexOptions.Compiled | RegexOptions.IgnoreCase
         );
 
-        public  bool IsValidEmail(string email)
+        public bool IsValidEmail(string email)
         {
             if (string.IsNullOrWhiteSpace(email))
                 return false;
@@ -47,15 +47,15 @@ namespace Helper
         }
 
         // Name validation
-        public  bool IsValidString(string input) =>
+        public bool IsValidString(string input) =>
             !string.IsNullOrWhiteSpace(input) && NameRegex.IsMatch(input);
 
         // Phone validation
-        public  bool IsValidVNPhone(string phone) =>
+        public bool IsValidVNPhone(string phone) =>
             !string.IsNullOrWhiteSpace(phone) && VNPhoneRegex.IsMatch(phone);
 
-        // Strong password: ≥8 chars, có hoa, thường, số, ký tự đặc biệt 
-           public bool IsStrongPassword(string password)
+        // Strong password: ≥8 chars, 1 uppercase, lowercase, số, ký tự đặc biệt 
+        public bool IsStrongPassword(string password)
         {
             if (string.IsNullOrWhiteSpace(password) || password.Length < 8)
                 return false;
@@ -78,41 +78,13 @@ namespace Helper
 
         // Check unique email/phone
         public async Task<bool> IsEmailUniqueAsync(string email, DbContext db) =>
-            !await db.Set<ExternalUser>().AnyAsync(u => u.Email == email);
+            !await db.Set<User>().AnyAsync(u => u.Email == email);
 
         public async Task<bool> IsPhoneUniqueAsync(string phone, DbContext db) =>
-            !await db.Set<ExternalUser>().AnyAsync(u => u.Phone == phone);
+            !await db.Set<User>().AnyAsync(u => u.Phone == phone);
     }
 
-    public  class PasswordHelper : IPasswordHelper
-    {
-        public string HashPassword(string password)
-        {
-            byte[] salt = RandomNumberGenerator.GetBytes(16);
-            var pbkdf2 = new Rfc2898DeriveBytes(password, salt, 100000, HashAlgorithmName.SHA256);
-            byte[] hash = pbkdf2.GetBytes(32);
-
-            byte[] hashBytes = new byte[salt.Length + hash.Length];
-            Buffer.BlockCopy(salt, 0, hashBytes, 0, salt.Length);
-            Buffer.BlockCopy(hash, 0, hashBytes, salt.Length, hash.Length);
-
-            return Convert.ToBase64String(hashBytes);
-        }
-
-        public  bool VerifyPassword(string password, string storedHash)
-        {
-            byte[] hashBytes = Convert.FromBase64String(storedHash);
-
-            byte[] salt = new byte[16];
-            Buffer.BlockCopy(hashBytes, 0, salt, 0, 16);
-
-            byte[] storedSubHash = new byte[32];
-            Buffer.BlockCopy(hashBytes, 16, storedSubHash, 0, 32);
-
-            var pbkdf2 = new Rfc2898DeriveBytes(password, salt, 100000, HashAlgorithmName.SHA256);
-            byte[] newHash = pbkdf2.GetBytes(32);
-
-            return CryptographicOperations.FixedTimeEquals(storedSubHash, newHash);
-        }
-    }
+    
 }
+
+

@@ -9,16 +9,11 @@ namespace Application.IRepositories
 {
     public interface IUserRepository
     {
-        // Define repository methods here
-        Task<ExternalUser?> GetUserByEmailAsync(string email);
-        Task<ExternalUser?> GetUserByPhoneAsync(string phone);
-        Task<ExternalUser?> GetUserDtoByIdAsync(int userId);
-        Task<bool> UpdateUserDirectAsync(int id, ExternalUser userData);
-
-        Task<bool> AdminUpdateDirectAsync(int id, ExternalUser userData);
-        Task<List<ExternalUser>> GetUsersAsync();
-        Task<bool> DeleteUserDirectAsync(int userId);
-         IQueryable<ExternalUser> GetAllUsersQueryable();
-
+        Task<IEnumerable<User>> GetAllAsync();
+        Task<User?> GetByIdAsync(int id);
+        Task<User?> GetByEmailAsync(string email);
+        Task AddAsync(User user);
+        Task UpdateAsync(User user);
+        Task DeleteAsync(int id); 
     }
 }

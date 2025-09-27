@@ -1,25 +1,19 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using Domain.DTO;
+using Domain.DTOs;
 using Domain.Entities;
 
 namespace Services
 {
     public interface IUserService
     {
-        // Update thông tin user thường
-        Task<bool> UpdateUserAsync(int id, UpdateUserDTO dto);
+        Task<IEnumerable<User>> GetAllUsersAsync();
+        Task<User?> GetUserByIdAsync(int id);
+        Task<User?> GetUserByEmailAsync(string email);
+        Task AddUserAsync(User user);
+        Task UpdateUserAsync(User user);
+        Task DeleteUserAsync(int id); 
 
-        // Get users có cache, paging
-        Task<List<ExternalUser>> GetUsersWithCacheAsync(UserFilterParams filter, int limit, int offset);
 
-        // Delete user và clear cache
-        Task<bool> DeleteUserAsync(int id);
-
-        // Admin update user (role/status)
-        Task<bool> AdminUpdateUser(int id, AdminUpdateStatusDTO userData);
-
-        // Get users bình thường, paging
-        Task<List<ExternalUser>> GetUsersAsync(UserFilterParams filter, int limit , int offset );
     }
 }
