@@ -19,20 +19,20 @@ namespace Infrastructure.Repositories
         public async Task<IEnumerable<User>> GetAllAsync()
         {
             return await _context.Users
-                .Where(u => !u.IsDeleted)
+                .Where(u => !(u.IsDeleted == true))
                 .ToListAsync();
         }
 
         public async Task<User?> GetByIdAsync(int id)
         {
             return await _context.Users
-                .FirstOrDefaultAsync(u => u.UserId == id && !u.IsDeleted);
+                .FirstOrDefaultAsync(u => u.UserId == id && !(u.IsDeleted == true));
         }
 
         public async Task<User?> GetByEmailAsync(string email)
         {
             return await _context.Users
-                .FirstOrDefaultAsync(u => u.Email == email && !u.IsDeleted);
+                .FirstOrDefaultAsync(u => u.Email == email && !(u.IsDeleted == true));
         }
 
         public async Task AddAsync(User user)

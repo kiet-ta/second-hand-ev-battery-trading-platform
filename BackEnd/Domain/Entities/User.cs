@@ -61,6 +61,6 @@ public class User
     public DateTime UpdatedAt { get; set; } = DateTime.Now;
 
     [Column("is_deleted")]
-    public bool IsDeleted { get; set; } = false;
+    public bool? IsDeleted { get; set; } 
 }
 
