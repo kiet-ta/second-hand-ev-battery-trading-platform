@@ -4,9 +4,7 @@
   padding: 2rem;
   text-align: center;
 }
-html, body, #root {
-  overflow-x: hidden;
-}
+
 
 .logo {
   height: 6em;

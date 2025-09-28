@@ -5,6 +5,7 @@ import { RiAuctionFill } from "react-icons/ri";
 import { MdOutlineAttachMoney } from "react-icons/md";
 import Logo from '../Logo/Logo';
 import ProfileDropDown from '../ProfileDropDown';
+import { FaShoppingCart } from "react-icons/fa";
 
 
 function Navbar() {
@@ -64,9 +65,16 @@ localStorage.setItem('userprofile', JSON.stringify(user));
         <div className="w-full flex justify-around h-20">
           <Logo className="absolute bottom-0 left-0" />
           <div className="ml-10 w-1/2 content-center align-middle  ">
-            <input type="text" placeholder="Search..." className="p-2 rounded w-full bg-amber-50 text-d" />
+            <form action='/search' method='GET'>
+              <input type="text" name="query" placeholder="Search..." className="w-full p-2 rounded-lg text-black bg-white" />
+              <button type="submit" className="hidden">Search</button>
+            </form>
           </div>
-          <div className="w-1/5 flex justify-end align-middle content-center">
+          <div className="mt-10 w-1/5 flex justify-end items-center content-center gap-4">
+                        <Link to={'/cart'} className="mx-4 hover:text-green-300 flex items-center">
+                {<FaShoppingCart/>}
+                <span className="ml-2">Cart</span>
+              </Link>
           </div>
         </div>
       </div>

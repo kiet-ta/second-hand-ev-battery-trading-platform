@@ -19,7 +19,7 @@ export default function Carousel({ images }) {
         <img
           src={images[current]}
           alt={`slide-${current}`}
-          className="w-full h-96 object-cover rounded-xl shadow-lg"
+          className="w-full h-96 object-contain rounded-xl shadow-lg"
         />
 
         {/* Prev button */}

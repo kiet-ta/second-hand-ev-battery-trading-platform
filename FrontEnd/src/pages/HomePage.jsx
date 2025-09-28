@@ -14,9 +14,9 @@ function HomePage() {
             <div className="row-span-3 w-70 h-50 content-center"><img src="https://i.pinimg.com/1200x/73/9d/61/739d6130ed4b7c1abf45a429d1e83b0b.jpg" /></div>
           </div>
           <div className="Products flex w-2/4 justify-center content-center self-center gap-4 p-4 m-0 ">
-            <CardComponent title="Furina" price={100} sales={0} image={"https://i.pinimg.com/1200x/55/53/06/55530643312e136a9fa2a576d6fcfbd0.jpg"} />
-            <CardComponent title="Sleepy Furina" price={1000} sales={0.3} image={"https://i.pinimg.com/736x/b6/96/16/b6961611f87b3433707d937b3f4871b1.jpg"} />
-            <CardComponent title="Very cute Furina Picture" price={100000} sales={0.5} image={""} />
+            <CardComponent title="Furina" type={'vehicle'} price={100} sales={0} image={"https://i.pinimg.com/1200x/55/53/06/55530643312e136a9fa2a576d6fcfbd0.jpg"} />
+            <CardComponent title="Sleepy Furina" type={'vehicle'} price={1000} sales={0.3} image={"https://i.pinimg.com/736x/b6/96/16/b6961611f87b3433707d937b3f4871b1.jpg"} />
+            <CardComponent title="Very cute Furina Picture" type={'battery'} price={100000} sales={0.5} image={""} />
           </div>
         </div> 
         <div className="Banner">

@@ -1,6 +1,7 @@
-import {useState } from 'react'
+import {useEffect, useState } from 'react'
 import Carousel from '../components/Carousel'
-
+import { InputNumber } from 'antd'
+import { FiShoppingCart } from 'react-icons/fi'
 
 const images = [
   "https://i.pinimg.com/1200x/55/53/06/55530643312e136a9fa2a576d6fcfbd0.jpg",
@@ -12,17 +13,17 @@ const images = [
   "https://i.pinimg.com/736x/d7/97/c6/d797c643ecef1b670452bd52079f5ad3.jpg",
   "https://i.pinimg.com/736x/8d/78/fd/8d78fda3aef2a2db7d21a59909ebb1a9.jpg"
 ]
-
 const commenter = [
   { name: "Nguyen Van A", picture: "https://i.pinimg.com/736x/5b/3f/09/5b3f09d67f448e39dab9e8d8f3cc3f94.jpg", comment: "Very good product, I love it so much", rating: 5, time: "2023-10-01 10:00", imagefollow: ["https://i.pinimg.com/1200x/55/53/06/55530643312e136a9fa2a576d6fcfbd0.jpg", "https://i.pinimg.com/736x/b6/96/16/b6961611f87b3433707d937b3f4871b1.jpg"] },
   { name: "Tran Thi B", picture: "https://i.pinimg.com/736x/b6/10/ae/b610ae5879e2916e1bb7c4c161754f4d.jpg", comment: "Not bad, but could be better", rating: 3, time: "2023-10-02 12:30", imagefollow: ["https://i.pinimg.com/1200x/e9/22/29/e9222949753e671a7e8f7c09725ebed0.jpg"] },
   { name: "Le Van C", picture: "https://i.pinimg.com/736x/ae/5d/4f/ae5d4f0a3f4e8b9c8e4e4e4e4e4e4e4e.jpg", comment: "I had some issues with the delivery", rating: 2, time: "2023-10-03 14:45", imagefollow: [] }
 ]
-const phone = "0312345678";
-const hiddenphone = "Show phone " + phone.slice(0, -4) + "****";
-function EVDetails() {
-  const [isPhoneVisible, setIsPhoneVisible] = useState(false);
 
+function BatteryDetails() {
+  const [quantity, setQuantity] = useState(1);
+  const onChange = value => {
+  setQuantity(value);
+};
   return (
     <div className="w-full">
       <div className="grid grid-cols-4 gap-4 p-4 mt-2 w-full">
@@ -56,8 +57,8 @@ function EVDetails() {
         </div>
         <div className="col-span-2">
           <div className="product-info bg-white rounded-2xl p-4 h-2/3">
-            <div className="title h-1/8 text-3xl  text-left content-center flex-none font-semibold text-black overflow-hidden whitespace-pre-wrap" style={{ display: 'block', wordBreak: 'break-word' }}>
-              Text Very Longggggggggggggggggggggggggggggggggggggggggggggggggg
+            <div className="title h-1/9 text-3xl  text-left content-center flex-none font-semibold text-black overflow-hidden whitespace-pre-wrap" style={{ display: 'block', wordBreak: 'break-word' }}>
+              Text Very Longggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggg
             </div>
             <div className="product-general-info flex h-1/10 text-left mt-2 text-1xl text-gray-500">
               <div>1910 |</div><div>| 20000 km</div>
@@ -66,13 +67,22 @@ function EVDetails() {
               <div className='ml-4 text-2xl font-bold text-red-500 content-center' >1000$</div>
               <div className="ml-5 text-2xl text-gray-300 line-through content-center">100000$</div>
             </div>
+            <div className='flex h-1/10 text-left mt-2 text-1xl text-gray-500 gap-4 items-center'>
+              <div className=''>Quantity:</div>
+              <InputNumber min={1} max={100} defaultValue={1} onChange={onChange}/>
+            <div>
+            </div>
+            </div>
             <div className="phone-number flex gap-4 h-1/10 mt-4">
               <div className="bg-gray-200 w-1/4 rounded-2xl font-bold text-1xl content-center ">Chat</div>
-              <div className="bg-gray-200 w-2/4 rounded-2xl font-bold text-1xl content-center">
-                <button onClick={() => setIsPhoneVisible(!isPhoneVisible)}>
-                  <span>{isPhoneVisible ? phone : hiddenphone}</span>
-                </button>
-              </div>
+            <button
+              type="button"
+              className="bg-maincolor w-1/4 px-2 py-1 text-2xl rounded-full flex items-center justify-center text-white"
+              onClick={() => console.log(quantity)}
+              >
+              <FiShoppingCart className="mr-1" />
+              Buy
+            </button>
             </div>
             <div className="seller-profile h-3/10 mt-10 flex justify-around content-center items-center border-t-2 border-gray-200 pt-4 ">
               <div className="left w-1/2 h-full object-fit flex items-center">
@@ -148,4 +158,4 @@ function EVDetails() {
   )
 }
 
-export default EVDetails
+export default BatteryDetails
