@@ -148,7 +148,7 @@ export default function LoginPage() {
             </header>
 
             {/* Nội dung chính: banner + form */}
-            <div className="main-content">
+            <div className="login-main">
                 {/* Banner bên trái */}
                 <div className="banner-container">
                     <div className="relative w-full h-full">

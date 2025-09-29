@@ -33,7 +33,7 @@
 }
 
 /* Nội dung chính: banner + form */
-.main-content {
+.login-main {
     display: flex;
     flex: 1;
     height: 100%;
