@@ -12,7 +12,7 @@ function Navbar() {
   const leftmenu = [
     { name: 'Home', link: '/', icon: <IoMdHome /> },
     { name: 'Auction', link: '/auctions', icon: <RiAuctionFill /> },
-    { name: 'Seller', link: '/about', icon: <MdOutlineAttachMoney /> }
+    { name: 'Seller', link: '/seller', icon: <MdOutlineAttachMoney /> }
   ]
   const rightmenu = [
     { name: 'Notification', link: '/notification', icon: <IoMdHome /> },
