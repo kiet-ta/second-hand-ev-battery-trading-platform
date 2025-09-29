@@ -1,0 +1,18 @@
+﻿using Application.DTOs;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Application.IServices
+{
+    public interface IItemService
+    {
+        Task<ItemDto?> GetByIdAsync(int id);
+        Task<IEnumerable<ItemDto>> GetAllAsync();
+        Task<ItemDto> CreateAsync(ItemDto dto);
+        Task<bool> UpdateAsync(int id, ItemDto dto);
+        Task<bool> DeleteAsync(int id);
+    }
+}
