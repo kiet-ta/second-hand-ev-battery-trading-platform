@@ -7,6 +7,8 @@ import BatteryDetails from '../pages/BatteryDetails';
 import SearchPage from '../pages/SearchPage';
 import CartPage from '../pages/CartPage';
 import CheckoutPage from '../pages/CheckoutPage';
+import SellerLayout from '../layout/SellerLayout';
+import MyProduct from '../pages/seller/MyProduct';
 
 export const router = createBrowserRouter([
     {
@@ -41,4 +43,14 @@ export const router = createBrowserRouter([
         
         ],
     },
+    {
+        path: "/seller",
+        element: <SellerLayout/>,
+        children:[
+            {
+                path: "products",
+                element: <MyProduct/>
+            }
+        ]
+    }
 ]);
