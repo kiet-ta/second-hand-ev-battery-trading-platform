@@ -32,6 +32,12 @@ namespace PresentationLayer.Controllers
 
             var uploadResult = await _cloudinary.UploadAsync(uploadParams);
 
+            //if (uploadResult == null || uploadResult.SecureUrl == null)
+            //    return BadRequest("Cannot upload image. Please check file and Cloudinary settings.");
+
+            if (uploadResult.Error != null)
+                return BadRequest($"Cloudinary error: {uploadResult.Error.Message}");
+
             return Ok(new
             {
                 Url = uploadResult.SecureUrl.ToString(),
