@@ -4,9 +4,9 @@ import { FiShoppingCart } from "react-icons/fi";
 import { Link } from 'react-router-dom';
 const { Meta } = Card;
 
-function CardComponent({ title, price, sales, image, type}) {
+function CardComponent({ title, price, sales, image, type, id}) {
   return (
-    <Link to={'/' + type + '/1'}>
+    <Link to={'/' + type + '/' + id} state={id}>
       <div className="border-gray-100 border-3 p-2 m-0 w-64 h-80 hover:border-maincolor hover:mt-1 bg-white rounded-lg shadow flex flex-col">
         <div className="overflow-hidden h-40 w-40 mx-auto bg-gray-400 flex items-center justify-center">
           <img

@@ -7,6 +7,8 @@ import BatteryDetails from '../pages/BatteryDetails';
 import SearchPage from '../pages/SearchPage';
 import CartPage from '../pages/CartPage';
 import CheckoutPage from '../pages/CheckoutPage';
+import LoginPage from '../pages/LoginPage';
+import RegisterPage from '../pages/RegisterPage';
 
 export const router = createBrowserRouter([
     {
@@ -19,7 +21,7 @@ export const router = createBrowserRouter([
                 index:true,
             },
             {
-                path: "/vehicle/:id",
+                path: "/ev/:id",
                 element: <EVDetails/>
             },
             {
@@ -37,8 +39,15 @@ export const router = createBrowserRouter([
             {
                 path: "/checkout",
                 element: <CheckoutPage/>
-            }
-        
-        ],
+            }   
+        ]
     },
+    {
+        path: "/login",
+        element: <LoginPage/>
+    },
+    {
+        path: "/register",
+        element: <RegisterPage/>
+    }
 ]);

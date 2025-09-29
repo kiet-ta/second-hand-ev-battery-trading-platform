@@ -1,9 +1,27 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import MainLayout from '../layout/MainLayout'
 import Navbar from '../components/Navbar/Navbar';
 import CardComponent from '../components/Cards/Card';
 import '../styles/HomePage.css'
+import itemApi from '../api/itemApi';
 function HomePage() {
+  const [itemList, setItemList] = useState([]);
+
+  useEffect(() => {
+    const fetchItems = async () => {
+    try {
+      const data = await itemApi.getItem();
+      console.log(data);
+      setItemList(data);
+    } catch (error) {
+      console.error("Error fetching items", error);
+    }};
+    fetchItems();
+  }, []);
+
+  const first_sale = itemList.slice(0, 3);
+  const second_sale = itemList.slice(1, 5);
+  const third_sale = itemList.slice(3, 7);
   return (
     <>
       <div className="HomePage w-full m-0 p-0 bg-amber-100y overflow-x-hidden">
@@ -14,26 +32,54 @@ function HomePage() {
             <div className="row-span-3 w-70 h-50 content-center"><img src="https://i.pinimg.com/1200x/73/9d/61/739d6130ed4b7c1abf45a429d1e83b0b.jpg" /></div>
           </div>
           <div className="Products flex w-2/4 justify-center content-center self-center gap-4 p-4 m-0 ">
-            <CardComponent title="Furina" type={'vehicle'} price={100} sales={0} image={"https://i.pinimg.com/1200x/55/53/06/55530643312e136a9fa2a576d6fcfbd0.jpg"} />
-            <CardComponent title="Sleepy Furina" type={'vehicle'} price={1000} sales={0.3} image={"https://i.pinimg.com/736x/b6/96/16/b6961611f87b3433707d937b3f4871b1.jpg"} />
-            <CardComponent title="Very cute Furina Picture" type={'battery'} price={100000} sales={0.5} image={""} />
+            {first_sale.map((item) => (
+                <CardComponent title={item.title} 
+                type={item.itemType} 
+                price={item.price} 
+                sales={0} 
+                image={"https://i.pinimg.com/1200x/55/53/06/55530643312e136a9fa2a576d6fcfbd0.jpg"} 
+                id={item.itemId} 
+                />
+              ))}
           </div>
-        </div> 
+        </div>
         <div className="Banner">
-          <img src="https://images4.alphacoders.com/136/thumb-1920-1360814.png" 
-          className="h-40 w-full object-cover object-[40%_25%]"/>
+          <img src="https://images4.alphacoders.com/136/thumb-1920-1360814.png"
+            className="h-40 w-full object-cover object-[40%_25%]" />
         </div>
         <div className="Car bg-white mt-2 w-full">
-          <div>
-            Car
+          <div className="text-left text-2xl m-4 p-4 font-bold border-b-1">
+            Electric Vehicle
           </div>
           <div className="Products flex justify-center content-center self-center gap-4 p-4 m-0 ">
-            <CardComponent />
-            <CardComponent />
-            <CardComponent />
-            <CardComponent />
+            {second_sale.map((item) => (
+                <CardComponent title={item.title} 
+                type={item.itemType} 
+                price={item.price} 
+                sales={0} 
+                image={"https://i.pinimg.com/1200x/55/53/06/55530643312e136a9fa2a576d6fcfbd0.jpg"} 
+                id={item.itemId} 
+                />
+              ))}
           </div>
         </div>
+                <div className="Car bg-white mt-2 w-full">
+          <div className="text-left text-2xl m-4 p-4 font-bold border-b-1">
+            Battery
+          </div>
+          <div className="Products flex justify-center content-center self-center gap-4 p-4 m-0 ">
+            {third_sale.map((item) => (
+                <CardComponent title={item.title} 
+                type={item.itemType} 
+                price={item.price} 
+                sales={0} 
+                image={"https://i.pinimg.com/1200x/55/53/06/55530643312e136a9fa2a576d6fcfbd0.jpg"} 
+                id={item.itemId} 
+                />
+              ))}
+          </div>
+        </div>
+
 
       </div>
 
