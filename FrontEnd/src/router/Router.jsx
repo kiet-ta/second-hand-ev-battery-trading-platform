@@ -9,45 +9,56 @@ import CartPage from '../pages/CartPage';
 import CheckoutPage from '../pages/CheckoutPage';
 import LoginPage from '../pages/LoginPage';
 import RegisterPage from '../pages/RegisterPage';
+import ProfileContent from '../pages/ProfileContent';
+import UserManagementSystem from '../pages/UserManagementSystem';
 
 export const router = createBrowserRouter([
     {
         path: "/",
-        element: <MainLayout/>,
+        element: <MainLayout />,
         children: [
             {
                 path: "/",
-                element: <HomePage/>,
-                index:true,
+                element: <HomePage />,
+                index: true,
             },
             {
                 path: "/ev/:id",
-                element: <EVDetails/>
+                element: <EVDetails />
             },
             {
                 path: "/battery/:id",
-                element: <BatteryDetails/>
+                element: <BatteryDetails />
             },
             {
                 path: "/search",
-                element: <SearchPage/>
+                element: <SearchPage />
             },
             {
                 path: "/cart",
-                element: <CartPage/>
+                element: <CartPage />
             },
             {
                 path: "/checkout",
-                element: <CheckoutPage/>
-            }   
+                element: <CheckoutPage />
+            }
         ]
     },
     {
         path: "/login",
-        element: <LoginPage/>
+        element: <LoginPage />
     },
     {
         path: "/register",
-        element: <RegisterPage/>
+        element: <RegisterPage />
+    },
+    {
+        path: "/profile",
+        element: <ProfileContent />
+    },
+    {
+        path: "/manage",
+        element: <UserManagementSystem />
     }
+
 ]);

@@ -6,6 +6,7 @@ import banner1 from '../assets/images/banner1.png';
 import banner2 from '../assets/images/banner2.png';
 import banner3 from '../assets/images/banner3.png';
 import { Link } from 'react-router-dom';
+import { Popover } from 'antd';
 
 export default function LoginPage() {
     const clientId =
@@ -107,18 +108,52 @@ export default function LoginPage() {
     const handleLocalLogin = (e) => {
         e.preventDefault();
 
+        // Reset lỗi mỗi lần submit
+        setError("");
+
+        // 1. Trim dữ liệu để tránh khoảng trắng thừa
+        const trimmedUsername = username.trim();
+        const trimmedPassword = password.trim();
+
+        // 2. Check rỗng
+        if (!trimmedUsername) {
+            setError("Please enter username or email.");
+            return;
+        }
+
+        if (!trimmedPassword) {
+            setError("Please enter password.");
+            return;
+        }
+
+        // 3. Nếu username là email -> kiểm tra định dạng email
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        const isEmail = emailRegex.test(trimmedUsername);
+
+        if (trimmedUsername.includes("@") && !isEmail) {
+            setError("Invalid email.");
+            return;
+        }
+
+        // 4. Check độ dài password
+        if (trimmedPassword.length < 6) {
+            setError("Password must be at least 6 characters.");
+            return;
+        }
+
+        // 5. So khớp với user giả định
         if (
-            (username === fakeUser.email || username === fakeUser.name) &&
-            password === fakeUser.password
+            (trimmedUsername === fakeUser.email || trimmedUsername === fakeUser.name) &&
+            trimmedPassword === fakeUser.password
         ) {
             localStorage.setItem("user", JSON.stringify(fakeUser));
             setUser(fakeUser);
-            console.log(fakeUser);
-            alert("Đăng nhập thành công!");
+            alert("Login successful!");
         } else {
-            setError("Wrong!");
+            setError("Incorrect login information.");
         }
     };
+
 
     function signOut() {
         if (user?.token) {
@@ -184,12 +219,20 @@ export default function LoginPage() {
                                         onChange={(e) => setPassword(e.target.value)}
                                         className="login-input"
                                     />
-                                    <button type="submit" className="login-btn">
-                                        SIGN IN
-                                    </button>
-                                </form>
+                                    <Popover
+                                        content={error}
+                                        trigger="click"
+                                        open={!!error}
+                                        onOpenChange={(visible) => {
+                                            if (!visible) setError("");
+                                        }}
+                                    >
+                                        <button type="submit" className="login-btn">
+                                            SIGN IN
+                                        </button>
+                                    </Popover>
 
-                                {error && <p style={{ color: "red" }}>{error}</p>}
+                                </form>
 
                                 <a href="#" className="forgot-password">
                                     Forgot Password
