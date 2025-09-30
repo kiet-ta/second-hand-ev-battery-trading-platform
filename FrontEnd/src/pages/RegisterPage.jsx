@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import Logo from '../assets/images/Logo.png';
+import Logo from '../assets/images/anhtao.png';
 import '../assets/styles/LoginPage.css'; // Create a CSS file for styling
 import banner1 from '../assets/images/banner1.png';
 import banner2 from '../assets/images/banner2.png';

@@ -1,4 +1,3 @@
-
 import HomePage from '../pages/HomePage'
 import { createBrowserRouter } from "react-router-dom";
 import MainLayout from '../layout/MainLayout';
@@ -11,6 +10,8 @@ import LoginPage from '../pages/LoginPage';
 import RegisterPage from '../pages/RegisterPage';
 import ProfileContent from '../pages/ProfileContent';
 import UserManagementSystem from '../pages/UserManagementSystem';
+import PaymentSuccessPage from '../pages/PaymentSuccessPage';
+import PaymentFailPage from '../pages/PaymentFailPage';
 
 export const router = createBrowserRouter([
     {
@@ -59,6 +60,13 @@ export const router = createBrowserRouter([
     {
         path: "/manage",
         element: <UserManagementSystem />
+    },
+    {
+        path: "/payment/success",
+        element: <PaymentSuccessPage/>,
+    },
+    {
+        path: "/payment/fail",
+        element: <PaymentFailPage/>,
     }
-
 ]);

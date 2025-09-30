@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import Logo from '../assets/images/Logo.png';
+import Logo from '../assets/images/anhtao.png';
 import { fakeUser } from "../fakeUser";
 import '../assets/styles/LoginPage.css';
 import banner1 from '../assets/images/banner1.png';
