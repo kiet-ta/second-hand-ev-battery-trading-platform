@@ -40,7 +40,7 @@ export default function DropdownForm() {
   }, [selectedDistrict]);
 
   return (
-    <form className="space-y-4 p-4 max-w-md mx-auto">
+    <div className="space-y-4 p-4 max-w-md mx-auto">
       {/* Province */}
       <div>
         <label className="block mb-1">Province</label>
@@ -95,6 +95,6 @@ export default function DropdownForm() {
           </select>
         </div>
       )}
-    </form>
+    </div>
   );
 }

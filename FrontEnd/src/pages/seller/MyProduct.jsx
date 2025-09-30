@@ -1,15 +1,16 @@
 import { PlusCircle } from "lucide-react";
 
+import AddProductForm from "../../components/AddProductForm";
+import { useState } from "react";
+import React from 'react'
+
 export default function MyProduct() {
   return (
     <div>
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold">My Shop</h1>
-        <button className="flex items-center bg-maincolor text-white px-4 py-2 rounded shadow">
-          <PlusCircle className="w-5 h-5 mr-2" />
-          Add New Product
-        </button>
+                <AddProductForm></AddProductForm>
       </div>
 
       {/* Product List Table */}
