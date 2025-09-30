@@ -1,7 +1,7 @@
-
 import { useState } from "react"
 import SettingsCard from "../components/SettingCard"
 import ProfileForm from "../components/ProfileForm"
+import AddressManagement from "../pages/AddressManagement"
 import "../assets/styles/ProfileContent.css"
 import anhtao from "../assets/images/anhtao.png"
 import Logo from "../assets/images/Logo.png"
@@ -20,26 +20,10 @@ const ProfileContent = () => {
     ]
 
     const settingsCards = [
-        {
-            id: "account",
-            title: "Account Setting",
-            description: "Details about your Personal information",
-        },
-        {
-            id: "notification",
-            title: "Notification",
-            description: "Details about your Personal information",
-        },
-        {
-            id: "address",
-            title: "Address",
-            description: "Details about your Address",
-        },
-        {
-            id: "security",
-            title: "Password & Security",
-            description: "Details about your Personal information",
-        },
+        { id: "account", title: "Account Setting", description: "Details about your Personal information" },
+        { id: "notification", title: "Notification", description: "Details about your Personal information" },
+        { id: "address", title: "Address", description: "Details about your Address" },
+        { id: "security", title: "Password & Security", description: "Details about your Personal information" },
     ]
 
     return (
@@ -86,11 +70,7 @@ const ProfileContent = () => {
                             🛒<span className="cart-badge">0</span>
                         </button>
                         <div className="user-profile">
-                            <img
-                                src={anhtao}
-                                alt="Profile"
-                                className="user-avatar"
-                            />
+                            <img src={anhtao} alt="Profile" className="user-avatar" />
                             <span className="user-name">Thanh Trung</span>
                             <button className="menu-btn">⋯</button>
                         </div>
@@ -111,7 +91,20 @@ const ProfileContent = () => {
                     </div>
 
                     <div className="profile-main">
-                        <ProfileForm />
+                        {activeCard === "account" && <ProfileForm />}
+                        {activeCard === "address" && <AddressManagement />}
+                        {activeCard === "notification" && (
+                            <div className="coming-soon">
+                                <h2>Notification Settings</h2>
+                                <p>Coming soon...</p>
+                            </div>
+                        )}
+                        {activeCard === "security" && (
+                            <div className="coming-soon">
+                                <h2>Password & Security</h2>
+                                <p>Coming soon...</p>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>
