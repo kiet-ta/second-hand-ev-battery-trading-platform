@@ -117,36 +117,31 @@ jobs:
 
   # ---------- Deploy Backend (Docker Hub) ----------
   deploy-backend:
-    name: Deploy Backend (Docker Hub)
-    runs-on: ubuntu-latest
     needs: [backend-build-test]
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    environment: production
-
+    runs-on: ubuntu-latest
     steps:
-    - name: Checkout Code
-      uses: actions/checkout@v4
+      - uses: actions/checkout@v3
 
-    - name: Log in to Docker Hub
-      uses: docker/login-action@v2
-      with:
-        username: ${{ env.DOCKERHUB_USERNAME }}
-        password: ${{ env.DOCKERHUB_TOKEN }}
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ env.DOCKERHUB_USERNAME }}
+          password: ${{ env.DOCKERHUB_TOKEN }}
 
-    - name: Build & Push Backend Docker Image
-      uses: docker/build-push-action@v4
-      with:
-        context: ./BackEnd
-        file: ./BackEnd/Dockerfile
-        push: true
-        tags: tak1stprogrammer/backend:latest
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v4
+        with:
+          context: ./BackEnd
+          file: ./BackEnd/Dockerfile
+          push: true
+          tags: tak1stprogrammer/backend:latest
 
-  # ---------- Cleanup Old Artifacts ----------
+# Cleanup old artifacts
   cleanup:
     name: Cleanup Old Artifacts
     runs-on: ubuntu-latest
     if: always()
-
+    
     steps:
     - name: Cleanup Old Artifacts
       uses: actions/github-script@v7
@@ -156,12 +151,17 @@ jobs:
             owner: context.repo.owner,
             repo: context.repo.repo,
           });
-
+          
           const oldArtifacts = artifacts.data.artifacts.filter(artifact => {
             const createdAt = new Date(artifact.created_at);
             const daysOld = (Date.now() - createdAt) / (1000 * 60 * 60 * 24);
-            return daysOld > 7;
+            return daysOld > 7; // Delete artifacts older than 7 days
           });
-
+          
           for (const artifact of oldArtifacts) {
             await github.rest.actions.deleteArtifact({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              artifact_id: artifact.id,
+            });
+          }
