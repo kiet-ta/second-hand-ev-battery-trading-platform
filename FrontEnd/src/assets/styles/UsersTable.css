@@ -1,0 +1,170 @@
+.users-table-wrapper {
+    background: #fff;
+    border-radius: 0.75rem;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+    overflow-x: auto;
+}
+
+.users-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.users-table th {
+    background: #f9fafb;
+    text-align: left;
+    padding: 0.75rem 1rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #374151;
+    text-transform: uppercase;
+}
+
+.users-table td {
+    padding: 0.75rem 1rem;
+    font-size: 0.9rem;
+    color: #111827;
+    border-top: 1px solid #f3f4f6;
+}
+
+.users-table tr:hover {
+    background: #f9fbff;
+}
+
+/* User info */
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 9999px;
+    background: linear-gradient(to bottom right, #3b82f6, #8b5cf6);
+    color: #fff;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Contact */
+.email {
+    font-weight: 500;
+    color: #1f2937;
+}
+
+.phone {
+    color: #6b7280;
+    font-size: 0.8rem;
+}
+
+/* Role */
+.role-badge {
+    padding: 0.25rem 0.5rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    display: inline-block;
+}
+
+.role-badge.seller {
+    background: #f3e8ff;
+    color: #6b21a8;
+}
+
+.role-badge.buyer {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+/* Status */
+.status-badge {
+    padding: 0.25rem 0.5rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    display: inline-block;
+}
+
+.status-badge.active {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.status-badge.inactive {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+/* Cars posted */
+.cars-posted {
+    background: #f3f4f6;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-weight: 600;
+}
+
+/* Actions */
+.actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+}
+
+.action-btn {
+    padding: 0.4rem;
+    border-radius: 0.5rem;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.action-btn.view {
+    color: #2563eb;
+}
+
+.action-btn.view:hover {
+    background: #dbeafe;
+}
+
+.action-btn.edit {
+    color: #d97706;
+}
+
+.action-btn.edit:hover {
+    background: #fef3c7;
+}
+
+.action-btn.delete {
+    color: #dc2626;
+}
+
+.action-btn.delete:hover {
+    background: #fee2e2;
+}
+
+/* Empty state */
+.users-table-empty {
+    background: #fff;
+    border-radius: 0.75rem;
+    padding: 3rem;
+    text-align: center;
+    color: #6b7280;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+.empty-box {
+    width: 60px;
+    height: 60px;
+    background: #f3f4f6;
+    border-radius: 9999px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem;
+    font-size: 1.5rem;
+}
