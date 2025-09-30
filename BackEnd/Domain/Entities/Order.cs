@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Infrastructure.Data;
+namespace Domain.Entities;
 
-public partial class Order
+public class Order
 {
     public int OrderId { get; set; }
 
@@ -17,11 +17,11 @@ public partial class Order
 
     public DateOnly? UpdatedAt { get; set; }
 
-    public virtual Address Address { get; set; } = null!;
+    //public virtual Address Address { get; set; } = null!;
 
-    public virtual User Buyer { get; set; } = null!;
+    //public virtual User Buyer { get; set; } = null!;
 
-    public virtual ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
+    //public virtual ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
 
-    public virtual ICollection<Payment> Payments { get; set; } = new List<Payment>();
+    //public virtual ICollection<Payment> Payments { get; set; } = new List<Payment>();
 }

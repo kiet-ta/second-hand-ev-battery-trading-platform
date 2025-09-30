@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Infrastructure.Data;
+namespace Domain.Entities;
 
-public partial class ReviewImage
+public class ReviewImage
 {
     public int ImageId { get; set; }
 
@@ -11,5 +11,5 @@ public partial class ReviewImage
 
     public string? ImageUrl { get; set; }
 
-    public virtual Review Review { get; set; } = null!;
+    //public virtual Review Review { get; set; } = null!;
 }

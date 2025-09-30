@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Infrastructure.Data;
+namespace Domain.Entities;
 
-public partial class Favorite
+public class Favorite
 {
     public int FavId { get; set; }
 
@@ -13,7 +13,7 @@ public partial class Favorite
 
     public DateOnly? CreatedAt { get; set; }
 
-    public virtual Item Item { get; set; } = null!;
+    //public virtual Item Item { get; set; } = null!;
 
-    public virtual User User { get; set; } = null!;
+    //public virtual User User { get; set; } = null!;
 }

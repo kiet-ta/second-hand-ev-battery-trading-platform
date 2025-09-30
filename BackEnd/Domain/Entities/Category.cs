@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Infrastructure.Data;
+namespace Domain.Entities;
 
-public partial class Category
+public class Category
 {
     public int CategoryId { get; set; }
 
@@ -11,5 +11,5 @@ public partial class Category
 
     public string? Description { get; set; }
 
-    public virtual ICollection<Item> Items { get; set; } = new List<Item>();
+    //public virtual ICollection<Item> Items { get; set; } = new List<Item>();
 }

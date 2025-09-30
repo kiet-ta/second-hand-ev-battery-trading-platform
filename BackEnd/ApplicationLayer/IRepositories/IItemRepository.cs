@@ -1,4 +1,4 @@
-﻿using Infrastructure.Data;
+﻿using Domain.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,10 +10,19 @@ namespace Application.IRepositories
     public interface IItemRepository
     {
         Task<Item?> GetByIdAsync(int id);
+
         Task<IEnumerable<Item>> GetAllAsync();
+
         Task AddAsync(Item item);
+
         void Update(Item item);
+
         void Delete(Item item);
+
         Task SaveChangesAsync();
+
+        Task<IEnumerable<Item>> GetLatestEVsAsync(int count);
+
+        Task<IEnumerable<Item>> GetLatestBatterysAsync(int count);
     }
 }

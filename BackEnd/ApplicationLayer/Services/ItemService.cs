@@ -1,7 +1,7 @@
 ﻿using Application.DTOs;
 using Application.IRepositories;
 using Application.IServices;
-using Infrastructure.Data;
+using Domain.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -26,14 +26,15 @@ namespace Application.Services
 
             return new ItemDto
             {
-                ItemId = item.ItemId,
+                //ItemId = item.ItemId,
                 ItemType = item.ItemType ?? "",
                 CategoryId = item.CategoryId,
                 Title = item.Title,
                 Description = item.Description,
                 Price = item.Price,
                 Quantity = item.Quantity ?? 0,
-                Status = item.Status ?? ""
+                //Status = item.Status ?? "",
+                //IsDeleted = false
             };
         }
 
@@ -42,14 +43,17 @@ namespace Application.Services
             var items = await _repo.GetAllAsync();
             return items.Select(i => new ItemDto
             {
-                ItemId = i.ItemId,
+                //ItemId = i.ItemId,
                 ItemType = i.ItemType ?? "",
                 CategoryId = i.CategoryId,
                 Title = i.Title,
                 Description = i.Description,
                 Price = i.Price,
                 Quantity = i.Quantity ?? 0,
-                Status = i.Status ?? ""
+                CreatedAt = i.CreatedAt,
+                UpdatedBy = i.UpdatedBy
+                //Status = i.Status ?? "active",
+                //IsDeleted = i.IsDeleted
             });
         }
 
@@ -63,15 +67,16 @@ namespace Application.Services
                 Description = dto.Description,
                 Price = dto.Price,
                 Quantity = dto.Quantity,
-                Status = dto.Status,
-                //CreatedAt = DateTime.Now,
+                Status = "pending",
+                IsDeleted = false,
+                CreatedAt = null
                 //UpdatedAt = DateTime.Now
             };
             await _repo.AddAsync(item);
             await _repo.SaveChangesAsync();
 
-            dto.ItemId = item.ItemId;
-            return dto;
+            //dto.ItemId = item.ItemId;
+            return dto; 
         }
 
         public async Task<bool> UpdateAsync(int id, ItemDto dto)
@@ -83,8 +88,9 @@ namespace Application.Services
             item.Description = dto.Description;
             item.Price = dto.Price;
             item.Quantity = dto.Quantity;
-            item.Status = dto.Status;
+            item.Status = "pending";
             item.CategoryId = dto.CategoryId;
+            item.IsDeleted = false;
             //item.UpdatedAt = DateTime.Now;
 
             _repo.Update(item);
@@ -100,6 +106,38 @@ namespace Application.Services
             _repo.Delete(item);
             await _repo.SaveChangesAsync();
             return true;
+        }
+        public async Task<IEnumerable<ItemDto>> GetLatestEVsAsync(int count)
+        {
+            var items = await _repo.GetLatestEVsAsync(count);
+
+            return items.Select(i => new ItemDto
+            {
+                ItemType = i.ItemType ?? "",
+                CategoryId = i.CategoryId,
+                Title = i.Title,
+                Description = i.Description,
+                Price = i.Price,    
+                Quantity = i.Quantity ?? 0,
+                //Status = i.Status ?? "active",
+                //IsDeleted = i.IsDeleted
+            });
+        }
+        public async Task<IEnumerable<ItemDto>> GetLatestBatterysAsync(int count)
+        {
+            var items = await _repo.GetLatestEVsAsync(count);
+
+            return items.Select(i => new ItemDto
+            {
+                ItemType = i.ItemType ?? "",
+                CategoryId = i.CategoryId,
+                Title = i.Title,
+                Description = i.Description,
+                Price = i.Price,
+                Quantity = i.Quantity ?? 0,
+                //Status = i.Status ?? "active",
+                //IsDeleted = i.IsDeleted
+            });
         }
     }
 }

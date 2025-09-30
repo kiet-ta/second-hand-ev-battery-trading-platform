@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Infrastructure.Data;
+namespace Domain.Entities;
 
-public partial class OrderItem
+public class OrderItem
 {
     public int OrderItemId { get; set; }
 
@@ -15,7 +15,7 @@ public partial class OrderItem
 
     public decimal? Price { get; set; }
 
-    public virtual Item Item { get; set; } = null!;
+    //public virtual Item Item { get; set; } = null!;
 
-    public virtual Order Order { get; set; } = null!;
+    //public virtual Order Order { get; set; } = null!;
 }

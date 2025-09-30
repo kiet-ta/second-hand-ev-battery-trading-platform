@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Infrastructure.Data;
+namespace Domain.Entities;
 
-public partial class UserLog
+public class UserLog
 {
     public int LogId { get; set; }
 
@@ -15,5 +15,5 @@ public partial class UserLog
 
     public DateOnly? CreatedAt { get; set; }
 
-    public virtual User User { get; set; } = null!;
+    //public virtual User User { get; set; } = null!;
 }

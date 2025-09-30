@@ -1,5 +1,6 @@
 ﻿using Application.DTOs;
 using Application.IServices;
+using Application.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -45,6 +46,20 @@ namespace PresentationLayer.Controllers
         {
             var deleted = await _service.DeleteAsync(id);
             return deleted ? NoContent() : NotFound();
+        }
+
+        [HttpGet("latest-evs")]
+        public async Task<IActionResult> GetLatestEVs([FromQuery] int count = 4)
+        {
+            var result = await _service.GetLatestEVsAsync(count);
+            return Ok(result);
+        }
+
+        [HttpGet("latest-batterys")]
+        public async Task<IActionResult> GetLatestBatterys([FromQuery] int count = 4)
+        {
+            var result = await _service.GetLatestBatterysAsync(count);
+            return Ok(result);
         }
     }
 }

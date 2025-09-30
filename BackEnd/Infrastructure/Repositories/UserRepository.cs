@@ -1,4 +1,5 @@
 ﻿using Application.IRepositories;
+using Domain.Entities;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -29,5 +30,7 @@ namespace Infrastructure.Repositories
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
         }
+
+        //public async Task<User?> GetNewVehicles
     }
 }

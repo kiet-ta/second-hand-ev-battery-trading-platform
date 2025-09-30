@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Infrastructure.Data;
+namespace Domain.Entities;
 
-public partial class User
+public class User
 {
     public int UserId { get; set; }
 
@@ -33,25 +33,25 @@ public partial class User
 
     public bool? IsDeleted { get; set; }
 
-    public virtual ICollection<Address> Addresses { get; set; } = new List<Address>();
+    //public virtual ICollection<Address> Addresses { get; set; } = new List<Address>();
 
-    public virtual ICollection<Favorite> Favorites { get; set; } = new List<Favorite>();
+    //public virtual ICollection<Favorite> Favorites { get; set; } = new List<Favorite>();
 
-    public virtual ICollection<Item> Items { get; set; } = new List<Item>();
+    //public virtual ICollection<Item> Items { get; set; } = new List<Item>();
 
-    public virtual ICollection<KycDocument> KycDocumentUsers { get; set; } = new List<KycDocument>();
+    //public virtual ICollection<KycDocument> KycDocumentUsers { get; set; } = new List<KycDocument>();
 
-    public virtual ICollection<KycDocument> KycDocumentVerifiedByNavigations { get; set; } = new List<KycDocument>();
+    //public virtual ICollection<KycDocument> KycDocumentVerifiedByNavigations { get; set; } = new List<KycDocument>();
 
-    public virtual ICollection<Order> Orders { get; set; } = new List<Order>();
+    //public virtual ICollection<Order> Orders { get; set; } = new List<Order>();
 
-    public virtual ICollection<Payment> PaymentBuyers { get; set; } = new List<Payment>();
+    //public virtual ICollection<Payment> PaymentBuyers { get; set; } = new List<Payment>();
 
-    public virtual ICollection<Payment> PaymentSellers { get; set; } = new List<Payment>();
+    //public virtual ICollection<Payment> PaymentSellers { get; set; } = new List<Payment>();
 
-    public virtual ICollection<Review> ReviewReviewers { get; set; } = new List<Review>();
+    //public virtual ICollection<Review> ReviewReviewers { get; set; } = new List<Review>();
 
-    public virtual ICollection<Review> ReviewTargetUsers { get; set; } = new List<Review>();
+    //public virtual ICollection<Review> ReviewTargetUsers { get; set; } = new List<Review>();
 
-    public virtual ICollection<UserLog> UserLogs { get; set; } = new List<UserLog>();
+    //public virtual ICollection<UserLog> UserLogs { get; set; } = new List<UserLog>();
 }

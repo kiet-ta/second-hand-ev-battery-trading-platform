@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Infrastructure.Data;
+namespace Domain.Entities;
 
-public partial class ItemImage
+public class ItemImage
 {
     public int ImageId { get; set; }
 
@@ -11,5 +11,5 @@ public partial class ItemImage
 
     public string? ImageUrl { get; set; }
 
-    public virtual Item Item { get; set; } = null!;
+    //public virtual Item Item { get; set; } = null!;
 }

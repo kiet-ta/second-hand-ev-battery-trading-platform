@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Infrastructure.Data;
+namespace Domain.Entities;
 
-public partial class Payment
+public class Payment
 {
     public int PaymentId { get; set; }
 
@@ -21,9 +21,9 @@ public partial class Payment
 
     public DateOnly? UpdatedAt { get; set; }
 
-    public virtual User Buyer { get; set; } = null!;
+    //public virtual User Buyer { get; set; } = null!;
 
-    public virtual Order Order { get; set; } = null!;
+    //public virtual Order Order { get; set; } = null!;
 
-    public virtual User Seller { get; set; } = null!;
+    //public virtual User Seller { get; set; } = null!;
 }

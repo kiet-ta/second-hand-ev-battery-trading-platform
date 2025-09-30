@@ -1,7 +1,6 @@
 ﻿using Application.DTOs;
 using Application.IRepositories;
 using Application.IServices;
-using Infrastructure.Data;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -11,6 +10,7 @@ using System.Linq;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
+using Domain.Entities;
 
 namespace Application.Services
 {
