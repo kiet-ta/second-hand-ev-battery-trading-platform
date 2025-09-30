@@ -2,6 +2,7 @@
 using Application.IRepositories;
 using Application.IServices;
 using Domain.Entities;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -50,8 +51,8 @@ namespace Application.Services
                 Description = i.Description,
                 Price = i.Price,
                 Quantity = i.Quantity ?? 0,
-                CreatedAt = i.CreatedAt,
-                UpdatedBy = i.UpdatedBy
+                CreatedAt = i.CreatedAt 
+                //UpdatedBy = i.UpdatedBy
                 //Status = i.Status ?? "active",
                 //IsDeleted = i.IsDeleted
             });
@@ -69,7 +70,7 @@ namespace Application.Services
                 Quantity = dto.Quantity,
                 Status = "pending",
                 IsDeleted = false,
-                CreatedAt = null
+                CreatedAt = dto.CreatedAt
                 //UpdatedAt = DateTime.Now
             };
             await _repo.AddAsync(item);
@@ -123,7 +124,7 @@ namespace Application.Services
                 //IsDeleted = i.IsDeleted
             });
         }
-        public async Task<IEnumerable<ItemDto>> GetLatestBatterysAsync(int count)
+        public async Task<IEnumerable<ItemDto>> GetLatestBatteriesAsync(int count)
         {
             var items = await _repo.GetLatestEVsAsync(count);
 
@@ -138,6 +139,82 @@ namespace Application.Services
                 //Status = i.Status ?? "active",
                 //IsDeleted = i.IsDeleted
             });
+        }
+
+        public async Task<PagedResult<ItemDto>> SearchItemsAsync(
+            string itemType,
+            string title,
+            decimal? minPrice = null,
+            decimal? maxPrice = null,
+            int page = 1, int pageSize = 20,
+            string sortBy = "UpdatedAt", string sortDir = "desc")
+        {
+            if (page <= 0) page = 1;
+            if (pageSize <= 0) pageSize = 20;
+
+            var query = _repo.QueryItemsWithSeller(); // IQueryable<Item>
+
+            // Filters
+            if (!string.IsNullOrWhiteSpace(itemType))
+            {
+                var t = itemType.Trim();
+                query = query.Where(i => i.ItemType == t);
+            }
+
+            //if (!string.IsNullOrWhiteSpace(sellerName))
+            //{
+            //    var name = sellerName.Trim();
+
+            //    query = query.Where(i =>
+            //        EF.Functions.Like(EF.Property<User>(i, "UpdatedBy").FullName ?? "", $"%{name}%")
+            //    );
+            //}
+
+            if (!string.IsNullOrWhiteSpace(title))
+            {
+                var t = title.Trim();
+                query = query.Where(i => i.Title.Contains(t));
+            }
+
+            if (minPrice.HasValue)
+                query = query.Where(i => i.Price.HasValue && i.Price.Value >= minPrice.Value);
+
+            if (maxPrice.HasValue)
+                query = query.Where(i => i.Price.HasValue && i.Price.Value <= maxPrice.Value);
+
+            // Sorting
+            bool descending = string.Equals(sortDir, "desc", StringComparison.OrdinalIgnoreCase);
+            query = sortBy switch
+            {
+                "Price" => descending ? query.OrderByDescending(i => i.Price) : query.OrderBy(i => i.Price),
+                "Title" => descending ? query.OrderByDescending(i => i.Title) : query.OrderBy(i => i.Title),
+                _ => descending ? query.OrderByDescending(i => i.UpdatedAt) : query.OrderBy(i => i.UpdatedAt)
+            };
+
+            var total = await query.LongCountAsync();
+
+            var items = await query
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .Select(i => new ItemDto
+                {
+                    ItemId = i.ItemId,
+                    ItemType = i.ItemType,
+                    Title = i.Title,
+                    //SellerName =  EF.Property<User>(i, "UpdatedByUser").FullName,
+                    Price = i.Price,
+                    //Status = i.Status,
+                    UpdatedAt = i.UpdatedAt
+                })
+                .ToListAsync();
+
+            return new PagedResult<ItemDto>
+            {
+                Page = page,
+                PageSize = pageSize,
+                TotalCount = total,
+                Items = items
+            };
         }
     }
 }

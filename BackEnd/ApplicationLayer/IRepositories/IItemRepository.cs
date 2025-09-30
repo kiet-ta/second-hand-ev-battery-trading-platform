@@ -1,4 +1,5 @@
-﻿using Domain.Entities;
+﻿using Application.DTOs;
+using Domain.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Application.IRepositories
 {
-    public interface IItemRepository
+    public interface IItemRepository //: IRepository<Item>
     {
         Task<Item?> GetByIdAsync(int id);
 
@@ -23,6 +24,13 @@ namespace Application.IRepositories
 
         Task<IEnumerable<Item>> GetLatestEVsAsync(int count);
 
-        Task<IEnumerable<Item>> GetLatestBatterysAsync(int count);
+        Task<IEnumerable<Item>> GetLatestBatteriesAsync(int count);
+
+        /// <summary>
+        /// Returns an IQueryable so service can compose filters and projection.
+        /// This keeps repository lightweight and testable.
+        /// </summary>
+        /// <returns></returns>
+        IQueryable<ItemDto> QueryItemsWithSeller();
     }
 }

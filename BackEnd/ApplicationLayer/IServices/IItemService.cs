@@ -21,6 +21,16 @@ namespace Application.IServices
 
         Task<IEnumerable<ItemDto>> GetLatestEVsAsync(int count);
 
-        Task<IEnumerable<ItemDto>> GetLatestBatterysAsync(int count);
+        Task<IEnumerable<ItemDto>> GetLatestBatteriesAsync(int count);
+
+        Task<PagedResult<ItemDto>> SearchItemsAsync(
+        string? itemType,
+        string? title,
+        decimal? minPrice = null,
+        decimal? maxPrice = null,
+        int page = 1,
+        int pageSize = 20,
+        string sortBy = "UpdatedAt",
+        string sortDir = "desc");
     }
 }

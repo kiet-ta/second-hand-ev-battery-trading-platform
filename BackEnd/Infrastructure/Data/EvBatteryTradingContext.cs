@@ -1,7 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using Domain.Entities;
+﻿using Domain.Entities;
+using Infrastructure.Data.Configurations;
 using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
 
 namespace Infrastructure.Data;
 
@@ -560,6 +561,11 @@ public class EvBatteryTradingContext : DbContext
 
         modelBuilder.Entity<Item>().Property(i => i.IsDeleted).HasDefaultValue(false);
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(EvBatteryTradingContext).Assembly);
+
+        modelBuilder.ApplyConfiguration(new UserConfiguration());
+        modelBuilder.ApplyConfiguration(new ItemConfiguration());
+
+        base.OnModelCreating(modelBuilder);
     }
 
     //partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
