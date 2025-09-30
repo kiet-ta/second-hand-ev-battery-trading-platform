@@ -1,8 +1,8 @@
-﻿using Domain.Entities;
+﻿using Application.IServices;
+using Domain.Entities;
 using Infrastructure.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Services;
 
 namespace PresentationLayer.Controllers.UserController
 {
