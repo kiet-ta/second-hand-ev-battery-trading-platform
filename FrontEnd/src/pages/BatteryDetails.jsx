@@ -1,7 +1,9 @@
-import {useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import Carousel from '../components/Carousel'
 import { InputNumber } from 'antd'
 import { FiShoppingCart } from 'react-icons/fi'
+import itemApi from "../api/itemApi"
+import { useLocation } from 'react-router-dom'
 
 const images = [
   "https://i.pinimg.com/1200x/55/53/06/55530643312e136a9fa2a576d6fcfbd0.jpg",
@@ -20,10 +22,27 @@ const commenter = [
 ]
 
 function BatteryDetails() {
+  const location = useLocation();
+  const itemId = location.state;
+
+  const [itemDetails, setItemDetails] = useState([])
+  useEffect(() => {
+    const fetchItems = async () => {
+      try {
+        const data = await itemApi.getItemById(itemId);
+        console.log(data);
+        setItemDetails(data);
+      } catch (error) {
+        console.error("Error fetching items", error);
+      }
+    };
+    fetchItems();
+  }, []);
   const [quantity, setQuantity] = useState(1);
   const onChange = value => {
-  setQuantity(value);
-};
+    setQuantity(value);
+  };
+
   return (
     <div className="w-full">
       <div className="grid grid-cols-4 gap-4 p-4 mt-2 w-full">
@@ -51,38 +70,38 @@ function BatteryDetails() {
           <div className="description bg-white rounded-2xl p-4 h-2/5 m-4">
             <div className="header text-left font-bold">Description</div>
             <div className="content p-4 m-4 text-left">
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-            </div>
+              {itemDetails.description}
+                          </div>
           </div>
         </div>
         <div className="col-span-2">
           <div className="product-info bg-white rounded-2xl p-4 h-2/3">
             <div className="title h-1/9 text-3xl  text-left content-center flex-none font-semibold text-black overflow-hidden whitespace-pre-wrap" style={{ display: 'block', wordBreak: 'break-word' }}>
-              Text Very Longggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggg
+              {itemDetails.title}
             </div>
             <div className="product-general-info flex h-1/10 text-left mt-2 text-1xl text-gray-500">
               <div>1910 |</div><div>| 20000 km</div>
             </div>
             <div className="price-tag flex h-1/10 text-left mt-2 bg-gray-50">
-              <div className='ml-4 text-2xl font-bold text-red-500 content-center' >1000$</div>
+              <div className='ml-4 text-2xl font-bold text-red-500 content-center' >${itemDetails.price}</div>
               <div className="ml-5 text-2xl text-gray-300 line-through content-center">100000$</div>
             </div>
             <div className='flex h-1/10 text-left mt-2 text-1xl text-gray-500 gap-4 items-center'>
               <div className=''>Quantity:</div>
-              <InputNumber min={1} max={100} defaultValue={1} onChange={onChange}/>
-            <div>
-            </div>
+              <InputNumber min={1} max={itemDetails.quantity} defaultValue={1} onChange={onChange} />
+              <div>
+              </div>
             </div>
             <div className="phone-number flex gap-4 h-1/10 mt-4">
               <div className="bg-gray-200 w-1/4 rounded-2xl font-bold text-1xl content-center ">Chat</div>
-            <button
-              type="button"
-              className="bg-maincolor w-1/4 px-2 py-1 text-2xl rounded-full flex items-center justify-center text-white"
-              onClick={() => console.log(quantity)}
+              <button
+                type="button"
+                className="bg-maincolor w-1/4 px-2 py-1 text-2xl rounded-full flex items-center justify-center text-white"
+                onClick={() => console.log(quantity)}
               >
-              <FiShoppingCart className="mr-1" />
-              Buy
-            </button>
+                <FiShoppingCart className="mr-1" />
+                Buy
+              </button>
             </div>
             <div className="seller-profile h-3/10 mt-10 flex justify-around content-center items-center border-t-2 border-gray-200 pt-4 ">
               <div className="left w-1/2 h-full object-fit flex items-center">
