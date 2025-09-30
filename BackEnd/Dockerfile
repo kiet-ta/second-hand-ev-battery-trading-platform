@@ -2,7 +2,6 @@
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
 WORKDIR /app
 EXPOSE 5000
-
 # Use the SDK image for building the application
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
@@ -14,17 +13,14 @@ COPY ["Infrastructure/Infrastructure.csproj", "Infrastructure/"]
 COPY ["BackEnd.sln", "."]
 # Restore dependencies
 RUN dotnet restore "BackEnd.sln"
-
 # Copy source code
 COPY . .
 # Build
 WORKDIR "/src/PresentationLayer"
 RUN dotnet build "PresentationLayer.csproj" -c Release -o /app/build
-
 # Publish
 FROM build AS publish
 RUN dotnet publish "PresentationLayer.csproj" -c Release -o /app/publish /p:UseAppHost=false
-
 # Final image
 FROM base AS final
 WORKDIR /app
