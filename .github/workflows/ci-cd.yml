@@ -82,7 +82,8 @@ jobs:
         with:
           username: ${{ env.DOCKERHUB_USERNAME }}
           password: ${{ env.DOCKERHUB_TOKEN }}
-  
+      - name: List directory contents
+        run: ls -la
       - name: Build and push Docker image
         uses: docker/build-push-action@v4
         with:
