@@ -23,7 +23,16 @@ namespace PresentationLayer
             // Add services to the container.
 
             builder.Services.AddControllers();
-
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AllowReactApp",
+                    policy =>
+                    {
+                        policy.WithOrigins("http://localhost:5173")
+                              .AllowAnyHeader()
+                              .AllowAnyMethod();
+                    });
+            });
             // register PayOS via DI (Dependency Injection)
             var payosConfig = builder.Configuration.GetSection("PayOS");
 
@@ -59,7 +68,7 @@ namespace PresentationLayer
             }
 
             app.UseHttpsRedirection();
-
+            app.UseCors("AllowReactApp");
             app.UseAuthorization();
 
             app.MapControllers();

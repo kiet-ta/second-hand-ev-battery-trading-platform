@@ -4,7 +4,7 @@ import SettingsCard from "../components/SettingCard"
 import ProfileForm from "../components/ProfileForm"
 import "../assets/styles/ProfileContent.css"
 import anhtao from "../assets/images/anhtao.png"
-import Logo from "../assets/images/Logo.png"
+import Logo from "../assets/images/anhtao.png"
 
 const ProfileContent = () => {
     const [activeSection, setActiveSection] = useState("profile")
