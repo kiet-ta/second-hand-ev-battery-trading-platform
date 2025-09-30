@@ -7,6 +7,8 @@ import BatteryDetails from '../pages/BatteryDetails';
 import SearchPage from '../pages/SearchPage';
 import CartPage from '../pages/CartPage';
 import CheckoutPage from '../pages/CheckoutPage';
+import SellerLayout from '../layout/SellerLayout';
+import MyProduct from '../pages/seller/MyProduct';
 import LoginPage from '../pages/LoginPage';
 import RegisterPage from '../pages/RegisterPage';
 import ProfileContent from '../pages/ProfileContent';
@@ -45,6 +47,15 @@ export const router = createBrowserRouter([
         ]
     },
     {
+        path: "/seller",
+        element: <SellerLayout/>,
+        children:[
+            {
+                path: "products",
+                element: <MyProduct/>
+            }
+        ]
+    }
         path: "/login",
         element: <LoginPage />
     },

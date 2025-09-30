@@ -2,6 +2,7 @@
 
 @theme {
   --color-maincolor: #77E4C8;
+  --color-maincolor-darker: #65c2aa; 
 }
 
 :root {
