@@ -1,7 +1,8 @@
-﻿
-using Microsoft.EntityFrameworkCore;
-using Application.IRepositories;
-using System.Text.RegularExpressions;
+﻿using Application.IRepositories;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using UserEntity = Domain.Entities.User;
 using Domain.Entities;
@@ -16,9 +17,10 @@ namespace Application.Services.UserServices
     {
         private readonly IUserRepository _userRepository;
 
-        public UserService(IUserRepository userRepository)
+        public UserService(IUserRepository userRepository, IHasher hasher)
         {
             _userRepository = userRepository;
+            _hasher = hasher;
         }
 
         public Task<IEnumerable<User>> GetAllUsersAsync() => _userRepository.GetAllAsync();
