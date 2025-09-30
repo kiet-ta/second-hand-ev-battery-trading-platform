@@ -1,3 +1,16 @@
+using Net.payOS;
+using Application.IHelpers;
+using Application.IRepositories;
+using Application.IValidations;
+using Domain.Entities;
+using Helper;
+using Infrastructure.Data;
+using Infrastructure.Repositories;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using StackExchange.Redis;
+using Application.Services;
+using Application.IServices;
 
 namespace PresentationLayer
 {
@@ -10,7 +23,29 @@ namespace PresentationLayer
             // Add services to the container.
 
             builder.Services.AddControllers();
+
+            // register PayOS via DI (Dependency Injection)
+            var payosConfig = builder.Configuration.GetSection("PayOS");
+
+            builder.Services.AddSingleton(sp =>
+            {
+                var clientId = payosConfig["ClientId"];
+                var apiKey = payosConfig["ApiKey"];
+                var checksumKey = payosConfig["ChecksumKey"];
+                return new PayOS(clientId = "abc", apiKey = "abc", checksumKey = "abc");
+            });
+
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+            //builder.Services.AddScoped<IUserService, UserService>();
+            //builder.Services.AddScoped<IUserRepository, UserRepository>();
+            //builder.Services.AddScoped<IUserHelper, UserHelper>();
+            //builder.Services.AddScoped<IPasswordHelper, PasswordHelper>();
+            //builder.Services.AddScoped<IUserValidation, UserValidation>();
+            builder.Services.AddDbContext<AppDbContext>(options =>
+            options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+            builder.Services.AddScoped<IUserRepository, UserRepository>();
+            builder.Services.AddScoped<IUserService, UserService>();
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
@@ -26,7 +61,6 @@ namespace PresentationLayer
             app.UseHttpsRedirection();
 
             app.UseAuthorization();
-
 
             app.MapControllers();
 

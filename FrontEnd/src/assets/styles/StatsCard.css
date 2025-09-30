@@ -1,0 +1,63 @@
+.stats-card {
+    background: #fff;
+    border-radius: 0.75rem;
+    padding: 1rem 1.25rem;
+    /* nhỏ gọn hơn */
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.stats-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.stats-card-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.stats-card .title {
+    font-size: 0.8rem;
+    color: #6b7280;
+    margin-bottom: 0.2rem;
+}
+
+.stats-card .value {
+    font-size: 1.25rem;
+    /* nhỏ hơn để gọn */
+    font-weight: 700;
+    color: #111827;
+}
+
+.icon-box {
+    border-radius: 0.5rem;
+    padding: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    /* icon nhỏ lại */
+}
+
+/* màu cho từng loại */
+.stats-card.blue .icon-box {
+    background: rgba(59, 130, 246, 0.1);
+    color: #3b82f6;
+}
+
+.stats-card.green .icon-box {
+    background: rgba(16, 185, 129, 0.1);
+    color: #10b981;
+}
+
+.stats-card.purple .icon-box {
+    background: rgba(139, 92, 246, 0.1);
+    color: #8b5cf6;
+}
+
+.stats-card.orange .icon-box {
+    background: rgba(249, 115, 22, 0.1);
+    color: #f97316;
+}

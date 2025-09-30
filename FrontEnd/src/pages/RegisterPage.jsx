@@ -163,7 +163,6 @@ export default function RegisterPage() {
             <header className="login-header">
                 <img src={Logo} alt="Logo" className="logo" />
                 <h1>Cóc Mua Xe</h1>
-                <h2>Sign Up</h2>
             </header>
 
             {/* Nội dung chính: banner + form */}
@@ -191,7 +190,7 @@ export default function RegisterPage() {
                             <>
 
                                 <p className="signup-link">
-                                    Are you new? <Link to="/login">Sign In</Link>
+                                    Already have an account?  <Link to="/login">Sign In</Link>
                                 </p>
                                 <form onSubmit={handleSubmit}>
                                     <p className='header-login'>Create an account</p>
