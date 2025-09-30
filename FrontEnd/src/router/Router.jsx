@@ -9,6 +9,8 @@ import CartPage from '../pages/CartPage';
 import CheckoutPage from '../pages/CheckoutPage';
 import LoginPage from '../pages/LoginPage';
 import RegisterPage from '../pages/RegisterPage';
+import ProfileContent from '../pages/ProfileContent';
+import UserManagementSystem from '../pages/UserManagementSystem';
 
 export const router = createBrowserRouter([
     {
@@ -49,5 +51,13 @@ export const router = createBrowserRouter([
     {
         path: "/register",
         element: <RegisterPage/>
+    },
+    {
+        path: "/profile",
+        element: <ProfileContent/>
+    },
+    {
+        path: "/manage",
+        element: <UserManagementSystem/>
     }
 ]);

@@ -4,9 +4,7 @@
   max-width: 100vw;
   overflow-x: hidden;
 }
-html, body, #root {
-  overflow-x: hidden;
-}
+
 a {
   font-weight: 500;
   color: white;

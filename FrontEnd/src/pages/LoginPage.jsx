@@ -1,16 +1,18 @@
 import React, { useEffect, useState, useRef } from 'react';
 import Logo from '../assets/images/Logo.png';
 import { fakeUser } from "../fakeUser";
+import '../App.css';
 import '../assets/styles/LoginPage.css';
 import banner1 from '../assets/images/banner1.png';
 import banner2 from '../assets/images/banner2.png';
 import banner3 from '../assets/images/banner3.png';
 import { Link } from 'react-router-dom';
 
+
 export default function LoginPage() {
     const clientId =
         import.meta.env.VITE_GOOGLE_CLIENT_ID ||
-        '301055344643-gel1moqvoq9flgf8978aje7j9frtci79.apps.googleusercontent.com';
+        '574647661928-vh01sb0pk7e8d6gdbkbfth60m2r9guq9.apps.googleusercontent.com';
 
     const [user, setUser] = useState(null); // cho cả Google + Local
     const [username, setUsername] = useState('');
@@ -142,15 +144,16 @@ export default function LoginPage() {
     return (
         <div className="login-container">
             {/* Header */}
-            <header className="login-header">
+            <Link to='/'>             <header className="login-header">
                 <img src={Logo} alt="Logo" className="logo" />
                 <h1>Cóc Mua Xe</h1>
             </header>
+</Link>
 
             {/* Nội dung chính: banner + form */}
-            <div className="main-content">
+            <div className="main-content-login flex">
                 {/* Banner bên trái */}
-                <div className="banner-container">
+                <div className="banner-container w-1/2">
                     <div className="relative w-full h-full">
                         {slides.map((slide, index) => (
                             <div
@@ -164,7 +167,7 @@ export default function LoginPage() {
                 </div>
 
                 {/* Form login bên phải */}
-                <div className="login-right">
+                <div className="login-right w-1/2">
                     <div className="login-box">
                         {!user ? (
                             <>

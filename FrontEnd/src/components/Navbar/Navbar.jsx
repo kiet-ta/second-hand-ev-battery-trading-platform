@@ -12,15 +12,16 @@ function Navbar() {
   const leftmenu = [
     { name: 'Home', link: '/', icon: <IoMdHome /> },
     { name: 'Auction', link: '/auctions', icon: <RiAuctionFill /> },
-    { name: 'Seller', link: '/seller', icon: <MdOutlineAttachMoney /> }
+    { name: 'Manager', link: '/manage', icon: <MdOutlineAttachMoney /> }
   ]
   const rightmenu = [
     { name: 'Notification', link: '/notification', icon: <IoMdHome /> },
     { name: 'Support', link: '/support' }]
-    const user ={
-      name: "Lady Furina",
-      picture: "https://i.pinimg.com/736x/5b/3f/09/5b3f09d67f448e39dab9e8d8f3cc3f94.jpg"
-    }
+    // const user ={
+    //   name: "Lady Furina",
+    //   picture: "https://i.pinimg.com/736x/5b/3f/09/5b3f09d67f448e39dab9e8d8f3cc3f94.jpg"
+    // }
+    const user = null;
 localStorage.setItem('userprofile', JSON.stringify(user));
   const userprofile = JSON.parse(localStorage.getItem('userprofile'));
 
