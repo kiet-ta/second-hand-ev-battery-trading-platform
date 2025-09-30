@@ -2,15 +2,15 @@ using Net.payOS;
 using Application.IHelpers;
 using Application.IRepositories;
 using Application.IValidations;
-using Application.Services.UserServices;
 using Domain.Entities;
 using Helper;
 using Infrastructure.Data;
 using Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
-using Services;
 using StackExchange.Redis;
+using Application.Services;
+using Application.IServices;
 
 namespace PresentationLayer
 {
@@ -23,7 +23,7 @@ namespace PresentationLayer
             // Add services to the container.
 
             builder.Services.AddControllers();
-            
+
             // register PayOS via DI (Dependency Injection)
             var payosConfig = builder.Configuration.GetSection("PayOS");
 
@@ -32,7 +32,7 @@ namespace PresentationLayer
                 var clientId = payosConfig["ClientId"];
                 var apiKey = payosConfig["ApiKey"];
                 var checksumKey = payosConfig["ChecksumKey"];
-                return new PayOS(clientId, apiKey, checksumKey);
+                return new PayOS(clientId = "abc", apiKey = "abc", checksumKey = "abc");
             });
 
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -44,13 +44,10 @@ namespace PresentationLayer
             builder.Services.AddDbContext<AppDbContext>(options =>
             options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-            builder.Services.AddScoped<IUserRepository, UserRepository>();            
+            builder.Services.AddScoped<IUserRepository, UserRepository>();
             builder.Services.AddScoped<IUserService, UserService>();
-
-
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
-
 
             var app = builder.Build();
 
@@ -64,7 +61,6 @@ namespace PresentationLayer
             app.UseHttpsRedirection();
 
             app.UseAuthorization();
-
 
             app.MapControllers();
 

@@ -1,26 +1,16 @@
 ﻿using Application.IRepositories;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using UserEntity = Domain.Entities.User;
+using Application.IServices;
 using Domain.Entities;
-using Application.IHelpers;
-using Application.IValidations;
-using Domain.DTOs;
-using Services;
 
-namespace Application.Services.UserServices
+namespace Application.Services
 {
     public class UserService : IUserService
     {
         private readonly IUserRepository _userRepository;
 
-        public UserService(IUserRepository userRepository, IHasher hasher)
+        public UserService(IUserRepository userRepository)
         {
             _userRepository = userRepository;
-            _hasher = hasher;
         }
 
         public Task<IEnumerable<User>> GetAllUsersAsync() => _userRepository.GetAllAsync();
@@ -63,4 +53,3 @@ namespace Application.Services.UserServices
         public Task DeleteUserAsync(int id) => _userRepository.DeleteAsync(id);
     }
 }
-
