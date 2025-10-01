@@ -390,10 +390,10 @@ public class EvBatteryTradingContext : DbContext
         //        .OnDelete(DeleteBehavior.ClientSetNull)
         //        .HasConstraintName("FK__Order_Ite__item___5EBF139D");
 
-        //    entity.HasOne(d => d.Order).WithMany(p => p.OrderItems)
-        //        .HasForeignKey(d => d.OrderId)
-        //        .OnDelete(DeleteBehavior.ClientSetNull)
-        //        .HasConstraintName("FK__Order_Ite__order__5DCAEF64");
+        //  entity.HasOne(d => d.Order).WithMany(p => p.OrderItems)
+        //    .HasForeignKey(d => d.OrderId)
+        //    .OnDelete(DeleteBehavior.ClientSetNull)
+        //    .HasConstraintName("FK__Order_Ite__order__5DCAEF64");
         //});
 
         //modelBuilder.Entity<Payment>(entity =>
