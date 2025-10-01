@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Infrastructure.Data;
+namespace Domain.Entities;
 
-public partial class Blog
+public class Blog
 {
     public int BlogId { get; set; }
 

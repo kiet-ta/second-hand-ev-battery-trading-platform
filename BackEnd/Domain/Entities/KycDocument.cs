@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Infrastructure.Data;
+namespace Domain.Entities;
 
-public partial class KycDocument
+public class KycDocument
 {
     public int DocId { get; set; }
 
@@ -23,7 +23,7 @@ public partial class KycDocument
 
     public string? Note { get; set; }
 
-    public virtual User User { get; set; } = null!;
+    //public virtual User User { get; set; } = null!;
 
-    public virtual User? VerifiedByNavigation { get; set; }
+    //public virtual User? VerifiedByNavigation { get; set; }
 }

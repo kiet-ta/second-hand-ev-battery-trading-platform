@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Infrastructure.Data;
+namespace Domain.Entities;
 
-public partial class Item
+public class Item
 {
     public int ItemId { get; set; }
 
@@ -29,17 +29,17 @@ public partial class Item
 
     public bool? IsDeleted { get; set; }
 
-    public virtual BatteryDetail? BatteryDetail { get; set; }
+    //public virtual BatteryDetail? BatteryDetail { get; set; }
 
-    public virtual Category? Category { get; set; }
+    //public virtual Category? Category { get; set; }
 
-    public virtual EvDetail? EvDetail { get; set; }
+    //public virtual EvDetail? EvDetail { get; set; }
 
-    public virtual ICollection<Favorite> Favorites { get; set; } = new List<Favorite>();
+    //public virtual ICollection<Favorite> Favorites { get; set; } = new List<Favorite>();
 
-    public virtual ICollection<ItemImage> ItemImages { get; set; } = new List<ItemImage>();
+    //public virtual ICollection<ItemImage> ItemImages { get; set; } = new List<ItemImage>();
 
-    public virtual ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
+    //public virtual ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
 
-    public virtual User? UpdatedByNavigation { get; set; }
+    //public virtual User? UpdatedByNavigation { get; set; }
 }

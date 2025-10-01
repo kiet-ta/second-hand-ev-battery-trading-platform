@@ -10,9 +10,27 @@ namespace Application.IServices
     public interface IItemService
     {
         Task<ItemDto?> GetByIdAsync(int id);
+
         Task<IEnumerable<ItemDto>> GetAllAsync();
+
         Task<ItemDto> CreateAsync(ItemDto dto);
+
         Task<bool> UpdateAsync(int id, ItemDto dto);
+
         Task<bool> DeleteAsync(int id);
+
+        Task<IEnumerable<ItemDto>> GetLatestEVsAsync(int count);
+
+        Task<IEnumerable<ItemDto>> GetLatestBatteriesAsync(int count);
+
+        Task<PagedResult<ItemDto>> SearchItemsAsync(
+        string? itemType,
+        string? title,
+        decimal? minPrice = null,
+        decimal? maxPrice = null,
+        int page = 1,
+        int pageSize = 20,
+        string sortBy = "UpdatedAt",
+        string sortDir = "desc");
     }
 }

@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Infrastructure.Data;
+namespace Domain.Entities;
 
-public partial class Address
+public class Address
 {
     public int AddressId { get; set; }
 
@@ -27,7 +27,7 @@ public partial class Address
 
     public bool? IsDeleted { get; set; }
 
-    public virtual ICollection<Order> Orders { get; set; } = new List<Order>();
+    //public virtual ICollection<Order> Orders { get; set; } = new List<Order>();
 
-    public virtual User User { get; set; } = null!;
+    //public virtual User User { get; set; } = null!;
 }

@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Infrastructure.Data;
+namespace Domain.Entities;
 
-public partial class EvDetail
+public class EvDetail
 {
     public int ItemId { get; set; }
 
@@ -31,5 +31,5 @@ public partial class EvDetail
 
     public DateOnly? UpdatedAt { get; set; }
 
-    public virtual Item Item { get; set; } = null!;
+    //public virtual Item Item { get; set; } = null!;
 }
