@@ -21,16 +21,16 @@ namespace Infrastructure.Data.Configurations
             entity.Property(e => e.FullName).HasColumnName("full_name");
             entity.Property(e => e.Email).HasColumnName("email");
             entity.Property(e => e.PasswordHash).HasColumnName("password_hash");
-            entity.Property(e => e.Gender).HasColumnName("gender").IsRequired();
-            entity.Property(e => e.YearOfBirth).HasColumnName("year_of_birth").IsRequired();
+            entity.Property(e => e.Gender).HasColumnName("gender").IsRequired(false);
+            entity.Property(e => e.YearOfBirth).HasColumnName("year_of_birth").IsRequired(false);
             entity.Property(e => e.Phone).HasColumnName("phone");
-            entity.Property(e => e.AvatarProfile).HasColumnName("avatar_profile").IsRequired();
+            entity.Property(e => e.AvatarProfile).HasColumnName("avatar_profile").IsRequired(false);
             entity.Property(e => e.Role).HasColumnName("role");
             entity.Property(e => e.KycStatus).HasColumnName("kyc_status");
             entity.Property(e => e.AccountStatus).HasColumnName("account_status");
             entity.Property(e => e.CreatedAt).HasColumnName("created_at");
             entity.Property(e => e.UpdatedAt).HasColumnName("updated_at");
-            entity.Property(e => e.IsDeleted).HasColumnName("is_deleted").IsRequired();
+            entity.Property(e => e.IsDeleted).HasColumnName("is_deleted").IsRequired(false);
         }
     }
 }
