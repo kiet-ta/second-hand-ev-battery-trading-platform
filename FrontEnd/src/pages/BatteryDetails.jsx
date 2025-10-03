@@ -26,8 +26,7 @@ function BatteryDetails() {
   const itemId = location.state;
 
   const [itemDetails, setItemDetails] = useState([])
-  useEffect(() => {
-    const fetchItems = async () => {
+      const fetchItems = async () => {
       try {
         const data = await itemApi.getItemById(itemId);
         console.log(data);
@@ -36,6 +35,8 @@ function BatteryDetails() {
         console.error("Error fetching items", error);
       }
     };
+
+  useEffect(() => {
     fetchItems();
   }, []);
   const [quantity, setQuantity] = useState(1);

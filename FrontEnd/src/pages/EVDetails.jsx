@@ -1,4 +1,4 @@
-import {useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import Carousel from '../components/Carousel'
 import { useLocation } from 'react-router-dom';
 import itemApi from '../api/itemApi';
@@ -24,20 +24,20 @@ const phone = "0312345678";
 const hiddenphone = "Show phone " + phone.slice(0, -4) + "****";
 function EVDetails() {
   const [isPhoneVisible, setIsPhoneVisible] = useState(false);
-    const location = useLocation();
+  const location = useLocation();
   const itemId = location.state;
 
   const [itemDetails, setItemDetails] = useState([])
+  const fetchItems = async () => {
+    try {
+      const data = await itemApi.getItemById(itemId);
+      console.log(data);
+      setItemDetails(data);
+    } catch (error) {
+      console.error("Error fetching items", error);
+    }
+  };
   useEffect(() => {
-    const fetchItems = async () => {
-      try {
-        const data = await itemApi.getItemById(itemId);
-        console.log(data);
-        setItemDetails(data);
-      } catch (error) {
-        console.error("Error fetching items", error);
-      }
-    };
     fetchItems();
   }, []);
 
@@ -68,7 +68,7 @@ function EVDetails() {
           <div className="description bg-white rounded-2xl p-4 h-2/5 m-4">
             <div className="header text-left font-bold">Description</div>
             <div className="content p-4 m-4 text-left">
-            {itemDetails.description}
+              {itemDetails.description}
             </div>
           </div>
         </div>

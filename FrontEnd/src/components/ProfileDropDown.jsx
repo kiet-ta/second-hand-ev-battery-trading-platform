@@ -11,7 +11,7 @@ const ProfileDropDown = ({users}) => (
             {
                 key: '2', label: (<a href="/settings">Settings</a>)
             },
-            {key: '3', label: (<a href="/logout">Logout</a>)
+            {key: '3', label: (<a href="/login">Logout</a>)
             }
         ]
 }}>

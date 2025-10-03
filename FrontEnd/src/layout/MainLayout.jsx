@@ -16,7 +16,7 @@ function MainLayout() {
   }
   useEffect(() => {
     fetchUser();
-  });
+  },[]);
   const mainRef = useRef(null);
   return (
     <div className="  flex flex-col m-0 p-0 bg-gray-200">
