@@ -2,27 +2,28 @@ import { useEffect, useState } from "react";
 import "../assets/styles/AddressManagement.css";
 import axios from "axios";
 
-// API dùng chung
-const baseURL = "https://open.oapi.vn/location";
-
 const addressApi = {
     getProvinces: async () => {
-        const res = await axios.get(`${baseURL}/provinces`, {
-            params: { page: 0, size: 63 },
-        });
-        return res.data.data || [];
+        const res = await axios.get(
+            "https://raw.githubusercontent.com/madnh/hanhchinhvn/master/dist/tinh_tp.json"
+        );
+        return Object.values(res.data);
     },
     getDistricts: async (provinceCode) => {
-        const res = await axios.get(`${baseURL}/districts/${provinceCode}`, {
-            params: { page: 0, size: 999 },
-        });
-        return res.data.data || [];
+        const res = await axios.get(
+            "https://raw.githubusercontent.com/madnh/hanhchinhvn/master/dist/quan_huyen.json"
+        );
+        return Object.values(res.data).filter(
+            (d) => String(d.parent_code) === String(provinceCode)
+        );
     },
     getWards: async (districtCode) => {
-        const res = await axios.get(`${baseURL}/wards/${districtCode}`, {
-            params: { page: 0, size: 999 },
-        });
-        return res.data.data || [];
+        const res = await axios.get(
+            "https://raw.githubusercontent.com/madnh/hanhchinhvn/master/dist/xa_phuong.json"
+        );
+        return Object.values(res.data).filter(
+            (w) => String(w.parent_code) === String(districtCode)
+        );
     },
 };
 
@@ -59,12 +60,12 @@ const AddressManagement = () => {
         isDefault: false,
     });
 
-    // Load provinces on mount
+    // Load provinces
     useEffect(() => {
         addressApi.getProvinces().then(setProvinces).catch(() => setProvinces([]));
     }, []);
 
-    // Load districts when province changes
+    // Load districts khi chọn tỉnh
     useEffect(() => {
         if (formData.provinceCode) {
             addressApi
@@ -78,7 +79,7 @@ const AddressManagement = () => {
         }
     }, [formData.provinceCode]);
 
-    // Load wards when district changes
+    // Load wards khi chọn huyện
     useEffect(() => {
         if (formData.districtCode) {
             addressApi
@@ -90,9 +91,7 @@ const AddressManagement = () => {
         }
     }, [formData.districtCode]);
 
-    // ----------------------
-    // Handlers
-    // ----------------------
+
 
     const handleAddNew = () => {
         setEditingId(null);
@@ -114,17 +113,15 @@ const AddressManagement = () => {
     const handleEdit = (address) => {
         setEditingId(address.id);
         setFormData({
-            provinceCode: "",
-            provinceName: "",
-            districtCode: "",
-            districtName: "",
-            wardCode: "",
-            wardName: "",
+            provinceCode: address.provinceCode,
+            provinceName: address.provinceName,
+            districtCode: address.districtCode,
+            districtName: address.districtName,
+            wardCode: address.wardCode,
+            wardName: address.wardName,
             detail: address.detail,
             isDefault: address.isDefault,
         });
-        setDistricts([]);
-        setWards([]);
         setShowForm(true);
     };
 
@@ -134,7 +131,7 @@ const AddressManagement = () => {
         setFormData({
             ...formData,
             provinceCode: code,
-            provinceName: province?.name || "",
+            provinceName: province?.name_with_type || "",
             districtCode: "",
             districtName: "",
             wardCode: "",
@@ -148,7 +145,7 @@ const AddressManagement = () => {
         setFormData({
             ...formData,
             districtCode: code,
-            districtName: district?.name || "",
+            districtName: district?.name_with_type || "",
             wardCode: "",
             wardName: "",
         });
@@ -160,7 +157,7 @@ const AddressManagement = () => {
         setFormData({
             ...formData,
             wardCode: code,
-            wardName: ward?.name || "",
+            wardName: ward?.name_with_type || "",
         });
     };
 
@@ -302,7 +299,7 @@ const AddressManagement = () => {
                             <option value="">-- Chọn Tỉnh/Thành --</option>
                             {provinces.map((p) => (
                                 <option key={p.code} value={p.code}>
-                                    {p.name}
+                                    {p.name_with_type}
                                 </option>
                             ))}
                         </select>
@@ -319,7 +316,7 @@ const AddressManagement = () => {
                             <option value="">-- Chọn Quận/Huyện --</option>
                             {districts.map((d) => (
                                 <option key={d.code} value={d.code}>
-                                    {d.name}
+                                    {d.name_with_type}
                                 </option>
                             ))}
                         </select>
@@ -336,7 +333,7 @@ const AddressManagement = () => {
                             <option value="">-- Chọn Phường/Xã --</option>
                             {wards.map((w) => (
                                 <option key={w.code} value={w.code}>
-                                    {w.name}
+                                    {w.name_with_type}
                                 </option>
                             ))}
                         </select>

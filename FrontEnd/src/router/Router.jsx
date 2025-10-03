@@ -11,6 +11,9 @@ import LoginPage from '../pages/LoginPage';
 import RegisterPage from '../pages/RegisterPage';
 import ProfileContent from '../pages/ProfileContent';
 import UserManagementSystem from '../pages/UserManagementSystem';
+import SellerDashboard from '../pages/DashboardSeller';
+import PurchaseHistory from '../components/HistoryBought';
+import SellerHistory from '../components/HistorySold';
 
 export const router = createBrowserRouter([
     {
@@ -59,6 +62,19 @@ export const router = createBrowserRouter([
     {
         path: "/manage",
         element: <UserManagementSystem />
+    },
+    {
+        path: "/seller",
+        element: <SellerDashboard />
+    },
+    {
+        path: "/bought",
+        element: <PurchaseHistory />
+    },
+    {
+        path: "/sold",
+        element: <SellerHistory />
     }
+
 
 ]);
