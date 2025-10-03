@@ -41,6 +41,7 @@ namespace Application.Services
             existing.FullName = user.FullName;
             existing.Phone = user.Phone;
             existing.Gender = user.Gender;
+            existing.YearOfBirth = user.YearOfBirth;
             existing.AvatarProfile = user.AvatarProfile;
             existing.Role = user.Role;
             existing.KycStatus = user.KycStatus;

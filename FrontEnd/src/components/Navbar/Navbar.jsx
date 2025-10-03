@@ -6,13 +6,13 @@ import { MdOutlineAttachMoney } from "react-icons/md";
 import Logo from '../Logo/Logo';
 import ProfileDropDown from '../ProfileDropDown';
 import { FaShoppingCart } from "react-icons/fa";
+import { FaSuitcase } from "react-icons/fa6";
 
 
-function Navbar(userInfo) {
+function Navbar(data) {
   const leftmenu = [
     { name: 'Home', link: '/', icon: <IoMdHome /> },
-    { name: 'Auction', link: '/auctions', icon: <RiAuctionFill /> },
-    { name: 'Manager', link: '/manage', icon: <MdOutlineAttachMoney /> }
+    { name: 'Auction', link: '/auctions', icon: <RiAuctionFill /> }
   ]
   const rightmenu = [
     { name: 'Notification', link: '/notification', icon: <IoMdHome /> },
@@ -33,6 +33,19 @@ function Navbar(userInfo) {
                 <span className="ml-2">{item.name}</span>
               </Link>
             ))}
+            {data.data && data.data.role == "Manager" ? (
+             <Link to="/manage" className="mx-4 hover:text-green-300 flex items-center">
+              <FaSuitcase/>                
+             <span className="ml-2">Manager</span>
+              </Link> 
+            ):(
+             <Link to="/seller" className="mx-4 hover:text-green-300 flex items-center">
+              <FaSuitcase/>                
+             <span className="ml-2">Seller</span>
+              </Link> 
+            )
+            }
+
           </div>
           <div className="right-header flex w-full justify-end" >
             {rightmenu.map((item, index) => (
@@ -41,9 +54,9 @@ function Navbar(userInfo) {
                 <span className="ml-2">{item.name}</span>
               </Link>
             ))}
-            {userInfo.userInfo  ? (
+            {data.data  ? (
               <div className="ml-4 pt-5">
-                <ProfileDropDown users={userInfo.userInfo} />
+                <ProfileDropDown users={data.data} />
               </div>
             )
               : (
