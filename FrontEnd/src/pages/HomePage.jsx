@@ -6,23 +6,26 @@ import '../styles/HomePage.css'
 import itemApi from '../api/itemApi';
 function HomePage() {
   const [itemList, setItemList] = useState([]);
-
-  useEffect(() => {
-    const fetchItems = async () => {
+  const [evList, setEVList] = useState([]);
+  const [batteryList, setBatteryList] = useState([]);
+  const fetchItems = async () => {
     try {
-      const data = await itemApi.getItem();
-      console.log(data);
-      setItemList(data);
+      const items = await itemApi.getItem();
+      const evs = await itemApi.getItemByLatestEV();
+      const batterys = await itemApi.getItemByLatestBattery();
+      setItemList(items);
+      setEVList(evs);
+      setBatteryList(batterys);
+      console.log(batterys)
     } catch (error) {
       console.error("Error fetching items", error);
-    }};
-    fetchItems();
-  }, []);
+    }
+  };
+    useEffect(() => {
+      fetchItems();
+    }, []);
 
-  const first_sale = itemList.slice(0, 3);
-  const second_sale = itemList.slice(1, 5);
-  const third_sale = itemList.slice(3, 7);
-  return (
+  const first_sale = itemList.slice(0, 3); return (
     <>
       <div className="HomePage w-full m-0 p-0 bg-amber-100y overflow-x-hidden">
         <div className="First-sale flex flex-wrap w-full bg-white  gap-0 p-0 justify-around  ">
@@ -33,14 +36,16 @@ function HomePage() {
           </div>
           <div className="Products flex w-2/4 justify-center content-center self-center gap-4 p-4 m-0 ">
             {first_sale.map((item) => (
-                <CardComponent title={item.title} 
-                type={item.itemType} 
-                price={item.price} 
-                sales={0} 
-                image={"https://i.pinimg.com/1200x/55/53/06/55530643312e136a9fa2a576d6fcfbd0.jpg"} 
-                id={item.itemId} 
-                />
-              ))}
+              <CardComponent
+                key={item.itemId}
+                title={item.title}
+                type={item.itemType}
+                price={item.price}
+                sales={0}
+                image={"https://i.pinimg.com/1200x/55/53/06/55530643312e136a9fa2a576d6fcfbd0.jpg"}
+                id={item.itemId}
+              />
+            ))}
           </div>
         </div>
         <div className="Banner">
@@ -52,31 +57,31 @@ function HomePage() {
             Electric Vehicle
           </div>
           <div className="Products flex justify-center content-center self-center gap-4 p-4 m-0 ">
-            {second_sale.map((item) => (
-                <CardComponent title={item.title} 
-                type={item.itemType} 
-                price={item.price} 
-                sales={0} 
-                image={"https://i.pinimg.com/1200x/55/53/06/55530643312e136a9fa2a576d6fcfbd0.jpg"} 
-                id={item.itemId} 
-                />
-              ))}
+            {evList.map((item) => (
+              <CardComponent title={item.title}
+                type={item.itemType}
+                price={item.price}
+                sales={0}
+                image={"https://i.pinimg.com/1200x/55/53/06/55530643312e136a9fa2a576d6fcfbd0.jpg"}
+                id={item.itemId}
+              />
+            ))}
           </div>
         </div>
-                <div className="Car bg-white mt-2 w-full">
+        <div className="Car bg-white mt-2 w-full">
           <div className="text-left text-2xl m-4 p-4 font-bold border-b-1">
             Battery
           </div>
           <div className="Products flex justify-center content-center self-center gap-4 p-4 m-0 ">
-            {third_sale.map((item) => (
-                <CardComponent title={item.title} 
-                type={item.itemType} 
-                price={item.price} 
-                sales={0} 
-                image={"https://i.pinimg.com/1200x/55/53/06/55530643312e136a9fa2a576d6fcfbd0.jpg"} 
-                id={item.itemId} 
-                />
-              ))}
+            {batteryList.map((item) => (
+              <CardComponent title={item.title}
+                type={item.itemType}
+                price={item.price}
+                sales={0}
+                image={"https://i.pinimg.com/1200x/55/53/06/55530643312e136a9fa2a576d6fcfbd0.jpg"}
+                id={item.itemId}
+              />
+            ))}
           </div>
         </div>
 

@@ -35,7 +35,7 @@ namespace Application.Services
                 Price = item.Price,
                 Quantity = item.Quantity ?? 0,
                 //Status = item.Status ?? "",
-                //IsDeleted = false
+                IsDeleted = item.IsDeleted
             };
         }
 
@@ -44,17 +44,17 @@ namespace Application.Services
             var items = await _repo.GetAllAsync();
             return items.Select(i => new ItemDto
             {
-                //ItemId = i.ItemId,
+                ItemId = i.ItemId,
                 ItemType = i.ItemType ?? "",
                 CategoryId = i.CategoryId,
                 Title = i.Title,
                 Description = i.Description,
                 Price = i.Price,
                 Quantity = i.Quantity ?? 0,
-                CreatedAt = i.CreatedAt 
+                CreatedAt = i.CreatedAt,
                 //UpdatedBy = i.UpdatedBy
                 //Status = i.Status ?? "active",
-                //IsDeleted = i.IsDeleted
+                IsDeleted = i.IsDeleted
             });
         }
 
@@ -114,6 +114,7 @@ namespace Application.Services
 
             return items.Select(i => new ItemDto
             {
+                ItemId = i.ItemId,
                 ItemType = i.ItemType ?? "",
                 CategoryId = i.CategoryId,
                 Title = i.Title,
@@ -121,15 +122,16 @@ namespace Application.Services
                 Price = i.Price,    
                 Quantity = i.Quantity ?? 0,
                 //Status = i.Status ?? "active",
-                //IsDeleted = i.IsDeleted
+                IsDeleted = i.IsDeleted
             });
         }
         public async Task<IEnumerable<ItemDto>> GetLatestBatteriesAsync(int count)
         {
-            var items = await _repo.GetLatestEVsAsync(count);
+            var items = await _repo.GetLatestBatteriesAsync(count);
 
             return items.Select(i => new ItemDto
             {
+                ItemId = i.ItemId,
                 ItemType = i.ItemType ?? "",
                 CategoryId = i.CategoryId,
                 Title = i.Title,
@@ -137,7 +139,7 @@ namespace Application.Services
                 Price = i.Price,
                 Quantity = i.Quantity ?? 0,
                 //Status = i.Status ?? "active",
-                //IsDeleted = i.IsDeleted
+                IsDeleted = i.IsDeleted
             });
         }
 
@@ -198,13 +200,15 @@ namespace Application.Services
                 .Take(pageSize)
                 .Select(i => new ItemDto
                 {
+
                     ItemId = i.ItemId,
                     ItemType = i.ItemType,
                     Title = i.Title,
                     //SellerName =  EF.Property<User>(i, "UpdatedByUser").FullName,
                     Price = i.Price,
                     //Status = i.Status,
-                    UpdatedAt = i.UpdatedAt
+                    UpdatedAt = i.UpdatedAt,
+                    IsDeleted = i.IsDeleted
                 })
                 .ToListAsync();
 

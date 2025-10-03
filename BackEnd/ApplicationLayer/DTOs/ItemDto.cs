@@ -29,6 +29,6 @@ namespace Application.DTOs
         //public int? UpdatedBy { get; set; }
         //public string? SellerName { get; set; }
         //public string Status { get; set; } = "active";
-        //public bool? IsDeleted { get; set; }
+        public bool? IsDeleted { get; set; }
     }
 }

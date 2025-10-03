@@ -84,7 +84,7 @@ function BatteryDetails() {
             </div>
             <div className="price-tag flex h-1/10 text-left mt-2 bg-gray-50">
               <div className='ml-4 text-2xl font-bold text-red-500 content-center' >${itemDetails.price}</div>
-              <div className="ml-5 text-2xl text-gray-300 line-through content-center">100000$</div>
+              <div className="ml-5 text-2xl text-gray-300 line-through content-center"></div>
             </div>
             <div className='flex h-1/10 text-left mt-2 text-1xl text-gray-500 gap-4 items-center'>
               <div className=''>Quantity:</div>

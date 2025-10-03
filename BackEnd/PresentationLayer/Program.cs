@@ -20,6 +20,20 @@ namespace PresentationLayer
         {
             var builder = WebApplication.CreateBuilder(args);
 
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AllowReact", policy =>
+            {
+                policy.WithOrigins("http://localhost:3000")
+                    .WithOrigins("http://localhost:5173")
+                    .WithOrigins("http://localhost:5174")
+                    .WithOrigins("http://localhost:5175")
+                    .WithOrigins("http://localhost:5176")
+                      .AllowAnyHeader()
+                      .AllowAnyMethod()
+                      .AllowCredentials();
+            });
+            });
             //  Đăng ký DbContext (DB First)
             builder.Services.AddDbContext<EvBatteryTradingContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
@@ -116,6 +130,8 @@ namespace PresentationLayer
             app.UseRouting();
 
             app.UseHttpsRedirection();
+
+            app.UseCors("AllowReact");
 
             app.UseAuthentication();
 
