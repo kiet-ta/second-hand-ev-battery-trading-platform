@@ -9,7 +9,9 @@
     "\\BackEnd\\Domain\\DTO",
     "\\BackEnd\\PresentationLayer",
     "\\BackEnd\\PresentationLayer\\Properties",
-    "\\CSharpDbProject"
+    "\\CSharpDbProject",
+    "\\BackEnd\\ApplicationLayer\\DTOs"
   ],
+  "SelectedNode": "\\BackEnd\\BackEnd.sln",
   "PreviewInSolutionExplorer": false
 }

@@ -1,17 +1,19 @@
-﻿
+using Net.payOS;
+using Application.IHelpers;
 using Application.IRepositories;
-using Application.IServices;
-using Application.Services;
-using CloudinaryDotNet;
-using Infrastructure.Config;
+using Application.IValidations;
+using Domain.Entities;
+using Helper;
 using Infrastructure.Data;
 using Infrastructure.Repositories;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
-
+using Microsoft.Extensions.Configuration;
+using StackExchange.Redis;
+using Application.Services;
+using Application.IServices;
 namespace PresentationLayer
 {
     public class Program
@@ -78,7 +80,29 @@ namespace PresentationLayer
             // Add services to the container.
 
             builder.Services.AddControllers();
+
+            // register PayOS via DI (Dependency Injection)
+            var payosConfig = builder.Configuration.GetSection("PayOS");
+
+            builder.Services.AddSingleton(sp =>
+            {
+                var clientId = payosConfig["ClientId"];
+                var apiKey = payosConfig["ApiKey"];
+                var checksumKey = payosConfig["ChecksumKey"];
+                return new PayOS(clientId = "abc", apiKey = "abc", checksumKey = "abc");
+            });
+
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+            //builder.Services.AddScoped<IUserService, UserService>();
+            //builder.Services.AddScoped<IUserRepository, UserRepository>();
+            //builder.Services.AddScoped<IUserHelper, UserHelper>();
+            //builder.Services.AddScoped<IPasswordHelper, PasswordHelper>();
+            //builder.Services.AddScoped<IUserValidation, UserValidation>();
+            builder.Services.AddDbContext<AppDbContext>(options =>
+            options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+            builder.Services.AddScoped<IUserRepository, UserRepository>();
+            builder.Services.AddScoped<IUserService, UserService>();
             builder.Services.AddEndpointsApiExplorer();
             //builder.Services.AddSwaggerGen();
             builder.Services.AddSwaggerGen(c =>
@@ -135,8 +159,9 @@ namespace PresentationLayer
 
             app.UseAuthentication();
 
-            app.UseAuthorization();
+            app.UseHttpsRedirection();
 
+            app.UseAuthorization();
 
             app.MapControllers();
 

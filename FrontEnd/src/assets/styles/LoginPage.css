@@ -33,7 +33,7 @@
 }
 
 /* Nội dung chính: banner + form */
-.main-content-login {
+.login-main {
     display: flex;
     flex: 1;
     height: 100%;
@@ -81,12 +81,13 @@
 }
 
 .login-box {
-    width: 320px;
+    width: 400px;
     padding: 30px;
     background-color: #fff;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     border-radius: 8px;
     text-align: center;
+    height: 50 0px;
 }
 
 /* Input */

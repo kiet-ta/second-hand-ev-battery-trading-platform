@@ -1,18 +1,17 @@
 import React, { useEffect, useState, useRef } from 'react';
 import Logo from '../assets/images/Logo.png';
 import { fakeUser } from "../fakeUser";
-import '../App.css';
 import '../assets/styles/LoginPage.css';
 import banner1 from '../assets/images/banner1.png';
 import banner2 from '../assets/images/banner2.png';
 import banner3 from '../assets/images/banner3.png';
 import { Link } from 'react-router-dom';
-
+import { Popover } from 'antd';
 
 export default function LoginPage() {
     const clientId =
         import.meta.env.VITE_GOOGLE_CLIENT_ID ||
-        '574647661928-vh01sb0pk7e8d6gdbkbfth60m2r9guq9.apps.googleusercontent.com';
+        '301055344643-gel1moqvoq9flgf8978aje7j9frtci79.apps.googleusercontent.com';
 
     const [user, setUser] = useState(null); // cho cả Google + Local
     const [username, setUsername] = useState('');
@@ -109,18 +108,52 @@ export default function LoginPage() {
     const handleLocalLogin = (e) => {
         e.preventDefault();
 
+        // Reset lỗi mỗi lần submit
+        setError("");
+
+        // 1. Trim dữ liệu để tránh khoảng trắng thừa
+        const trimmedUsername = username.trim();
+        const trimmedPassword = password.trim();
+
+        // 2. Check rỗng
+        if (!trimmedUsername) {
+            setError("Please enter username or email.");
+            return;
+        }
+
+        if (!trimmedPassword) {
+            setError("Please enter password.");
+            return;
+        }
+
+        // 3. Nếu username là email -> kiểm tra định dạng email
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        const isEmail = emailRegex.test(trimmedUsername);
+
+        if (trimmedUsername.includes("@") && !isEmail) {
+            setError("Invalid email.");
+            return;
+        }
+
+        // 4. Check độ dài password
+        if (trimmedPassword.length < 6) {
+            setError("Password must be at least 6 characters.");
+            return;
+        }
+
+        // 5. So khớp với user giả định
         if (
-            (username === fakeUser.email || username === fakeUser.name) &&
-            password === fakeUser.password
+            (trimmedUsername === fakeUser.email || trimmedUsername === fakeUser.name) &&
+            trimmedPassword === fakeUser.password
         ) {
             localStorage.setItem("user", JSON.stringify(fakeUser));
             setUser(fakeUser);
-            console.log(fakeUser);
-            alert("Đăng nhập thành công!");
+            alert("Login successful!");
         } else {
-            setError("Wrong!");
+            setError("Incorrect login information.");
         }
     };
+
 
     function signOut() {
         if (user?.token) {
@@ -144,16 +177,15 @@ export default function LoginPage() {
     return (
         <div className="login-container">
             {/* Header */}
-            <Link to='/'>             <header className="login-header">
+            <header className="login-header">
                 <img src={Logo} alt="Logo" className="logo" />
                 <h1>Cóc Mua Xe</h1>
             </header>
-</Link>
 
             {/* Nội dung chính: banner + form */}
-            <div className="main-content-login flex">
+            <div className="login-main">
                 {/* Banner bên trái */}
-                <div className="banner-container w-1/2">
+                <div className="banner-container">
                     <div className="relative w-full h-full">
                         {slides.map((slide, index) => (
                             <div
@@ -167,7 +199,7 @@ export default function LoginPage() {
                 </div>
 
                 {/* Form login bên phải */}
-                <div className="login-right w-1/2">
+                <div className="login-right">
                     <div className="login-box">
                         {!user ? (
                             <>
@@ -187,12 +219,20 @@ export default function LoginPage() {
                                         onChange={(e) => setPassword(e.target.value)}
                                         className="login-input"
                                     />
-                                    <button type="submit" className="login-btn">
-                                        SIGN IN
-                                    </button>
-                                </form>
+                                    <Popover
+                                        content={error}
+                                        trigger="click"
+                                        open={!!error}
+                                        onOpenChange={(visible) => {
+                                            if (!visible) setError("");
+                                        }}
+                                    >
+                                        <button type="submit" className="login-btn">
+                                            SIGN IN
+                                        </button>
+                                    </Popover>
 
-                                {error && <p style={{ color: "red" }}>{error}</p>}
+                                </form>
 
                                 <a href="#" className="forgot-password">
                                     Forgot Password
