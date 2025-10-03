@@ -47,6 +47,29 @@ namespace Infrastructure.Data.Configurations
             //   .WithMany()
             //   .HasForeignKey(i => i.UpdatedBy)
             //   .OnDelete(DeleteBehavior.Restrict);
+
+            // ========================
+            // Relationships (chỉ định bằng khóa ngoại)
+            // ========================
+            entity.HasOne<Category>()              // không cần nav, chỉ map
+                   .WithMany()
+                   .HasForeignKey(i => i.CategoryId)
+                   .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne<User>()                  // UpdatedBy → User
+                   .WithMany()
+                   .HasForeignKey(i => i.UpdatedBy)
+                   .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne<EvDetail>()              // Item ↔ EVDetail (1-1)
+                   .WithOne()
+                   .HasForeignKey<EvDetail>(ev => ev.ItemId)
+                   .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne<BatteryDetail>()         // Item ↔ BatteryDetail (1-1)
+                   .WithOne()
+                   .HasForeignKey<BatteryDetail>(b => b.ItemId)
+                   .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

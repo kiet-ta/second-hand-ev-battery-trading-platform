@@ -82,5 +82,22 @@ namespace PresentationLayer.Controllers
 
             return Ok(result);
         }
+
+        [HttpGet("with-detail/{id}")]
+        public async Task<IActionResult> GetItemWithDetails(int id)
+        {
+            var item = await _service.GetItemWithDetailsAsync(id);
+            if (item == null)
+                return NotFound();
+
+            return Ok(item);
+        }
+
+        [HttpGet("detail")]
+        public async Task<IActionResult> GetAllItemsWithDetails()
+        {
+            var items = await _service.GetAllItemsWithDetailsAsync();
+            return Ok(items);
+        }
     }
 }

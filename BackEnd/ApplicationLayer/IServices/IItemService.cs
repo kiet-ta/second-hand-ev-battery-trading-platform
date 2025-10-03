@@ -32,5 +32,8 @@ namespace Application.IServices
         int pageSize = 20,
         string sortBy = "UpdatedAt",
         string sortDir = "desc");
+
+        Task<ItemWithDetailDto?> GetItemWithDetailsAsync(int id);
+        Task<IEnumerable<ItemWithDetailDto>> GetAllItemsWithDetailsAsync();
     }
 }
