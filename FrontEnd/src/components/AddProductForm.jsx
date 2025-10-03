@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, {useState } from 'react';
 import { PlusOutlined } from '@ant-design/icons';
 import { PlusCircle } from "lucide-react";
 import {
@@ -23,12 +23,6 @@ import AddressDropDown from './AddressDropDown';
 import evData from '../assets/datas/evData';
 const { RangePicker } = DatePicker;
 const { TextArea } = Input;
-const normFile = e => {
-  if (Array.isArray(e)) {
-    return e;
-  }
-  return e?.fileList;
-};
 const bodyStyles = [
   "Sedan",
   "Hatchback",

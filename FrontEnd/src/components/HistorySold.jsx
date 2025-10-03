@@ -4,7 +4,6 @@ import { Calendar, Car, DollarSign, User, Phone, MapPin, TrendingUp, Eye, Downlo
 export default function SellerHistory() {
     const [filter, setFilter] = useState('all');
     const [selectedSale, setSelectedSale] = useState(null);
-    const [timeRange, setTimeRange] = useState('all');
 
     // Mock data - trong thực tế sẽ fetch từ API
     const [sales] = useState([

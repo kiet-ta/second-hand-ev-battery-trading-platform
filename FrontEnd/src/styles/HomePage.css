@@ -13,9 +13,6 @@ a {
 a:hover {
   color: gray;
 }
-button{
-    border-color:aqua;
-}
 @media (prefers-color-scheme: light) {
   :root {
     color: #213547;

@@ -14,6 +14,7 @@ import UserManagementSystem from '../pages/UserManagementSystem';
 import SellerDashboard from '../pages/DashboardSeller';
 import PurchaseHistory from '../components/HistoryBought';
 import SellerHistory from '../components/HistorySold';
+import PurchasePage from '../pages/PurchasePage';
 
 export const router = createBrowserRouter([
     {
@@ -44,7 +45,11 @@ export const router = createBrowserRouter([
             {
                 path: "/checkout",
                 element: <CheckoutPage/>
-            }   
+            }   ,
+            {
+                path: "/purchase",
+                element: <PurchasePage/>
+            }
         ]
     },
     {

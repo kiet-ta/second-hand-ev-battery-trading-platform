@@ -1,7 +1,7 @@
 import React from 'react';
 import { DownOutlined, SettingOutlined } from '@ant-design/icons';
 import { Dropdown, Space } from 'antd';
-const handleLogout = async (e) => {
+const handleLogout = async () => {
     localStorage.setItem("user", null)
 }
 const ProfileDropDown = ({users}) => (

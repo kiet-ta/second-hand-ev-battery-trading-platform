@@ -7,6 +7,7 @@ import Logo from '../Logo/Logo';
 import ProfileDropDown from '../ProfileDropDown';
 import { FaShoppingCart } from "react-icons/fa";
 import { FaSuitcase } from "react-icons/fa6";
+import { LuShoppingBag } from "react-icons/lu";
 
 
 function Navbar(data) {
@@ -17,10 +18,10 @@ function Navbar(data) {
   const rightmenu = [
     { name: 'Notification', link: '/notification', icon: <IoMdHome /> },
     { name: 'Support', link: '/support' }]
-    // const user ={
-    //   name: "Lady Furina",
-    //   picture: "https://i.pinimg.com/736x/5b/3f/09/5b3f09d67f448e39dab9e8d8f3cc3f94.jpg"
-    // }
+  // const user ={
+  //   name: "Lady Furina",
+  //   picture: "https://i.pinimg.com/736x/5b/3f/09/5b3f09d67f448e39dab9e8d8f3cc3f94.jpg"
+  // }
   return (
 
     <div>
@@ -34,15 +35,15 @@ function Navbar(data) {
               </Link>
             ))}
             {data.data && data.data.role == "Manager" ? (
-             <Link to="/manage" className="mx-4 hover:text-green-300 flex items-center">
-              <FaSuitcase/>                
-             <span className="ml-2">Manager</span>
-              </Link> 
-            ):(
-             <Link to="/seller" className="mx-4 hover:text-green-300 flex items-center">
-              <FaSuitcase/>                
-             <span className="ml-2">Seller</span>
-              </Link> 
+              <Link to="/manage" className="mx-4 hover:text-green-300 flex items-center">
+                <FaSuitcase />
+                <span className="ml-2">Manager</span>
+              </Link>
+            ) : (
+              <Link to="/seller" className="mx-4 hover:text-green-300 flex items-center">
+                <FaSuitcase />
+                <span className="ml-2">Seller</span>
+              </Link>
             )
             }
 
@@ -54,7 +55,7 @@ function Navbar(data) {
                 <span className="ml-2">{item.name}</span>
               </Link>
             ))}
-            {data.data  ? (
+            {data.data ? (
               <div className="ml-4 pt-5">
                 <ProfileDropDown users={data.data} />
               </div>
@@ -81,10 +82,14 @@ function Navbar(data) {
             </form>
           </div>
           <div className="mt-10 w-1/5 flex justify-end items-center content-center gap-4">
-                        <Link to={'/cart'} className="mx-4 hover:text-green-300 flex items-center">
-                {<FaShoppingCart/>}
-                <span className="ml-2">Cart</span>
-              </Link>
+            <Link to={'/cart'} className="mx-4 hover:text-green-300 flex items-center">
+              {<FaShoppingCart />}
+              <span className="ml-2">Cart</span>
+            </Link>
+            <Link to={'/purchase'} className="mx-4 hover:text-green-300 flex items-center">
+              {<LuShoppingBag />}
+              <span className="ml-2">Purchase</span>
+            </Link>
           </div>
         </div>
       </div>

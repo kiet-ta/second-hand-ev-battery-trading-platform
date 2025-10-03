@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import HistorySold from '../components/HistorySold'; // ✅ thêm HistorySold
-import OrderItem from '../components/OrderItem';
+import MyProduct from '../components/OrderItem';
 
 export default function SellerDashboard() {
     const [activeMenu, setActiveMenu] = useState('dashboard');
@@ -84,7 +84,7 @@ export default function SellerDashboard() {
                 {activeMenu === "history" ? (
                     <HistorySold />
                 ) : activeMenu == "orders" ? (
-                    <OrderItem/>
+                    <MyProduct/>
                 ) : 
                 (
                     <div className="p-8">
