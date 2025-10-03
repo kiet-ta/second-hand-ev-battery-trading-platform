@@ -28,7 +28,7 @@ public class User
 
     [MaxLength(50)]
     [Column("gender")]
-    public string? Gender { get; set; }
+    public string? Gender { get; set; } 
 
     [Column("year_of_birth")]
     public DateTime? YearOfBirth { get; set; }

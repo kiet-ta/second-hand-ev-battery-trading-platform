@@ -48,7 +48,7 @@ function HomePage() {
             ))}
           </div>
         </div>
-        <div className="Banner">
+        <div className="Banner mt-5">
           <img src="https://images4.alphacoders.com/136/thumb-1920-1360814.png"
             className="h-40 w-full object-cover object-[40%_25%]" />
         </div>

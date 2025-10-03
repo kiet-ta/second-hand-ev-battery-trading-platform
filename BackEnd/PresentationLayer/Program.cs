@@ -1,17 +1,11 @@
 using Net.payOS;
-using Application.IHelpers;
 using Application.IRepositories;
-using Application.IValidations;
-using Domain.Entities;
-using Helper;
 using Infrastructure.Data;
 using Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
-using Microsoft.Extensions.Configuration;
-using StackExchange.Redis;
 using Application.Services;
 using Application.IServices;
 using Microsoft.AspNetCore.Authentication.JwtBearer;

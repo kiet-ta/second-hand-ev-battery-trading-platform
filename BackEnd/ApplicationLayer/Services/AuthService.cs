@@ -30,10 +30,11 @@ namespace Application.Services
             var existing = await _userRepository.GetByEmailAsync(dto.Email);
             if (existing != null)
                 throw new Exception("Email already registered");
-
+            DateTime dateTime = DateTime.UtcNow;
+            int uniqueId = (int) dateTime.TimeOfDay.TotalMinutes;
             var user = new User
             {
-                UserId = 1001,
+                UserId = uniqueId,
                 FullName = dto.FullName,
                 Email = dto.Email,
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
