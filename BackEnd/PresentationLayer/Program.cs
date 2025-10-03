@@ -7,6 +7,9 @@ using Helper;
 using Infrastructure.Data;
 using Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
+using System.Text;
 using Microsoft.Extensions.Configuration;
 using StackExchange.Redis;
 using Application.Services;
@@ -19,6 +22,47 @@ namespace PresentationLayer
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
+
+            //  Đăng ký DbContext (DB First)
+            builder.Services.AddDbContext<EvBatteryTradingContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+            // DI cho Repository + Service
+            builder.Services.AddScoped<IUserRepository, UserRepository>();
+            builder.Services.AddScoped<IAuthService, AuthService>();
+            builder.Services.AddScoped<IItemRepository, ItemRepository>();
+            //builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
+            builder.Services.AddScoped<IItemService, ItemService>();
+
+            // JWT Authentication
+            builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                .AddJwtBearer(options =>
+                {
+                    options.TokenValidationParameters = new()
+                    {
+                        ValidateIssuer = true,
+                        ValidateAudience = true,
+                        ValidateLifetime = true,
+                        ValidateIssuerSigningKey = true,
+                        ValidIssuer = builder.Configuration["Jwt:Issuer"],
+                        ValidAudience = builder.Configuration["Jwt:Audience"],
+                        IssuerSigningKey = new SymmetricSecurityKey(
+                            Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!)
+                        )
+                    };
+                });
+
+            // Bind Cloudinary settings
+            builder.Services.Configure<CloudinarySettings>(
+                builder.Configuration.GetSection("CloudinarySettings"));
+
+            builder.Services.AddSingleton(sp =>
+            {
+                var config = builder.Configuration.GetSection("CloudinarySettings").Get<CloudinarySettings>();
+                return new Cloudinary(new Account(config.CloudName, config.ApiKey, config.ApiSecret));
+            });
+
+
+            builder.Services.AddAuthorization();
 
             // Add services to the container.
 
@@ -56,7 +100,43 @@ namespace PresentationLayer
             builder.Services.AddScoped<IUserRepository, UserRepository>();
             builder.Services.AddScoped<IUserService, UserService>();
             builder.Services.AddEndpointsApiExplorer();
-            builder.Services.AddSwaggerGen();
+            //builder.Services.AddSwaggerGen();
+            builder.Services.AddSwaggerGen(c =>
+            {
+                // Thông tin cơ bản
+                c.SwaggerDoc("v1", new OpenApiInfo { Title = "My API", Version = "v1" });
+
+                // Khai báo Security Definition (JWT Bearer)
+                c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+                {
+                    Description = @"JWT Authorization header using the Bearer scheme.  
+                      Enter 'Bearer' [space] and then your token in the text input below.  
+                      Example: 'Bearer 12345abcdef'",
+                    Name = "Authorization",
+                    In = ParameterLocation.Header,
+                    Type = SecuritySchemeType.ApiKey,
+                    Scheme = "Bearer"
+                });
+
+                // Áp dụng cho tất cả API
+                c.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                },
+                Scheme = "oauth2",
+                Name = "Bearer",
+                In = ParameterLocation.Header,
+            },
+            new List<string>()
+        }
+    });
+            });
 
             var app = builder.Build();
 
