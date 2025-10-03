@@ -5,6 +5,7 @@ import '../assets/styles/LoginPage.css';
 import banner1 from '../assets/images/banner1.png';
 import banner2 from '../assets/images/banner2.png';
 import banner3 from '../assets/images/banner3.png';
+import UserService from '../UserService';
 import { Link } from 'react-router-dom';
 import { Popover } from 'antd';
 
@@ -14,7 +15,7 @@ export default function LoginPage() {
         '301055344643-gel1moqvoq9flgf8978aje7j9frtci79.apps.googleusercontent.com';
 
     const [user, setUser] = useState(null); // cho cả Google + Local
-    const [username, setUsername] = useState('');
+    const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
 
@@ -105,54 +106,51 @@ export default function LoginPage() {
             localStorage.setItem("user", JSON.stringify(newUser));
         }
     }
-    const handleLocalLogin = (e) => {
+    const handleLocalLogin = async (e) => {
         e.preventDefault();
-
-        // Reset lỗi mỗi lần submit
         setError("");
 
-        // 1. Trim dữ liệu để tránh khoảng trắng thừa
-        const trimmedUsername = username.trim();
+        const trimmedEmail = email.trim();
         const trimmedPassword = password.trim();
 
-        // 2. Check rỗng
-        if (!trimmedUsername) {
+        if (!trimmedEmail) {
             setError("Please enter username or email.");
             return;
         }
-
         if (!trimmedPassword) {
             setError("Please enter password.");
             return;
         }
 
-        // 3. Nếu username là email -> kiểm tra định dạng email
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        const isEmail = emailRegex.test(trimmedUsername);
-
-        if (trimmedUsername.includes("@") && !isEmail) {
+        if (trimmedEmail.includes("@") && !emailRegex.test(trimmedEmail)) {
             setError("Invalid email.");
             return;
         }
-
-        // 4. Check độ dài password
         if (trimmedPassword.length < 6) {
             setError("Password must be at least 6 characters.");
             return;
         }
 
-        // 5. So khớp với user giả định
-        if (
-            (trimmedUsername === fakeUser.email || trimmedUsername === fakeUser.name) &&
-            trimmedPassword === fakeUser.password
-        ) {
-            localStorage.setItem("user", JSON.stringify(fakeUser));
-            setUser(fakeUser);
+        try {
+            // Gọi API login
+            const res = await UserService.login(trimmedEmail, trimmedPassword);
+            const newUser = {
+                ...res.user,
+                userId: res.userId,
+                token: res.token,
+            };
+
+            localStorage.setItem("user", JSON.stringify(newUser));
+            setUser(newUser);
+
             alert("Login successful!");
-        } else {
+        } catch (err) {
+            console.error("Login error:", err);
             setError("Incorrect login information.");
         }
     };
+
 
 
     function signOut() {
@@ -208,8 +206,8 @@ export default function LoginPage() {
                                     <input
                                         type="text"
                                         placeholder="Phone number / Username / Email"
-                                        value={username}
-                                        onChange={(e) => setUsername(e.target.value)}
+                                        value={email}
+                                        onChange={(e) => setEmail(e.target.value)}
                                         className="login-input"
                                     />
                                     <input
