@@ -14,7 +14,7 @@ namespace Infrastructure.Data
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
         { }
 
-        // Define DBSets
+        
         public DbSet<Address> Address { get; set; }
     }
 }
