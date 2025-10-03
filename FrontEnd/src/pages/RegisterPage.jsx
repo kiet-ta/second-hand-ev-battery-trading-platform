@@ -8,6 +8,7 @@ import { Link } from 'react-router-dom';
 import { Popover } from 'antd';
 import UserService from '../UserService';
 import { FaRegEyeSlash, FaRegEye } from "react-icons/fa";
+import PasswordInput from '../components/PasswordInput';
 
 export default function RegisterPage() {
     const clientId =
@@ -29,6 +30,7 @@ export default function RegisterPage() {
         {
             id: 1,
             image: banner1,
+            alt: "Xe điện nhập khẩu chính hãng"
         },
         {
             id: 2,
@@ -229,21 +231,18 @@ export default function RegisterPage() {
                                         onChange={(e) => setEmail(e.target.value)}
                                         className="login-input"
                                     />
-                                    <input
-                                        type="password"
-                                        placeholder="Password"
+                                    <PasswordInput
                                         value={password}
                                         onChange={(e) => setPassword(e.target.value)}
-                                        className="login-input"
+                                        placeholder="Password"
                                     />
 
-                                    <input
-                                        type="password"
-                                        placeholder="Re-enter password"
+                                    <PasswordInput
                                         value={confirmPassword}
                                         onChange={(e) => setConfirmPassword(e.target.value)}
-                                        className="login-input"
+                                        placeholder="Re-enter password"
                                     />
+
 
                                     <Popover
                                         content={error}
