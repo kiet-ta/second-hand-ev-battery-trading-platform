@@ -17,7 +17,6 @@ namespace Application.IRepositories
         Task<User?> GetByEmailAsync(string email);
 
         Task AddUserAsync(User user);
-        Task AddAsync(User user);
 
         Task UpdateAsync(User user);
 

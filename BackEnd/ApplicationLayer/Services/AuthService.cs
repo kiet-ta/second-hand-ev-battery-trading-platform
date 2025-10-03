@@ -33,7 +33,7 @@ namespace Application.Services
 
             var user = new User
             {
-                UserId = 1000,
+                UserId = 1001,
                 FullName = dto.FullName,
                 Email = dto.Email,
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),

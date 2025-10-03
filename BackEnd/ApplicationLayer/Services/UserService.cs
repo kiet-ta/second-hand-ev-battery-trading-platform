@@ -28,7 +28,7 @@ namespace Application.Services
             user.CreatedAt = DateTime.Now;
             user.UpdatedAt = DateTime.Now;
 
-            await _userRepository.AddAsync(user);
+            await _userRepository.AddUserAsync(user);
         }
 
         public async Task UpdateUserAsync(User user)

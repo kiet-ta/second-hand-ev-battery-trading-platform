@@ -568,5 +568,6 @@ public class EvBatteryTradingContext : DbContext
         base.OnModelCreating(modelBuilder);
     }
 
-    //partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
 }
+
+

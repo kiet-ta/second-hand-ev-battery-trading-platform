@@ -9,9 +9,9 @@ namespace Infrastructure.Repositories
 {
     public class UserRepository : IUserRepository
     {
-        private readonly AppDbContext _context;
+        private readonly EvBatteryTradingContext _context;
 
-        public UserRepository(AppDbContext context)
+        public UserRepository(EvBatteryTradingContext context)
         {
             _context = context;
         }
@@ -31,12 +31,13 @@ namespace Infrastructure.Repositories
 
         public async Task<User?> GetByEmailAsync(string email)
         {
-            return await _context.Users
-
-                .FirstOrDefaultAsync(u => u.Email == email && !(u.IsDeleted == true));
+            var user = await _context.Users
+                .Where(u => !(u.IsDeleted == true))
+                .ToListAsync();
+            return await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
         }
 
-        public async Task AddAsync(User user)
+        public async Task AddUserAsync(User user)
         {
             await _context.Users.AddAsync(user);
             await _context.SaveChangesAsync();
