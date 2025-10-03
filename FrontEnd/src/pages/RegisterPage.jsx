@@ -6,8 +6,8 @@ import banner2 from '../assets/images/banner2.png';
 import banner3 from '../assets/images/banner3.png';
 import { Link } from 'react-router-dom';
 import { Popover } from 'antd';
-import PasswordInput from '../components/PasswordInput';
-
+import UserService from '../UserService';
+import { FaRegEyeSlash, FaRegEye } from "react-icons/fa";
 
 export default function RegisterPage() {
     const clientId =
@@ -22,13 +22,13 @@ export default function RegisterPage() {
     const [currentSlide, setCurrentSlide] = useState(0);
     const [confirmPassword, setConfirmPassword] = useState("");
     const [error, setError] = useState("");
+    const [loading, setLoading] = useState(false);
     const googleButtonRef = useRef(null);
 
     const slides = [
         {
             id: 1,
             image: banner1,
-            alt: "Xe điện nhập khẩu chính hãng"
         },
         {
             id: 2,
@@ -134,10 +134,10 @@ export default function RegisterPage() {
         }
     }
 
-    function handleSubmit(e) {
+    async function handleSubmit(e) {
         e.preventDefault();
-        console.log('Local login with', { username, password });
-        if (!email || !password || !confirmPassword) {
+
+        if (!email || !password || !confirmPassword || !fullname) {
             setError("Please enter complete information!");
             return;
         }
@@ -157,7 +157,25 @@ export default function RegisterPage() {
         }
 
         setError("");
-        alert("Đăng ký thành công ✅");
+        setLoading(true);
+
+        try {
+            const newUser = {
+                username,
+                email,
+                password,
+                fullname
+            };
+
+            const res = await UserService.register(newUser);
+            console.log("Register success:", res);
+            alert("Đăng ký thành công ✅");
+        } catch (err) {
+            console.error("Register error:", err);
+            setError("Register failed, please try again!");
+        } finally {
+            setLoading(false);
+        }
     }
 
     return (
@@ -211,18 +229,21 @@ export default function RegisterPage() {
                                         onChange={(e) => setEmail(e.target.value)}
                                         className="login-input"
                                     />
-                                    <PasswordInput
+                                    <input
+                                        type="password"
+                                        placeholder="Password"
                                         value={password}
                                         onChange={(e) => setPassword(e.target.value)}
-                                        placeholder="Password"
+                                        className="login-input"
                                     />
 
-                                    <PasswordInput
+                                    <input
+                                        type="password"
+                                        placeholder="Re-enter password"
                                         value={confirmPassword}
                                         onChange={(e) => setConfirmPassword(e.target.value)}
-                                        placeholder="Re-enter password"
+                                        className="login-input"
                                     />
-
 
                                     <Popover
                                         content={error}
