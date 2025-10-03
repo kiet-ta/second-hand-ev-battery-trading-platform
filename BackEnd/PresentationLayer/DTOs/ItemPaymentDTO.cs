@@ -1,6 +1,6 @@
 ﻿namespace PresentationLayer.DTOs;
 
-public class ItemDto
+public class ItemPaymentDTO
 {
     public string Name { get; set; }
     public int Quantity { get; set; }

@@ -1,19 +1,15 @@
-using Net.payOS;
-using Application.IHelpers;
 using Application.IRepositories;
-using Application.IValidations;
-using Domain.Entities;
-using Helper;
+using Application.IServices;
+using Application.Services;
+using CloudinaryDotNet;
 using Infrastructure.Data;
 using Infrastructure.Repositories;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Net.payOS;
 using System.Text;
-using Microsoft.Extensions.Configuration;
-using StackExchange.Redis;
-using Application.Services;
-using Application.IServices;
 
 namespace PresentationLayer
 {
@@ -60,7 +56,6 @@ namespace PresentationLayer
                 var config = builder.Configuration.GetSection("CloudinarySettings").Get<CloudinarySettings>();
                 return new Cloudinary(new Account(config.CloudName, config.ApiKey, config.ApiSecret));
             });
-
 
             builder.Services.AddAuthorization();
 
@@ -109,8 +104,8 @@ namespace PresentationLayer
                 // Khai báo Security Definition (JWT Bearer)
                 c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
                 {
-                    Description = @"JWT Authorization header using the Bearer scheme.  
-                      Enter 'Bearer' [space] and then your token in the text input below.  
+                    Description = @"JWT Authorization header using the Bearer scheme.
+                      Enter 'Bearer' [space] and then your token in the text input below.
                       Example: 'Bearer 12345abcdef'",
                     Name = "Authorization",
                     In = ParameterLocation.Header,

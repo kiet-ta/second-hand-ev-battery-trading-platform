@@ -1,16 +1,12 @@
 ﻿using Application.DTOs;
 using Application.IRepositories;
 using Application.IServices;
+using Domain.Entities;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Security.Claims;
 using System.Text;
-using System.Threading.Tasks;
-using Domain.Entities;
 
 namespace Application.Services
 {
@@ -41,7 +37,7 @@ namespace Application.Services
                 //CreatedAt = DateTime.UtcNow
             };
 
-            await _userRepository.AddUserAsync(user);
+            await _userRepository.AddAsync(user);
 
             return GenerateToken(user);
         }
