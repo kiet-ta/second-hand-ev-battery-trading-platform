@@ -1,6 +1,5 @@
 import axios from "axios";
-const baseURL = import.meta.env.VITE_API_BASE_URL;
-console.log(baseURL)
+const baseURL = import.meta.env.VITE_API_BASE_URL + "Item";
 const itemApi = {
     getItem: async () => {
         const response = await axios.get(baseURL);

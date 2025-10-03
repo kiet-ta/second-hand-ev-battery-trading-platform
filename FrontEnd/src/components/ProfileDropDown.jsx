@@ -1,11 +1,11 @@
 import React from 'react';
 import { DownOutlined, SettingOutlined } from '@ant-design/icons';
 import { Dropdown, Space } from 'antd';
+
 const ProfileDropDown = ({users}) => (
-    
     <Dropdown menu={{
         items:[
-            {key: '1', label: (<a href="/profile">{users.name}</a>),  disabled: true
+            {key: '1', label: (<a href="/profile">{users.fullName}</a>),  disabled: true
             },
             {type: 'divider'},
             {
@@ -19,8 +19,8 @@ const ProfileDropDown = ({users}) => (
             <Space>
                 <div>
                     <img
-                        src={users.picture}
-                        alt={users.name}
+                        src={users.avatarProfile}
+                        alt={users.fullName}
                         className="w-10 h-10 rounded-full object-contain shadow-md" />
                 </div>
     

@@ -6,10 +6,11 @@ import banner1 from '../assets/images/banner1.png';
 import banner2 from '../assets/images/banner2.png';
 import banner3 from '../assets/images/banner3.png';
 import UserService from '../UserService';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Popover } from 'antd';
 
 export default function LoginPage() {
+    const navigate = useNavigate();
     const clientId =
         import.meta.env.VITE_GOOGLE_CLIENT_ID ||
         '301055344643-gel1moqvoq9flgf8978aje7j9frtci79.apps.googleusercontent.com';
@@ -143,8 +144,8 @@ export default function LoginPage() {
 
             localStorage.setItem("user", JSON.stringify(newUser));
             setUser(newUser);
-
             alert("Login successful!");
+            navigate("/")
         } catch (err) {
             console.error("Login error:", err);
             setError("Incorrect login information.");

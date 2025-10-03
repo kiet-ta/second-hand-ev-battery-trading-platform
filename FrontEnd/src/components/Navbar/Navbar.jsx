@@ -8,7 +8,7 @@ import ProfileDropDown from '../ProfileDropDown';
 import { FaShoppingCart } from "react-icons/fa";
 
 
-function Navbar() {
+function Navbar(userInfo) {
   const leftmenu = [
     { name: 'Home', link: '/', icon: <IoMdHome /> },
     { name: 'Auction', link: '/auctions', icon: <RiAuctionFill /> },
@@ -21,10 +21,6 @@ function Navbar() {
     //   name: "Lady Furina",
     //   picture: "https://i.pinimg.com/736x/5b/3f/09/5b3f09d67f448e39dab9e8d8f3cc3f94.jpg"
     // }
-    const user = null;
-localStorage.setItem('userprofile', JSON.stringify(user));
-  const userprofile = JSON.parse(localStorage.getItem('userprofile'));
-
   return (
 
     <div>
@@ -45,9 +41,9 @@ localStorage.setItem('userprofile', JSON.stringify(user));
                 <span className="ml-2">{item.name}</span>
               </Link>
             ))}
-            {userprofile ? (
+            {userInfo.userInfo ? (
               <div className="ml-4 pt-5">
-                <ProfileDropDown users={userprofile} />
+                <ProfileDropDown users={userInfo.userInfo} />
               </div>
             )
               : (
