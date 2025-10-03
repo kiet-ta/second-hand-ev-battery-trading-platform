@@ -41,7 +41,7 @@ function Navbar(userInfo) {
                 <span className="ml-2">{item.name}</span>
               </Link>
             ))}
-            {userInfo.userInfo ? (
+            {userInfo.userInfo  ? (
               <div className="ml-4 pt-5">
                 <ProfileDropDown users={userInfo.userInfo} />
               </div>

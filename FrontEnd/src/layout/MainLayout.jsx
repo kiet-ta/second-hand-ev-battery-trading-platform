@@ -5,7 +5,7 @@ import ScrollToTop from '../components/ScrollToTop';
 import userApi from '../api/userApi';
 function MainLayout() {
   const userData = JSON.parse(localStorage.getItem('user'));
-  const [userProfile, setUser] = useState([]);
+  const [userProfile, setUser] = useState(null);
   const fetchUser = async () => {
     try {
       const userByID = await userApi.getUserByID(userData.userId);
