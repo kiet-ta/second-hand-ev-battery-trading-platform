@@ -22,7 +22,7 @@ namespace Infrastructure.Data.Configurations
             entity.Property(e => e.Capacity).HasColumnName("capacity");
             entity.Property(e => e.Voltage).HasColumnName("voltage");
             entity.Property(e => e.ChargeCycles).HasColumnName("charge_cycles");
-            entity.Property(e => e.UpdatedAt).HasColumnName("updated_at");
+            entity.Property(e => e.UpdatedAt).HasColumnName("updated_at").HasDefaultValueSql("GETDATE()");
 
             // Relationship: Battery_Detail 1-1 Item
             //entity.HasOne(d => d.ItemId)

@@ -29,7 +29,7 @@ namespace Infrastructure.Data.Configurations
             entity.Property(e => e.PreviousOwners).HasColumnName("previous_owners");
             entity.Property(e => e.IsRegistrationValid).HasColumnName("is_registration_valid");
             entity.Property(e => e.Mileage).HasColumnName("mileage");
-            entity.Property(e => e.UpdatedAt).HasColumnName("updated_at");
+            entity.Property(e => e.UpdatedAt).HasColumnName("updated_at").HasDefaultValueSql("GETDATE()");
 
             // Relationship: EV_Detail 1-1 Item (Item is principal)
             //entity.HasOne(d => d.Item)

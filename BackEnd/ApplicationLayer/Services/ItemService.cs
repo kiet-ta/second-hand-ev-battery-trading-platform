@@ -126,7 +126,7 @@ namespace Application.Services
         }
         public async Task<IEnumerable<ItemDto>> GetLatestBatteriesAsync(int count)
         {
-            var items = await _repo.GetLatestEVsAsync(count);
+            var items = await _repo.GetLatestBatteriesAsync(count);
 
             return items.Select(i => new ItemDto
             {
@@ -215,6 +215,16 @@ namespace Application.Services
                 TotalCount = total,
                 Items = items
             };
+        }
+
+        public async Task<ItemWithDetailDto?> GetItemWithDetailsAsync(int id)
+        {
+            return await _repo.GetItemWithDetailsAsync(id);
+        }
+
+        public async Task<IEnumerable<ItemWithDetailDto>> GetAllItemsWithDetailsAsync()
+        {
+            return await _repo.GetAllItemsWithDetailsAsync();
         }
     }
 }

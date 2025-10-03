@@ -92,5 +92,49 @@ namespace Infrastructure.Repositories
                 .Take(count)
                 .ToListAsync();
         }
+
+        public async Task<ItemWithDetailDto?> GetItemWithDetailsAsync(int id)
+        {
+            var query = from i in _context.Items
+                        where i.ItemId == id && !(i.IsDeleted ?? false)
+                        join ev in _context.EvDetails
+                            on i.ItemId equals ev.ItemId into evj
+                        from evDetail in evj.DefaultIfEmpty()
+                        join bat in _context.BatteryDetails
+                            on i.ItemId equals bat.ItemId into batj
+                        from batDetail in batj.DefaultIfEmpty()
+                        select new ItemWithDetailDto
+                        {
+                            ItemId = i.ItemId,
+                            Title = i.Title,
+                            ItemType = i.ItemType,
+                            EVDetail = evDetail,
+                            BatteryDetail = batDetail
+                        };
+
+            return await query.AsNoTracking().FirstOrDefaultAsync();
+        }
+
+        public async Task<IEnumerable<ItemWithDetailDto>> GetAllItemsWithDetailsAsync()
+        {
+            var query = from i in _context.Items
+                        where !(i.IsDeleted ?? false)
+                        join ev in _context.EvDetails
+                            on i.ItemId equals ev.ItemId into evj
+                        from evDetail in evj.DefaultIfEmpty()
+                        join bat in _context.BatteryDetails
+                            on i.ItemId equals bat.ItemId into batj
+                        from batDetail in batj.DefaultIfEmpty()
+                        select new ItemWithDetailDto
+                        {
+                            ItemId = i.ItemId,
+                            Title = i.Title,
+                            ItemType = i.ItemType,
+                            EVDetail = evDetail,
+                            BatteryDetail = batDetail
+                        };
+
+            return await query.AsNoTracking().ToListAsync();
+        }
     }
 }
