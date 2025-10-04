@@ -7,23 +7,25 @@ public class Payment
 {
     public int PaymentId { get; set; }
 
-    public int OrderId { get; set; }
+    public int UserId { get; set; }
 
-    public int BuyerId { get; set; }
+    public long OrderCode { get; set; }
 
-    public int SellerId { get; set; }
+    public decimal TotalAmount { get; set; }
 
-    public string? Method { get; set; }
+    public string? Currency { get; set; }
 
-    public string? Status { get; set; }
+    public string Method { get; set; } = null!;
 
-    public DateTime? PaidAt { get; set; }
+    public string Status { get; set; } = null!;
 
-    public DateOnly? UpdatedAt { get; set; }
+    public DateTime? ExpiredAt { get; set; }
 
-    //public virtual User Buyer { get; set; } = null!;
+    public DateTime? CreatedAt { get; set; }
 
-    //public virtual Order Order { get; set; } = null!;
+    public DateTime? UpdatedAt { get; set; }
 
-    //public virtual User Seller { get; set; } = null!;
+    //public virtual ICollection<PaymentDetail> PaymentDetails { get; set; } = new List<PaymentDetail>();
+
+    //public virtual User User { get; set; } = null!;
 }

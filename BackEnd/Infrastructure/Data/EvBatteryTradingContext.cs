@@ -6,7 +6,7 @@ using System.Collections.Generic;
 
 namespace Infrastructure.Data;
 
-public class EvBatteryTradingContext : DbContext
+public partial class EvBatteryTradingContext : DbContext
 {
     public EvBatteryTradingContext()
     {
@@ -17,43 +17,55 @@ public class EvBatteryTradingContext : DbContext
     {
     }
 
-    public DbSet<Address> Addresses { get; set; }
+    public virtual DbSet<Address> Addresses { get; set; }
 
-    public DbSet<BatteryDetail> BatteryDetails { get; set; }
+    public virtual DbSet<BatteryDetail> BatteryDetails { get; set; }
 
-    public  DbSet<Blog> Blogs { get; set; }
+    public virtual DbSet<Bid> Bids { get; set; }
 
-    public DbSet<Category> Categories { get; set; }
+    public virtual DbSet<Blog> Blogs { get; set; }
 
-    public DbSet<EvDetail> EvDetails { get; set; }
+    public virtual DbSet<Category> Categories { get; set; }
 
-    public DbSet<Favorite> Favorites { get; set; }
+    public virtual DbSet<EvDetail> EvDetails { get; set; }
 
-    public DbSet<Item> Items { get; set; }
+    public virtual DbSet<Favorite> Favorites { get; set; }
 
-    public DbSet<ItemImage> ItemImages { get; set; }
+    public virtual DbSet<Item> Items { get; set; }
 
-    public DbSet<KycDocument> KycDocuments { get; set; }
+    public virtual DbSet<ItemBidding> ItemBiddings { get; set; }
 
-    public DbSet<Order> Orders { get; set; }
+    public virtual DbSet<ItemImage> ItemImages { get; set; }
 
-    public DbSet<OrderItem> OrderItems { get; set; }
+    public virtual DbSet<KycDocument> KycDocuments { get; set; }
 
-    public DbSet<Payment> Payments { get; set; }
+    public virtual DbSet<Order> Orders { get; set; }
 
-    public DbSet<Review> Reviews { get; set; }
+    public virtual DbSet<OrderItem> OrderItems { get; set; }
 
-    public DbSet<ReviewImage> ReviewImages { get; set; }
+    public virtual DbSet<Payment> Payments { get; set; }
 
-    public DbSet<User> Users { get; set; }
+    public virtual DbSet<PaymentDetail> PaymentDetails { get; set; }
 
-    public DbSet<UserLog> UserLogs { get; set; }
+    public virtual DbSet<Review> Reviews { get; set; }
+
+    public virtual DbSet<ReviewImage> ReviewImages { get; set; }
+
+    public virtual DbSet<User> Users { get; set; }
+
+    public virtual DbSet<UserLog> UserLogs { get; set; }
+
+    public virtual DbSet<Wallet> Wallets { get; set; }
+
+    public virtual DbSet<WalletTransaction> WalletTransactions { get; set; }
+
+    
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         //modelBuilder.Entity<Address>(entity =>
         //{
-        //    entity.HasKey(e => e.AddressId).HasName("PK__Address__CAA247C8683ADAD5");
+        //    entity.HasKey(e => e.AddressId).HasName("PK__Address__CAA247C84EA71887");
 
         //    entity.ToTable("Address");
 
@@ -95,7 +107,7 @@ public class EvBatteryTradingContext : DbContext
 
         //modelBuilder.Entity<BatteryDetail>(entity =>
         //{
-        //    entity.HasKey(e => e.ItemId).HasName("PK__Battery___52020FDD5AD84C38");
+        //    entity.HasKey(e => e.ItemId).HasName("PK__Battery___52020FDD728D4615");
 
         //    entity.ToTable("Battery_Detail");
 
@@ -120,9 +132,38 @@ public class EvBatteryTradingContext : DbContext
         //        .HasConstraintName("FK__Battery_D__item___4BAC3F29");
         //});
 
+        //modelBuilder.Entity<Bid>(entity =>
+        //{
+        //    entity.HasKey(e => e.BidId).HasName("PK__Bids__3DF045961D4B2A98");
+
+        //    entity.HasIndex(e => new { e.BiddingId, e.BidAmount }, "idx_bidding_amount").IsDescending(false, true);
+
+        //    entity.HasIndex(e => new { e.BiddingId, e.UserId }, "idx_bidding_user");
+
+        //    entity.Property(e => e.BidId).HasColumnName("bid_id");
+        //    entity.Property(e => e.BidAmount)
+        //        .HasColumnType("decimal(18, 2)")
+        //        .HasColumnName("bid_amount");
+        //    entity.Property(e => e.BidTime)
+        //        .HasDefaultValueSql("(getdate())")
+        //        .HasColumnType("datetime")
+        //        .HasColumnName("bid_time");
+        //    entity.Property(e => e.BiddingId).HasColumnName("bidding_id");
+        //    entity.Property(e => e.UserId).HasColumnName("user_id");
+
+        //    entity.HasOne(d => d.Bidding).WithMany(p => p.Bids)
+        //        .HasForeignKey(d => d.BiddingId)
+        //        .HasConstraintName("FK__Bids__bidding_id__07C12930");
+
+        //    entity.HasOne(d => d.User).WithMany(p => p.Bids)
+        //        .HasForeignKey(d => d.UserId)
+        //        .OnDelete(DeleteBehavior.ClientSetNull)
+        //        .HasConstraintName("FK__Bids__user_id__08B54D69");
+        //});
+
         //modelBuilder.Entity<Blog>(entity =>
         //{
-        //    entity.HasKey(e => e.BlogId).HasName("PK__Blogs__2975AA28A967B9A7");
+        //    entity.HasKey(e => e.BlogId).HasName("PK__Blogs__2975AA28D56D655A");
 
         //    entity.Property(e => e.BlogId).HasColumnName("blog_id");
         //    entity.Property(e => e.Author)
@@ -147,11 +188,11 @@ public class EvBatteryTradingContext : DbContext
 
         //modelBuilder.Entity<Category>(entity =>
         //{
-        //    entity.HasKey(e => e.CategoryId).HasName("PK__Category__D54EE9B481CE1CA9");
+        //    entity.HasKey(e => e.CategoryId).HasName("PK__Category__D54EE9B475D157A4");
 
         //    entity.ToTable("Category");
 
-        //    entity.HasIndex(e => e.Name, "UQ__Category__72E12F1B74B05961").IsUnique();
+        //    entity.HasIndex(e => e.Name, "UQ__Category__72E12F1BCBDF415D").IsUnique();
 
         //    entity.Property(e => e.CategoryId).HasColumnName("category_id");
         //    entity.Property(e => e.Description).HasColumnName("description");
@@ -162,11 +203,11 @@ public class EvBatteryTradingContext : DbContext
 
         //modelBuilder.Entity<EvDetail>(entity =>
         //{
-        //    entity.HasKey(e => e.ItemId).HasName("PK__EV_Detai__52020FDD1269DAF7");
+        //    entity.HasKey(e => e.ItemId).HasName("PK__EV_Detai__52020FDDFEEACF69");
 
         //    entity.ToTable("EV_Detail");
 
-        //    entity.HasIndex(e => e.LicensePlate, "UQ__EV_Detai__F72CD56E33920A4E").IsUnique();
+        //    entity.HasIndex(e => e.LicensePlate, "UQ__EV_Detai__F72CD56E5C094F7E").IsUnique();
 
         //    entity.Property(e => e.ItemId)
         //        .ValueGeneratedNever()
@@ -215,7 +256,7 @@ public class EvBatteryTradingContext : DbContext
 
         //modelBuilder.Entity<Favorite>(entity =>
         //{
-        //    entity.HasKey(e => e.FavId).HasName("PK__Favorite__37AAF6FE1E4927A2");
+        //    entity.HasKey(e => e.FavId).HasName("PK__Favorite__37AAF6FE7205E29C");
 
         //    entity.ToTable("Favorite");
 
@@ -239,7 +280,7 @@ public class EvBatteryTradingContext : DbContext
 
         //modelBuilder.Entity<Item>(entity =>
         //{
-        //    entity.HasKey(e => e.ItemId).HasName("PK__Item__52020FDDE066F744");
+        //    entity.HasKey(e => e.ItemId).HasName("PK__Item__52020FDDE3A0A004");
 
         //    entity.ToTable("Item");
 
@@ -281,9 +322,45 @@ public class EvBatteryTradingContext : DbContext
         //        .HasConstraintName("FK__Item__updated_by__403A8C7D");
         //});
 
+        //modelBuilder.Entity<ItemBidding>(entity =>
+        //{
+        //    entity.HasKey(e => e.BiddingId).HasName("PK__Item_Bid__5C3BD3C5EF131C43");
+
+        //    entity.ToTable("Item_Bidding");
+
+        //    entity.HasIndex(e => e.ItemId, "UQ__Item_Bid__52020FDC03D0B220").IsUnique();
+
+        //    entity.Property(e => e.BiddingId).HasColumnName("bidding_id");
+        //    entity.Property(e => e.CreatedAt)
+        //        .HasDefaultValueSql("(getdate())")
+        //        .HasColumnType("datetime")
+        //        .HasColumnName("created_at");
+        //    entity.Property(e => e.CurrentPrice)
+        //        .HasColumnType("decimal(18, 2)")
+        //        .HasColumnName("current_price");
+        //    entity.Property(e => e.EndTime)
+        //        .HasColumnType("datetime")
+        //        .HasColumnName("end_time");
+        //    entity.Property(e => e.ItemId).HasColumnName("item_id");
+        //    entity.Property(e => e.StartTime)
+        //        .HasColumnType("datetime")
+        //        .HasColumnName("start_time");
+        //    entity.Property(e => e.StartingPrice)
+        //        .HasColumnType("decimal(18, 2)")
+        //        .HasColumnName("starting_price");
+        //    entity.Property(e => e.Status)
+        //        .HasMaxLength(20)
+        //        .HasDefaultValue("active")
+        //        .HasColumnName("status");
+
+        //    entity.HasOne(d => d.Item).WithOne(p => p.ItemBidding)
+        //        .HasForeignKey<ItemBidding>(d => d.ItemId)
+        //        .HasConstraintName("FK__Item_Bidd__item___03F0984C");
+        //});
+
         //modelBuilder.Entity<ItemImage>(entity =>
         //{
-        //    entity.HasKey(e => e.ImageId).HasName("PK__Item_Ima__DC9AC955331CD3AA");
+        //    entity.HasKey(e => e.ImageId).HasName("PK__Item_Ima__DC9AC955E74EA536");
 
         //    entity.ToTable("Item_Image");
 
@@ -301,7 +378,7 @@ public class EvBatteryTradingContext : DbContext
 
         //modelBuilder.Entity<KycDocument>(entity =>
         //{
-        //    entity.HasKey(e => e.DocId).HasName("PK__KYC_Docu__8AD0292418E93900");
+        //    entity.HasKey(e => e.DocId).HasName("PK__KYC_Docu__8AD02924D8333BD8");
 
         //    entity.ToTable("KYC_Document");
 
@@ -339,7 +416,7 @@ public class EvBatteryTradingContext : DbContext
 
         //modelBuilder.Entity<Order>(entity =>
         //{
-        //    entity.HasKey(e => e.OrderId).HasName("PK__Orders__4659622997BAF383");
+        //    entity.HasKey(e => e.OrderId).HasName("PK__Orders__465962294CC5A1D2");
 
         //    entity.Property(e => e.OrderId).HasColumnName("order_id");
         //    entity.Property(e => e.AddressId).HasColumnName("address_id");
@@ -367,7 +444,7 @@ public class EvBatteryTradingContext : DbContext
 
         //modelBuilder.Entity<OrderItem>(entity =>
         //{
-        //    entity.HasKey(e => e.OrderItemId).HasName("PK__Order_It__3764B6BCB90010EF");
+        //    entity.HasKey(e => e.OrderItemId).HasName("PK__Order_It__3764B6BC0E431B17");
 
         //    entity.ToTable("Order_Item");
 
@@ -386,54 +463,85 @@ public class EvBatteryTradingContext : DbContext
         //        .OnDelete(DeleteBehavior.ClientSetNull)
         //        .HasConstraintName("FK__Order_Ite__item___5EBF139D");
 
-        //  entity.HasOne(d => d.Order).WithMany(p => p.OrderItems)
-        //    .HasForeignKey(d => d.OrderId)
-        //    .OnDelete(DeleteBehavior.ClientSetNull)
-        //    .HasConstraintName("FK__Order_Ite__order__5DCAEF64");
+        //    entity.HasOne(d => d.Order).WithMany(p => p.OrderItems)
+        //        .HasForeignKey(d => d.OrderId)
+        //        .OnDelete(DeleteBehavior.ClientSetNull)
+        //        .HasConstraintName("FK__Order_Ite__order__5DCAEF64");
         //});
 
         //modelBuilder.Entity<Payment>(entity =>
         //{
-        //    entity.HasKey(e => e.PaymentId).HasName("PK__Payment__ED1FC9EA80C84872");
+        //    entity.HasKey(e => e.PaymentId).HasName("PK__Payment__ED1FC9EAA8679B03");
 
         //    entity.ToTable("Payment");
 
+        //    entity.HasIndex(e => e.OrderCode, "UQ__Payment__99D12D3F05355D24").IsUnique();
+
         //    entity.Property(e => e.PaymentId).HasColumnName("payment_id");
-        //    entity.Property(e => e.BuyerId).HasColumnName("buyer_id");
+        //    entity.Property(e => e.CreatedAt)
+        //        .HasDefaultValueSql("(getdate())")
+        //        .HasColumnType("datetime")
+        //        .HasColumnName("created_at");
+        //    entity.Property(e => e.Currency)
+        //        .HasMaxLength(10)
+        //        .HasDefaultValue("VND")
+        //        .HasColumnName("currency");
+        //    entity.Property(e => e.ExpiredAt)
+        //        .HasColumnType("datetime")
+        //        .HasColumnName("expired_at");
         //    entity.Property(e => e.Method)
         //        .HasMaxLength(50)
         //        .HasColumnName("method");
-        //    entity.Property(e => e.OrderId).HasColumnName("order_id");
-        //    entity.Property(e => e.PaidAt)
-        //        .HasColumnType("datetime")
-        //        .HasColumnName("paid_at");
-        //    entity.Property(e => e.SellerId).HasColumnName("seller_id");
+        //    entity.Property(e => e.OrderCode).HasColumnName("order_code");
         //    entity.Property(e => e.Status)
         //        .HasMaxLength(20)
         //        .HasColumnName("status");
+        //    entity.Property(e => e.TotalAmount)
+        //        .HasColumnType("decimal(18, 2)")
+        //        .HasColumnName("total_amount");
         //    entity.Property(e => e.UpdatedAt)
         //        .HasDefaultValueSql("(getdate())")
+        //        .HasColumnType("datetime")
         //        .HasColumnName("updated_at");
+        //    entity.Property(e => e.UserId).HasColumnName("user_id");
 
-        //    entity.HasOne(d => d.Buyer).WithMany(p => p.PaymentBuyers)
-        //        .HasForeignKey(d => d.BuyerId)
+        //    entity.HasOne(d => d.User).WithMany(p => p.Payments)
+        //        .HasForeignKey(d => d.UserId)
         //        .OnDelete(DeleteBehavior.ClientSetNull)
-        //        .HasConstraintName("FK__Payment__buyer_i__656C112C");
+        //        .HasConstraintName("FK__Payment__user_id__66603565");
+        //});
 
-        //    entity.HasOne(d => d.Order).WithMany(p => p.Payments)
+        //modelBuilder.Entity<PaymentDetail>(entity =>
+        //{
+        //    entity.HasKey(e => e.PaymentDetailId).HasName("PK__Payment___C66E6E36E9E2A3A2");
+
+        //    entity.ToTable("Payment_Detail");
+
+        //    entity.Property(e => e.PaymentDetailId).HasColumnName("payment_detail_id");
+        //    entity.Property(e => e.Amount)
+        //        .HasColumnType("decimal(18, 2)")
+        //        .HasColumnName("amount");
+        //    entity.Property(e => e.ItemId).HasColumnName("item_id");
+        //    entity.Property(e => e.OrderId).HasColumnName("order_id");
+        //    entity.Property(e => e.PaymentId).HasColumnName("payment_id");
+
+        //    entity.HasOne(d => d.Item).WithMany(p => p.PaymentDetails)
+        //        .HasForeignKey(d => d.ItemId)
+        //        .HasConstraintName("FK__Payment_D__item___1AD3FDA4");
+
+        //    entity.HasOne(d => d.Order).WithMany(p => p.PaymentDetails)
         //        .HasForeignKey(d => d.OrderId)
-        //        .OnDelete(DeleteBehavior.ClientSetNull)
-        //        .HasConstraintName("FK__Payment__order_i__6477ECF3");
+        //        .HasConstraintName("FK__Payment_D__order__19DFD96B");
 
-        //    entity.HasOne(d => d.Seller).WithMany(p => p.PaymentSellers)
-        //        .HasForeignKey(d => d.SellerId)
+        //    entity.HasOne(d => d.Payment).WithMany(p => p.PaymentDetails)
+        //        .HasForeignKey(d => d.PaymentId)
         //        .OnDelete(DeleteBehavior.ClientSetNull)
-        //        .HasConstraintName("FK__Payment__seller___66603565");
+        //        .HasConstraintName("FK__Payment_D__payme__18EBB532");
         //});
 
         //modelBuilder.Entity<Review>(entity =>
         //{
-        //    entity.HasKey(e => e.ReviewId).HasName("PK__Review__60883D909B0632ED");
+        //    entity.HasKey(e => e.ReviewId).HasName("PK__Review__60883D90B4F3EC91");
 
         //    entity.ToTable("Review");
 
@@ -464,7 +572,7 @@ public class EvBatteryTradingContext : DbContext
 
         //modelBuilder.Entity<ReviewImage>(entity =>
         //{
-        //    entity.HasKey(e => e.ImageId).HasName("PK__Review_I__DC9AC955ACFDBB12");
+        //    entity.HasKey(e => e.ImageId).HasName("PK__Review_I__DC9AC95522FFE06C");
 
         //    entity.ToTable("Review_Image");
 
@@ -482,11 +590,13 @@ public class EvBatteryTradingContext : DbContext
 
         //modelBuilder.Entity<User>(entity =>
         //{
-        //    entity.HasKey(e => e.UserId).HasName("PK__Users__B9BE370F6C5317DA");
+        //    entity.HasKey(e => e.UserId).HasName("PK__Users__B9BE370FE6A6BBD4");
 
-        //    entity.HasIndex(e => e.Email, "UQ__Users__AB6E61647AC3DCC1").IsUnique();
+        //    entity.HasIndex(e => e.Email, "UQ__Users__AB6E616425AC3495").IsUnique();
 
-        //    entity.Property(e => e.UserId).HasColumnName("user_id");
+        //    entity.Property(e => e.UserId)
+        //        .ValueGeneratedNever()
+        //        .HasColumnName("user_id");
         //    entity.Property(e => e.AccountStatus)
         //        .HasMaxLength(20)
         //        .HasDefaultValue("active")
@@ -533,7 +643,7 @@ public class EvBatteryTradingContext : DbContext
 
         //modelBuilder.Entity<UserLog>(entity =>
         //{
-        //    entity.HasKey(e => e.LogId).HasName("PK__User_Log__9E2397E0EA56C447");
+        //    entity.HasKey(e => e.LogId).HasName("PK__User_Log__9E2397E01E37EDEB");
 
         //    entity.ToTable("User_Log");
 
@@ -553,6 +663,63 @@ public class EvBatteryTradingContext : DbContext
         //        .HasConstraintName("FK__User_Log__user_i__73BA3083");
         //});
 
+        //modelBuilder.Entity<Wallet>(entity =>
+        //{
+        //    entity.HasKey(e => e.WalletId).HasName("PK__Wallet__0EE6F041A32C537B");
+
+        //    entity.ToTable("Wallet");
+
+        //    entity.HasIndex(e => e.UserId, "UQ__Wallet__B9BE370EE0137BF7").IsUnique();
+
+        //    entity.Property(e => e.WalletId).HasColumnName("wallet_id");
+        //    entity.Property(e => e.Balance)
+        //        .HasColumnType("decimal(18, 2)")
+        //        .HasColumnName("balance");
+        //    entity.Property(e => e.Currency)
+        //        .HasMaxLength(10)
+        //        .HasDefaultValue("VND")
+        //        .HasColumnName("currency");
+        //    entity.Property(e => e.Status)
+        //        .HasMaxLength(20)
+        //        .HasDefaultValue("active")
+        //        .HasColumnName("status");
+        //    entity.Property(e => e.UpdatedAt)
+        //        .HasDefaultValueSql("(getdate())")
+        //        .HasColumnType("datetime")
+        //        .HasColumnName("updated_at");
+        //    entity.Property(e => e.UserId).HasColumnName("user_id");
+
+        //    entity.HasOne(d => d.User).WithOne(p => p.Wallet)
+        //        .HasForeignKey<Wallet>(d => d.UserId)
+        //        .HasConstraintName("FK__Wallet__user_id__114A936A");
+        //});
+
+        //modelBuilder.Entity<WalletTransaction>(entity =>
+        //{
+        //    entity.HasKey(e => e.TransactionId).HasName("PK__Wallet_T__85C600AF15416D38");
+
+        //    entity.ToTable("Wallet_Transaction");
+
+        //    entity.Property(e => e.TransactionId).HasColumnName("transaction_id");
+        //    entity.Property(e => e.Amount)
+        //        .HasColumnType("decimal(18, 2)")
+        //        .HasColumnName("amount");
+        //    entity.Property(e => e.CreatedAt)
+        //        .HasDefaultValueSql("(getdate())")
+        //        .HasColumnType("datetime")
+        //        .HasColumnName("created_at");
+        //    entity.Property(e => e.RefId).HasColumnName("ref_id");
+        //    entity.Property(e => e.Type)
+        //        .HasMaxLength(20)
+        //        .HasColumnName("type");
+        //    entity.Property(e => e.WalletId).HasColumnName("wallet_id");
+
+        //    entity.HasOne(d => d.Wallet).WithMany(p => p.WalletTransactions)
+        //        .HasForeignKey(d => d.WalletId)
+        //        .OnDelete(DeleteBehavior.ClientSetNull)
+        //        .HasConstraintName("FK__Wallet_Tr__walle__160F4887");
+        //});
+
         //OnModelCreatingPartial(modelBuilder);
 
         modelBuilder.Entity<Item>().Property(i => i.IsDeleted).HasDefaultValue(false);
@@ -560,9 +727,28 @@ public class EvBatteryTradingContext : DbContext
 
         modelBuilder.ApplyConfiguration(new UserConfiguration());
         modelBuilder.ApplyConfiguration(new ItemConfiguration());
+        modelBuilder.ApplyConfiguration(new CategoryConfiguration());
+        modelBuilder.ApplyConfiguration(new ItemBiddingConfiguration());
+        modelBuilder.ApplyConfiguration(new ItemImageConfiguration());
+        modelBuilder.ApplyConfiguration(new KycDocumentConfiguration());
+        modelBuilder.ApplyConfiguration(new OrderConfiguration());
+        modelBuilder.ApplyConfiguration(new OrderItemConfiguration());
+        modelBuilder.ApplyConfiguration(new PaymentConfiguration());
+        modelBuilder.ApplyConfiguration(new PaymentDetailConfiguration());
+        modelBuilder.ApplyConfiguration(new ReviewConfiguration());
+        modelBuilder.ApplyConfiguration(new ReviewImageConfiguration());
+        modelBuilder.ApplyConfiguration(new AddressConfiguration());
+        modelBuilder.ApplyConfiguration(new BatteryDetailConfiguration());
+        modelBuilder.ApplyConfiguration(new EvDetailConfiguration());
+        modelBuilder.ApplyConfiguration(new FavoriteConfiguration());
+        modelBuilder.ApplyConfiguration(new BidConfiguration());
+        modelBuilder.ApplyConfiguration(new UserLogConfiguration());
+        modelBuilder.ApplyConfiguration(new WalletConfiguration());
+        modelBuilder.ApplyConfiguration(new WalletTransactionConfiguration());
 
         base.OnModelCreating(modelBuilder);
+
     }
 
-    //partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
+    partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
 }

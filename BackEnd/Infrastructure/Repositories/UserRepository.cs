@@ -1,4 +1,5 @@
-﻿using Application.IRepositories;
+﻿using Application.DTOs.UserDtos;
+using Application.IRepositories;
 using Domain.Entities;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -32,5 +33,16 @@ namespace Infrastructure.Repositories
         }
 
         //public async Task<User?> GetNewVehicles
+
+        public async Task<List<(string Role, int Count)>> GetUsersByRoleAsync()
+        {
+            var result = await _context.Users
+                .AsNoTracking()
+                .GroupBy(u => u.Role)
+                .Select(g => new ValueTuple<string, int>(g.Key, g.Count()))
+                .ToListAsync();
+
+            return result;
+        }
     }
 }

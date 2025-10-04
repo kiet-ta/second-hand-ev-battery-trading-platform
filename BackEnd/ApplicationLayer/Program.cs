@@ -1,4 +1,4 @@
-﻿namespace ApplicationLayer
+﻿namespace Application
 {
     internal class Program
     {

@@ -1,4 +1,5 @@
-﻿using Domain.Entities;
+﻿using Application.DTOs.UserDtos;
+using Domain.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,5 +13,7 @@ namespace Application.IRepositories
         Task<User?> GetByEmailAsync(string email);
 
         Task AddUserAsync(User user);
+
+        Task<List<(string Role, int Count)>> GetUsersByRoleAsync();
     }
 }

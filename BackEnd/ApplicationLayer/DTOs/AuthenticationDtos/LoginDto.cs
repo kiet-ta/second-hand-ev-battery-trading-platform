@@ -4,16 +4,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Application.DTOs
+namespace Application.DTOs.AuthenticationDtos
 {
-    public class RegisterDto
+    public class LoginDto
     {
-        public string FullName { get; set; } = null!;
-
         public string Email { get; set; } = null!;
 
         public string Password { get; set; } = null!;
-
-        public string? Phone { get; set; }
     }
 }

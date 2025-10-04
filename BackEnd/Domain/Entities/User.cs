@@ -35,6 +35,8 @@ public class User
 
     //public virtual ICollection<Address> Addresses { get; set; } = new List<Address>();
 
+    //public virtual ICollection<Bid> Bids { get; set; } = new List<Bid>();
+
     //public virtual ICollection<Favorite> Favorites { get; set; } = new List<Favorite>();
 
     //public virtual ICollection<Item> Items { get; set; } = new List<Item>();
@@ -45,13 +47,13 @@ public class User
 
     //public virtual ICollection<Order> Orders { get; set; } = new List<Order>();
 
-    //public virtual ICollection<Payment> PaymentBuyers { get; set; } = new List<Payment>();
-
-    //public virtual ICollection<Payment> PaymentSellers { get; set; } = new List<Payment>();
+    //public virtual ICollection<Payment> Payments { get; set; } = new List<Payment>();
 
     //public virtual ICollection<Review> ReviewReviewers { get; set; } = new List<Review>();
 
     //public virtual ICollection<Review> ReviewTargetUsers { get; set; } = new List<Review>();
 
     //public virtual ICollection<UserLog> UserLogs { get; set; } = new List<UserLog>();
+
+    //public virtual Wallet? Wallet { get; set; }
 }
