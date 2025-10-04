@@ -21,6 +21,10 @@ namespace Application.IRepositories
 
         Task<IEnumerable<Item>> GetLatestBatteriesAsync(int count);
 
+        Task<ItemWithDetailDto?> GetItemWithDetailsAsync(int id);
+
+        Task<IEnumerable<ItemWithDetailDto>> GetAllItemsWithDetailsAsync();
+
         /// <summary>
         /// Returns an IQueryable so service can compose filters and projection.
         /// This keeps repository lightweight and testable.

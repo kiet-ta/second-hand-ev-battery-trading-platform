@@ -220,5 +220,15 @@ namespace Application.Services
                 Items = items
             };
         }
+
+        public async Task<ItemWithDetailDto?> GetItemWithDetailsAsync(int id)
+        {
+            return await _repo.GetItemWithDetailsAsync(id);
+        }
+
+        public async Task<IEnumerable<ItemWithDetailDto>> GetAllItemsWithDetailsAsync()
+        {
+            return await _repo.GetAllItemsWithDetailsAsync();
+        }
     }
 }

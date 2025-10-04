@@ -37,11 +37,16 @@ namespace PresentationLayer
             builder.Services.AddDbContext<EvBatteryTradingContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
             // DI cho Repository + Service
-            builder.Services.AddScoped<IUserRepository, UserRepository>();
+            //---Services
             builder.Services.AddScoped<IAuthService, AuthService>();
-            builder.Services.AddScoped<IItemRepository, ItemRepository>();
-            //builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
             builder.Services.AddScoped<IItemService, ItemService>();
+            builder.Services.AddScoped<IOrderService, OrderService>();
+            //---Repositories
+            builder.Services.AddScoped<IUserRepository, UserRepository>();
+            builder.Services.AddScoped<IItemRepository, ItemRepository>();
+            builder.Services.AddScoped<IOrderRepository, OrderRepository>();
+            //builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
+            
 
             // JWT Authentication
             builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -108,6 +113,7 @@ namespace PresentationLayer
 
             builder.Services.AddEndpointsApiExplorer();
             //builder.Services.AddSwaggerGen();
+
             builder.Services.AddSwaggerGen(c =>
             {
                 // Thông tin cơ bản
@@ -127,23 +133,23 @@ namespace PresentationLayer
 
                 // Áp dụng cho tất cả API
                 c.AddSecurityRequirement(new OpenApiSecurityRequirement
-    {
-        {
-            new OpenApiSecurityScheme
-            {
-                Reference = new OpenApiReference
                 {
-                    Type = ReferenceType.SecurityScheme,
-                    Id = "Bearer"
-                },
-                Scheme = "oauth2",
-                Name = "Bearer",
-                In = ParameterLocation.Header,
-            },
-            new List<string>()
-        }
-    });
-            });
+                    {
+                        new OpenApiSecurityScheme
+                        {
+                            Reference = new OpenApiReference
+                            {
+                                Type = ReferenceType.SecurityScheme,
+                                Id = "Bearer"
+                            },
+                            Scheme = "oauth2",
+                            Name = "Bearer",
+                            In = ParameterLocation.Header,
+                        },
+                        new List<string>()
+                    }
+                });
+             });
 
 
             var app = builder.Build();

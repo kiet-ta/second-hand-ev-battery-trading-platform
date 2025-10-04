@@ -24,7 +24,7 @@ namespace Infrastructure.Data.Configurations
             entity.Property(e => e.Price).HasColumnName("price").HasColumnType("decimal(18,2)");
 
             // Relationship: Order_Item -> Orders
-            //entity.HasOne(oi => oi.Order)
+            //entity.HasOne<OrderItem>(oi => oi.Order)
             //      .WithMany(o => o.OrderItems)
             //      .HasForeignKey(oi => oi.OrderId)
             //      .HasConstraintName("FK_OrderItem_Order")
@@ -35,6 +35,18 @@ namespace Infrastructure.Data.Configurations
             //      .WithMany(i => i.OrderItems)
             //      .HasForeignKey(oi => oi.ItemId)
             //      .HasConstraintName("FK_OrderItem_Item");
+
+            entity.HasOne<Item>()
+                .WithMany()
+                .HasForeignKey(d => d.ItemId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK__Order_Ite__item___5EBF139D");
+
+            entity.HasOne<Order>()  // target type
+              .WithMany()       // không có collection trong Order
+              .HasForeignKey(e => e.OrderId)
+              .OnDelete(DeleteBehavior.ClientSetNull)
+              .HasConstraintName("FK_OrderItem_Order");
         }
     }
 }
