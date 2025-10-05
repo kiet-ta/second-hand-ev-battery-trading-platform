@@ -1,47 +1,87 @@
-import { useState, useEffect } from "react"
-import "../assets/styles/ProfileForm.css"
-import anhtao from "../assets/images/anhtao.png"
+import { useState, useEffect } from "react";
+import "../assets/styles/ProfileForm.css";
+import { FaCamera } from "react-icons/fa";
 
 const ProfileForm = () => {
-    const [formData, setFormData] = useState(null)
-    const userId = localStorage.getItem("userId")
-    const token = localStorage.getItem("token")
+    const [formData, setFormData] = useState(null);
+    const userId = localStorage.getItem("userId");
+    const token = localStorage.getItem("token");
 
     // Gọi API khi load component
     useEffect(() => {
-        if (!userId) return
+        if (!userId) return;
 
         fetch(`https://localhost:7272/api/Users/${userId}`, {
             headers: {
-                "Authorization": `Bearer ${token}`, // nếu API yêu cầu JWT
-                "Content-Type": "application/json"
-            }
+                "Authorization": `Bearer ${token}`,
+                "Content-Type": "application/json",
+            },
         })
-            .then(res => {
-                if (!res.ok) throw new Error("Failed to fetch user")
-                return res.json()
+            .then((res) => {
+                if (!res.ok) throw new Error("Failed to fetch user");
+                return res.json();
             })
-            .then(data => {
+            .then((data) => {
                 if (data.yearOfBirth) {
-                    data.yearOfBirth = data.yearOfBirth.split("T")[0]  // chỉ lấy yyyy-MM-dd
+                    data.yearOfBirth = data.yearOfBirth.split("T")[0]; // chỉ lấy yyyy-MM-dd
                 }
-                setFormData(data)
+                setFormData(data);
             })
-            .catch(err => console.error("Error:", err))
-    }, [userId, token])
+            .catch((err) => console.error("Error:", err));
+    }, [userId, token]);
 
-    if (!formData) return <p>Loading...</p>
+    if (!formData) return <p>Loading...</p>;
 
+    // ✅ Upload avatar lên Cloudinary
+    const handleAvatarChange = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        // Hiển thị preview tạm thời
+        const previewUrl = URL.createObjectURL(file);
+        setFormData((prev) => ({
+            ...prev,
+            avatarProfile: previewUrl,
+        }));
+
+        try {
+            const formDataUpload = new FormData();
+            formDataUpload.append("file", file);
+            formDataUpload.append("upload_preset", "ml_default"); // preset Cloudinary của bạn
+            formDataUpload.append("folder", "EV_BATTERY_TRADING/Electric_Verhicle");
+
+            const response = await fetch("https://api.cloudinary.com/v1_1/tucore/image/upload", {
+                method: "POST",
+                body: formDataUpload,
+            });
+
+            const data = await response.json();
+            if (data.secure_url) {
+                setFormData((prev) => ({
+                    ...prev,
+                    avatarProfile: data.secure_url,
+                }));
+                console.log("✅ Upload thành công:", data.secure_url);
+            } else {
+                console.error("❌ Upload thất bại:", data);
+            }
+        } catch (error) {
+            console.error("Error uploading avatar:", error);
+        }
+    };
+
+    // ✅ Khi người dùng nhập form text
     const handleInputChange = (e) => {
-        const { name, value } = e.target
+        const { name, value } = e.target;
         setFormData((prev) => ({
             ...prev,
             [name]: value,
-        }))
-    }
+        }));
+    };
 
+    // ✅ Hàm gửi API cập nhật user
     const handleSubmit = (e) => {
-        e.preventDefault()
+        e.preventDefault();
 
         const updatedUser = {
             ...formData,
@@ -49,12 +89,12 @@ const ProfileForm = () => {
             email: formData.email,
             gender: formData.gender,
             yearOfBirth: formData.yearOfBirth
-                ? new Date(formData.yearOfBirth).toISOString().split("T")[0] // => YYYY-MM-DD
+                ? new Date(formData.yearOfBirth).toISOString().split("T")[0]
                 : null,
             phone: formData.phone,
-            updatedAt: new Date().toISOString()
-        }
-        console.log(formData.yearOfBirth);
+            avatarProfile: formData.avatarProfile,
+            updatedAt: new Date().toISOString(),
+        };
 
         fetch(`https://localhost:7272/api/Users/${userId}`, {
             method: "PUT",
@@ -65,31 +105,51 @@ const ProfileForm = () => {
             body: JSON.stringify(updatedUser),
         })
             .then(async (res) => {
-                if (!res.ok) throw new Error("Failed to update user")
-
-                // Nếu có content thì parse JSON, còn không thì return null
-                const text = await res.text()
-                return text ? JSON.parse(text) : null
+                if (!res.ok) throw new Error("Failed to update user");
+                const text = await res.text();
+                return text ? JSON.parse(text) : null;
             })
             .then((data) => {
-                alert("Update successful!")
-                console.log("Updated user:", data)
-            })
-            .catch((err) => console.error("Error updating user:", err))
-    }
+                alert("✅ Update successful!");
+                console.log("Updated user:", data);
 
+                // ✅ Lưu tạm vào localStorage để header hiển thị liền
+                localStorage.setItem("userAvatar", updatedUser.avatarProfile);
+                localStorage.setItem("userName", updatedUser.fullName);
+            })
+            .catch((err) => console.error("Error updating user:", err));
+    };
 
     return (
         <div className="profile-form-container">
             {/* Profile Photo Section */}
             <div className="profile-photo-section">
                 <div className="photo-upload">
-                    <img src={anhtao} alt="Profile" className="profile-photo" />
+                    <div className="avatar-wrapper">
+                        <img
+                            src={formData.avatarProfile}
+                            alt="Profile"
+                            className="profile-photo"
+                        />
+
+                        {/* Overlay icon */}
+                        <label htmlFor="avatarUpload" className="upload-overlay">
+                            <FaCamera />
+                        </label>
+                        <input
+                            id="avatarUpload"
+                            type="file"
+                            accept="image/*"
+                            onChange={handleAvatarChange}
+                            style={{ display: "none" }}
+                        />
+                    </div>
+
+
                     <div className="upload-info">
                         <h3>{formData.fullName}</h3>
                     </div>
                 </div>
-                <button className="update-btn">Update</button>
             </div>
 
             {/* Form Section */}
@@ -137,14 +197,13 @@ const ProfileForm = () => {
                             <label htmlFor="yearOfBirth">Year of Birth*</label>
                             <input
                                 type="date"
-                                id="yeaOfBirth"
+                                id="yearOfBirth"
                                 name="yearOfBirth"
                                 value={formData.yearOfBirth || ""}
                                 onChange={handleInputChange}
                                 required
                             />
                         </div>
-
                     </div>
 
                     <div className="form-group full-width">
@@ -165,7 +224,7 @@ const ProfileForm = () => {
                 </form>
             </div>
         </div>
-    )
-}
+    );
+};
 
-export default ProfileForm
+export default ProfileForm;

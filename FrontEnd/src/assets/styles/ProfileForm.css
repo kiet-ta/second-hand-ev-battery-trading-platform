@@ -2,10 +2,12 @@
     max-width: 800px;
 }
 
+/* ==== PHẦN ẢNH & TÊN NGƯỜI DÙNG ==== */
 .profile-photo-section {
     display: flex;
     align-items: center;
     justify-content: space-between;
+    /* vẫn để space-between nhưng avatar+name là 1 nhóm */
     padding: 2rem 0;
     border-bottom: 1px solid #e2e8f0;
     margin-bottom: 2rem;
@@ -15,14 +17,56 @@
     display: flex;
     align-items: center;
     gap: 1rem;
+    /* khoảng cách giữa ảnh và tên */
 }
 
+/* ẢNH ĐẠI DIỆN */
 .profile-photo {
     width: 80px;
     height: 80px;
     border-radius: 50%;
     object-fit: cover;
     border: 3px solid #e2e8f0;
+    position: relative;
+}
+
+.avatar-wrapper {
+    position: relative;
+    /* Để overlay bám vào avatar */
+    display: inline-block;
+}
+
+.upload-overlay {
+    position: absolute;
+    bottom: 6px;
+    right: 6px;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background: rgba(0, 0, 0, 0.55);
+    color: white;
+    border-radius: 50%;
+    font-size: 16px;
+    cursor: pointer;
+
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+}
+
+.upload-overlay:hover {
+    background: rgba(0, 0, 0, 0.75);
+    transform: scale(1.05);
+}
+
+
+/* TÊN NGƯỜI DÙNG */
+.upload-info {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 }
 
 .upload-info h3 {
@@ -37,6 +81,7 @@
     color: #64748b;
 }
 
+/* NÚT UPDATE BÊN PHẢI */
 .update-btn {
     background: #f1f5f9;
     border: 1px solid #e2e8f0;
@@ -52,6 +97,7 @@
     background: #e2e8f0;
 }
 
+/* ==== FORM PHẦN DƯỚI ==== */
 .form-section {
     margin-top: 2rem;
 }
@@ -111,6 +157,7 @@
     cursor: pointer;
 }
 
+/* NÚT SUBMIT */
 .submit-btn {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
@@ -129,11 +176,16 @@
     box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
 }
 
+/* ==== RESPONSIVE ==== */
 @media (max-width: 768px) {
     .profile-photo-section {
         flex-direction: column;
         gap: 1rem;
         text-align: center;
+    }
+
+    .photo-upload {
+        flex-direction: column;
     }
 
     .form-row {
@@ -144,4 +196,219 @@
     .profile-form-container {
         max-width: 100%;
     }
+}
+
+.profile-form-container {
+    max-width: 800px;
+}
+
+/* ==== PHẦN ẢNH & TÊN NGƯỜI DÙNG ==== */
+.profile-photo-section {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    /* vẫn để space-between nhưng avatar+name là 1 nhóm */
+    padding: 2rem 0;
+    border-bottom: 1px solid #e2e8f0;
+    margin-bottom: 2rem;
+}
+
+.photo-upload {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    /* khoảng cách giữa ảnh và tên */
+}
+
+/* ẢNH ĐẠI DIỆN */
+.profile-photo {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid #e2e8f0;
+    position: relative;
+}
+
+/* OVERLAY ICON UPLOAD */
+.upload-overlay {
+    position: absolute;
+    bottom: 5px;
+    right: 5px;
+    background: rgba(0, 0, 0, 0.6);
+    color: white;
+    padding: 5px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background 0.3s;
+}
+
+.upload-overlay:hover {
+    background: rgba(0, 0, 0, 0.8);
+}
+
+/* TÊN NGƯỜI DÙNG */
+.upload-info {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.upload-info h3 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #1e293b;
+    margin-bottom: 0.25rem;
+}
+
+.upload-info p {
+    font-size: 0.875rem;
+    color: #64748b;
+}
+
+/* NÚT UPDATE BÊN PHẢI */
+.update-btn {
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
+    color: #475569;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.5rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.update-btn:hover {
+    background: #e2e8f0;
+}
+
+/* ==== FORM PHẦN DƯỚI ==== */
+.form-section {
+    margin-top: 2rem;
+}
+
+.form-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #1e293b;
+    margin-bottom: 2rem;
+}
+
+.profile-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.form-group.full-width {
+    grid-column: 1 / -1;
+}
+
+.form-group label {
+    font-weight: 500;
+    color: #374151;
+    font-size: 0.875rem;
+}
+
+.form-group input,
+.form-group select {
+    padding: 0.75rem 1rem;
+    border: 2px solid #e2e8f0;
+    border-radius: 0.5rem;
+    font-size: 1rem;
+    transition: border-color 0.2s ease;
+    background: white;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+    outline: none;
+    border-color: #667eea;
+}
+
+.form-group select {
+    cursor: pointer;
+}
+
+/* NÚT SUBMIT */
+.submit-btn {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 1rem 2rem;
+    border-radius: 0.75rem;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-top: 1rem;
+}
+
+.submit-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.upload-overlay {
+    position: absolute;
+    bottom: 6px;
+    right: 6px;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background: rgba(0, 0, 0, 0.55);
+    color: white;
+    border-radius: 50%;
+    font-size: 16px;
+    /* icon vừa gọn */
+    cursor: pointer;
+
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+}
+
+.upload-overlay:hover {
+    background: rgba(0, 0, 0, 0.75);
+    transform: scale(1.05);
+}
+
+
+
+/* ==== RESPONSIVE ==== */
+@media (max-width: 768px) {
+    .profile-photo-section {
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
+    }
+
+    .photo-upload {
+        flex-direction: column;
+    }
+
+    .form-row {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .profile-form-container {
+        max-width: 100%;
+    }
+
 }

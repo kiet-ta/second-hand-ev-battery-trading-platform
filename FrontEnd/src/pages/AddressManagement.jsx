@@ -1,53 +1,63 @@
 import { useEffect, useState } from "react";
 import "../assets/styles/AddressManagement.css";
-import axios from "axios";
-
-const addressApi = {
-    getProvinces: async () => {
-        const res = await axios.get(
-            "https://raw.githubusercontent.com/madnh/hanhchinhvn/master/dist/tinh_tp.json"
-        );
-        return Object.values(res.data);
-    },
-    getDistricts: async (provinceCode) => {
-        const res = await axios.get(
-            "https://raw.githubusercontent.com/madnh/hanhchinhvn/master/dist/quan_huyen.json"
-        );
-        return Object.values(res.data).filter(
-            (d) => String(d.parent_code) === String(provinceCode)
-        );
-    },
-    getWards: async (districtCode) => {
-        const res = await axios.get(
-            "https://raw.githubusercontent.com/madnh/hanhchinhvn/master/dist/xa_phuong.json"
-        );
-        return Object.values(res.data).filter(
-            (w) => String(w.parent_code) === String(districtCode)
-        );
-    },
-};
+import addressApi from "../hooks/services/addressApi";
 
 const AddressManagement = () => {
     const [provinces, setProvinces] = useState([]);
     const [districts, setDistricts] = useState([]);
     const [wards, setWards] = useState([]);
 
-    const [savedAddresses, setSavedAddresses] = useState([
-        {
-            id: 1,
-            provinceCode: "79",
-            provinceName: "Thành phố Hồ Chí Minh",
-            districtCode: "760",
-            districtName: "Quận 1",
-            wardCode: "26734",
-            wardName: "Phường Bến Nghé",
-            detail: "123 Nguyễn Huệ",
-            isDefault: true,
-        },
-    ]);
+    const [savedAddresses, setSavedAddresses] = useState([]);
 
     const [showForm, setShowForm] = useState(false);
     const [editingId, setEditingId] = useState(null);
+    const [currentUser, setCurrentUser] = useState(null);
+
+    useEffect(() => {
+        const fetchUser = async () => {
+            try {
+                const userId = localStorage.getItem("userId");
+                if (!userId)
+                    return;
+
+                const res = await fetch(`https://localhost:7272/api/Users/${userId}`);
+                if (!res.ok) throw new Error("Không lấy được thông tin user");
+                const data = await res.json();
+                setCurrentUser(data);
+            } catch (err) {
+                console.error("Lỗi load user:", err);
+            }
+        };
+
+        fetchUser();
+    }, []);
+
+    useEffect(() => {
+        const fetchAddresses = async () => {
+            try {
+                const userId = localStorage.getItem("userId");
+                if (!userId) return;
+
+                const res = await addressApi.getUserAddresses(userId);
+
+                // Map DB fields -> UI fields
+                const mapped = res.map(addr => ({
+                    id: addr.addressId,         // <-- map đúng primary key từ DB
+                    street: addr.street,
+                    ward: addr.ward,
+                    district: addr.district,
+                    province: addr.province,
+                    isDefault: addr.isDefault
+                }));
+
+                setSavedAddresses(mapped);
+            } catch (err) {
+                console.error("Lỗi load addresses:", err);
+            }
+        };
+
+        fetchAddresses();
+    }, []);
 
     const [formData, setFormData] = useState({
         provinceCode: "",
@@ -113,17 +123,18 @@ const AddressManagement = () => {
     const handleEdit = (address) => {
         setEditingId(address.id);
         setFormData({
-            provinceCode: address.provinceCode,
-            provinceName: address.provinceName,
-            districtCode: address.districtCode,
-            districtName: address.districtName,
-            wardCode: address.wardCode,
-            wardName: address.wardName,
-            detail: address.detail,
+            provinceCode: "",
+            provinceName: address.province,
+            districtCode: "",
+            districtName: address.district,
+            wardCode: "",
+            wardName: address.ward,
+            detail: address.street,
             isDefault: address.isDefault,
         });
         setShowForm(true);
     };
+
 
     const handleProvinceChange = (e) => {
         const code = e.target.value;
@@ -161,51 +172,66 @@ const AddressManagement = () => {
         });
     };
 
-    const handleSave = () => {
-        if (
-            !formData.provinceCode ||
-            !formData.districtCode ||
-            !formData.wardCode ||
-            !formData.detail
-        ) {
+    const handleSave = async () => {
+        if (!formData.detail || !formData.provinceName || !formData.districtName || !formData.wardName) {
             alert("Vui lòng điền đầy đủ thông tin!");
             return;
         }
 
-        if (editingId) {
-            setSavedAddresses((prev) =>
-                prev.map((addr) => {
-                    if (addr.id === editingId) {
-                        return { ...formData, id: addr.id };
-                    }
-                    if (formData.isDefault) {
-                        return { ...addr, isDefault: false };
-                    }
-                    return addr;
-                })
-            );
-        } else {
-            const newAddress = {
-                ...formData,
-                id: Date.now(),
+        try {
+            const userId = localStorage.getItem("userId");
+
+            const addressPayload = {
+                userId: userId,
+                recipientName: currentUser?.fullName || "Unknown",
+                phone: currentUser?.phone || "0000000000",
+                street: formData.detail,
+                ward: formData.wardName,
+                district: formData.districtName,
+                province: formData.provinceName,
+                isDefault: formData.isDefault,
             };
 
-            if (formData.isDefault) {
-                setSavedAddresses((prev) => [
-                    newAddress,
-                    ...prev.map((addr) => ({ ...addr, isDefault: false })),
-                ]);
+            if (editingId) {
+                // Cập nhật
+                await addressApi.updateAddress(editingId, addressPayload);
             } else {
-                setSavedAddresses((prev) => [...prev, newAddress]);
+                // Thêm mới
+                await addressApi.addAddress(addressPayload);
             }
-        }
 
-        setShowForm(false);
+            // Reload danh sách từ DB
+            const res = await addressApi.getUserAddresses(userId);
+            const mapped = res.map(addr => ({
+                id: addr.addressId,
+                street: addr.street,
+                ward: addr.ward,
+                district: addr.district,
+                province: addr.province,
+                isDefault: addr.isDefault
+            }));
+            setSavedAddresses(mapped);
+
+            setShowForm(false);
+            setEditingId(null);
+        } catch (err) {
+            console.error("Lỗi lưu địa chỉ:", err);
+            alert("Có lỗi khi lưu địa chỉ!");
+        }
     };
 
-    const handleDelete = (id) => {
+
+
+    const handleDelete = async (id) => {
         if (window.confirm("Bạn có chắc muốn xóa địa chỉ này?")) {
-            setSavedAddresses((prev) => prev.filter((addr) => addr.id !== id));
+            try {
+                await addressApi.deleteAddress(id);
+                const userId = localStorage.getItem("userId");
+                const res = await addressApi.getUserAddresses(userId);
+                setSavedAddresses(res);
+            } catch (err) {
+                alert("Có lỗi khi xóa địa chỉ!");
+            }
         }
     };
 
@@ -263,11 +289,10 @@ const AddressManagement = () => {
                                 </div>
                             </div>
                             <div className="address-detail">
-                                <p className="address-text">{address.detail}</p>
                                 <p className="address-text">
-                                    {address.wardName}, {address.districtName},{" "}
-                                    {address.provinceName}
+                                    {address.ward}, {address.district}, {address.province}
                                 </p>
+                                <p className="address-text">{address.street}</p>
                             </div>
                             {!address.isDefault && (
                                 <button

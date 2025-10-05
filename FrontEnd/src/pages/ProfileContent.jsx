@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import SettingsCard from "../components/SettingCard";
 import ProfileForm from "../components/ProfileForm";
 import AddressManagement from "../pages/AddressManagement";
@@ -11,6 +11,28 @@ const ProfileContent = () => {
     const [activeSection, setActiveSection] = useState("profile");
     const [activeCard, setActiveCard] = useState("account");
     const [searchQuery, setSearchQuery] = useState("");
+    const [currentUser, setCurrentUser] = useState({
+        fullName: localStorage.getItem("userName") || "Guest",
+        avatarProfile: localStorage.getItem("userAvatar") || anhtao
+    });
+
+    useEffect(() => {
+        const fetchUser = async () => {
+            try {
+                const userId = localStorage.getItem("userId");
+                if (!userId) return;
+
+                const response = await fetch(`https://localhost:7272/api/Users/${userId}`);
+                const data = await response.json();
+                setCurrentUser(data);
+            } catch (error) {
+                console.error("Error fetching user:", error);
+            }
+        };
+
+        fetchUser();
+    }, []);
+
 
     const menuItems = [
         { id: "profile", label: "Profile", icon: "👤" },
@@ -81,10 +103,11 @@ const ProfileContent = () => {
                             🛒<span className="cart-badge">0</span>
                         </button>
                         <div className="user-profile">
-                            <img src={anhtao} alt="Profile" className="user-avatar" />
-                            <span className="user-name">Thanh Trung</span>
+                            <img src={currentUser.avatarProfile} alt="Profile" className="user-avatar" />
+                            <span className="user-name">{currentUser.fullName}</span>
                             <button className="menu-btn">⋯</button>
                         </div>
+
                     </div>
                 </header>
 
