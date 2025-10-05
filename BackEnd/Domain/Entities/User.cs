@@ -60,7 +60,30 @@ public class User
     [Column("updated_at")]
     public DateTime UpdatedAt { get; set; } = DateTime.Now;
 
-    [Column("is_deleted")]
-    public bool? IsDeleted { get; set; } 
+    public bool? IsDeleted { get; set; }
+
+    //public virtual ICollection<Address> Addresses { get; set; } = new List<Address>();
+
+    //public virtual ICollection<Bid> Bids { get; set; } = new List<Bid>();
+
+    //public virtual ICollection<Favorite> Favorites { get; set; } = new List<Favorite>();
+
+    //public virtual ICollection<Item> Items { get; set; } = new List<Item>();
+
+    //public virtual ICollection<KycDocument> KycDocumentUsers { get; set; } = new List<KycDocument>();
+
+    //public virtual ICollection<KycDocument> KycDocumentVerifiedByNavigations { get; set; } = new List<KycDocument>();
+
+    //public virtual ICollection<Order> Orders { get; set; } = new List<Order>();
+
+    //public virtual ICollection<Payment> Payments { get; set; } = new List<Payment>();
+
+    //public virtual ICollection<Review> ReviewReviewers { get; set; } = new List<Review>();
+
+    //public virtual ICollection<Review> ReviewTargetUsers { get; set; } = new List<Review>();
+
+    //public virtual ICollection<UserLog> UserLogs { get; set; } = new List<UserLog>();
+
+    //public virtual Wallet? Wallet { get; set; }
 }
 

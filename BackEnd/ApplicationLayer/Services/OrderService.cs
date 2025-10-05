@@ -1,4 +1,4 @@
-﻿using Application.DTOs;
+﻿using Application.DTOs.ItemDtos;
 using Application.IRepositories;
 using Application.IServices;
 using Domain.Entities;
@@ -58,8 +58,8 @@ namespace Application.Services
                 BuyerId = dto.BuyerId,
                 AddressId = dto.AddressId,
                 Status = "pending",
-                CreatedAt = null, //DateTime.Now,
-                UpdatedAt = null, //DateTime.Now,
+                CreatedAt = dto.CreatedAt, //DateTime.Now,
+                UpdatedAt = dto.UpdatedAt, //DateTime.Now,
                 //OrderItems = dto.Items?.Select(i => new OrderItem
                 //{
                 //    ItemId = i.ItemId,

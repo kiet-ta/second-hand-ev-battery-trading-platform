@@ -28,9 +28,9 @@ namespace Infrastructure.Data.Configurations
             entity.Property(e => e.Role).HasColumnName("role");
             entity.Property(e => e.KycStatus).HasColumnName("kyc_status");
             entity.Property(e => e.AccountStatus).HasColumnName("account_status");
-            entity.Property(e => e.CreatedAt).HasColumnName("created_at");
-            entity.Property(e => e.UpdatedAt).HasColumnName("updated_at");
-            entity.Property(e => e.IsDeleted).HasColumnName("is_deleted").IsRequired(false);
+            entity.Property(e => e.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("GETDATE()");
+            entity.Property(e => e.UpdatedAt).HasColumnName("updated_at").HasDefaultValueSql("GETDATE()");
+            entity.Property(e => e.IsDeleted).HasColumnName("is_deleted").HasDefaultValue(false);
         }
     }
 }

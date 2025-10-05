@@ -1,4 +1,4 @@
-﻿using Application.DTOs;
+﻿using Application.DTOs.ItemDtos;
 using Application.IRepositories;
 using Application.IServices;
 using Domain.Entities;
@@ -229,6 +229,11 @@ namespace Application.Services
         public async Task<IEnumerable<ItemWithDetailDto>> GetAllItemsWithDetailsAsync()
         {
             return await _repo.GetAllItemsWithDetailsAsync();
+        }
+
+        public async Task<IEnumerable<ItemBoughtDto>> GetBoughtItemsWithDetailsAsync(int userId)
+        {
+            return await _repo.GetBoughtItemsWithDetailsAsync(userId);
         }
     }
 }

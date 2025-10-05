@@ -37,9 +37,13 @@ public class Item
 
     //public virtual ICollection<Favorite> Favorites { get; set; } = new List<Favorite>();
 
+    //public virtual ItemBidding? ItemBidding { get; set; }
+
     //public virtual ICollection<ItemImage> ItemImages { get; set; } = new List<ItemImage>();
 
     //public virtual ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
+
+    //public virtual ICollection<PaymentDetail> PaymentDetails { get; set; } = new List<PaymentDetail>();
 
     //public virtual User? UpdatedByNavigation { get; set; }
 }

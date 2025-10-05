@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Application.DTOs
+namespace Application.DTOs.ItemDtos
 {
     public class OrderDto
     {
@@ -12,5 +12,7 @@ namespace Application.DTOs
         public int BuyerId { get; set; }
         public int AddressId { get; set; }
         public string? Status { get; set; }
+        public DateOnly? CreatedAt { get; set; }
+        public DateOnly? UpdatedAt { get; set; }
     }
 }
