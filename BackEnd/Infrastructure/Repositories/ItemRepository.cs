@@ -107,6 +107,9 @@ namespace Infrastructure.Repositories
                         {
                             ItemId = i.ItemId,
                             Title = i.Title,
+                            Price = i.Price,
+                            Description = i.Description,
+                            Quantity = i.Quantity,
                             ItemType = i.ItemType,
                             EVDetail = evDetail,
                             BatteryDetail = batDetail

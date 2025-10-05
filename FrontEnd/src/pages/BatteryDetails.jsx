@@ -28,7 +28,7 @@ function BatteryDetails() {
   const [itemDetails, setItemDetails] = useState([])
       const fetchItems = async () => {
       try {
-        const data = await itemApi.getItemById(itemId);
+        const data = await itemApi.getItemDetailByID(itemId);
         console.log(data);
         setItemDetails(data);
       } catch (error) {

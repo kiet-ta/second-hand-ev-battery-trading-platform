@@ -12,6 +12,12 @@ namespace Application.DTOs
         public int ItemId { get; set; }
         public string? Title { get; set; }
         public string? ItemType { get; set; }
+        public string? Description { get; set; }
+
+        public decimal? Price { get; set; }
+
+        public int? Quantity { get; set; }
+
 
         // Quan hệ phụ
         public EvDetail? EVDetail { get; set; }

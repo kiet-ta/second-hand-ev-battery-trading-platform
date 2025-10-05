@@ -17,10 +17,10 @@ function Navbar(data) {
   const rightmenu = [
     { name: 'Notification', link: '/notification', icon: <IoMdHome /> },
     { name: 'Support', link: '/support' }]
-    // const user ={
-    //   name: "Lady Furina",
-    //   picture: "https://i.pinimg.com/736x/5b/3f/09/5b3f09d67f448e39dab9e8d8f3cc3f94.jpg"
-    // }
+  // const user ={
+  //   name: "Lady Furina",
+  //   picture: "https://i.pinimg.com/736x/5b/3f/09/5b3f09d67f448e39dab9e8d8f3cc3f94.jpg"
+  // }
   return (
 
     <div>
@@ -34,15 +34,15 @@ function Navbar(data) {
               </Link>
             ))}
             {data.data && data.data.role == "Manager" ? (
-             <Link to="/manage" className="mx-4 hover:text-green-300 flex items-center">
-              <FaSuitcase/>                
-             <span className="ml-2">Manager</span>
-              </Link> 
-            ):(
-             <Link to="/seller" className="mx-4 hover:text-green-300 flex items-center">
-              <FaSuitcase/>                
-             <span className="ml-2">Seller</span>
-              </Link> 
+              <Link to="/manage" className="mx-4 hover:text-green-300 flex items-center">
+                <FaSuitcase />
+                <span className="ml-2">Manager</span>
+              </Link>
+            ) : (
+              <Link to="/seller" className="mx-4 hover:text-green-300 flex items-center">
+                <FaSuitcase />
+                <span className="ml-2">Seller</span>
+              </Link>
             )
             }
 
@@ -54,7 +54,7 @@ function Navbar(data) {
                 <span className="ml-2">{item.name}</span>
               </Link>
             ))}
-            {data.data  ? (
+            {data.data ? (
               <div className="ml-4 pt-5">
                 <ProfileDropDown users={data.data} />
               </div>
@@ -74,17 +74,44 @@ function Navbar(data) {
         </div>
         <div className="w-full flex justify-around h-20">
           <Logo className="absolute bottom-0 left-0" />
-          <div className="ml-10 w-1/2 content-center align-middle  ">
-            <form action='/search' method='GET'>
-              <input type="text" name="query" placeholder="Search..." className="w-full p-2 rounded-lg text-black bg-white" />
-              <button type="submit" className="hidden">Search</button>
+          <div className="ml-20 w-2/3 mt-5">
+            <form
+              action="/search"
+              method="GET"
+              className="flex items-center bg-white rounded-lg overflow-hidden border border-gray-300"
+            >
+              {/* Search Input */}
+              <input
+                type="text"
+                name="query"
+                placeholder="Search..."
+                className="flex-1 p-2 text-black focus:outline-none"
+              />
+
+              {/* Dropdown (styled like Shopee) */}
+              <select
+                name="itemType"
+                className="p-2 bg-white text-black border-l border-gray-300 focus:outline-none cursor-pointer"
+                defaultValue="vehicle"
+              >
+                <option value="EV">Vehicle</option>
+                <option value="Battery">Battery</option>
+              </select>
+
+              {/* Search Button */}
+              <button
+                type="submit"
+                className="bg-maincolor-darker text-white px-4 py-2 hover:bg-green-600 transition"
+              >
+                🔍
+              </button>
             </form>
           </div>
           <div className="mt-10 w-1/5 flex justify-end items-center content-center gap-4">
-                        <Link to={'/cart'} className="mx-4 hover:text-green-300 flex items-center">
-                {<FaShoppingCart/>}
-                <span className="ml-2">Cart</span>
-              </Link>
+            <Link to={'/cart'} className="mx-4 hover:text-green-300 flex items-center">
+              {<FaShoppingCart />}
+              <span className="ml-2">Cart</span>
+            </Link>
           </div>
         </div>
       </div>

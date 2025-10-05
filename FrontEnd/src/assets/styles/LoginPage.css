@@ -7,7 +7,7 @@
 
 /* Header */
 .login-header {
-    background-color: #77E4C8;
+    background-color: #234C6A;
     padding: 10px;
     display: flex;
     align-items: center;
@@ -104,7 +104,7 @@
 }
 
 .login-input:focus {
-    border-color: #77E4C8;
+    border-color: #234C6A;
     box-shadow: 0 0 4px rgba(46, 204, 113, 0.5);
 }
 
@@ -113,7 +113,7 @@
     width: 100%;
     padding: 12px;
     margin: 10px 0;
-    background-color: #77E4C8;
+    background-color: #234C6A;
     color: #fff;
     font-weight: bold;
     border: none;
