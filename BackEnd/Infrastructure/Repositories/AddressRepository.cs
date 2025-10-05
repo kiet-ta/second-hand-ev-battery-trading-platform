@@ -16,33 +16,33 @@ namespace Infrastructure.Repositories
 
         public async Task AddAddressAsync(Address address)
         {
-            _context.Address.Add(address);
+            _context.Addresses.Add(address);
             await _context.SaveChangesAsync();
         }
 
         public async Task<List<Address>> GetAddressesByUserIdAsync(int userId)
         {
-            return await _context.Address
+            return await _context.Addresses
                 .Where(a => a.UserId == userId && !a.IsDeleted)
                 .ToListAsync();
         }
 
         public async Task<Address?> GetAddressByIdAsync(int addressId)
         {
-            return await _context.Address
+            return await _context.Addresses
                 .FirstOrDefaultAsync(a => a.AddressId == addressId && !a.IsDeleted);
         }
 
         public async Task<List<Address>> GetAllAddressesAsync()
         {
-            return await _context.Address
+            return await _context.Addresses
                 .Where(a => !a.IsDeleted)
                 .ToListAsync();
         }
 
         public async Task UpdateAddressAsync(Address address)
         {
-            var existing = await _context.Address.FindAsync(address.AddressId);
+            var existing = await _context.Addresses.FindAsync(address.AddressId);
             if (existing == null || existing.IsDeleted)
                 throw new Exception("Address not found");
 
@@ -53,7 +53,7 @@ namespace Infrastructure.Repositories
         public async Task DeleteAddressAsync(Address address)
         {
             address.IsDeleted = true;
-            _context.Address.Update(address);
+            _context.Addresses.Update(address);
             await _context.SaveChangesAsync();
         }
     }
