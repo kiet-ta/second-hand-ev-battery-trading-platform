@@ -1,17 +1,27 @@
 import { useState, useEffect } from "react";
 import "../assets/styles/ProfileForm.css";
 import { FaCamera } from "react-icons/fa";
+import { FaRegEye, FaRegEyeSlash } from "react-icons/fa";
 
 const ProfileForm = () => {
     const [formData, setFormData] = useState(null);
     const userId = localStorage.getItem("userId");
     const token = localStorage.getItem("token");
+    const [showPhone, setShowPhone] = useState(false);
+
+    const maskPhone = (phone) => {
+        if (!phone) return "";
+        const len = phone.length;
+        if (len <= 4) return phone;
+        return phone.slice(0, 3) + "*".repeat(len - 6) + phone.slice(-3);
+    };
+
 
     // Gọi API khi load component
     useEffect(() => {
         if (!userId) return;
 
-        fetch(`https://localhost:7272/api/Users/${userId}`, {
+        fetch(`https://localhost:7272/api/User/${userId}`, {
             headers: {
                 "Authorization": `Bearer ${token}`,
                 "Content-Type": "application/json",
@@ -159,7 +169,7 @@ const ProfileForm = () => {
                 <form onSubmit={handleSubmit} className="profile-form">
                     <div className="form-row">
                         <div className="form-group">
-                            <label htmlFor="fullName">Full Name*</label>
+                            <label htmlFor="fullName">Full Name *</label>
                             <input
                                 type="text"
                                 id="fullName"
@@ -170,7 +180,7 @@ const ProfileForm = () => {
                             />
                         </div>
                         <div className="form-group">
-                            <label htmlFor="email">Email Address*</label>
+                            <label htmlFor="email">Email Address *</label>
                             <input
                                 type="email"
                                 id="email"
@@ -183,18 +193,22 @@ const ProfileForm = () => {
                     </div>
                     <div className="form-row">
                         <div className="form-group">
-                            <label htmlFor="gender">Gender*</label>
-                            <input
-                                type="text"
+                            <label htmlFor="gender">Gender *</label>
+                            <select
                                 id="gender"
                                 name="gender"
-                                value={formData.gender}
+                                value={formData.gender || ""}
                                 onChange={handleInputChange}
                                 required
-                            />
+                            >
+                                <option value="">-- Select Gender --</option>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                            </select>
                         </div>
+
                         <div className="form-group">
-                            <label htmlFor="yearOfBirth">Year of Birth*</label>
+                            <label htmlFor="yearOfBirth">Year of Birth *</label>
                             <input
                                 type="date"
                                 id="yearOfBirth"
@@ -206,16 +220,42 @@ const ProfileForm = () => {
                         </div>
                     </div>
 
-                    <div className="form-group full-width">
-                        <label htmlFor="phone">Phone*</label>
-                        <input
-                            type="text"
-                            id="phone"
-                            name="phone"
-                            value={formData.phone}
-                            onChange={handleInputChange}
-                            required
-                        />
+                    <div className="form-row">
+                        <div className="form-group">
+                            <label htmlFor="phone">Phone *</label>
+                            <div className="phone-wrapper">
+                                <input
+                                    type="text"
+                                    id="phone"
+                                    name="phone"
+                                    value={showPhone ? formData.phone : maskPhone(formData.phone)}
+                                    onChange={handleInputChange}
+                                    required
+                                    readOnly={!showPhone}
+                                />
+
+                                <button
+                                    type="button"
+                                    className="toggle-phone-btn"
+                                    onClick={() => setShowPhone((prev) => !prev)}
+                                >
+                                    {showPhone ? <FaRegEyeSlash /> : <FaRegEye />}
+                                </button>
+                            </div>
+                        </div>
+
+                        <div className="form-group">
+                            <label htmlFor="status">Status</label>
+                            <input
+                                type="text"
+                                id="status"
+                                name="status"
+                                value={formData.accountStatus || ""}
+                                readOnly
+                                className="readonly-input"
+                            />
+                        </div>
+
                     </div>
 
                     <button type="submit" className="submit-btn">

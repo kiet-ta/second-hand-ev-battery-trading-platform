@@ -20,7 +20,7 @@ const AddressManagement = () => {
                 if (!userId)
                     return;
 
-                const res = await fetch(`https://localhost:7272/api/Users/${userId}`);
+                const res = await fetch(`https://localhost:7272/api/User/${userId}`);
                 if (!res.ok) throw new Error("Không lấy được thông tin user");
                 const data = await res.json();
                 setCurrentUser(data);

@@ -214,7 +214,7 @@ export default function RegisterPage() {
                                     Already have an account?  <Link to="/login">Sign In</Link>
                                 </p>
                                 <form onSubmit={handleSubmit}>
-                                    <p className='header-login'>Create an account</p>
+                                    <p className='header-login'>Sign Up</p>
                                     <input
                                         type="text"
                                         placeholder="Full Name"
@@ -254,7 +254,7 @@ export default function RegisterPage() {
                                         }}
                                     >
                                         <button type="submit" className="login-btn">
-                                            CREATE AN ACCOUNT
+                                            SIGN UP
                                         </button>
                                     </Popover>
                                 </form>
