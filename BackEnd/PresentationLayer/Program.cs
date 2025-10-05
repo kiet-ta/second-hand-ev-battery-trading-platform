@@ -13,7 +13,6 @@ using System.Text;
 using Application.Services;
 using Application.IServices;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Infrastructure.Config;
 using CloudinaryDotNet;
 namespace PresentationLayer
 {

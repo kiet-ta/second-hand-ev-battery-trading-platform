@@ -60,6 +60,7 @@ namespace Infrastructure.Repositories
                 _context.Users.Update(user);
                 await _context.SaveChangesAsync();
             }
+        }
         //public async Task<User?> GetNewVehicles
 
         public async Task<List<(string Role, int Count)>> GetUsersByRoleAsync()
@@ -74,5 +75,5 @@ namespace Infrastructure.Repositories
         }
     }
 }
-}
+
 

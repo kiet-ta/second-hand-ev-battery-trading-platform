@@ -89,12 +89,12 @@ public partial class EvBatteryTradingContext : DbContext//, IUnitOfWork
         modelBuilder.ApplyConfiguration(new BidConfiguration());
         modelBuilder.ApplyConfiguration(new UserLogConfiguration());
         modelBuilder.ApplyConfiguration(new WalletConfiguration());
-        modelBuilder.ApplyConfiguration(new WalletTransactionConfiguration());
+        modelBuilder.ApplyConfiguration(new WalletTransactionConfiguration()); }
 
     // IUnitOfWork implementation
     //public Task<int> SaveChangesAsync(CancellationToken ct = default) =>
         //base.SaveChangesAsync(ct);
     partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
 }
-}
+
 
