@@ -9,7 +9,6 @@ namespace PresentationLayer.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize(Roles = "Manager")]
     public class UserController : ControllerBase
     {
         private readonly IUserService _userService;
