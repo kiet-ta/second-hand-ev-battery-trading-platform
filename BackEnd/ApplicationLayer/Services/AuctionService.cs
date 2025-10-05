@@ -1,4 +1,5 @@
 ﻿using Application.DTOs;
+using Application.IRepositories;
 using Application.IRepositories.IBiddingRepositories;
 using Application.IServices;
 using Domain.Entities;
@@ -7,10 +8,11 @@ namespace Application.Services;
 
 public class AuctionService : IAuctionService
 {
-    private IItemBiddingRepository _itemBiddingRepository;
-    private IBidRepository _bidRepository;
-    private IWalletRepository _walletRepository;
-    private IWalletTransactionRepository _walletTransactionRepository;
+    private readonly IItemBiddingRepository _itemBiddingRepository;
+    private readonly IBidRepository _bidRepository;
+    private readonly IWalletRepository _walletRepository;
+    private readonly IWalletTransactionRepository _walletTransactionRepository;
+    private readonly IItemRepository _itemRepository;
 
     public AuctionService(
         IItemBiddingRepository itemBiddingRepository,
@@ -100,19 +102,21 @@ public class AuctionService : IAuctionService
 
     public async Task<CreateAuctionResponse> CreateAuctionAsync(CreateAuctionRequest request)
     {
-        // check item available
-        var existingItem = await _auctionRepository.GetItemByIdAsync(request.ItemId);
+        // 1. Kiểm tra item tồn tại
+        var existingItem = await _itemRepository.GetByIdAsync(request.ItemId);
         if (existingItem == null)
-        {
             throw new KeyNotFoundException($"Item with ID {request.ItemId} not found.");
-        }
-        // check item not already in auction
-        var existingAuction = await _auctionRepository.GetByItemIdAsync(request.ItemId);
+
+        // 2. Kiểm tra item chưa có auction nào
+        var existingAuction = await _itemBiddingRepository.GetByItemIdAsync(request.ItemId);
         if (existingAuction != null)
-        {
             throw new InvalidOperationException($"Item {request.ItemId} already has an auction.");
-        }
-        // check start time before end time
+
+        // 3. Kiểm tra thời gian hợp lệ
+        if (request.StartTime >= request.EndTime)
+            throw new ArgumentException("Start time must be earlier than end time.");
+
+        // 4. Tạo auction mới
         var auction = new ItemBidding
         {
             ItemId = request.ItemId,
@@ -122,9 +126,11 @@ public class AuctionService : IAuctionService
             EndTime = request.EndTime,
             Status = "active"
         };
-        // Save auction to database
-        await _auctionRepository.AddAsync(auction);
 
+        // 5. Lưu xuống DB
+        await _itemBiddingRepository.CreateAsync(auction);
+
+        // 6. Map sang DTO trả về
         return new CreateAuctionResponse
         {
             BiddingId = auction.BiddingId,
