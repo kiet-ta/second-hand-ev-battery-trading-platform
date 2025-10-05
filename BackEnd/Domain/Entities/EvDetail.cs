@@ -23,7 +23,7 @@ public class EvDetail
 
     public bool? HasAccessories { get; set; }
 
-    public int? PreviousOwners { get; set; }
+    public int PreviousOwners { get; set; }
 
     public bool? IsRegistrationValid { get; set; }
 

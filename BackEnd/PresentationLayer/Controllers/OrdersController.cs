@@ -33,12 +33,12 @@ namespace PresentationLayer.Controllers
             return Ok(orders);
         }
 
-        //[HttpPost]
-        //public async Task<IActionResult> Create([FromBody] OrderDto dto)
-        //{
-        //    var id = await _service.CreateOrderAsync(dto);
-        //    return CreatedAtAction(nameof(Get), new { id }, dto);
-        //}
+        [HttpPost]
+        public async Task<IActionResult> Create([FromBody] OrderDto dto)
+        {
+            var id = await _service.CreateOrderAsync(dto);
+            return CreatedAtAction(nameof(Get), new { id }, dto);
+        }
 
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, [FromBody] OrderDto dto)

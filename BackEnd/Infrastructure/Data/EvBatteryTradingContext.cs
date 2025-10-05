@@ -6,7 +6,7 @@ using System.Collections.Generic;
 
 namespace Infrastructure.Data;
 
-public partial class EvBatteryTradingContext : DbContext
+public partial class EvBatteryTradingContext : DbContext//, IUnitOfWork
 {
     public EvBatteryTradingContext()
     {
@@ -750,5 +750,8 @@ public partial class EvBatteryTradingContext : DbContext
 
     }
 
+    // IUnitOfWork implementation
+    //public Task<int> SaveChangesAsync(CancellationToken ct = default) =>
+        //base.SaveChangesAsync(ct);
     partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
 }
