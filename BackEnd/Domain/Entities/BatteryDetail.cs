@@ -24,6 +24,6 @@ namespace Domain.Entities
         public int? ChargeCycles { get; set; }
 
         [Column("updated_at")]
-        public DateTime UpdatedAt { get; set; }
+        public DateOnly? UpdatedAt { get; set; }
     }
 }

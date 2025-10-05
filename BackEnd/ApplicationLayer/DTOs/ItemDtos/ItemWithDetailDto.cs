@@ -20,7 +20,7 @@ namespace Application.DTOs.ItemDtos
 
 
         // Quan hệ phụ
-        public EvDetail? EVDetail { get; set; }
+        public EVDetail? EVDetail { get; set; }
         public BatteryDetail? BatteryDetail { get; set; }
     }
 }

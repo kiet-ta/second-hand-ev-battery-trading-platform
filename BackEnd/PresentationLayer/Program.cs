@@ -13,6 +13,7 @@ using Application.Services;
 using Application.IServices;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using CloudinaryDotNet;
+using Net.payOS;
 
 namespace PresentationLayer
 {

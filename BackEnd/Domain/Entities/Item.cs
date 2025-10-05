@@ -36,10 +36,10 @@ namespace Domain.Entities
         public string Status { get; set; }
 
         [Column("created_at")]
-        public DateTime CreatedAt { get; set; }
+        public DateOnly CreatedAt { get; set; }
 
         [Column("updated_at")]
-        public DateTime UpdatedAt { get; set; }
+        public DateOnly UpdatedAt { get; set; }
 
         [Column("is_deleted")]
         public bool IsDeleted { get; set; }

@@ -23,7 +23,7 @@ namespace Domain.Entities
         public string? Gender { get; set; }
 
         [Column("year_of_birth")]
-        public DateTime YearOfBirth { get; set; }
+        public DateOnly YearOfBirth { get; set; }
 
         [Column("phone")]
         public string? Phone { get; set; }
