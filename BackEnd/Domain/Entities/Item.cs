@@ -1,49 +1,47 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Domain.Entities;
-
-public class Item
+namespace Domain.Entities
 {
-    public int ItemId { get; set; }
+    [Table("item")]
+    public class Item
+    {
+        [Key]
+        [Column("item_id")]
+        public int ItemId { get; set; }
 
-    public string? ItemType { get; set; }
+        [Column("updated_by")] 
+        public int? UpdatedBy { get; set; }
 
-    public int? CategoryId { get; set; }
+        [Column("item_type")]
+        public string ItemType { get; set; }
 
-    public string Title { get; set; } = null!;
+        [Column("category_id")]
+        public int? CategoryId { get; set; }
 
-    public string? Description { get; set; }
+        [Column("title")]
+        public string Title { get; set; }
 
-    public decimal? Price { get; set; }
+        [Column("description")]
+        public string Description { get; set; }
 
-    public int? Quantity { get; set; }
+        [Column("price")]
+        public decimal? Price { get; set; }
 
-    public string? Status { get; set; }
+        [Column("quantity")]
+        public int? Quantity { get; set; }
 
-    public DateOnly? CreatedAt { get; set; }
+        [Column("status")]
+        public string Status { get; set; }
 
-    public DateOnly? UpdatedAt { get; set; }
+        [Column("created_at")]
+        public DateTime CreatedAt { get; set; }
 
-    public int? UpdatedBy { get; set; }
+        [Column("updated_at")]
+        public DateTime UpdatedAt { get; set; }
 
-    public bool? IsDeleted { get; set; }
-
-    //public virtual BatteryDetail? BatteryDetail { get; set; }
-
-    //public virtual Category? Category { get; set; }
-
-    //public virtual EvDetail? EvDetail { get; set; }
-
-    //public virtual ICollection<Favorite> Favorites { get; set; } = new List<Favorite>();
-
-    //public virtual ItemBidding? ItemBidding { get; set; }
-
-    //public virtual ICollection<ItemImage> ItemImages { get; set; } = new List<ItemImage>();
-
-    //public virtual ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
-
-    //public virtual ICollection<PaymentDetail> PaymentDetails { get; set; } = new List<PaymentDetail>();
-
-    //public virtual User? UpdatedByNavigation { get; set; }
+        [Column("is_deleted")]
+        public bool IsDeleted { get; set; }
+    }
 }

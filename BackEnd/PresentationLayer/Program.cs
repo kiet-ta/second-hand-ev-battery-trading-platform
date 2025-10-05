@@ -1,5 +1,4 @@
-using Net.payOS;
-using Application.IRepositories;
+﻿using Application.IRepositories;
 using Application.IServices;
 using Application.Services;
 using CloudinaryDotNet;
@@ -14,6 +13,7 @@ using Application.Services;
 using Application.IServices;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using CloudinaryDotNet;
+
 namespace PresentationLayer
 {
     public class Program
@@ -88,7 +88,6 @@ namespace PresentationLayer
             builder.Services.AddAuthorization();
 
             // Add services to the container.
-
             builder.Services.AddControllers();
 
             // register PayOS via DI (Dependency Injection)
@@ -116,9 +115,19 @@ namespace PresentationLayer
            
             builder.Services.AddScoped<IAddressRepository, AddressRepository>();
             builder.Services.AddScoped<IAddressService, AddressService>();
+            // Add DbContext
+            builder.Services.AddDbContext<AppDbContext>(options =>
+                options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+            // Register Repositories
+            builder.Services.AddScoped<IHistorySoldRepository, HistorySoldRepository>();
+            // builder.Services.AddScoped<IUserRepository, UserRepository>();
 
+            // Register Services
+            builder.Services.AddScoped<IHistorySoldService, HistorySoldService>();
+            // builder.Services.AddScoped<IUserService, UserService>();
 
+            // Swagger
             builder.Services.AddEndpointsApiExplorer();
             //builder.Services.AddSwaggerGen();
 
@@ -158,7 +167,6 @@ namespace PresentationLayer
                     }
                 });
              });
-
 
             var app = builder.Build();
 

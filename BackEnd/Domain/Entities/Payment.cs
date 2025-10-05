@@ -1,31 +1,41 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Domain.Entities;
-
-public class Payment
+namespace Domain.Entities
 {
-    public int PaymentId { get; set; }
+    [Table("payment")]
+    public class Payment
+    {
+        [Key]
+        [Column("payment_id")]
+        public int PaymentId { get; set; }
 
-    public int UserId { get; set; }
+        [Column("user_id")]
+        public int UserId { get; set; }
 
-    public long OrderCode { get; set; }
+        [Column("order_code")]
+        public long OrderCode { get; set; }
 
-    public decimal TotalAmount { get; set; }
+        [Column("total_amount")]
+        public decimal TotalAmount { get; set; }
 
-    public string? Currency { get; set; }
+        [Column("currency")]
+        public string Currency { get; set; }
 
-    public string Method { get; set; } = null!;
+        [Column("method")]
+        public string Method { get; set; }
 
-    public string Status { get; set; } = null!;
+        [Column("status")]
+        public string Status { get; set; }
 
-    public DateTime? ExpiredAt { get; set; }
+        [Column("expired_at")]
+        public DateTime? ExpiredAt { get; set; }
 
-    public DateTime? CreatedAt { get; set; }
+        [Column("created_at")]
+        public DateTime CreatedAt { get; set; }
 
-    public DateTime? UpdatedAt { get; set; }
-
-    //public virtual ICollection<PaymentDetail> PaymentDetails { get; set; } = new List<PaymentDetail>();
-
-    //public virtual User User { get; set; } = null!;
+        [Column("updated_at")]
+        public DateTime UpdatedAt { get; set; }
+    }
 }
