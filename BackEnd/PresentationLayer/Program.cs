@@ -1,17 +1,9 @@
-
-using Application.IHelpers;
 using Application.IRepositories;
-using Application.IValidations;
-using Application.Services.UserServices;
-using Domain.Entities;
-using Helper;
+using Application.Services;
+using Domain.Mappings;
 using Infrastructure.Data;
 using Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using Services;
-using StackExchange.Redis;
-
 
 namespace PresentationLayer
 {
@@ -21,28 +13,27 @@ namespace PresentationLayer
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // Add services to the container.
-
+            // ================== 1. Add Services ==================
             builder.Services.AddControllers();
-            //builder.Services.AddScoped<IUserService, UserService>();
-            //builder.Services.AddScoped<IUserRepository, UserRepository>();
-            //builder.Services.AddScoped<IUserHelper, UserHelper>();
-            //builder.Services.AddScoped<IPasswordHelper, PasswordHelper>();
-            //builder.Services.AddScoped<IUserValidation, UserValidation>();
+
+            // Database connection
             builder.Services.AddDbContext<AppDbContext>(options =>
-            options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+                options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-            builder.Services.AddScoped<IUserRepository, UserRepository>();            
-            builder.Services.AddScoped<IUserService, UserService>();
+            // Repository & Service DI
+            builder.Services.AddScoped<IKYC_DocumentRepository, KYC_DocumentRepository>();
+            builder.Services.AddScoped<IKYC_DocumentService, KYC_DocumentService>();
 
+            // AutoMapper
+            builder.Services.AddAutoMapper(typeof(KYC_DocumentProfile).Assembly);
 
+            // Swagger
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
-
             var app = builder.Build();
 
-            // Configure the HTTP request pipeline.
+            // ================== 2. Configure Middlewares ==================
             if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();
@@ -51,8 +42,10 @@ namespace PresentationLayer
 
             app.UseHttpsRedirection();
 
-            app.UseAuthorization();
+            // N?u có auth thì b?t cái này:
+            // app.UseAuthentication();
 
+            app.UseAuthorization();
 
             app.MapControllers();
 

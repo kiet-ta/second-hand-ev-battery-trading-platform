@@ -15,5 +15,8 @@ namespace Infrastructure.Data
 
         // Define DBSets
         public DbSet<User> Users { get; set; }
+
+       
+        public DbSet<KycDocument> KycDocuments { get; set; }
     }
 }
