@@ -32,7 +32,6 @@ namespace PresentationLayer
             builder.Services.AddScoped<IItemRepository, ItemRepository>();
             builder.Services.AddScoped<IOrderRepository, OrderRepository>();
             //builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
-            
 
             // JWT Authentication
             builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -94,7 +93,7 @@ namespace PresentationLayer
             //builder.Services.AddScoped<IUserHelper, UserHelper>();
             //builder.Services.AddScoped<IPasswordHelper, PasswordHelper>();
             //builder.Services.AddScoped<IUserValidation, UserValidation>();
-            builder.Services.AddDbContext<AppDbContext>(options =>
+            builder.Services.AddDbContext<EvBatteryTradingContext>(options =>
             options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
             builder.Services.AddScoped<IUserRepository, UserRepository>();
@@ -137,7 +136,7 @@ namespace PresentationLayer
                         new List<string>()
                     }
                 });
-             });
+            });
 
             var app = builder.Build();
 

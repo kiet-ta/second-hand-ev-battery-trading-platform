@@ -9,9 +9,9 @@ namespace Infrastructure.Repositories
 {
     public class UserRepository : IUserRepository
     {
-        private readonly AppDbContext _context;
+        private readonly EvBatteryTradingContext _context;
 
-        public UserRepository(AppDbContext context)
+        public UserRepository(EvBatteryTradingContext context)
         {
             _context = context;
         }
@@ -61,4 +61,3 @@ namespace Infrastructure.Repositories
         }
     }
 }
-

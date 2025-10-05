@@ -21,7 +21,7 @@ public class EvBatteryTradingContext : DbContext
 
     public DbSet<BatteryDetail> BatteryDetails { get; set; }
 
-    public  DbSet<Blog> Blogs { get; set; }
+    public DbSet<Blog> Blogs { get; set; }
 
     public DbSet<Category> Categories { get; set; }
 
@@ -48,6 +48,8 @@ public class EvBatteryTradingContext : DbContext
     public DbSet<User> Users { get; set; }
 
     public DbSet<UserLog> UserLogs { get; set; }
+
+    public DbSet<CommissionFeeRule> CommissionFeeRules { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
