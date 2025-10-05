@@ -14,7 +14,27 @@ namespace Infrastructure.Data
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
         { }
 
-        
-        public DbSet<Address> Address { get; set; }
+
+        public DbSet<Address> Addresses { get; set; }
+        public DbSet<EVDetail> EVDetails { get; set; }
+        public DbSet<BatteryDetail> BatteryDetails { get; set; }
+        public DbSet<Item> Items { get; set; }
+        public DbSet<ItemImage> ItemImages { get; set; }
+        public DbSet<User> Users { get; set; }
+        public DbSet<Order> Orders { get; set; }
+        public DbSet<OrderItem> OrderItems { get; set; }
+        public DbSet<Payment> Payments { get; set; }
+        public DbSet<PaymentDetail> PaymentDetails { get; set; }
+
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<BatteryDetail>()
+                .HasKey(b => b.ItemId); 
+
+
+        }
+
+
     }
 }

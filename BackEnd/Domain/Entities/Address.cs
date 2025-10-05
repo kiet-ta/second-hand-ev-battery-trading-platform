@@ -1,15 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Domain.Entities
 {
-    [Table("Address")]
+    [Table("address")]
     public class Address
     {
+        [Key]
         [Column("address_id")]
         public int AddressId { get; set; }
 
@@ -43,10 +41,4 @@ namespace Domain.Entities
         [Column("is_deleted")]
         public bool IsDeleted { get; set; }
     }
-
-
-
 }
-
-
-
