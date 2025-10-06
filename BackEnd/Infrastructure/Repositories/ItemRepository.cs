@@ -148,5 +148,64 @@ namespace Infrastructure.Repositories
 
             return await query.AsNoTracking().ToListAsync();
         }
+
+        public async Task<IEnumerable<ItemBoughtDto>> GetBoughtItemsWithDetailsAsync(int userId)
+        {
+            // Query original
+            var query = from payment in _context.Payments
+                        join pd in _context.PaymentDetails on payment.PaymentId equals pd.PaymentId
+                        join item in _context.Items on pd.ItemId equals item.ItemId
+                        where payment.UserId == userId && payment.Status == "completed"
+                        select new
+                        {
+                            payment,
+                            pd,
+                            item
+                        };
+
+            // build result detail (join EV & Battery)
+            var result = await (from q in query
+                                    // left join EV_Detail
+                                join ev in _context.EvDetails
+                                    on q.item.ItemId equals ev.ItemId into evJoin
+                                from ev in evJoin.DefaultIfEmpty()
+                                    // left join Battery_Detail
+                                join bat in _context.BatteryDetails
+                                    on q.item.ItemId equals bat.ItemId into batJoin
+                                from bat in batJoin.DefaultIfEmpty()
+                                select new ItemBoughtDto
+                                {
+                                    ItemId = q.item.ItemId,
+                                    ItemType = q.item.ItemType,
+                                    Title = q.item.Title,
+                                    Description = q.item.Description,
+                                    Price = q.item.Price,
+
+                                    PaymentId = q.payment.PaymentId,
+                                    OrderCode = q.payment.OrderCode,
+                                    TotalAmount = q.payment.TotalAmount,
+                                    Method = q.payment.Method,
+                                    Status = q.payment.Status,
+                                    PaymentCreatedAt = q.payment.CreatedAt,
+
+                                    // EV
+                                    Brand = ev.Brand,
+                                    Model = ev.Model,
+                                    Version = ev.Version,
+                                    Year = ev.Year,
+                                    Color = ev.Color,
+                                    Mileage = ev.Mileage,
+
+                                    // Battery
+                                    Capacity = bat.Capacity,
+                                    Voltage = bat.Voltage,
+                                    ChargeCycles = bat.ChargeCycles,
+
+                                    // Amount of item
+                                    ItemAmount = q.pd.Amount
+                                }).ToListAsync();
+
+            return result;
+        }
     }
 }

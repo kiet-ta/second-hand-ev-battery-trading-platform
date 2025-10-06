@@ -35,6 +35,6 @@ namespace Application.IRepositories
         /// <returns></returns>
         IQueryable<ItemDto> QueryItemsWithSeller();
 
-
+        Task<IEnumerable<ItemBoughtDto>> GetBoughtItemsWithDetailsAsync(int userId);
     }
 }

@@ -226,5 +226,10 @@ namespace Application.Services
         {
             return await _repo.GetAllItemsWithDetailsAsync();
         }
+
+        public async Task<IEnumerable<ItemBoughtDto>> GetBoughtItemsWithDetailsAsync(int userId)
+        {
+            return await _repo.GetBoughtItemsWithDetailsAsync(userId);
+        }
     }
 }
