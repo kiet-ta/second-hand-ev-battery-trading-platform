@@ -5,7 +5,7 @@ using Domain.Entities;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 
-namespace Infrastructure.Repositories
+internal class UserRepository
 {
     public class UserRepository : IUserRepository
     {

@@ -1,3 +1,4 @@
+using Application.IRepositories.IBiddingRepositories;
 using Application.IRepositories;
 using Application.IServices;
 using Application.Services;
@@ -100,6 +101,15 @@ namespace PresentationLayer
             builder.Services.AddScoped<IUserRepository, UserRepository>();
             builder.Services.AddScoped<IUserService, UserService>();
             builder.Services.AddEndpointsApiExplorer();
+            builder.Services.AddSwaggerGen();
+            builder.Configuration.AddUserSecrets<Program>();
+            builder.Services.AddScoped<IWalletTransactionRepository, WalletTransactionRepository>();
+            builder.Services.AddScoped<IWalletRepository, WalletRepository>();
+            builder.Services.AddScoped<IBidRepository, BidRepository>();
+            builder.Services.AddScoped<IAuctionService, AuctionService>();
+            builder.Services.AddScoped<IItemBiddingRepository, ItemBiddingRepository>();
+            builder.Services.AddDbContext<AppDbContext>(options =>
+            options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
             //builder.Services.AddSwaggerGen();
 
             builder.Services.AddSwaggerGen(c =>
