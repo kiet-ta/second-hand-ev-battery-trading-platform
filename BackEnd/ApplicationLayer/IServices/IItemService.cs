@@ -1,4 +1,4 @@
-﻿using Application.DTOs;
+﻿using Application.DTOs.ItemDtos;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -24,13 +24,17 @@ namespace Application.IServices
         Task<IEnumerable<ItemDto>> GetLatestBatteriesAsync(int count);
 
         Task<PagedResult<ItemDto>> SearchItemsAsync(
-        string? itemType,
-        string? title,
+        string itemType,
+        string title,
         decimal? minPrice = null,
         decimal? maxPrice = null,
         int page = 1,
         int pageSize = 20,
         string sortBy = "UpdatedAt",
         string sortDir = "desc");
+
+        Task<ItemWithDetailDto?> GetItemWithDetailsAsync(int id);
+        Task<IEnumerable<ItemWithDetailDto>> GetAllItemsWithDetailsAsync();
+        Task<IEnumerable<ItemBoughtDto>> GetBoughtItemsWithDetailsAsync(int userId);
     }
 }

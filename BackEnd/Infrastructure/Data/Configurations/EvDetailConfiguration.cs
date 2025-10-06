@@ -25,18 +25,18 @@ namespace Infrastructure.Data.Configurations
             entity.Property(e => e.BodyStyle).HasColumnName("body_style");
             entity.Property(e => e.Color).HasColumnName("color");
             entity.Property(e => e.LicensePlate).HasColumnName("license_plate");
-            entity.Property(e => e.HasAccessories).HasColumnName("has_accessories");
-            entity.Property(e => e.PreviousOwners).HasColumnName("previous_owners");
-            entity.Property(e => e.IsRegistrationValid).HasColumnName("is_registration_valid");
+            entity.Property(e => e.HasAccessories).HasColumnName("has_accessories").HasDefaultValue(false);
+            entity.Property(e => e.PreviousOwners).HasColumnName("previous_owners").HasDefaultValue(1);
+            entity.Property(e => e.IsRegistrationValid).HasColumnName("is_registration_valid").HasDefaultValue(false);
             entity.Property(e => e.Mileage).HasColumnName("mileage");
-            entity.Property(e => e.UpdatedAt).HasColumnName("updated_at");
+            entity.Property(e => e.UpdatedAt).HasColumnName("updated_at").HasDefaultValueSql("GETDATE()");
 
             // Relationship: EV_Detail 1-1 Item (Item is principal)
-            //entity.HasOne(d => d.Item)
-            //      .WithOne(i => i.EVDetail)
-            //      .HasForeignKey<EV_Detail>(d => d.ItemId)
-            //      .HasConstraintName("FK_EVDetail_Item")
-            //      .OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne<Item>()
+                  .WithOne()
+                  .HasForeignKey<EvDetail>(d => d.ItemId)
+                  .HasConstraintName("FK_EVDetail_Item")
+                  .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

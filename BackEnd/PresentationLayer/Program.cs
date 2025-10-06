@@ -1,16 +1,18 @@
-using Net.payOS;
+using Application.IRepositories.IBiddingRepositories;
 using Application.IRepositories;
+using Application.IServices;
+using Application.Services;
+using CloudinaryDotNet;
 using Infrastructure.Data;
 using Infrastructure.Repositories;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Net.payOS;
 using System.Text;
-using Application.Services;
-using Application.IServices;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Infrastructure.Config;
-using CloudinaryDotNet;
+using Domain.DTOs;
+
 namespace PresentationLayer
 {
     public class Program
@@ -19,29 +21,24 @@ namespace PresentationLayer
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            builder.Services.AddCors(options =>
-            {
-                options.AddPolicy("AllowReact", policy =>
-            {
-                policy.WithOrigins("http://localhost:3000")
-                    .WithOrigins("http://localhost:5173")
-                    .WithOrigins("http://localhost:5174")
-                    .WithOrigins("http://localhost:5175")
-                    .WithOrigins("http://localhost:5176")
-                      .AllowAnyHeader()
-                      .AllowAnyMethod()
-                      .AllowCredentials();
-            });
-            });
             //  Đăng ký DbContext (DB First)
             builder.Services.AddDbContext<EvBatteryTradingContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
             // DI cho Repository + Service
-            builder.Services.AddScoped<IUserRepository, UserRepository>();
+            //---Services
             builder.Services.AddScoped<IAuthService, AuthService>();
-            builder.Services.AddScoped<IItemRepository, ItemRepository>();
-            //builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
             builder.Services.AddScoped<IItemService, ItemService>();
+            builder.Services.AddScoped<IOrderService, OrderService>();
+            builder.Services.AddScoped<IUserService, UserService>();
+            builder.Services.AddScoped<IEvDetailService, EvDetailService>();
+            builder.Services.AddScoped<IBatteryDetailService, BatteryDetailService>();
+            //---Repositories
+            builder.Services.AddScoped<IUserRepository, UserRepository>();
+            builder.Services.AddScoped<IItemRepository, ItemRepository>();
+            builder.Services.AddScoped<IOrderRepository, OrderRepository>();
+            builder.Services.AddScoped<IEvDetailRepository, EvDetailRepository>();
+            builder.Services.AddScoped<IBatteryDetailRepository, BatteryDetailRepository>();
+            //builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 
             // JWT Authentication
             builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -71,13 +68,20 @@ namespace PresentationLayer
                 return new Cloudinary(new Account(config.CloudName, config.ApiKey, config.ApiSecret));
             });
 
-
             builder.Services.AddAuthorization();
 
             // Add services to the container.
-
             builder.Services.AddControllers();
-
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AllowReactApp",
+                    policy =>
+                    {
+                        policy.WithOrigins("http://localhost:5173")
+                              .AllowAnyHeader()
+                              .AllowAnyMethod();
+                    });
+            });
             // register PayOS via DI (Dependency Injection)
             var payosConfig = builder.Configuration.GetSection("PayOS");
 
@@ -95,29 +99,34 @@ namespace PresentationLayer
             //builder.Services.AddScoped<IUserHelper, UserHelper>();
             //builder.Services.AddScoped<IPasswordHelper, PasswordHelper>();
             //builder.Services.AddScoped<IUserValidation, UserValidation>();
-            builder.Services.AddDbContext<AppDbContext>(options =>
-            options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
             builder.Services.AddScoped<IUserRepository, UserRepository>();
             builder.Services.AddScoped<IUserService, UserService>();
-           
-            builder.Services.AddScoped<IAddressRepository, AddressRepository>();
-            builder.Services.AddScoped<IAddressService, AddressService>();
-
-
-
             builder.Services.AddEndpointsApiExplorer();
+            builder.Services.AddSwaggerGen();
+            builder.Configuration.AddUserSecrets<Program>(); 
+            builder.Services.Configure<MailSettings>(builder.Configuration.GetSection("MailSettings"));
+            builder.Services.AddScoped<IMailService, MailService>();
+            builder.Services.AddScoped<IEmailRepository, EmailTemplateRepository>();
+            builder.Services.AddScoped<IWalletTransactionRepository, WalletTransactionRepository>();
+            builder.Services.AddScoped<IWalletRepository, WalletRepository>();
+            builder.Services.AddScoped<IBidRepository, BidRepository>();
+            builder.Services.AddScoped<IAuctionService, AuctionService>();
+            builder.Services.AddScoped<IItemBiddingRepository, ItemBiddingRepository>();
+            builder.Services.AddDbContext<EvBatteryTradingContext>(options =>
+            options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
             //builder.Services.AddSwaggerGen();
+
             builder.Services.AddSwaggerGen(c =>
             {
                 // Thông tin cơ bản
-                c.SwaggerDoc("v1", new OpenApiInfo { Title = "My API", Version = "v1" });
+                c.SwaggerDoc("v1", new OpenApiInfo { Title = "My API EV_Battery_Trading", Version = "v1" });
 
                 // Khai báo Security Definition (JWT Bearer)
                 c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
                 {
-                    Description = @"JWT Authorization header using the Bearer scheme.  
-                      Enter 'Bearer' [space] and then your token in the text input below.  
+                    Description = @"JWT Authorization header using the Bearer scheme.
+                      Enter 'Bearer' [space] and then your token in the text input below.
                       Example: 'Bearer 12345abcdef'",
                     Name = "Authorization",
                     In = ParameterLocation.Header,
@@ -127,48 +136,37 @@ namespace PresentationLayer
 
                 // Áp dụng cho tất cả API
                 c.AddSecurityRequirement(new OpenApiSecurityRequirement
-    {
-        {
-            new OpenApiSecurityScheme
-            {
-                Reference = new OpenApiReference
                 {
-                    Type = ReferenceType.SecurityScheme,
-                    Id = "Bearer"
-                },
-                Scheme = "oauth2",
-                Name = "Bearer",
-                In = ParameterLocation.Header,
-            },
-            new List<string>()
-        }
-    });
+                    {
+                        new OpenApiSecurityScheme
+                        {
+                            Reference = new OpenApiReference
+                            {
+                                Type = ReferenceType.SecurityScheme,
+                                Id = "Bearer"
+                            },
+                            Scheme = "oauth2",
+                            Name = "Bearer",
+                            In = ParameterLocation.Header,
+                        },
+                        new List<string>()
+                    }
+                });
             });
-
 
             var app = builder.Build();
 
-            // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();
                 app.UseSwaggerUI();
             }
 
-            app.UseRouting();
-
             app.UseHttpsRedirection();
-
-            app.UseCors("AllowReact");
-
-            app.UseAuthentication();
-
-            app.UseHttpsRedirection();
-
+            app.UseCors("AllowReactApp");
             app.UseAuthorization();
 
             app.MapControllers();
-
             app.Run();
         }
     }

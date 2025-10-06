@@ -1,7 +1,6 @@
-﻿using Application.DTOs;
+﻿using Application.DTOs.AuthenticationDtos;
 using Application.IServices;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace PresentationLayer.Controllers

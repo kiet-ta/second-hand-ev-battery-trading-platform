@@ -8,8 +8,7 @@ public class CreatePaymentRequest
     public long OrderCode { get; set; }
     public int Amount { get; set; }
     public string Description { get; set; }
-    public List<ItemPaymentDto> Items { get; set; } = new List<ItemPaymentDto>();
+    public List<ItemPaymentDTO> Items { get; set; } = new List<ItemPaymentDTO>();
     public string ReturnUrl { get; set; }
     public string CancelUrl { get; set; }
 }
-

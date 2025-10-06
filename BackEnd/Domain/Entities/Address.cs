@@ -1,52 +1,33 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace Domain.Entities
+namespace Domain.Entities;
+
+public class Address
 {
-    [Table("Address")]
-    public class Address
-    {
-        [Column("address_id")]
-        public int AddressId { get; set; }
+    public int AddressId { get; set; }
 
-        [Column("user_id")]
-        public int UserId { get; set; }
+    public int UserId { get; set; }
 
-        [Column("recipient_name")]
-        public string RecipientName { get; set; }
+    public string RecipientName { get; set; } = null!;
 
-        [Column("phone")]
-        public string Phone { get; set; }
+    public string Phone { get; set; } = null!;
 
-        [Column("street")]
-        public string Street { get; set; }
+    public string Street { get; set; } = null!;
 
-        [Column("ward")]
-        public string Ward { get; set; }
+    public string? Ward { get; set; }
 
-        [Column("district")]
-        public string District { get; set; }
+    public string? District { get; set; }
 
-        [Column("province")]
-        public string Province { get; set; }
+    public string? Province { get; set; }
 
-        [Column("is_default")]
-        public bool IsDefault { get; set; }
+    public bool? IsDefault { get; set; }
 
-        [Column("created_at")]
-        public DateTime CreatedAt { get; set; }
+    public DateOnly? CreatedAt { get; set; }
 
-        [Column("is_deleted")]
-        public bool IsDeleted { get; set; }
-    }
+    public bool? IsDeleted { get; set; }
 
+    //public virtual ICollection<Order> Orders { get; set; } = new List<Order>();
 
-
+    //public virtual User User { get; set; } = null!;
 }
-
-
-
