@@ -10,9 +10,9 @@ namespace Infrastructure.Repositories
 {
     public class EmailTemplateRepository : IEmailRepository
     {
-        private readonly AppDbContext _context;
+        private readonly EvBatteryTradingContext _context;
 
-        public EmailTemplateRepository(AppDbContext context)
+        public EmailTemplateRepository(EvBatteryTradingContext context)
         {
             _context = context;
         }
@@ -48,10 +48,10 @@ namespace Infrastructure.Repositories
 
             return PurchaseFailedTemplate.Build(orderId, url, user.FullName, reason);
         }
+
         private async Task<User?> GetUserByEmail(string email)
         {
             return await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
         }
-
     }
 }
