@@ -32,12 +32,14 @@ namespace PresentationLayer
             builder.Services.AddScoped<IUserService, UserService>();
             builder.Services.AddScoped<IEvDetailService, EvDetailService>();
             builder.Services.AddScoped<IBatteryDetailService, BatteryDetailService>();
+            builder.Services.AddScoped<IHistorySoldService, HistorySoldService>();
             //---Repositories
             builder.Services.AddScoped<IUserRepository, UserRepository>();
             builder.Services.AddScoped<IItemRepository, ItemRepository>();
             builder.Services.AddScoped<IOrderRepository, OrderRepository>();
             builder.Services.AddScoped<IEvDetailRepository, EvDetailRepository>();
             builder.Services.AddScoped<IBatteryDetailRepository, BatteryDetailRepository>();
+            builder.Services.AddScoped<IHistorySoldRepository, HistorySoldRepository>();
             //builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 
             // JWT Authentication
