@@ -26,7 +26,7 @@ namespace Infrastructure.Repositories
                         join u in _context.Users
                             on i.UpdatedBy equals u.UserId into gj
                         from user in gj.DefaultIfEmpty() // LEFT JOIN
-                        where !(i.IsDeleted ?? false)   // remove soft deleted items
+                        where !i.IsDeleted   // remove soft deleted items
                         select new ItemDto
                         {
                             ItemId = i.ItemId,
@@ -71,7 +71,7 @@ namespace Infrastructure.Repositories
         }
 
         public async Task<IEnumerable<Item>> GetAllAsync() =>
-            await _context.Items.Where(i => !(i.IsDeleted ?? false)).ToListAsync();
+            await _context.Items.Where(i => !i.IsDeleted).ToListAsync();
 
         //public async Task<Item?> GetByIdAsync(int id) =>
         //    await _context.Items.FirstOrDefaultAsync(i => i.ItemId == id && !(i.IsDeleted ?? false));
@@ -81,7 +81,7 @@ namespace Infrastructure.Repositories
         public void Update(Item item) => _context.Items.Update(item);
 
         public async Task<IEnumerable<Item>> GetItemsByFilterAsync(CancellationToken ct = default)
-            => await _context.Items.Where(i => !(i.IsDeleted ?? false)).ToListAsync(ct);
+            => await _context.Items.Where(i => !i.IsDeleted).ToListAsync(ct);
         public async Task<bool> ExistsAsync(int itemId, CancellationToken ct = default)
             => await _context.Items.AnyAsync(i => i.ItemId == itemId, ct);
 
@@ -108,7 +108,7 @@ namespace Infrastructure.Repositories
         public async Task<ItemWithDetailDto?> GetItemWithDetailsAsync(int id)
         {
             var query = from i in _context.Items
-                        where i.ItemId == id && !(i.IsDeleted ?? false)
+                        where i.ItemId == id && !i.IsDeleted
                         join ev in _context.EvDetails
                             on i.ItemId equals ev.ItemId into evj
                         from evDetail in evj.DefaultIfEmpty()
@@ -130,7 +130,7 @@ namespace Infrastructure.Repositories
         public async Task<IEnumerable<ItemWithDetailDto>> GetAllItemsWithDetailsAsync()
         {
             var query = from i in _context.Items
-                        where !(i.IsDeleted ?? false)
+                        where !i.IsDeleted
                         join ev in _context.EvDetails
                             on i.ItemId equals ev.ItemId into evj
                         from evDetail in evj.DefaultIfEmpty()

@@ -9,9 +9,9 @@ using System.Threading.Tasks;
 
 namespace Infrastructure.Data.Configurations
 {
-    public class EvDetailConfiguration : IEntityTypeConfiguration<EvDetail>
+    public class EvDetailConfiguration : IEntityTypeConfiguration<EVDetail>
     {
-        public void Configure(EntityTypeBuilder<EvDetail> entity)
+        public void Configure(EntityTypeBuilder<EVDetail> entity)
         {
             entity.ToTable("EV_Detail");
 
@@ -34,7 +34,7 @@ namespace Infrastructure.Data.Configurations
             // Relationship: EV_Detail 1-1 Item (Item is principal)
             entity.HasOne<Item>()
                   .WithOne()
-                  .HasForeignKey<EvDetail>(d => d.ItemId)
+                  .HasForeignKey<EVDetail>(d => d.ItemId)
                   .HasConstraintName("FK_EVDetail_Item")
                   .OnDelete(DeleteBehavior.Cascade);
         }

@@ -9,10 +9,10 @@ namespace Application.IRepositories
 {
     public interface IEvDetailRepository
     {
-        Task<EvDetail?> GetByIdAsync(int itemId, CancellationToken ct = default);
-        Task<IEnumerable<EvDetail>> GetAllAsync(CancellationToken ct = default);
-        Task AddAsync(EvDetail evDetail, CancellationToken ct = default);
-        void Update(EvDetail evDetail);
+        Task<EVDetail?> GetByIdAsync(int itemId, CancellationToken ct = default);
+        Task<IEnumerable<EVDetail>> GetAllAsync(CancellationToken ct = default);
+        Task AddAsync(EVDetail evDetail, CancellationToken ct = default);
+        void Update(EVDetail evDetail);
         Task DeleteAsync(int itemId, CancellationToken ct = default); // physical delete
         Task<bool> ExistsAsync(int itemId, CancellationToken ct = default);
     }

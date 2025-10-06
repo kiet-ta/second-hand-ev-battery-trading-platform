@@ -27,7 +27,7 @@ public partial class EvBatteryTradingContext : DbContext//, IUnitOfWork
 
     public virtual DbSet<Category> Categories { get; set; }
 
-    public virtual DbSet<EvDetail> EvDetails { get; set; }
+    public virtual DbSet<EVDetail> EvDetails { get; set; }
 
     public virtual DbSet<Favorite> Favorites { get; set; }
 
