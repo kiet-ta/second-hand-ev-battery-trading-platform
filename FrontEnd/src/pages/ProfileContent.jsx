@@ -5,7 +5,6 @@ import AddressManagement from "../pages/AddressManagement";
 import HistoryBought from "../components/HistoryBought";
 import "../assets/styles/ProfileContent.css";
 import anhtao from "../assets/images/anhtao.png";
-import Logo from "../assets/images/Logo.png";
 import { FaRegUser } from "react-icons/fa";
 import { LuClipboardList } from "react-icons/lu";
 import { IoSettingsOutline } from "react-icons/io5";
