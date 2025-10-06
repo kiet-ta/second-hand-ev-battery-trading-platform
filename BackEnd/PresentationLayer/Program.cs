@@ -11,6 +11,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Net.payOS;
 using System.Text;
+using Domain.DTOs;
 
 namespace PresentationLayer
 {
@@ -70,7 +71,6 @@ namespace PresentationLayer
             builder.Services.AddAuthorization();
 
             // Add services to the container.
-
             builder.Services.AddControllers();
             builder.Services.AddCors(options =>
             {
@@ -104,7 +104,10 @@ namespace PresentationLayer
             builder.Services.AddScoped<IUserService, UserService>();
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
-            builder.Configuration.AddUserSecrets<Program>();
+            builder.Configuration.AddUserSecrets<Program>(); 
+            builder.Services.Configure<MailSettings>(builder.Configuration.GetSection("MailSettings"));
+            builder.Services.AddScoped<IMailService, MailService>();
+            builder.Services.AddScoped<IEmailRepository, EmailTemplateRepository>();
             builder.Services.AddScoped<IWalletTransactionRepository, WalletTransactionRepository>();
             builder.Services.AddScoped<IWalletRepository, WalletRepository>();
             builder.Services.AddScoped<IBidRepository, BidRepository>();
@@ -153,7 +156,6 @@ namespace PresentationLayer
 
             var app = builder.Build();
 
-            // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();
@@ -165,7 +167,6 @@ namespace PresentationLayer
             app.UseAuthorization();
 
             app.MapControllers();
-
             app.Run();
         }
     }
