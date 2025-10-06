@@ -8,10 +8,7 @@ import { Link } from 'react-router-dom';
 import { Popover } from 'antd';
 import authApi from '../api/authApi'
 import { FaRegEyeSlash, FaRegEye } from "react-icons/fa";
-<<<<<<< HEAD
-=======
 import PasswordInput from '../components/PasswordInput';
->>>>>>> page/purchase-page-order-seller
 
 export default function RegisterPage() {
     const clientId =

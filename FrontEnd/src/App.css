@@ -56,7 +56,6 @@ button:focus-visible {
     color: gray;
   }
 }
-<<<<<<< HEAD
 
 @media (prefers-reduced-motion: no-preference) {
   a:nth-of-type(2) .logo {
@@ -71,5 +70,3 @@ button:focus-visible {
 .read-the-docs {
   color: #888;
 }
-=======
->>>>>>> page/purchase-page-order-seller

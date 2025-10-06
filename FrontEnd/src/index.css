@@ -1,13 +1,7 @@
 @import "tailwindcss";
-<<<<<<< HEAD
-
-@theme {
-  --color-maincolor: #77E4C8;
-=======
 @theme{
   --color-maincolor: #77E4C8;
   --color-maincolor-darker: #65c2aa; 
->>>>>>> page/purchase-page-order-seller
 }
 
 :root {
@@ -61,8 +55,4 @@ button:focus-visible {
   a:hover {
     color: gray;
   }
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> page/purchase-page-order-seller

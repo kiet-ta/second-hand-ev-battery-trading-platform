@@ -10,13 +10,9 @@ export default defineConfig({
   plugins: [react(),
     tailwindcss()
   ],
-<<<<<<< HEAD
   test: {
     globals: true,         
     environment: 'jsdom',   
     setupFiles: './src/setupTests.js', 
   },
-=======
-
->>>>>>> page/purchase-page-order-seller
 })
