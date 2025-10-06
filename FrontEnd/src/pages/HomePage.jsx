@@ -25,7 +25,9 @@ function HomePage() {
       fetchItems();
     }, []);
 
-  const first_sale = itemList.slice(0, 3); return (
+  const first_sale = itemList.slice(0, 3); 
+  console.log(itemList)
+  return (
     <>
       <div className="HomePage w-full m-0 p-0 bg-amber-100y overflow-x-hidden">
         <div className="First-sale flex flex-wrap w-full bg-white  gap-0 p-0 justify-around  ">
@@ -35,7 +37,7 @@ function HomePage() {
             <div className="row-span-3 w-70 h-50 content-center"><img src="https://i.pinimg.com/1200x/73/9d/61/739d6130ed4b7c1abf45a429d1e83b0b.jpg" /></div>
           </div>
           <div className="Products flex w-2/4 justify-center content-center self-center gap-4 p-4 m-0 ">
-            {first_sale.map((item) => (
+            {first_sale && first_sale.map((item) => (
               <CardComponent
                 key={item.itemId}
                 title={item.title}
