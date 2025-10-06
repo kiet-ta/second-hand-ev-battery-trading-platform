@@ -18,10 +18,13 @@ function Navbar(data) {
   const rightmenu = [
     { name: 'Notification', link: '/notification', icon: <IoMdHome /> },
     { name: 'Support', link: '/support' }]
+<<<<<<< Updated upstream
   // const user ={
   //   name: "Lady Furina",
   //   picture: "https://i.pinimg.com/736x/5b/3f/09/5b3f09d67f448e39dab9e8d8f3cc3f94.jpg"
   // }
+=======
+>>>>>>> Stashed changes
   return (
 
     <div>
