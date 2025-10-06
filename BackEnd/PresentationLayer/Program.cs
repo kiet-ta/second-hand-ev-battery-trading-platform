@@ -28,12 +28,16 @@ namespace PresentationLayer
             builder.Services.AddScoped<IAuthService, AuthService>();
             builder.Services.AddScoped<IItemService, ItemService>();
             builder.Services.AddScoped<IOrderService, OrderService>();
+            builder.Services.AddScoped<IUserService, UserService>();
+            builder.Services.AddScoped<IEvDetailService, EvDetailService>();
+            builder.Services.AddScoped<IBatteryDetailService, BatteryDetailService>();
             //---Repositories
             builder.Services.AddScoped<IUserRepository, UserRepository>();
             builder.Services.AddScoped<IItemRepository, ItemRepository>();
             builder.Services.AddScoped<IOrderRepository, OrderRepository>();
+            builder.Services.AddScoped<IEvDetailRepository, EvDetailRepository>();
+            builder.Services.AddScoped<IBatteryDetailRepository, BatteryDetailRepository>();
             //builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
-            
 
             // JWT Authentication
             builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -95,8 +99,6 @@ namespace PresentationLayer
             //builder.Services.AddScoped<IUserHelper, UserHelper>();
             //builder.Services.AddScoped<IPasswordHelper, PasswordHelper>();
             //builder.Services.AddScoped<IUserValidation, UserValidation>();
-            builder.Services.AddDbContext<AppDbContext>(options =>
-            options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
             builder.Services.AddScoped<IUserRepository, UserRepository>();
             builder.Services.AddScoped<IUserService, UserService>();
@@ -108,14 +110,14 @@ namespace PresentationLayer
             builder.Services.AddScoped<IBidRepository, BidRepository>();
             builder.Services.AddScoped<IAuctionService, AuctionService>();
             builder.Services.AddScoped<IItemBiddingRepository, ItemBiddingRepository>();
-            builder.Services.AddDbContext<AppDbContext>(options =>
+            builder.Services.AddDbContext<EvBatteryTradingContext>(options =>
             options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
             //builder.Services.AddSwaggerGen();
 
             builder.Services.AddSwaggerGen(c =>
             {
                 // Thông tin cơ bản
-                c.SwaggerDoc("v1", new OpenApiInfo { Title = "My API", Version = "v1" });
+                c.SwaggerDoc("v1", new OpenApiInfo { Title = "My API EV_Battery_Trading", Version = "v1" });
 
                 // Khai báo Security Definition (JWT Bearer)
                 c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
@@ -147,7 +149,7 @@ namespace PresentationLayer
                         new List<string>()
                     }
                 });
-             });
+            });
 
             var app = builder.Build();
 

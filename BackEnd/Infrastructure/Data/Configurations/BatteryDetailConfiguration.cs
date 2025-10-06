@@ -25,11 +25,11 @@ namespace Infrastructure.Data.Configurations
             entity.Property(e => e.UpdatedAt).HasColumnName("updated_at").HasDefaultValueSql("GETDATE()");
 
             // Relationship: Battery_Detail 1-1 Item
-            //entity.HasOne(d => d.ItemId)
-            //      .WithOne(i => i.BatteryDetail)
-            //      .HasForeignKey<BatteryDetail>(d => d.ItemId)
-            //      .HasConstraintName("FK_BatteryDetail_Item")
-            //      .OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne<Item>()
+                  .WithOne()
+                  .HasForeignKey<BatteryDetail>(d => d.ItemId)
+                  .HasConstraintName("FK_BatteryDetail_Item")
+                  .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

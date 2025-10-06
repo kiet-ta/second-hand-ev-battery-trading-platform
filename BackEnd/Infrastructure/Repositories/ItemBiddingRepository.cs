@@ -7,9 +7,9 @@ namespace Infrastructure.Repositories;
 
 public class ItemBiddingRepository : IItemBiddingRepository
 {
-    private readonly AppDbContext _context;
+    private readonly EvBatteryTradingContext _context;
 
-    public ItemBiddingRepository(AppDbContext context) => _context = context;
+    public ItemBiddingRepository(EvBatteryTradingContext context) => _context = context;
 
     public async Task<ItemBidding> GetByItemIdAsync(int itemId) =>
         await _context.ItemBiddings.FirstOrDefaultAsync(b => b.ItemId == itemId);

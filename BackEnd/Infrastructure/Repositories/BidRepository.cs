@@ -7,9 +7,9 @@ namespace Infrastructure.Repositories
 {
     public class BidRepository : IBidRepository
     {
-        private readonly AppDbContext _context;
+        private readonly EvBatteryTradingContext _context;
 
-        public BidRepository(AppDbContext context) =>
+        public BidRepository(EvBatteryTradingContext context) =>
             _context = context;
 
         public async Task<IEnumerable<Bid>> GetBidsByAuctionAsync(int biddingId) =>

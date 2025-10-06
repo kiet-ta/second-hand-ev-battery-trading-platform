@@ -1,5 +1,4 @@
-﻿using Application.DTOs;
-using Application.IRepositories;
+﻿using Application.IRepositories;
 using Application.IServices;
 using Domain.Entities;
 using Microsoft.Extensions.Configuration;
@@ -7,6 +6,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using Application.DTOs.AuthenticationDtos;
 
 namespace Application.Services
 {
@@ -14,11 +14,17 @@ namespace Application.Services
     {
         private readonly IUserRepository _userRepository;
         private readonly string _jwtSecret;
+        private readonly string _jwtIssuer;
+        private readonly string _jwtAudience;
+        private readonly IConfiguration _config;
 
         public AuthService(IUserRepository userRepository, IConfiguration config)
         {
             _userRepository = userRepository;
+            _config = config;
             _jwtSecret = config["Jwt:Key"]!;
+            _jwtIssuer = config["Jwt:Issuer"]!;
+            _jwtAudience = config["Jwt:Audience"]!;
         }
 
         public async Task<AuthResponseDto> RegisterAsync(RegisterDto dto)
@@ -29,6 +35,7 @@ namespace Application.Services
 
             var user = new User
             {
+                UserId = dto.UserId,
                 FullName = dto.FullName,
                 Email = dto.Email,
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
@@ -46,10 +53,10 @@ namespace Application.Services
         {
             var user = await _userRepository.GetByEmailAsync(dto.Email);
             if (user == null)
-                throw new Exception("Invalid credentials");
+                throw new Exception("Invalid email");
 
             if (!BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash))
-                throw new Exception("Invalid credentials");
+                throw new Exception("Invalid password");
 
             return GenerateToken(user);
         }
@@ -58,6 +65,8 @@ namespace Application.Services
         {
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.UTF8.GetBytes(_jwtSecret);
+            var issuer = _config["Jwt:Issuer"];
+            var audience = _config["Jwt:Audience"];
 
             var tokenDescriptor = new SecurityTokenDescriptor
             {
@@ -68,6 +77,8 @@ namespace Application.Services
                     new Claim(ClaimTypes.Role, user.Role ?? "Buyer")
                 }),
                 Expires = DateTime.UtcNow.AddHours(2),
+                Issuer = issuer,
+                Audience = audience,
                 SigningCredentials = new SigningCredentials(
                     new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256)
             };

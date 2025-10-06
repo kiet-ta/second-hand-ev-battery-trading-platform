@@ -1,5 +1,6 @@
 ﻿using CloudinaryDotNet;
 using CloudinaryDotNet.Actions;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -7,6 +8,7 @@ namespace PresentationLayer.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class UploadController : ControllerBase
     {
         private readonly Cloudinary _cloudinary;
@@ -59,12 +61,12 @@ namespace PresentationLayer.Controllers
                 var uploadParams = new ImageUploadParams
                 {
                     File = new FileDescription(file.FileName, stream),
-                    Folder = "car-market"
+                    Folder = "EV_BATTERY_TRADING/Electric_Verhicle"
                 };
 
                 var uploadResult = await _cloudinary.UploadAsync(uploadParams);
 
-                // Kiểm tra lỗi Cloudinary
+                // Check error Cloudinary
                 if (uploadResult.Error != null)
                     return BadRequest($"Cloudinary error: {uploadResult.Error.Message}");
 

@@ -1,0 +1,18 @@
+﻿using Application.DTOs.ItemDtos.BatteryDto;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Application.IServices
+{
+    public interface IBatteryDetailService 
+    {
+        Task<IEnumerable<BatteryDetailDto>> GetAllAsync();
+        Task<BatteryDetailDto?> GetByIdAsync(int itemId);
+        Task CreateAsync(CreateBatteryDetailDto dto);
+        Task UpdateAsync(int itemId, UpdateBatteryDetailDto dto);
+        Task DeleteAsync(int itemId);
+    }
+}

@@ -1,4 +1,4 @@
-﻿using Domain.Entities;
+using Domain.Entities;
 
 namespace Application.IRepositories
 {
@@ -15,5 +15,7 @@ namespace Application.IRepositories
         Task UpdateAsync(User user);
 
         Task DeleteAsync(int id);
+
+        Task<List<(string Role, int Count)>> GetUsersByRoleAsync();
     }
 }

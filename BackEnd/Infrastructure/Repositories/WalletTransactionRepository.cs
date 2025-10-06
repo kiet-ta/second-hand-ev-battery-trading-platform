@@ -7,9 +7,9 @@ namespace Infrastructure.Repositories;
 
 public class WalletTransactionRepository : IWalletTransactionRepository
 {
-    private readonly AppDbContext _context;
+    private readonly EvBatteryTradingContext _context;
 
-    public WalletTransactionRepository(AppDbContext db) => _context = db;
+    public WalletTransactionRepository(EvBatteryTradingContext db) => _context = db;
 
     public async Task<int> CreateTransactionAsync(WalletTransaction walletTransaction)
     {
