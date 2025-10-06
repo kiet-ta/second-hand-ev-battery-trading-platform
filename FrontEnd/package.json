@@ -7,13 +7,15 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview",
-    "test": "vitest"
+    "preview": "vite preview"
   },
   "dependencies": {
+    "@headlessui/react": "^2.2.8",
+    "@heroicons/react": "^2.2.0",
     "@tailwindcss/vite": "^4.1.13",
     "antd": "^5.27.4",
     "axios": "^1.12.2",
+<<<<<<< HEAD
     "esbuild": "^0.25.9",
     "lucide-react": "^0.544.0",
     "react": "^19.1.1",
@@ -21,11 +23,19 @@
     "react-icons": "^5.5.0",
     "react-router-dom": "^7.9.1",
     "recharts": "^3.2.1"
+=======
+    "clsx": "^2.1.1",
+    "lucide-react": "^0.544.0",
+    "motion": "^12.23.18",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "react-icons": "^5.5.0",
+    "react-router-dom": "^7.9.1",
+    "tailwindcss": "^4.1.13"
+>>>>>>> page/purchase-page-order-seller
   },
   "devDependencies": {
     "@eslint/js": "^9.21.0",
-    "@testing-library/jest-dom": "^6.8.0",
-    "@testing-library/react": "^16.3.0",
     "@types/react": "^19.0.10",
     "@types/react-dom": "^19.0.4",
     "@vitejs/plugin-react-swc": "^3.8.0",
@@ -33,8 +43,6 @@
     "eslint-plugin-react-hooks": "^5.1.0",
     "eslint-plugin-react-refresh": "^0.4.19",
     "globals": "^15.15.0",
-    "jsdom": "^27.0.0",
-    "vite": "^6.2.0",
-    "vitest": "^3.2.4"
+    "vite": "^6.2.0"
   }
 }

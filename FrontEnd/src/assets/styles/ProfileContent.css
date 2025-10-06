@@ -128,8 +128,15 @@
     flex: 1;
     display: flex;
     flex-direction: column;
+<<<<<<< HEAD
     margin-left: 280px;
     background-color: var(--color-bg);
+=======
+    margin-left: 200px;
+    max-width: 100%;
+    overflow-x: hidden;
+    padding-top: 10px;
+>>>>>>> page/purchase-page-order-seller
 }
 
 /* ============================

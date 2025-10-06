@@ -1,7 +1,13 @@
 @import "tailwindcss";
+<<<<<<< HEAD
 
 @theme {
   --color-maincolor: #77E4C8;
+=======
+@theme{
+  --color-maincolor: #77E4C8;
+  --color-maincolor-darker: #65c2aa; 
+>>>>>>> page/purchase-page-order-seller
 }
 
 :root {
@@ -18,28 +24,23 @@
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
-
-html,
-body,
-#root {
+body{
   margin: 0;
   padding: 0;
-  overflow-x: hidden;
+  overflow-y: hidden;
 }
-
 a {
   font-weight: 500;
   color: white;
   text-decoration: inherit;
 }
-
 a:hover {
   color: gray;
 }
 
 body {
   margin: 0;
-  background-color: #ffffff;
+  background-color: lightgray;
 }
 
 h1 {
@@ -57,8 +58,11 @@ button:focus-visible {
     color: #213547;
     background-color: #ffffff;
   }
-
   a:hover {
     color: gray;
   }
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> page/purchase-page-order-seller

@@ -142,8 +142,12 @@ export default function LoginPage() {
                 token: res.token,
             };
 
+<<<<<<< HEAD
             localStorage.setItem("userId", res.userId);
             localStorage.setItem("token", res.token);
+=======
+            localStorage.setItem("user", JSON.stringify(newUser));
+>>>>>>> page/purchase-page-order-seller
             setUser(newUser);
             alert("Login successful!");
             navigate("/")

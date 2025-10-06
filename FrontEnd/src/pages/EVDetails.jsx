@@ -1,4 +1,4 @@
-import {useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import Carousel from '../components/Carousel'
 import { useLocation } from 'react-router-dom';
 import itemApi from '../api/itemApi';
@@ -24,20 +24,20 @@ const phone = "0312345678";
 const hiddenphone = "Show phone " + phone.slice(0, -4) + "****";
 function EVDetails() {
   const [isPhoneVisible, setIsPhoneVisible] = useState(false);
-    const location = useLocation();
+  const location = useLocation();
   const itemId = location.state;
 
   const [itemDetails, setItemDetails] = useState([])
+  const fetchItems = async () => {
+    try {
+      const data = await itemApi.getItemById(itemId);
+      console.log(data);
+      setItemDetails(data);
+    } catch (error) {
+      console.error("Error fetching items", error);
+    }
+  };
   useEffect(() => {
-    const fetchItems = async () => {
-      try {
-        const data = await itemApi.getItemById(itemId);
-        console.log(data);
-        setItemDetails(data);
-      } catch (error) {
-        console.error("Error fetching items", error);
-      }
-    };
     fetchItems();
   }, []);
 
@@ -68,7 +68,7 @@ function EVDetails() {
           <div className="description bg-white rounded-2xl p-4 h-2/5 m-4">
             <div className="header text-left font-bold">Description</div>
             <div className="content p-4 m-4 text-left">
-            {itemDetails.description}
+              {itemDetails.description}
             </div>
           </div>
         </div>
@@ -82,11 +82,11 @@ function EVDetails() {
             </div>
             <div className="price-tag flex h-1/10 text-left mt-2 bg-gray-50">
               <div className='ml-4 text-2xl font-bold text-red-500 content-center' >${itemDetails.price}</div>
-              <div className="ml-5 text-2xl text-gray-300 line-through content-center">$100000</div>
+              <div className="ml-5 text-2xl text-gray-300 line-through content-center"></div>
             </div>
             <div className="phone-number flex gap-4 h-1/10 mt-4">
-              <div className="bg-gray-200 w-1/4 rounded-2xl font-bold text-1xl content-center ">Chat</div>
-              <div className="bg-gray-200 w-2/4 rounded-2xl font-bold text-1xl content-center">
+              <div className="bg-gray-200 w-1/4 rounded-2xl font-bold text-1xl content-center text-center ">Chat</div>
+              <div className="bg-gray-200 w-2/4 rounded-2xl font-bold text-1xl content-center text-center">
                 <button onClick={() => setIsPhoneVisible(!isPhoneVisible)}>
                   <span>{isPhoneVisible ? phone : hiddenphone}</span>
                 </button>
