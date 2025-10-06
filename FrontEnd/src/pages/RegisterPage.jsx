@@ -1,10 +1,12 @@
 import React, { useEffect, useState, useRef } from 'react';
-import Logo from '../assets/images/Logo.png';
+import Logo from '../assets/images/anhtao.png';
 import '../assets/styles/LoginPage.css'; // Create a CSS file for styling
 import banner1 from '../assets/images/banner1.png';
 import banner2 from '../assets/images/banner2.png';
 import banner3 from '../assets/images/banner3.png';
 import { Link } from 'react-router-dom';
+import { Popover } from 'antd';
+import { FaRegEyeSlash, FaRegEye } from "react-icons/fa";
 
 export default function RegisterPage() {
     const clientId =
@@ -25,7 +27,6 @@ export default function RegisterPage() {
         {
             id: 1,
             image: banner1,
-            alt: "Xe điện nhập khẩu chính hãng"
         },
         {
             id: 2,
@@ -163,11 +164,10 @@ export default function RegisterPage() {
             <header className="login-header">
                 <img src={Logo} alt="Logo" className="logo" />
                 <h1>Cóc Mua Xe</h1>
-                <h2>Sign Up</h2>
             </header>
 
             {/* Nội dung chính: banner + form */}
-            <div className="main-content">
+            <div className="login-main">
                 {/* Banner bên trái */}
                 <div className="banner-container">
                     <div className="relative w-full h-full">
@@ -191,7 +191,7 @@ export default function RegisterPage() {
                             <>
 
                                 <p className="signup-link">
-                                    Are you new? <Link to="/login">Sign In</Link>
+                                    Already have an account?  <Link to="/login">Sign In</Link>
                                 </p>
                                 <form onSubmit={handleSubmit}>
                                     <p className='header-login'>Create an account</p>
@@ -225,10 +225,18 @@ export default function RegisterPage() {
                                         className="login-input"
                                     />
 
-                                    {error && <p style={{ color: "red" }}>{error}</p>}
-                                    <button type="submit" className="login-btn">
-                                        CREATE AN ACCOUNT
-                                    </button>
+                                    <Popover
+                                        content={error}
+                                        trigger="click"
+                                        open={!!error}
+                                        onOpenChange={(visible) => {
+                                            if (!visible) setError("");
+                                        }}
+                                    >
+                                        <button type="submit" className="login-btn">
+                                            CREATE AN ACCOUNT
+                                        </button>
+                                    </Popover>
                                 </form>
 
                                 <div className="divider">
