@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom';
 const { Meta } = Card;
 
 function CardComponent({ title, price, sales, image, type, id}) {
+  console.log(id)
   return (
     <Link to={'/' + type + '/' + id} state={id}>
       <div className="border-gray-100 border-3 p-2 m-0 w-64 h-80 hover:border-maincolor hover:mt-1 bg-white rounded-lg shadow flex flex-col">
@@ -18,12 +19,6 @@ function CardComponent({ title, price, sales, image, type, id}) {
         <div className="flex justify-between items-center mt-3">
           <div
             className="text-base w-32 h-12 ml-3 text-left font-semibold text-black overflow-hidden"
-            style={{
-              display: 'block',
-              wordBreak: 'break-word',
-              overflowY: 'auto',
-              lineHeight: '1.2',
-            }}
           >
             {title}
           </div>

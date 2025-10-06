@@ -5,7 +5,7 @@ import '../assets/styles/LoginPage.css';
 import banner1 from '../assets/images/banner1.png';
 import banner2 from '../assets/images/banner2.png';
 import banner3 from '../assets/images/banner3.png';
-import UserService from '../UserService';
+import authApi from '../api/authApi';
 import { Link, useNavigate } from 'react-router-dom';
 import { Popover } from 'antd';
 
@@ -135,7 +135,7 @@ export default function LoginPage() {
 
         try {
             // Gọi API login
-            const res = await UserService.login(trimmedEmail, trimmedPassword);
+            const res = await authApi.login(trimmedEmail, trimmedPassword);
             const newUser = {
                 ...res.user,
                 userId: res.userId,

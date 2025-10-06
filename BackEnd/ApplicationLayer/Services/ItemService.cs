@@ -27,7 +27,7 @@ namespace Application.Services
 
             return new ItemDto
             {
-                //ItemId = item.ItemId,
+                ItemId = item.ItemId,
                 ItemType = item.ItemType ?? "",
                 CategoryId = item.CategoryId,
                 Title = item.Title,
@@ -44,7 +44,7 @@ namespace Application.Services
             var items = await _repo.GetAllAsync();
             return items.Select(i => new ItemDto
             {
-                //ItemId = i.ItemId,
+                ItemId = i.ItemId,
                 ItemType = i.ItemType ?? "",
                 CategoryId = i.CategoryId,
                 Title = i.Title,

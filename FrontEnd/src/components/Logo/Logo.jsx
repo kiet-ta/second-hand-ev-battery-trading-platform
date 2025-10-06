@@ -1,5 +1,5 @@
 import React from 'react'
-import LogoImages from '../../assets/images/anhtao.png';
+import LogoImages from '../../assets/images/Logo.png';
 import { Link } from 'react-router-dom';
 
 function Logo() {

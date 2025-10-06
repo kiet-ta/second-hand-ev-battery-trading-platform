@@ -1,4 +1,4 @@
-class UserService {
+class authApi {
     constructor() {
         this.apiUrl = "https://localhost:7272/api/Auth";
     }
@@ -62,4 +62,4 @@ class UserService {
     }
 }
 
-export default new UserService();
+export default new authApi();
