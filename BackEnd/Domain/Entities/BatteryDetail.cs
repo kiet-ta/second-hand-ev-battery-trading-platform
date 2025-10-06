@@ -1,29 +1,21 @@
 ﻿using System;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+using System.Collections.Generic;
 
-namespace Domain.Entities
+namespace Domain.Entities;
+
+public class BatteryDetail
 {
-    [Table("battery_detail")]
-    public class BatteryDetail
-    {
-        [Key]
-        [Column("item_id")]
-        public int ItemId { get; set; }
+    public int ItemId { get; set; }
 
-        [Column("brand")]
-        public string Brand { get; set; }
+    public string? Brand { get; set; }
 
-        [Column("capacity")]
-        public int? Capacity { get; set; }
+    public int? Capacity { get; set; }
 
-        [Column("voltage")]
-        public decimal? Voltage { get; set; }
+    public decimal? Voltage { get; set; }
 
-        [Column("charge_cycles")]
-        public int? ChargeCycles { get; set; }
+    public int? ChargeCycles { get; set; }
 
-        [Column("updated_at")]
-        public DateTime UpdatedAt { get; set; }
-    }
+    public DateOnly? UpdatedAt { get; set; }
+
+    //public virtual Item Item { get; set; } = null!;
 }

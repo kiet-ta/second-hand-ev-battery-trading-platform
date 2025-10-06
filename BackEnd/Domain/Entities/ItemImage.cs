@@ -1,20 +1,15 @@
 ﻿using System;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+using System.Collections.Generic;
 
-namespace Domain.Entities
+namespace Domain.Entities;
+
+public class ItemImage
 {
-    [Table("item_image")]
-    public class ItemImage
-    {
-        [Key]
-        [Column("image_id")]
-        public int ImageId { get; set; }
+    public int ImageId { get; set; }
 
-        [Column("item_id")]
-        public int ItemId { get; set; }
+    public int ItemId { get; set; }
 
-        [Column("image_url")]
-        public string ImageUrl { get; set; }
-    }
+    public string? ImageUrl { get; set; }
+
+    //public virtual Item Item { get; set; } = null!;
 }

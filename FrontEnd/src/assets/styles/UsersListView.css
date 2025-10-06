@@ -1,0 +1,52 @@
+.users-list-view {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.users-list-view-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #111827;
+}
+
+.subtitle {
+    color: #6b7280;
+    font-size: 0.9rem;
+    margin-top: 0.25rem;
+}
+
+.add-btn {
+    background: linear-gradient(to right, #2563eb, #1d4ed8);
+    color: #fff;
+    padding: 0.75rem 1.25rem;
+    border-radius: 0.75rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.add-btn:hover {
+    transform: scale(1.05);
+    background: linear-gradient(to right, #1d4ed8, #1e40af);
+}
+
+/* 📊 Stats cards grid */
+.stats-cards {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    /* 2 cột */
+    gap: 1.25rem;
+}
+
+/* Mobile: 1 cột */
+@media (max-width: 640px) {
+    .stats-cards {
+        grid-template-columns: 1fr;
+    }
+}

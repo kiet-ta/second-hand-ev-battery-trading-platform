@@ -1,52 +1,37 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Domain.Entities
+namespace Domain.Entities;
+
+public class User
 {
-    public class User
-    {
-        [Key]
-        [Column("user_id")]
-        public int UserId { get; set; }
+    public int UserId { get; set; }
 
-        [Column("full_name")]
-        public string? FullName { get; set; }
+    public string FullName { get; set; } = string.Empty;
 
-        [Column("email")]
-        public string? Email { get; set; }
+    public string Email { get; set; } = string.Empty;
 
-        [Column("password_hash")]
-        public string? PasswordHash { get; set; }
+    public string PasswordHash { get; set; } = string.Empty;
 
-        [Column("gender")]
-        public string? Gender { get; set; }
+    public string? Gender { get; set; }
 
-        [Column("year_of_birth")]
-        public DateTime YearOfBirth { get; set; }
+    public DateOnly? YearOfBirth { get; set; }
 
-        [Column("phone")]
-        public string? Phone { get; set; }
+    public string? Phone { get; set; }
 
-        [Column("avatar_profile")]
-        public string? AvatarProfile { get; set; }
+    public string? AvatarProfile { get; set; }
 
-        [Column("role")]
-        public string? Role { get; set; }
+    public string Role { get; set; } = "Buyer";
 
-        [Column("kyc_status")]
-        public  string? KycStatus { get; set; }
+    public string KycStatus { get; set; } = "not_submitted";
 
-        [Column("account_status")]
-        public string? AccountStatus { get; set; }
+    public string AccountStatus { get; set; } = "active";
 
-        [Column("created_at")]
-        public DateTime CreatedAt { get; set; }
+    public DateTime CreatedAt { get; set; } = DateTime.Now;
 
-        [Column("updated_at")]
-        public DateTime UpdatedAt { get; set; }
+    public DateTime UpdatedAt { get; set; } = DateTime.Now;
 
-        [Column("is_deleted")]
-        public bool IsDeleted { get; set; }
-    }
+    public bool? IsDeleted { get; set; }
 }

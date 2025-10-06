@@ -1,29 +1,27 @@
 ﻿using System;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+using System.Collections.Generic;
 
-namespace Domain.Entities
+namespace Domain.Entities;
+
+public class Order
 {
-    [Table("orders")]
-    public class Order
-    {
-        [Key]
-        [Column("order_id")]
-        public int OrderId { get; set; }
+    public int OrderId { get; set; }
 
-        [Column("buyer_id")]
-        public int BuyerId { get; set; }
+    public int BuyerId { get; set; }
 
-        [Column("address_id")]
-        public int AddressId { get; set; }
+    public int AddressId { get; set; }
 
-        [Column("status")]
-        public string Status { get; set; }
+    public string? Status { get; set; }
 
-        [Column("created_at")]
-        public DateTime CreatedAt { get; set; }
+    public DateOnly? CreatedAt { get; set; }
 
-        [Column("updated_at")]
-        public DateTime UpdatedAt { get; set; }
-    }
+    public DateOnly? UpdatedAt { get; set; }
+
+    //public virtual Address Address { get; set; } = null!;
+
+    //public virtual User Buyer { get; set; } = null!;
+
+    //public virtual ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
+
+    //public virtual ICollection<PaymentDetail> PaymentDetails { get; set; } = new List<PaymentDetail>();
 }

@@ -1,26 +1,21 @@
 ﻿using System;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+using System.Collections.Generic;
 
-namespace Domain.Entities
+namespace Domain.Entities;
+
+public class OrderItem
 {
-    [Table("order_item")]
-    public class OrderItem
-    {
-        [Key]
-        [Column("order_item_id")]
-        public int OrderItemId { get; set; }
+    public int OrderItemId { get; set; }
 
-        [Column("order_id")]
-        public int OrderId { get; set; }
+    public int OrderId { get; set; }
 
-        [Column("item_id")]
-        public int ItemId { get; set; }
+    public int ItemId { get; set; }
 
-        [Column("quantity")]
-        public int Quantity { get; set; }
+    public int? Quantity { get; set; }
 
-        [Column("price")]
-        public decimal Price { get; set; }
-    }
+    public decimal? Price { get; set; }
+
+    //public virtual Item Item { get; set; } = null!;
+
+    //public virtual Order Order { get; set; } = null!;
 }
