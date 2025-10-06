@@ -6,6 +6,7 @@ import banner2 from '../assets/images/banner2.png';
 import banner3 from '../assets/images/banner3.png';
 import { Link } from 'react-router-dom';
 import { Popover } from 'antd';
+import UserService from '../UserService';
 import { FaRegEyeSlash, FaRegEye } from "react-icons/fa";
 
 export default function RegisterPage() {
@@ -21,6 +22,7 @@ export default function RegisterPage() {
     const [currentSlide, setCurrentSlide] = useState(0);
     const [confirmPassword, setConfirmPassword] = useState("");
     const [error, setError] = useState("");
+    const [loading, setLoading] = useState(false);
     const googleButtonRef = useRef(null);
 
     const slides = [
@@ -132,10 +134,10 @@ export default function RegisterPage() {
         }
     }
 
-    function handleSubmit(e) {
+    async function handleSubmit(e) {
         e.preventDefault();
-        console.log('Local login with', { username, password });
-        if (!email || !password || !confirmPassword) {
+
+        if (!email || !password || !confirmPassword || !fullname) {
             setError("Please enter complete information!");
             return;
         }
@@ -155,7 +157,25 @@ export default function RegisterPage() {
         }
 
         setError("");
-        alert("Đăng ký thành công ✅");
+        setLoading(true);
+
+        try {
+            const newUser = {
+                username,
+                email,
+                password,
+                fullname
+            };
+
+            const res = await UserService.register(newUser);
+            console.log("Register success:", res);
+            alert("Đăng ký thành công ✅");
+        } catch (err) {
+            console.error("Register error:", err);
+            setError("Register failed, please try again!");
+        } finally {
+            setLoading(false);
+        }
     }
 
     return (
@@ -194,7 +214,7 @@ export default function RegisterPage() {
                                     Already have an account?  <Link to="/login">Sign In</Link>
                                 </p>
                                 <form onSubmit={handleSubmit}>
-                                    <p className='header-login'>Create an account</p>
+                                    <p className='header-login'>Sign Up</p>
                                     <input
                                         type="text"
                                         placeholder="Full Name"
@@ -234,7 +254,7 @@ export default function RegisterPage() {
                                         }}
                                     >
                                         <button type="submit" className="login-btn">
-                                            CREATE AN ACCOUNT
+                                            SIGN UP
                                         </button>
                                     </Popover>
                                 </form>

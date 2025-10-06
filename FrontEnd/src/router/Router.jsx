@@ -10,6 +10,9 @@ import LoginPage from '../pages/LoginPage';
 import RegisterPage from '../pages/RegisterPage';
 import ProfileContent from '../pages/ProfileContent';
 import UserManagementSystem from '../pages/UserManagementSystem';
+import SellerDashboard from '../pages/DashboardSeller';
+import PurchaseHistory from '../components/HistoryBought';
+import SellerHistory from '../components/HistorySold';
 import PaymentSuccessPage from '../pages/PaymentSuccessPage';
 import PaymentFailPage from '../pages/PaymentFailPage';
 
@@ -62,6 +65,19 @@ export const router = createBrowserRouter([
         element: <UserManagementSystem />
     },
     {
+        path: "/seller",
+        element: <SellerDashboard />
+    },
+    {
+        path: "/bought",
+        element: <PurchaseHistory />
+    },
+    {
+        path: "/sold",
+        element: <SellerHistory />
+    }
+
+
         path: "/payment/success",
         element: <PaymentSuccessPage/>,
     },
