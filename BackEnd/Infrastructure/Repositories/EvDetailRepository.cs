@@ -15,7 +15,7 @@ namespace Infrastructure.Repositories
         private readonly EvBatteryTradingContext _ctx;
         public EvDetailRepository(EvBatteryTradingContext ctx) => _ctx = ctx;
 
-        public async Task AddAsync(EvDetail evDetail, CancellationToken ct = default)
+        public async Task AddAsync(EVDetail evDetail, CancellationToken ct = default)
         {
             await _ctx.EvDetails.AddAsync(evDetail, ct);
         }
@@ -26,24 +26,24 @@ namespace Infrastructure.Repositories
             if (e != null) _ctx.EvDetails.Remove(e);
         }
 
-        public async Task<IEnumerable<EvDetail>> GetAllAsync(CancellationToken ct = default)
+        public async Task<IEnumerable<EVDetail>> GetAllAsync(CancellationToken ct = default)
         {
             // filter out items that are soft-deleted (Item.IsDeleted)
             var query =
                 from e in _ctx.EvDetails
                 join i in _ctx.Items on e.ItemId equals i.ItemId
-                where !(i.IsDeleted ?? false)
+                where !i.IsDeleted
                 select e;
 
             return await query.ToListAsync(ct);
         }
 
-        public async Task<EvDetail?> GetByIdAsync(int itemId, CancellationToken ct = default)
+        public async Task<EVDetail?> GetByIdAsync(int itemId, CancellationToken ct = default)
         {
             var query =
                 from e in _ctx.EvDetails
                 join i in _ctx.Items on e.ItemId equals i.ItemId
-                where e.ItemId == itemId && !(i.IsDeleted ?? false)
+                where e.ItemId == itemId && !i.IsDeleted
                 select e;
 
             return await query.FirstOrDefaultAsync(ct);
@@ -52,7 +52,7 @@ namespace Infrastructure.Repositories
         public async Task<bool> ExistsAsync(int itemId, CancellationToken ct = default)
             => await _ctx.EvDetails.AnyAsync(e => e.ItemId == itemId, ct);
 
-        public void Update(EvDetail evDetail)
+        public void Update(EVDetail evDetail)
         {
             _ctx.EvDetails.Update(evDetail);
         }
