@@ -1,0 +1,390 @@
+.address-container {
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 20px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.address-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.address-title {
+    font-size: 28px;
+    font-weight: 600;
+    color: #2c3e50;
+    margin: 0;
+}
+
+.btn-add {
+    padding: 12px 24px;
+    background-color: #3498db;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(52, 152, 219, 0.3);
+}
+
+.btn-add:hover {
+    background-color: #2980b9;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(52, 152, 219, 0.4);
+}
+
+.btn-add:active {
+    transform: translateY(0);
+}
+
+/* Address List */
+.address-list {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.address-card {
+    background-color: white;
+    padding: 24px;
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    border: 2px solid #e1e8ed;
+    transition: all 0.3s ease;
+}
+
+.address-card:hover {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+    border-color: #3498db;
+}
+
+.address-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.address-name {
+    font-size: 16px;
+    color: #2c3e50;
+    margin-right: 10px;
+}
+
+.default-badge {
+    padding: 4px 12px;
+    background-color: #27ae60;
+    color: white;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.address-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.btn-edit {
+    padding: 6px 16px;
+    background-color: white;
+    color: #3498db;
+    border: 1px solid #3498db;
+    border-radius: 6px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-edit:hover {
+    background-color: #3498db;
+    color: white;
+}
+
+.btn-delete {
+    padding: 6px 16px;
+    background-color: white;
+    color: #e74c3c;
+    border: 1px solid #e74c3c;
+    border-radius: 6px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-delete:hover {
+    background-color: #e74c3c;
+    color: white;
+}
+
+.address-detail {
+    margin-bottom: 15px;
+}
+
+.address-text {
+    margin: 5px 0;
+    color: #555;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.btn-set-default {
+    padding: 8px 16px;
+    background-color: white;
+    color: #3498db;
+    border: 1px solid #3498db;
+    border-radius: 6px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-set-default:hover {
+    background-color: #3498db;
+    color: white;
+}
+
+/* Form Card */
+.form-card {
+    background-color: white;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.form-title {
+    font-size: 20px;
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 25px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-label {
+    display: block;
+    color: #34495e;
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 8px;
+}
+
+.form-select {
+    width: 100%;
+    padding: 12px 16px;
+    font-size: 15px;
+    color: #2c3e50;
+    background-color: #f8f9fa;
+    border: 2px solid #e1e8ed;
+    border-radius: 8px;
+    outline: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-sizing: border-box;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%233498db' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 16px center;
+    padding-right: 40px;
+}
+
+.form-select:focus {
+    background-color: white;
+    border-color: #3498db;
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+}
+
+.form-select:hover:not(:disabled) {
+    border-color: #3498db;
+}
+
+.form-select:disabled {
+    background-color: #ecf0f1;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.form-input {
+    width: 100%;
+    padding: 12px 16px;
+    font-size: 15px;
+    color: #2c3e50;
+    background-color: #f8f9fa;
+    border: 2px solid #e1e8ed;
+    border-radius: 8px;
+    outline: none;
+    transition: all 0.3s ease;
+    box-sizing: border-box;
+}
+
+.form-input:focus {
+    background-color: white;
+    border-color: #3498db;
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+}
+
+.form-input:hover {
+    border-color: #3498db;
+}
+
+.form-input::placeholder {
+    color: #95a5a6;
+    font-style: italic;
+}
+
+.checkbox-group {
+    display: flex;
+    align-items: center;
+    margin-bottom: 25px;
+    gap: 10px;
+}
+
+.form-checkbox {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    accent-color: #3498db;
+}
+
+.checkbox-label {
+    color: #34495e;
+    font-size: 14px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.form-actions {
+    display: flex;
+    gap: 15px;
+    justify-content: flex-end;
+}
+
+.btn-cancel {
+    padding: 12px 28px;
+    background-color: white;
+    color: #7f8c8d;
+    border: 2px solid #bdc3c7;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-cancel:hover {
+    background-color: #ecf0f1;
+    border-color: #95a5a6;
+}
+
+.btn-save {
+    padding: 12px 28px;
+    background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+}
+
+.btn-save:hover {
+    background: linear-gradient(135deg, #2980b9 0%, #21618c 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(52, 152, 219, 0.4);
+}
+
+.btn-save:active {
+    transform: translateY(0);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .address-container {
+        margin: 20px;
+        padding: 15px;
+    }
+
+    .address-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .address-title {
+        font-size: 24px;
+    }
+
+    .btn-add {
+        width: 100%;
+    }
+
+    .address-card {
+        padding: 20px;
+    }
+
+    .address-card-header {
+        flex-direction: column;
+    }
+
+    .address-actions {
+        width: 100%;
+        justify-content: flex-start;
+    }
+
+    .form-card {
+        padding: 20px;
+    }
+
+    .form-actions {
+        flex-direction: column-reverse;
+    }
+
+    .btn-cancel,
+    .btn-save {
+        width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .address-title {
+        font-size: 20px;
+    }
+
+    .form-select,
+    .form-input {
+        font-size: 14px;
+        padding: 10px 14px;
+    }
+
+    .btn-edit,
+    .btn-delete,
+    .btn-set-default {
+        font-size: 13px;
+        padding: 6px 12px;
+    }
+}
