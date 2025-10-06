@@ -1,6 +1,3 @@
-﻿using System;
-using System.Collections.Generic;
-
 namespace Domain.Entities;
 
 public class ItemBidding
@@ -17,11 +14,7 @@ public class ItemBidding
 
     public DateTime EndTime { get; set; }
 
-    public string? Status { get; set; }
+    public string Status { get; set; } = "active"; // active, ended, cancelled
 
-    public DateTime? CreatedAt { get; set; }
-
-    //public virtual ICollection<Bid> Bids { get; set; } = new List<Bid>();
-
-    //public virtual Item Item { get; set; } = null!;
+    public DateTime CreatedAt { get; set; } = DateTime.Now;
 }

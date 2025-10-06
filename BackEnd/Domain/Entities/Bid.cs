@@ -1,6 +1,3 @@
-﻿using System;
-using System.Collections.Generic;
-
 namespace Domain.Entities;
 
 public class Bid
@@ -13,9 +10,5 @@ public class Bid
 
     public decimal BidAmount { get; set; }
 
-    public DateTime? BidTime { get; set; }
-
-    //public virtual ItemBidding Bidding { get; set; } = null!;
-
-    //public virtual User User { get; set; } = null!;
+    public DateTime BidTime { get; set; } = DateTime.Now;
 }

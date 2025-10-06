@@ -1,15 +1,15 @@
-﻿
+using Application.IRepositories.IBiddingRepositories;
 using Application.IRepositories;
 using Application.IServices;
 using Application.Services;
 using CloudinaryDotNet;
-using Infrastructure.Clouds;
 using Infrastructure.Data;
 using Infrastructure.Repositories;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Net.payOS;
 using System.Text;
 
 namespace PresentationLayer
@@ -39,7 +39,6 @@ namespace PresentationLayer
             builder.Services.AddScoped<IBatteryDetailRepository, BatteryDetailRepository>();
             //builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 
-
             // JWT Authentication
             builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(options =>
@@ -68,14 +67,51 @@ namespace PresentationLayer
                 return new Cloudinary(new Account(config.CloudName, config.ApiKey, config.ApiSecret));
             });
 
-
             builder.Services.AddAuthorization();
 
             // Add services to the container.
 
             builder.Services.AddControllers();
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AllowReactApp",
+                    policy =>
+                    {
+                        policy.WithOrigins("http://localhost:5173")
+                              .AllowAnyHeader()
+                              .AllowAnyMethod();
+                    });
+            });
+            // register PayOS via DI (Dependency Injection)
+            var payosConfig = builder.Configuration.GetSection("PayOS");
+
+            builder.Services.AddSingleton(sp =>
+            {
+                var clientId = payosConfig["ClientId"];
+                var apiKey = payosConfig["ApiKey"];
+                var checksumKey = payosConfig["ChecksumKey"];
+                return new PayOS(clientId = "abc", apiKey = "abc", checksumKey = "abc");
+            });
+
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+            //builder.Services.AddScoped<IUserService, UserService>();
+            //builder.Services.AddScoped<IUserRepository, UserRepository>();
+            //builder.Services.AddScoped<IUserHelper, UserHelper>();
+            //builder.Services.AddScoped<IPasswordHelper, PasswordHelper>();
+            //builder.Services.AddScoped<IUserValidation, UserValidation>();
+
+            builder.Services.AddScoped<IUserRepository, UserRepository>();
+            builder.Services.AddScoped<IUserService, UserService>();
             builder.Services.AddEndpointsApiExplorer();
+            builder.Services.AddSwaggerGen();
+            builder.Configuration.AddUserSecrets<Program>();
+            builder.Services.AddScoped<IWalletTransactionRepository, WalletTransactionRepository>();
+            builder.Services.AddScoped<IWalletRepository, WalletRepository>();
+            builder.Services.AddScoped<IBidRepository, BidRepository>();
+            builder.Services.AddScoped<IAuctionService, AuctionService>();
+            builder.Services.AddScoped<IItemBiddingRepository, ItemBiddingRepository>();
+            builder.Services.AddDbContext<EvBatteryTradingContext>(options =>
+            options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
             //builder.Services.AddSwaggerGen();
 
             builder.Services.AddSwaggerGen(c =>
@@ -86,8 +122,8 @@ namespace PresentationLayer
                 // Khai báo Security Definition (JWT Bearer)
                 c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
                 {
-                    Description = @"JWT Authorization header using the Bearer scheme.  
-                      Enter 'Bearer' [space] and then your token in the text input below.  
+                    Description = @"JWT Authorization header using the Bearer scheme.
+                      Enter 'Bearer' [space] and then your token in the text input below.
                       Example: 'Bearer 12345abcdef'",
                     Name = "Authorization",
                     In = ParameterLocation.Header,
@@ -113,7 +149,7 @@ namespace PresentationLayer
                         new List<string>()
                     }
                 });
-             });
+            });
 
             var app = builder.Build();
 
@@ -124,14 +160,9 @@ namespace PresentationLayer
                 app.UseSwaggerUI();
             }
 
-            app.UseRouting();
-
             app.UseHttpsRedirection();
-
-            app.UseAuthentication();
-
+            app.UseCors("AllowReactApp");
             app.UseAuthorization();
-
 
             app.MapControllers();
 

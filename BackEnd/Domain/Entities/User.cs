@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Domain.Entities;
 
@@ -7,11 +9,11 @@ public class User
 {
     public int UserId { get; set; }
 
-    public string FullName { get; set; } = null!;
+    public string FullName { get; set; } = string.Empty;
 
-    public string Email { get; set; } = null!;
+    public string Email { get; set; } = string.Empty;
 
-    public string PasswordHash { get; set; } = null!;
+    public string PasswordHash { get; set; } = string.Empty;
 
     public string? Gender { get; set; }
 
@@ -21,39 +23,15 @@ public class User
 
     public string? AvatarProfile { get; set; }
 
-    public string Role { get; set; } = null!;
+    public string Role { get; set; } = "Buyer";
 
-    public string? KycStatus { get; set; }
+    public string KycStatus { get; set; } = "not_submitted";
 
-    public string? AccountStatus { get; set; }
+    public string AccountStatus { get; set; } = "active";
 
-    public DateOnly? CreatedAt { get; set; }
+    public DateTime CreatedAt { get; set; } = DateTime.Now;
 
-    public DateOnly? UpdatedAt { get; set; }
+    public DateTime UpdatedAt { get; set; } = DateTime.Now;
 
     public bool? IsDeleted { get; set; }
-
-    //public virtual ICollection<Address> Addresses { get; set; } = new List<Address>();
-
-    //public virtual ICollection<Bid> Bids { get; set; } = new List<Bid>();
-
-    //public virtual ICollection<Favorite> Favorites { get; set; } = new List<Favorite>();
-
-    //public virtual ICollection<Item> Items { get; set; } = new List<Item>();
-
-    //public virtual ICollection<KycDocument> KycDocumentUsers { get; set; } = new List<KycDocument>();
-
-    //public virtual ICollection<KycDocument> KycDocumentVerifiedByNavigations { get; set; } = new List<KycDocument>();
-
-    //public virtual ICollection<Order> Orders { get; set; } = new List<Order>();
-
-    //public virtual ICollection<Payment> Payments { get; set; } = new List<Payment>();
-
-    //public virtual ICollection<Review> ReviewReviewers { get; set; } = new List<Review>();
-
-    //public virtual ICollection<Review> ReviewTargetUsers { get; set; } = new List<Review>();
-
-    //public virtual ICollection<UserLog> UserLogs { get; set; } = new List<UserLog>();
-
-    //public virtual Wallet? Wallet { get; set; }
 }

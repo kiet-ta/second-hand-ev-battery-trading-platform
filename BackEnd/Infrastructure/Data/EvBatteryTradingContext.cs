@@ -65,28 +65,6 @@ public partial class EvBatteryTradingContext : DbContext//, IUnitOfWork
     {
         modelBuilder.Entity<Item>().Property(i => i.IsDeleted).HasDefaultValue(false);
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(EvBatteryTradingContext).Assembly);
-
-        modelBuilder.ApplyConfiguration(new UserConfiguration());
-        modelBuilder.ApplyConfiguration(new ItemConfiguration());
-        modelBuilder.ApplyConfiguration(new CategoryConfiguration());
-        modelBuilder.ApplyConfiguration(new ItemBiddingConfiguration());
-        modelBuilder.ApplyConfiguration(new ItemImageConfiguration());
-        modelBuilder.ApplyConfiguration(new KycDocumentConfiguration());
-        modelBuilder.ApplyConfiguration(new OrderConfiguration());
-        modelBuilder.ApplyConfiguration(new OrderItemConfiguration());
-        modelBuilder.ApplyConfiguration(new PaymentConfiguration());
-        modelBuilder.ApplyConfiguration(new PaymentDetailConfiguration());
-        modelBuilder.ApplyConfiguration(new ReviewConfiguration());
-        modelBuilder.ApplyConfiguration(new ReviewImageConfiguration());
-        modelBuilder.ApplyConfiguration(new AddressConfiguration());
-        modelBuilder.ApplyConfiguration(new BatteryDetailConfiguration());
-        modelBuilder.ApplyConfiguration(new EvDetailConfiguration());
-        modelBuilder.ApplyConfiguration(new FavoriteConfiguration());
-        modelBuilder.ApplyConfiguration(new BidConfiguration());
-        modelBuilder.ApplyConfiguration(new UserLogConfiguration());
-        modelBuilder.ApplyConfiguration(new WalletConfiguration());
-        modelBuilder.ApplyConfiguration(new WalletTransactionConfiguration());
-
         base.OnModelCreating(modelBuilder);
 
     }

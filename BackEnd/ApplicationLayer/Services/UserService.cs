@@ -1,4 +1,4 @@
-﻿using Application.DTOs.AuthenticationDtos;
+using Application.DTOs.AuthenticationDtos;
 using Application.DTOs.UserDtos;
 using Application.IRepositories;
 using Application.IServices;
@@ -17,24 +17,24 @@ namespace Application.Services
 {
     public class UserService : IUserService
     {
-        private readonly IUserRepository _repo;
+        private readonly IUserRepository _userRepository;
         private readonly string _jwtSecret;
         private readonly string _jwtIssuer;
         private readonly string _jwtAudience;
         private readonly IConfiguration _config;
 
-
         public UserService(IUserRepository repo, IConfiguration config)
         {
-            _repo = repo;
+            _userRepository = repo;
             _config = config;
             _jwtSecret = config["Jwt:Key"]!;
             _jwtIssuer = config["Jwt:Issuer"]!;
             _jwtAudience = config["Jwt:Audience"]!;
         }
+
         public async Task<List<UserRoleCountDto>> GetUsersByRoleAsync()
         {
-            var data = await _repo.GetUsersByRoleAsync();
+            var data = await _userRepository.GetUsersByRoleAsync();
 
             return data.Select(d => new UserRoleCountDto
             {
@@ -44,8 +44,8 @@ namespace Application.Services
         }
 
         public async Task<AuthResponseDto> AddUserAsync(CreateUserDto dto)
-        {            
-            var existingUser = await _repo.GetByEmailAsync(dto.Email);
+        {
+            var existingUser = await _userRepository.GetByEmailAsync(dto.Email);
             if (existingUser != null)
                 throw new Exception("Email already registered");
 
@@ -60,7 +60,7 @@ namespace Application.Services
                 Phone = dto.Phone,
                 Role = dto.Role,
             };
-            await _repo.AddUserAsync(newUser);
+            await _userRepository.AddAsync(newUser);
             return GenerateToken(newUser);
         }
 
@@ -95,5 +95,44 @@ namespace Application.Services
                 Token = tokenHandler.WriteToken(token)
             };
         }
+
+        public Task<IEnumerable<User>> GetAllUsersAsync() => _userRepository.GetAllAsync();
+
+        public Task<User?> GetUserByIdAsync(int id) => _userRepository.GetByIdAsync(id);
+
+        public Task<User?> GetUserByEmailAsync(string email) => _userRepository.GetByEmailAsync(email);
+
+        public async Task AddUserAsync(User user)
+        {
+            var existing = await _userRepository.GetByEmailAsync(user.Email);
+            if (existing != null)
+                throw new InvalidOperationException("Email đã tồn tại!");
+
+            user.CreatedAt = DateTime.Now;
+            user.UpdatedAt = DateTime.Now;
+
+            await _userRepository.AddAsync(user);
+        }
+
+        public async Task UpdateUserAsync(User user)
+        {
+            var existing = await _userRepository.GetByIdAsync(user.UserId);
+            if (existing == null)
+                throw new KeyNotFoundException("User không tồn tại!");
+
+            // cập nhật các field cần thiết
+            existing.FullName = user.FullName;
+            existing.Phone = user.Phone;
+            existing.Gender = user.Gender;
+            existing.AvatarProfile = user.AvatarProfile;
+            existing.Role = user.Role;
+            existing.KycStatus = user.KycStatus;
+            existing.AccountStatus = user.AccountStatus;
+            existing.UpdatedAt = DateTime.Now;
+
+            await _userRepository.UpdateAsync(existing);
+        }
+
+        public Task DeleteUserAsync(int id) => _userRepository.DeleteAsync(id);
     }
 }
