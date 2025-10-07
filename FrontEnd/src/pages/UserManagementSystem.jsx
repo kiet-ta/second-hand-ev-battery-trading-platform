@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useUsers } from "../hooks/useUsers";
 import { useUserForm } from "../hooks/useUserForm";
-
+import '../index.css'
 import UsersListView from "../components/UsersListView";
 import UserForm from "../components/UserForm";
 import UserDetail from "../components/UserDetail";

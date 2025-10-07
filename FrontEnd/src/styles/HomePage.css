@@ -4,9 +4,7 @@
   max-width: 100vw;
   overflow-x: hidden;
 }
-html, body, #root {
-  overflow-x: hidden;
-}
+
 a {
   font-weight: 500;
   color: white;
@@ -14,9 +12,6 @@ a {
 }
 a:hover {
   color: gray;
-}
-button{
-    border-color:aqua;
 }
 @media (prefers-color-scheme: light) {
   :root {
