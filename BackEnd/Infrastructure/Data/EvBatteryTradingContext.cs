@@ -6,7 +6,7 @@ using System.Collections.Generic;
 
 namespace Infrastructure.Data;
 
-public partial class EvBatteryTradingContext : DbContext//, IUnitOfWork
+public partial class EvBatteryTradingContext : DbContext
 {
     public EvBatteryTradingContext()
     {
@@ -59,18 +59,9 @@ public partial class EvBatteryTradingContext : DbContext//, IUnitOfWork
 
     public virtual DbSet<WalletTransaction> WalletTransactions { get; set; }
 
-    
-
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<Item>().Property(i => i.IsDeleted).HasDefaultValue(false);
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(EvBatteryTradingContext).Assembly);
         base.OnModelCreating(modelBuilder);
-
     }
-
-    // IUnitOfWork implementation
-    //public Task<int> SaveChangesAsync(CancellationToken ct = default) =>
-        //base.SaveChangesAsync(ct);
-    partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
 }
