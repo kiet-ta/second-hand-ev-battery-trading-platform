@@ -2,12 +2,14 @@ import React from 'react';
 import { DownOutlined, SettingOutlined } from '@ant-design/icons';
 import { Dropdown, Space } from 'antd';
 const handleLogout = async () => {
-    localStorage.setItem("user", null)
+    localStorage.removeItem("token")
+    localStorage.removeItem("user")
+    localStorage.removeItem("userId")
 }
 const ProfileDropDown = ({users}) => (
     <Dropdown menu={{
         items:[
-            {key: '1', label: (<a href="/profile">{users.fullName}</a>),  disabled: true
+            {key: '1', label: (<a href="/profile">{users.fullName}</a>)
             },
             {type: 'divider'},
             {

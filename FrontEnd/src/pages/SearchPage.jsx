@@ -12,7 +12,6 @@ export default function SearchPage() {
     useEffect(() => {
         itemApi.getItemBySearch(itemType, title).then((data) => {
             setItemList(data.items)
-            console.log(data)
         });
     }, [])
 
@@ -55,7 +54,7 @@ export default function SearchPage() {
             <div className='w-3/5'>
                 <div className='text-2xl'>Search result of "{title}"</div>
                 <div className='bg-white rounded-2xl mt-2 p-2 gap-4 flex flex-wrap justify-evenly'>
-                    {itemList > 0 ?( itemList.map((item) => (
+                    {itemList ?( itemList.map((item) => (
                         <CardComponent key={item.itemId}
                             title={item.title}
                             type={item.itemType}

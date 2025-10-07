@@ -69,19 +69,19 @@ function Navbar(data) {
             }
           </div>
         </div>
-        <div className="w-full flex justify-around h-20">
-          <Logo className="absolute bottom-0 left-0" />
-          <div className="ml-10 w-1/2 content-center align-middle ">
+        <div className="w-full flex h-20 items-center align-middle content-center">
+          <div className="w-1/4 h-full flex justify-start"><Logo></Logo></div>
+          <div className="content-center align-middle w-2/4">
             <form action='/search' method='GET' className="w-full p-2 rounded-lg text-black bg-white relative">
                 <input type="text" name="query" placeholder="Search..." className="w-5/6"/>
                 <select className="bg-maincolor-darker w-1/6 absolute right-0 top-0 h-full align-middle text-center font-bold border-1" name="itemType">
-                <option value="ev">Vehicle</option>
-                <option value="battery">Battery</option>
+                <option value="EV">Vehicle</option>
+                <option value="Battery">Battery</option>
                 </select>
               <button type="submit" className="hidden">Search</button>
             </form>
           </div>
-          <div className="mt-10 w-1/5 flex justify-end items-center content-center gap-4">
+          <div className="w-1/4 flex justify-end">
             <Link to={'/cart'} className="mx-4 hover:text-green-300 flex items-center">
               {<FaShoppingCart />}
               <span className="ml-2">Cart</span>
