@@ -21,7 +21,7 @@ namespace Infrastructure.Data.Configurations
             entity.Property(e => e.BuyerId).HasColumnName("buyer_id");
             entity.Property(e => e.AddressId).HasColumnName("address_id");
             entity.Property(e => e.Status).HasColumnName("status");
-            entity.Property(e => e.CreatedAt).HasColumnName("created_at");
+            entity.Property(e => e.CreatedAt).HasColumnName("created_at").HasConversion(v => v.ToDateTime(TimeOnly.MinValue), v => DateOnly.FromDateTime(v));
             entity.Property(e => e.UpdatedAt).HasColumnName("updated_at");
 
         }

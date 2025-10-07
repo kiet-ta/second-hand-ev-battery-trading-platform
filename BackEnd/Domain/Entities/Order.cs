@@ -13,7 +13,7 @@ public class Order
 
     public string? Status { get; set; }
 
-    public DateOnly? CreatedAt { get; set; }
+    public DateOnly CreatedAt { get; set; }
 
     public DateOnly? UpdatedAt { get; set; }
 }

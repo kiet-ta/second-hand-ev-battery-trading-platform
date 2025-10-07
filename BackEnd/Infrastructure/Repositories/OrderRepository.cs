@@ -1,4 +1,5 @@
-﻿using Application.IRepositories;
+﻿using Application.DTOs;
+using Application.IRepositories;
 using Domain.Entities;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -70,6 +71,39 @@ namespace Infrastructure.Repositories
                 _context.Orders.Remove(order);
                 await _context.SaveChangesAsync();
             }
+        }
+
+        //Feature: Seller Dashboard
+        public async Task<int> CountBySellerAsync(int sellerId)
+        {
+            return await _context.Orders
+                .CountAsync(o => _context.PaymentDetails
+                    .Any(p => p.OrderId == o.OrderId &&
+                              _context.Items.Any(i => i.ItemId == p.ItemId && i.UpdatedBy == sellerId)));
+        }
+
+        public async Task<int> CountByStatusAsync(int sellerId, string status)
+        {
+            return await _context.Orders
+                .CountAsync(o => o.Status == status &&
+                    _context.PaymentDetails
+                        .Any(p => p.OrderId == o.OrderId &&
+                            _context.Items.Any(i => i.ItemId == p.ItemId && i.UpdatedBy == sellerId)));
+        }
+
+        public async Task<List<OrdersByMonthDto>> GetOrdersByMonthAsync(int sellerId)
+        {
+            return await _context.Orders
+                .Where(o => _context.PaymentDetails
+                    .Any(p => p.OrderId == o.OrderId &&
+                        _context.Items.Any(i => i.ItemId == p.ItemId && i.UpdatedBy == sellerId)))
+                .GroupBy(o => o.CreatedAt.Month)
+                .Select(g => new OrdersByMonthDto
+                {
+                    Month = g.Key,
+                    TotalOrders = g.Count()
+                })
+                .ToListAsync();
         }
     }
 }
