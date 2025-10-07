@@ -14,10 +14,10 @@ namespace PresentationLayer.Controllers
     public class ItemController : ControllerBase
     {
         private readonly IItemService _service;
-        private readonly IEvDetailService _evService;
+        private readonly IEVDetailService _evService;
         private readonly IBatteryDetailService _batteryService;
 
-        public ItemController(IItemService service, IEvDetailService evService, IBatteryDetailService batteryService)
+        public ItemController(IItemService service, IEVDetailService evService, IBatteryDetailService batteryService)
         {
             _service = service;
             _evService = evService;

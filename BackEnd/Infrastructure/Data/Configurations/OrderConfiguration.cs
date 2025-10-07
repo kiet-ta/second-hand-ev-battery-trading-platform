@@ -24,18 +24,6 @@ namespace Infrastructure.Data.Configurations
             entity.Property(e => e.CreatedAt).HasColumnName("created_at");
             entity.Property(e => e.UpdatedAt).HasColumnName("updated_at");
 
-            // Relationship: Order -> Buyer (User) many orders belong to one buyer
-            //entity.HasOne(o => o.Buyer)
-            //      .WithMany(u => u.Orders)
-            //      .HasForeignKey(o => o.BuyerId)
-            //      .HasConstraintName("FK_Order_Buyer");
-
-            // Relationship: Order -> Address
-            //entity.HasOne(o => o.Address)
-            //      .WithMany(a => a.Orders)
-            //      .HasForeignKey(o => o.AddressId)
-            //      .HasConstraintName("FK_Order_Address");
-
         }
     }
 }

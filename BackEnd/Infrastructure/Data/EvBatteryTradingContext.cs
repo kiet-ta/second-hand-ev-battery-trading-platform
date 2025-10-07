@@ -17,47 +17,47 @@ public partial class EvBatteryTradingContext : DbContext
     {
     }
 
-    public virtual DbSet<Address> Addresses { get; set; }
+    public DbSet<Address> Addresses { get; set; }
 
-    public virtual DbSet<BatteryDetail> BatteryDetails { get; set; }
+    public DbSet<BatteryDetail> BatteryDetails { get; set; }
 
-    public virtual DbSet<Bid> Bids { get; set; }
+    public DbSet<Bid> Bids { get; set; }
 
-    public virtual DbSet<Blog> Blogs { get; set; }
+    public DbSet<Blog> Blogs { get; set; }
 
-    public virtual DbSet<Category> Categories { get; set; }
+    public DbSet<Category> Categories { get; set; }
 
-    public virtual DbSet<EVDetail> EvDetails { get; set; }
+    public DbSet<EVDetail> EvDetails { get; set; }
 
-    public virtual DbSet<Favorite> Favorites { get; set; }
+    public DbSet<Favorite> Favorites { get; set; }
 
-    public virtual DbSet<Item> Items { get; set; }
+    public DbSet<Item> Items { get; set; }
 
-    public virtual DbSet<ItemBidding> ItemBiddings { get; set; }
+    public DbSet<ItemBidding> ItemBiddings { get; set; }
 
-    public virtual DbSet<ItemImage> ItemImages { get; set; }
+    public DbSet<ItemImage> ItemImages { get; set; }
 
-    public virtual DbSet<KycDocument> KycDocuments { get; set; }
+    public DbSet<KycDocument> KycDocuments { get; set; }
 
-    public virtual DbSet<Order> Orders { get; set; }
+    public DbSet<Order> Orders { get; set; }
 
-    public virtual DbSet<OrderItem> OrderItems { get; set; }
+    public DbSet<OrderItem> OrderItems { get; set; }
 
-    public virtual DbSet<Payment> Payments { get; set; }
+    public DbSet<Payment> Payments { get; set; }
 
-    public virtual DbSet<PaymentDetail> PaymentDetails { get; set; }
+    public DbSet<PaymentDetail> PaymentDetails { get; set; }
 
-    public virtual DbSet<Review> Reviews { get; set; }
+    public DbSet<Review> Reviews { get; set; }
 
-    public virtual DbSet<ReviewImage> ReviewImages { get; set; }
+    public DbSet<ReviewImage> ReviewImages { get; set; }
 
-    public virtual DbSet<User> Users { get; set; }
+    public DbSet<User> Users { get; set; }
 
-    public virtual DbSet<UserLog> UserLogs { get; set; }
+    public DbSet<UserLog> UserLogs { get; set; }
 
-    public virtual DbSet<Wallet> Wallets { get; set; }
+    public DbSet<Wallet> Wallets { get; set; }
 
-    public virtual DbSet<WalletTransaction> WalletTransactions { get; set; }
+    public DbSet<WalletTransaction> WalletTransactions { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

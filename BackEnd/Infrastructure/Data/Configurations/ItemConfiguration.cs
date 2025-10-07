@@ -30,33 +30,12 @@ namespace Infrastructure.Data.Configurations
             entity.Property(e => e.UpdatedBy).HasColumnName("updated_by");
             entity.Property(e => e.IsDeleted).HasColumnName("is_deleted");
 
-            // Relationship: Item -> Category (many items belong to one category)
-            //entity.HasOne(e => e.Category)
-            //      .WithMany(c => c.Items)
-            //      .HasForeignKey(e => e.CategoryId)
-            //      .HasConstraintName("FK_Item_Category");
-
-            // Relationship: Item updated_by -> Users (many items can be updated by one user)
-            //entity.HasOne(e => e.UpdatedByUser)
-            //      .WithMany(u => u.UpdatedItems)
-            //      .HasForeignKey(e => e.UpdatedBy)
-            //      .HasConstraintName("FK_Item_UpdatedBy_User")
-            //      .OnDelete(DeleteBehavior.SetNull);
-
-            //entity.HasOne<User>()
-            //   .WithMany()
-            //   .HasForeignKey(i => i.UpdatedBy)
-            //   .OnDelete(DeleteBehavior.Restrict);
-
-            // ========================
-            // Relationships (chỉ định bằng khóa ngoại)
-            // ========================
-            entity.HasOne<Category>()              // không cần nav, chỉ map
+            entity.HasOne<Category>()              //Relationship: Item -> Category (many items belong to one category)
                    .WithMany()
                    .HasForeignKey(i => i.CategoryId)
                    .OnDelete(DeleteBehavior.Restrict);
 
-            entity.HasOne<User>()                  // UpdatedBy → User
+            entity.HasOne<User>()                  // UpdatedBy → User, Relationship: Item updated_by -> Users (many items can be updated by one user)
                    .WithMany()
                    .HasForeignKey(i => i.UpdatedBy)
                    .OnDelete(DeleteBehavior.Restrict);

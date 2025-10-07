@@ -1,4 +1,4 @@
-using Application.IRepositories.IBiddingRepositories;
+﻿using Application.IRepositories.IBiddingRepositories;
 using Application.IRepositories;
 using Application.IServices;
 using Application.Services;
@@ -11,7 +11,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Net.payOS;
 using System.Text;
-using Domain.DTOs;
+using Application.DTOs;
 
 namespace PresentationLayer
 {
@@ -30,14 +30,14 @@ namespace PresentationLayer
             builder.Services.AddScoped<IItemService, ItemService>();
             builder.Services.AddScoped<IOrderService, OrderService>();
             builder.Services.AddScoped<IUserService, UserService>();
-            builder.Services.AddScoped<IEvDetailService, EvDetailService>();
+            builder.Services.AddScoped<IEVDetailService, EVDetailService>();
             builder.Services.AddScoped<IBatteryDetailService, BatteryDetailService>();
             builder.Services.AddScoped<IHistorySoldService, HistorySoldService>();
             //---Repositories
             builder.Services.AddScoped<IUserRepository, UserRepository>();
             builder.Services.AddScoped<IItemRepository, ItemRepository>();
             builder.Services.AddScoped<IOrderRepository, OrderRepository>();
-            builder.Services.AddScoped<IEvDetailRepository, EvDetailRepository>();
+            builder.Services.AddScoped<IEVDetailRepository, EVDetailRepository>();
             builder.Services.AddScoped<IBatteryDetailRepository, BatteryDetailRepository>();
             builder.Services.AddScoped<IHistorySoldRepository, HistorySoldRepository>();
             //builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));

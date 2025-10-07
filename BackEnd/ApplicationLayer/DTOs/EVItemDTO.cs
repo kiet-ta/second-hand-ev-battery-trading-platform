@@ -8,7 +8,7 @@ namespace Application.DTOs
 {
     
     
-        public class EVItemDTO
+        public class EVItemDto
         {
             public int ItemId { get; set; }
             public string Title { get; set; }
@@ -26,7 +26,7 @@ namespace Application.DTOs
             //public int TotalDays => SoldAt.HasValue ? (SoldAt.Value - CreatedAt).Days : 0;
 
             public string? ImageUrl { get; set; }
-            public BuyerDTO? Buyer { get; set; }
+            public BuyerDto? Buyer { get; set; }
        }
     
 

@@ -38,9 +38,6 @@ public class UserRepository : IUserRepository
         await _context.Users.AddAsync(user);
         await _context.SaveChangesAsync();
     }
-
-    //public async Task<User?> GetNewVehicles
-
     public async Task<List<(string Role, int Count)>> GetUsersByRoleAsync()
     {
         var result = await _context.Users

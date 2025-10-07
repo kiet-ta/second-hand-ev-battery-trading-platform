@@ -24,18 +24,6 @@ namespace Infrastructure.Data.Configurations
             entity.Property(e => e.Comment).HasColumnName("comment");
             entity.Property(e => e.CreatedAt).HasColumnName("created_at");
             entity.Property(e => e.UpdatedAt).HasColumnName("updated_at");
-
-            // Relationship: Review -> Reviewer (User)
-            //entity.HasOne(r => r.Reviewer)
-            //      .WithMany(u => u.ReviewsGiven)
-            //      .HasForeignKey(r => r.ReviewerId)
-            //      .HasConstraintName("FK_Review_Reviewer");
-
-            // Relationship: Review -> TargetUser (User)
-            //entity.HasOne(r => r.TargetUser)
-            //      .WithMany(u => u.ReviewsReceived)
-            //      .HasForeignKey(r => r.TargetUserId)
-            //      .HasConstraintName("FK_Review_TargetUser");
         }
     }
 }

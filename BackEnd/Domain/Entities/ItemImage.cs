@@ -10,6 +10,4 @@ public class ItemImage
     public int ItemId { get; set; }
 
     public string? ImageUrl { get; set; }
-
-    //public virtual Item Item { get; set; } = null!;
 }

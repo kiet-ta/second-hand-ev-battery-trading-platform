@@ -23,11 +23,6 @@ namespace Infrastructure.Data.Configurations
             entity.Property(e => e.IsDefault).HasColumnName("is_default");
             entity.Property(e => e.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("GETDATE()");
             entity.Property(e => e.IsDeleted).HasColumnName("is_deleted");
-
-            // Quan hệ: 1 User -> nhiều Address
-            //entity.HasOne(e => e.User)
-            //      .WithMany(u => u.Addresses)
-            //      .HasForeignKey(e => e.UserId);
         }
     }
 }
