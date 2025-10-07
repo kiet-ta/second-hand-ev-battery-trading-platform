@@ -33,6 +33,8 @@ namespace PresentationLayer
             builder.Services.AddScoped<IEVDetailService, EVDetailService>();
             builder.Services.AddScoped<IBatteryDetailService, BatteryDetailService>();
             builder.Services.AddScoped<IHistorySoldService, HistorySoldService>();
+            builder.Services.AddScoped<ISellerDashboardService, SellerDashboardService>();
+            builder.Services.AddScoped<IAuctionService, AuctionService>();
             //---Repositories
             builder.Services.AddScoped<IUserRepository, UserRepository>();
             builder.Services.AddScoped<IItemRepository, ItemRepository>();
@@ -40,7 +42,12 @@ namespace PresentationLayer
             builder.Services.AddScoped<IEVDetailRepository, EVDetailRepository>();
             builder.Services.AddScoped<IBatteryDetailRepository, BatteryDetailRepository>();
             builder.Services.AddScoped<IHistorySoldRepository, HistorySoldRepository>();
-            //builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
+            builder.Services.AddScoped<IItemBiddingRepository, ItemBiddingRepository>();
+            builder.Services.AddScoped<IBidRepository, BidRepository>();
+            builder.Services.AddScoped<IWalletRepository, WalletRepository>();
+            builder.Services.AddScoped<IWalletTransactionRepository, WalletTransactionRepository>();
+            builder.Services.AddScoped<IEmailRepository, EmailTemplateRepository>();
+            builder.Services.AddScoped<IPaymentDetailRepository, PaymentDetailRepository>();
 
             // JWT Authentication
             builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)

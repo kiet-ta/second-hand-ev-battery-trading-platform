@@ -198,5 +198,24 @@ namespace Infrastructure.Repositories
 
             return result;
         }
+
+        //Feature: Seller Dashboard
+        public async Task<int> CountAllBySellerAsync(int sellerId)
+        {
+            return await _context.Items.CountAsync(i => i.UpdatedBy == sellerId && !i.IsDeleted);
+        }
+
+        public async Task<int> CountByStatusAsync(int sellerId, string status)
+        {
+            return await _context.Items.CountAsync(i => i.UpdatedBy == sellerId && i.Status == status && !i.IsDeleted);
+        }
+
+        public async Task<decimal> GetTotalRevenueAsync(int sellerId)
+        {
+            return await _context.PaymentDetails
+                .Where(p => _context.Items
+                    .Any(i => i.ItemId == p.ItemId && i.UpdatedBy == sellerId))
+                .SumAsync(p => p.Amount);
+        }
     }
 }
