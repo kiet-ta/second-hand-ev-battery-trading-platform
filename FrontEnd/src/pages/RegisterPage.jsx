@@ -6,8 +6,9 @@ import banner2 from '../assets/images/banner2.png';
 import banner3 from '../assets/images/banner3.png';
 import { Link } from 'react-router-dom';
 import { Popover } from 'antd';
-import UserService from '../UserService';
+import authApi from '../api/authApi'
 import { FaRegEyeSlash, FaRegEye } from "react-icons/fa";
+import PasswordInput from '../components/PasswordInput';
 
 export default function RegisterPage() {
     const clientId =
@@ -167,7 +168,7 @@ export default function RegisterPage() {
                 fullname
             };
 
-            const res = await UserService.register(newUser);
+            const res = await authApi.register(newUser);
             console.log("Register success:", res);
             alert("Đăng ký thành công ✅");
         } catch (err) {

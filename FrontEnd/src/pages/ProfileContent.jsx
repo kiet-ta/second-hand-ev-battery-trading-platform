@@ -12,6 +12,7 @@ import { IoMdSearch } from "react-icons/io";
 import { IoMdNotificationsOutline } from "react-icons/io";
 import { IoCartOutline } from "react-icons/io5";
 import { MdLogout } from "react-icons/md";
+import Logo from "../components/Logo/Logo";
 
 const ProfileContent = () => {
     const [activeSection, setActiveSection] = useState("profile");
@@ -66,9 +67,8 @@ const ProfileContent = () => {
         <div className="profile-layout">
             {/* Sidebar */}
             <div className="sidebar">
-                <div className="sidebar-header">
-                    <img src={Logo} alt="Logo" className="logo" />
-                    <h1 className="logo">Cóc Mua Xe</h1>
+                <div className="bg-maincolor">
+                    <Logo/>
                 </div>
 
                 <nav className="sidebar-nav">
