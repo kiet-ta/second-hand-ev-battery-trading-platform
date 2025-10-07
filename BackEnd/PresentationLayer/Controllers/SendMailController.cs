@@ -18,7 +18,7 @@ namespace PresentationLayer.Controllers
         }
 
         [HttpPost("welcome")]
-        public async Task<IActionResult> SendWelcome([FromBody] WelcomeDTO request)
+        public async Task<IActionResult> SendWelcome([FromBody] WelcomeDto request)
         {
             if (string.IsNullOrWhiteSpace(request.To))
                 return BadRequest(new { status = "error", message = "Missing required field: To." });
@@ -35,7 +35,7 @@ namespace PresentationLayer.Controllers
         }
 
         [HttpPost("ban")]
-        public async Task<IActionResult> SendBan([FromBody] BanDTO request)
+        public async Task<IActionResult> SendBan([FromBody] BanDto request)
         {
             if (string.IsNullOrWhiteSpace(request.To) || string.IsNullOrWhiteSpace(request.Reason))
                 return BadRequest(new { status = "error", message = "Missing required fields: To, Reason." });
@@ -52,7 +52,7 @@ namespace PresentationLayer.Controllers
         }
 
         [HttpPost("purchase-success")]
-        public async Task<IActionResult> SendPurchaseSuccess([FromBody] PurchaseSuccessDTO request)
+        public async Task<IActionResult> SendPurchaseSuccess([FromBody] PurchaseSuccessDto request)
         {
             if (string.IsNullOrWhiteSpace(request.To) || string.IsNullOrWhiteSpace(request.OrderId))
                 return BadRequest(new { status = "error", message = "Missing required fields: To, OrderId." });
@@ -69,7 +69,7 @@ namespace PresentationLayer.Controllers
         }
 
         [HttpPost("purchase-fail")]
-        public async Task<IActionResult> SendPurchaseFail([FromBody] PurchaseFailedDTO request)
+        public async Task<IActionResult> SendPurchaseFail([FromBody] PurchaseFailedDto request)
         {
             if (string.IsNullOrWhiteSpace(request.To) || string.IsNullOrWhiteSpace(request.OrderId) || string.IsNullOrWhiteSpace(request.Reason))
                 return BadRequest(new { status = "error", message = "Missing required fields: To, OrderId, Reason." });

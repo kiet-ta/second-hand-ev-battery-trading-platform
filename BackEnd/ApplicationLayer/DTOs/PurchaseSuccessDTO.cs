@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Application.DTOs
 {
-    public class PurchaseSuccessDTO
+    public class PurchaseSuccessDto
     {
         public required string To { get; set; }
         public string ActionUrl { get; set; } = "#";

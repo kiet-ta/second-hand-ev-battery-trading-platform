@@ -19,7 +19,7 @@ namespace Application.Services
             _templateRepository = templateRepository;
         }
 
-        public async Task SendWelcomeMailAsync(WelcomeDTO request, string url)
+        public async Task SendWelcomeMailAsync(WelcomeDto request, string url)
         {
             var template = await _templateRepository.GetWelcomeTemplate(request.To, url);
 
@@ -27,7 +27,7 @@ namespace Application.Services
             await SendAsync(message);
         }
 
-        public async Task SendBanMailAsync(BanDTO request, string reason, string url)
+        public async Task SendBanMailAsync(BanDto request, string reason, string url)
         {
             var template = await _templateRepository.GetBanTemplate(request.To, reason, url);
 
@@ -35,7 +35,7 @@ namespace Application.Services
             await SendAsync(message);
         }
 
-        public async Task SendPurchaseSuccessMailAsync(PurchaseSuccessDTO request, string orderId, string url)
+        public async Task SendPurchaseSuccessMailAsync(PurchaseSuccessDto request, string orderId, string url)
         {
             var template = await _templateRepository.GetPurchaseSuccessTemplate(request.To, orderId, url);
 
@@ -43,7 +43,7 @@ namespace Application.Services
             await SendAsync(message);
         }
 
-        public async Task SendPurchaseFailedMailAsync(PurchaseFailedDTO request, string orderId, string reason, string url)
+        public async Task SendPurchaseFailedMailAsync(PurchaseFailedDto request, string orderId, string reason, string url)
         {
             var template = await _templateRepository.GetPurchaseFailedTemplate(request.To, orderId, reason, url);
 

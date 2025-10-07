@@ -17,9 +17,9 @@ namespace Application.IRepositories
 
         Task<List<Item>> GetProcessingItemsAsync(int sellerId);
 
-        Task<List<EVItemDTO>> MapToEVItemsAsync(List<Item> evItems);
+        Task<List<EVItemDto>> MapToEVItemsAsync(List<Item> evItems);
 
         Task<List<Item>> GetAllSellerItemsAsync(int sellerId);
-        Task<List<BatteryItemDTO>> MapToBatteryItemsAsync(List<Item> batteryItems);
+        Task<List<BatteryItemDto>> MapToBatteryItemsAsync(List<Item> batteryItems);
     }
 }

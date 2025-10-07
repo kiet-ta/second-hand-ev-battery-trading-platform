@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Application.DTOs
 {
-    public class BatteryItemDTO
+    public class BatteryItemDto
     {
         public int ItemId { get; set; }
         public string? Brand { get; set; }
@@ -23,6 +23,6 @@ namespace Application.DTOs
         //public int TotalDays => (SoldAt - CreatedAt).Days;
 
         public string? ImageUrl { get; set; }
-        public BuyerDTO? Buyer { get; set; }
+        public BuyerDto? Buyer { get; set; }
     }
 }
