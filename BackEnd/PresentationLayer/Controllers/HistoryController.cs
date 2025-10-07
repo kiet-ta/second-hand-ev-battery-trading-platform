@@ -34,57 +34,24 @@ namespace PresentationLayer.Controllers
             var result = await _itemService.GetBoughtItemsWithDetailsAsync(userId);
             return Ok(result);
         }
-        // Hàm helper gọn gàng
-        private async Task<IActionResult> ExecuteSellerActionAsync(Func<int, Task<List<object>>> action, int sellerId, string notFoundMessage)
+
+
+
+        [HttpGet("{sellerId}")]
+        public async Task<IActionResult> GetAllHistory(int sellerId)
         {
             try
             {
-                var result = await action(sellerId);
-                if (result.Count == 0)
-                    return NotFound(new { Message = notFoundMessage });
+                var seller = await _historySoldService.GetAllSellerItemsAsync(sellerId);
+                if (seller == null || seller.Count == 0)
+                    return NotFound(new { Message = "Seller không tồn tại hoặc chưa có item nào." });
 
-                return Ok(result);
+                return Ok(seller);
             }
-            catch (KeyNotFoundException ex)
+            catch (Exception ex)
             {
-                return NotFound(new { Message = ex.Message });
+                return StatusCode(500, new { Message = "Lỗi hệ thống: " + ex.Message });
             }
         }
-
-        // 1. Get All Seller Items
-        [HttpGet("all/{sellerId}")]
-        public Task<IActionResult> GetAllSellerItems(int sellerId) =>
-            ExecuteSellerActionAsync(
-                _historySoldService.GetAllSellerItemsAsync,
-                sellerId,
-                "Seller does not exist or no items available."
-            );
-
-        // 2. Get Processing Items
-        [HttpGet("processing/{sellerId}")]
-        public Task<IActionResult> GetProcessingItems(int sellerId) =>
-            ExecuteSellerActionAsync(
-                _historySoldService.GetProcessingItemsAsync,
-                sellerId,
-                "No items found being processed."
-            );
-
-        // 3. Get Pending Payment Items
-        [HttpGet("pending/{sellerId}")]
-        public Task<IActionResult> GetPendingPaymentItems(int sellerId) =>
-            ExecuteSellerActionAsync(
-                _historySoldService.GetPendingPaymentItemsAsync,
-                sellerId,
-                "No items found for checkout."
-            );
-
-        // 4. Get Sold Items
-        [HttpGet("sold/{sellerId}")]
-        public Task<IActionResult> GetSoldItems(int sellerId) =>
-            ExecuteSellerActionAsync(
-                _historySoldService.GetSoldPaymentItemsAsync,
-                sellerId,
-                "No items found for sale."
-            );
     }
 }
