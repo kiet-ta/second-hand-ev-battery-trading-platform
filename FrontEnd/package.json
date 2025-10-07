@@ -11,6 +11,8 @@
     "test": "vitest"
   },
   "dependencies": {
+    "@cloudinary/react": "^1.14.3",
+    "@cloudinary/url-gen": "^1.22.0",
     "@tailwindcss/vite": "^4.1.13",
     "antd": "^5.27.4",
     "axios": "^1.12.2",

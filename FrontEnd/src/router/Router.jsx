@@ -14,6 +14,10 @@ import UserManagementSystem from '../pages/UserManagementSystem';
 import SellerDashboard from '../pages/DashboardSeller';
 import PurchaseHistory from '../components/HistoryBought';
 import SellerHistory from '../components/HistorySold';
+import DetailedCheckoutPage from '../pages/DetailCheckout';
+import SellerAuctionListPage from '../pages/SellerAuctionListPage';
+import BlogList from "../pages/BlogList";
+import BlogDetail from "../pages/BlogDetail";
 
 export const router = createBrowserRouter([
     {
@@ -74,7 +78,18 @@ export const router = createBrowserRouter([
     {
         path: "/sold",
         element: <SellerHistory />
+    },
+    {
+        path: "/detailcheckout",
+        element: <DetailedCheckoutPage />
+    },
+    {
+        path: "/blog",
+        element: <BlogList />
+    },
+    {
+        path: "/blog/:id",
+        element: <BlogDetail />
     }
-
 
 ]);
