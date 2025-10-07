@@ -11,9 +11,9 @@ namespace Infrastructure.Repositories
 {
     public class HistorySoldRepository : IHistorySoldRepository
     {
-        private readonly AppDbContext _context;
+        private readonly EvBatteryTradingContext _context;
 
-        public HistorySoldRepository(AppDbContext context)
+        public HistorySoldRepository(EvBatteryTradingContext context)
         {
             _context = context;
         }
@@ -34,7 +34,7 @@ namespace Infrastructure.Repositories
         public async Task<List<Item>> GetAllSellerItemsAsync(int sellerId)
         {
             return await _context.Items
-                .Where(i => i.UpdatedBy == sellerId && !i.IsDeleted)
+                .Where(i => i.UpdatedBy == sellerId && !(i.IsDeleted == false))
                 .ToListAsync();
         }
 
@@ -134,7 +134,7 @@ namespace Infrastructure.Repositories
 
             var query = from item in _context.Items
                         where itemIds.Contains(item.ItemId)
-                        join ev in _context.EVDetails on item.ItemId equals ev.ItemId
+                        join ev in _context.EvDetails on item.ItemId equals ev.ItemId
                         join img in _context.ItemImages on item.ItemId equals img.ItemId into images
                         from img in images.DefaultIfEmpty()
                         join oi in _context.OrderItems on item.ItemId equals oi.ItemId into orderItems

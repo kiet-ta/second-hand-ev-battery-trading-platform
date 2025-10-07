@@ -21,29 +21,12 @@ public class Item
 
     public string? Status { get; set; }
 
-    public DateOnly? CreatedAt { get; set; }
+    public DateOnly CreatedAt { get; set; }
 
-    public DateOnly? UpdatedAt { get; set; }
+    public DateOnly UpdatedAt { get; set; }
 
     public int? UpdatedBy { get; set; }
 
-    public bool? IsDeleted { get; set; }
+    public bool IsDeleted { get; set; }
 
-    //public virtual BatteryDetail? BatteryDetail { get; set; }
-
-    //public virtual Category? Category { get; set; }
-
-    //public virtual EvDetail? EvDetail { get; set; }
-
-    //public virtual ICollection<Favorite> Favorites { get; set; } = new List<Favorite>();
-
-    //public virtual ItemBidding? ItemBidding { get; set; }
-
-    //public virtual ICollection<ItemImage> ItemImages { get; set; } = new List<ItemImage>();
-
-    //public virtual ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
-
-    //public virtual ICollection<PaymentDetail> PaymentDetails { get; set; } = new List<PaymentDetail>();
-
-    //public virtual User? UpdatedByNavigation { get; set; }
 }

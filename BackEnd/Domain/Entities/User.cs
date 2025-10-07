@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Domain.Entities;
 
@@ -23,15 +21,15 @@ public class User
 
     public string? AvatarProfile { get; set; }
 
-    public string Role { get; set; } = "Buyer";
+    public string? Role { get; set; }
 
-    public string KycStatus { get; set; } = "not_submitted";
+    public string? KycStatus { get; set; }
 
-    public string AccountStatus { get; set; } = "active";
+    public string? AccountStatus { get; set; }
 
-    public DateTime CreatedAt { get; set; } = DateTime.Now;
+    public DateTime? CreatedAt { get; set; }
 
-    public DateTime UpdatedAt { get; set; } = DateTime.Now;
+    public DateTime? UpdatedAt { get; set; }
 
-    public bool? IsDeleted { get; set; }
+    public bool IsDeleted { get; set; } = false;
 }

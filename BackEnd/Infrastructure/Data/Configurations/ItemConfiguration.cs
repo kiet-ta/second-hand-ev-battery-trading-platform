@@ -61,9 +61,9 @@ namespace Infrastructure.Data.Configurations
                    .HasForeignKey(i => i.UpdatedBy)
                    .OnDelete(DeleteBehavior.Restrict);
 
-            entity.HasOne<EvDetail>()              // Item ↔ EVDetail (1-1)
+            entity.HasOne<EVDetail>()              // Item ↔ EVDetail (1-1)
                    .WithOne()
-                   .HasForeignKey<EvDetail>(ev => ev.ItemId)
+                   .HasForeignKey<EVDetail>(ev => ev.ItemId)
                    .OnDelete(DeleteBehavior.Cascade);
 
             entity.HasOne<BatteryDetail>()         // Item ↔ BatteryDetail (1-1)

@@ -45,7 +45,7 @@ namespace Application.Services
 
             await _itemRepo.AddAsync(item, ct);
             await _itemRepo.SaveChangesAsync(); // Save to get ItemId if DB generates it
-            var ev = new EvDetail
+            var ev = new EVDetail
             {
                 ItemId = item.ItemId, // IMPORTANT: if using DB identity, ItemId won't be populated until SaveChanges.
                 Brand = dto.Brand,
@@ -158,7 +158,7 @@ namespace Application.Services
             return true;
         }
 
-        private static EvDetailDto MapToDto(EvDetail e, Item? item)
+        private static EvDetailDto MapToDto(EVDetail e, Item? item)
             => new EvDetailDto
             {
                 ItemId = e.ItemId,

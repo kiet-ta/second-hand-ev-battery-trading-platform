@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Application.IRepositories
 {
-    public interface IItemRepository //: IRepository<Item>
+    public interface IItemRepository
     {
         Task<Item> AddAsync(Item item, CancellationToken ct = default);
         Task<Item?> GetByIdAsync(int itemId, CancellationToken ct = default);

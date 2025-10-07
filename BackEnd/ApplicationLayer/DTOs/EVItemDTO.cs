@@ -18,15 +18,15 @@ namespace Application.DTOs
             public int? Year { get; set; }
             public decimal? ListedPrice { get; set; }
             public decimal? ActualPrice { get; set; }
-            public string PaymentMethod { get; set; }
-            public string Status { get; set; }
+            public string? PaymentMethod { get; set; }
+            public string? Status { get; set; }
 
-            public DateTime CreatedAt { get; set; } 
-            public DateTime? SoldAt { get; set; }  
-            public int TotalDays => SoldAt.HasValue ? (SoldAt.Value - CreatedAt).Days : 0;
+            public DateOnly CreatedAt { get; set; } 
+            public DateOnly SoldAt { get; set; }  
+            //public int TotalDays => SoldAt.HasValue ? (SoldAt.Value - CreatedAt).Days : 0;
 
-            public string ImageUrl { get; set; }
-            public BuyerDTO Buyer { get; set; }
+            public string? ImageUrl { get; set; }
+            public BuyerDTO? Buyer { get; set; }
        }
     
 
