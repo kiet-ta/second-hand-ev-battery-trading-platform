@@ -10,10 +10,10 @@ using System.Threading.Tasks;
 
 namespace Infrastructure.Repositories
 {
-    public class EvDetailRepository : IEvDetailRepository
+    public class EVDetailRepository : IEVDetailRepository
     {
         private readonly EvBatteryTradingContext _ctx;
-        public EvDetailRepository(EvBatteryTradingContext ctx) => _ctx = ctx;
+        public EVDetailRepository(EvBatteryTradingContext ctx) => _ctx = ctx;
 
         public async Task AddAsync(EVDetail evDetail, CancellationToken ct = default)
         {

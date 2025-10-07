@@ -16,12 +16,4 @@ public class Order
     public DateOnly? CreatedAt { get; set; }
 
     public DateOnly? UpdatedAt { get; set; }
-
-    //public virtual Address Address { get; set; } = null!;
-
-    //public virtual User Buyer { get; set; } = null!;
-
-    //public virtual ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
-
-    //public virtual ICollection<PaymentDetail> PaymentDetails { get; set; } = new List<PaymentDetail>();
 }

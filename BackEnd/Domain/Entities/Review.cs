@@ -18,10 +18,4 @@ public class Review
     public DateOnly? CreatedAt { get; set; }
 
     public DateOnly? UpdatedAt { get; set; }
-
-    //public virtual ICollection<ReviewImage> ReviewImages { get; set; } = new List<ReviewImage>();
-
-    //public virtual User Reviewer { get; set; } = null!;
-
-    //public virtual User TargetUser { get; set; } = null!;
 }

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Application.DTOs
 {
-    public class BanDTO
+    public class BanDto
     {
         public required string To { get; set; }
 

@@ -11,13 +11,13 @@ using System.Threading.Tasks;
 
 namespace Application.Services
 {
-    public class EvDetailService : IEvDetailService
+    public class EVDetailService : IEVDetailService
     {
         private readonly IItemRepository _itemRepo;
-        private readonly IEvDetailRepository _evRepo;
+        private readonly IEVDetailRepository _evRepo;
         //private readonly IUnitOfWork _uow;
 
-        public EvDetailService(IItemRepository itemRepo, IEvDetailRepository evRepo) //, IUnitOfWork uow)
+        public EVDetailService(IItemRepository itemRepo, IEVDetailRepository evRepo) //, IUnitOfWork uow)
         {
             _itemRepo = itemRepo;
             _evRepo = evRepo;

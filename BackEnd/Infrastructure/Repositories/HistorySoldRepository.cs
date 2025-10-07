@@ -81,7 +81,7 @@ namespace Infrastructure.Repositories
                 .ToListAsync();
         }
 #pragma warning disable CS8601#pragma warning disable CS8601
-        public async Task<List<BatteryItemDTO>> MapToBatteryItemsAsync(List<Item> batteryItems)
+        public async Task<List<BatteryItemDto>> MapToBatteryItemsAsync(List<Item> batteryItems)
         {
             var itemIds = batteryItems.Select(i => i.ItemId).ToList();
 
@@ -102,7 +102,7 @@ namespace Infrastructure.Repositories
                         from pd in payments.DefaultIfEmpty()
                         join p in _context.Payments on pd.PaymentId equals p.PaymentId into paymentList
                         from p in paymentList.DefaultIfEmpty()
-                        select new BatteryItemDTO
+                        select new BatteryItemDto
                         {
                             ItemId = item.ItemId,
                             Brand = battery.Brand,
@@ -116,7 +116,7 @@ namespace Infrastructure.Repositories
                             CreatedAt = item.CreatedAt,
                             SoldAt = item.UpdatedAt,
                             ImageUrl = img != null ? img.ImageUrl : null,
-                            Buyer = u != null ? new BuyerDTO
+                            Buyer = u != null ? new BuyerDto
                             {
                                 BuyerId = u.UserId,
                                 FullName = u.FullName,
@@ -128,7 +128,7 @@ namespace Infrastructure.Repositories
             return await query.ToListAsync();
         }
 
-        public async Task<List<EVItemDTO>> MapToEVItemsAsync(List<Item> evItems)
+        public async Task<List<EVItemDto>> MapToEVItemsAsync(List<Item> evItems)
         {
             var itemIds = evItems.Select(i => i.ItemId).ToList();
 
@@ -149,7 +149,7 @@ namespace Infrastructure.Repositories
                         from pd in payments.DefaultIfEmpty()
                         join p in _context.Payments on pd.PaymentId equals p.PaymentId into paymentList
                         from p in paymentList.DefaultIfEmpty()
-                        select new EVItemDTO
+                        select new EVItemDto
                         {
                             ItemId = item.ItemId,
                             Title = item.Title,
@@ -164,7 +164,7 @@ namespace Infrastructure.Repositories
                             CreatedAt = item.CreatedAt,
                             SoldAt = item.UpdatedAt,
                             ImageUrl = img != null ? img.ImageUrl : null,
-                            Buyer = u != null ? new BuyerDTO
+                            Buyer = u != null ? new BuyerDto
                             {
                                 BuyerId = u.UserId,
                                 FullName = u.FullName,

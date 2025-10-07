@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Application.IRepositories
 {
-    public interface IEvDetailRepository
+    public interface IEVDetailRepository
     {
         Task<EVDetail?> GetByIdAsync(int itemId, CancellationToken ct = default);
         Task<IEnumerable<EVDetail>> GetAllAsync(CancellationToken ct = default);

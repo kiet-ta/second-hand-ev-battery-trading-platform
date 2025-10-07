@@ -46,11 +46,6 @@ namespace Infrastructure.Repositories
 
             return query.AsNoTracking(); // Optimized for read-only queries
 
-            //return _context.Items
-            //    .Where(i => !(i.IsDeleted ?? false))
-            //    //.Include(i => i.UpdatedByUser) // nếu cần navigation
-            //    .AsNoTracking();
-
         }
 
         public async Task<Item> AddAsync(Item item, CancellationToken ct = default)
@@ -58,7 +53,6 @@ namespace Infrastructure.Repositories
             var en = (await _context.Items.AddAsync(item, ct)).Entity;
             return en;
         }
-        //public async Task AddAsync(Item item) => await _context.Items.AddAsync(item);
 
         public void Delete(Item item)
         {
@@ -72,9 +66,6 @@ namespace Infrastructure.Repositories
 
         public async Task<IEnumerable<Item>> GetAllAsync() =>
             await _context.Items.Where(i => !i.IsDeleted).ToListAsync();
-
-        //public async Task<Item?> GetByIdAsync(int id) =>
-        //    await _context.Items.FirstOrDefaultAsync(i => i.ItemId == id && !(i.IsDeleted ?? false));
         public async Task<Item?> GetByIdAsync(int itemId, CancellationToken ct = default)
             => await _context.Items.FindAsync(new object[] { itemId }, ct);
 

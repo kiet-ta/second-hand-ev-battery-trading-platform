@@ -22,8 +22,4 @@ public class KycDocument
     public string? Status { get; set; }
 
     public string? Note { get; set; }
-
-    //public virtual User User { get; set; } = null!;
-
-    //public virtual User? VerifiedByNavigation { get; set; }
 }
