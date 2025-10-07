@@ -46,7 +46,6 @@ namespace PresentationLayer.Controllers
             }
         }
 
-        // Ví dụ endpoint yêu cầu phải có JWT token
         [HttpGet("profile")]
         [Authorize]
         public IActionResult GetProfile()

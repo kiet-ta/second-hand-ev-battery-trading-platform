@@ -21,29 +21,23 @@ namespace Infrastructure.Repositories
 
         public async Task<Order> GetByIdAsync(int id)
         {
-            //return await _context.Orders
-            //    .Include(o => o.OrderItems)
-            //    .FirstOrDefaultAsync(o => o.OrderId == id);
-
             var order = await _context.Orders
         .FirstOrDefaultAsync(o => o.OrderId == id);
 
             if (order != null)
             {
-                // Load thủ công OrderItems qua OrderId
+                // Load OrderItems -> OrderId
                 var orderItems = await _context.OrderItems
                     .Where(oi => oi.OrderId == id)
                     .ToListAsync();
 
-                // Nếu muốn trả về dạng DTO
+                // If you want return OrderDto
                 order = new Order
                 {
                     OrderId = order.OrderId,
                     CreatedAt = order.CreatedAt,
-                    // gán các field khác
+                    // fields other...
                 };
-
-                // ánh xạ sang DTO chứa cả OrderItems nếu cần
             }
 
             return order!;

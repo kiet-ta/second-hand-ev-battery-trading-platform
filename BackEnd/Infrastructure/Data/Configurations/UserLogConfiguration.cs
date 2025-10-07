@@ -22,12 +22,6 @@ namespace Infrastructure.Data.Configurations
             entity.Property(e => e.Action).HasColumnName("action");
             entity.Property(e => e.Details).HasColumnName("details");
             entity.Property(e => e.CreatedAt).HasColumnName("created_at");
-
-            // Relationship: User_Log -> User
-            //entity.HasOne(l => l.User)
-            //      .WithMany(u => u.Logs)
-            //      .HasForeignKey(l => l.UserId)
-            //      .HasConstraintName("FK_UserLog_User");
         }
     }
 }

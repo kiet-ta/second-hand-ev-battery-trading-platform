@@ -32,10 +32,10 @@ namespace Application.Services
             var existing = await _userRepository.GetByEmailAsync(dto.Email);
             if (existing != null)
                 throw new Exception("Email already registered");
-
+            int userID = DateTime.Now.Date.GetHashCode();
             var user = new User
             {
-                UserId = dto.UserId,
+                UserId = userID,
                 FullName = dto.FullName,
                 Email = dto.Email,
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),

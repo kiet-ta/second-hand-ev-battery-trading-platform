@@ -20,13 +20,6 @@ namespace Infrastructure.Data.Configurations
             entity.Property(e => e.ImageId).HasColumnName("image_id");
             entity.Property(e => e.ItemId).HasColumnName("item_id");
             entity.Property(e => e.ImageUrl).HasColumnName("image_url");
-
-            // Relationship: Item_Image many -> Item one
-            //entity.HasOne(i => i.Item)
-            //      .WithMany(it => it.Images)
-            //      .HasForeignKey(i => i.ItemId)
-            //      .HasConstraintName("FK_ItemImage_Item")
-            //      .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

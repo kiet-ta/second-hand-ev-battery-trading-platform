@@ -1,4 +1,4 @@
-using Application.IRepositories.IBiddingRepositories;
+﻿using Application.IRepositories.IBiddingRepositories;
 using Application.IRepositories;
 using Application.IServices;
 using Application.Services;
@@ -11,7 +11,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Net.payOS;
 using System.Text;
-using Domain.DTOs;
+using Application.DTOs;
 
 namespace PresentationLayer
 {

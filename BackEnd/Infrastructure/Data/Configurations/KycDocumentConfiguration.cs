@@ -26,19 +26,6 @@ namespace Infrastructure.Data.Configurations
             entity.Property(e => e.VerifiedAt).HasColumnName("verified_at");
             entity.Property(e => e.Status).HasColumnName("status");
             entity.Property(e => e.Note).HasColumnName("note");
-
-            // Relationship: KYC_Document -> User (owner)
-            //entity.HasOne(k => k.User)
-            //      .WithMany(u => u.KycDocuments)
-            //      .HasForeignKey(k => k.UserId)
-            //      .HasConstraintName("FK_KYC_User");
-
-            // Relationship: KYC_Document -> VerifiedBy (User)
-            //entity.HasOne(k => k.VerifiedByUser)
-            //      .WithMany(u => u.KycVerifiedDocuments)
-            //      .HasForeignKey(k => k.VerifiedBy)
-            //      .HasConstraintName("FK_KYC_VerifiedBy_User")
-            //      .OnDelete(DeleteBehavior.SetNull);
         }
     }
 }

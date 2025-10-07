@@ -20,13 +20,6 @@ namespace Infrastructure.Data.Configurations
             entity.Property(e => e.ImageId).HasColumnName("image_id");
             entity.Property(e => e.ReviewId).HasColumnName("review_id");
             entity.Property(e => e.ImageUrl).HasColumnName("image_url");
-
-            // Relationship: Review_Image -> Review (many images per review)
-            //entity.HasOne(ri => ri.Review)
-            //      .WithMany(r => r.Images)
-            //      .HasForeignKey(ri => ri.ReviewId)
-            //      .HasConstraintName("FK_ReviewImage_Review")
-            //      .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

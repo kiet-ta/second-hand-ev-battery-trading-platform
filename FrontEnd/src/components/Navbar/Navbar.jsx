@@ -6,24 +6,18 @@ import { MdOutlineAttachMoney } from "react-icons/md";
 import Logo from '../Logo/Logo';
 import ProfileDropDown from '../ProfileDropDown';
 import { FaShoppingCart } from "react-icons/fa";
+import { FaSuitcase } from "react-icons/fa6";
+import { LuShoppingBag } from "react-icons/lu";
 
 
-function Navbar() {
+function Navbar(data) {
   const leftmenu = [
     { name: 'Home', link: '/', icon: <IoMdHome /> },
-    { name: 'Auction', link: '/auctions', icon: <RiAuctionFill /> },
-    { name: 'Seller', link: '/seller', icon: <MdOutlineAttachMoney /> }
+    { name: 'Auction', link: '/auctions', icon: <RiAuctionFill /> }
   ]
   const rightmenu = [
     { name: 'Notification', link: '/notification', icon: <IoMdHome /> },
     { name: 'Support', link: '/support' }]
-    const user ={
-      name: "Lady Furina",
-      picture: "https://i.pinimg.com/736x/5b/3f/09/5b3f09d67f448e39dab9e8d8f3cc3f94.jpg"
-    }
-localStorage.setItem('userprofile', JSON.stringify(user));
-  const userprofile = JSON.parse(localStorage.getItem('userprofile'));
-
   return (
 
     <div>
@@ -36,6 +30,19 @@ localStorage.setItem('userprofile', JSON.stringify(user));
                 <span className="ml-2">{item.name}</span>
               </Link>
             ))}
+            {data.data && data.data.role == "Manager" ? (
+              <Link to="/manage" className="mx-4 hover:text-green-300 flex items-center">
+                <FaSuitcase />
+                <span className="ml-2">Manager</span>
+              </Link>
+            ) : (
+              <Link to="/seller" className="mx-4 hover:text-green-300 flex items-center">
+                <FaSuitcase />
+                <span className="ml-2">Seller</span>
+              </Link>
+            )
+            }
+
           </div>
           <div className="right-header flex w-full justify-end" >
             {rightmenu.map((item, index) => (
@@ -44,9 +51,9 @@ localStorage.setItem('userprofile', JSON.stringify(user));
                 <span className="ml-2">{item.name}</span>
               </Link>
             ))}
-            {userprofile ? (
+            {data.data ? (
               <div className="ml-4 pt-5">
-                <ProfileDropDown users={userprofile} />
+                <ProfileDropDown users={data.data} />
               </div>
             )
               : (
@@ -62,19 +69,27 @@ localStorage.setItem('userprofile', JSON.stringify(user));
             }
           </div>
         </div>
-        <div className="w-full flex justify-around h-20">
-          <Logo className="absolute bottom-0 left-0" />
-          <div className="ml-10 w-1/2 content-center align-middle  ">
-            <form action='/search' method='GET'>
-              <input type="text" name="query" placeholder="Search..." className="w-full p-2 rounded-lg text-black bg-white" />
+        <div className="w-full flex h-20 items-center align-middle content-center">
+          <div className="w-1/4 h-full flex justify-start"><Logo></Logo></div>
+          <div className="content-center align-middle w-2/4">
+            <form action='/search' method='GET' className="w-full p-2 rounded-lg text-black bg-white relative">
+                <input type="text" name="query" placeholder="Search..." className="w-5/6"/>
+                <select className="bg-maincolor-darker w-1/6 absolute right-0 top-0 h-full align-middle text-center font-bold border-1" name="itemType">
+                <option value="EV">Vehicle</option>
+                <option value="Battery">Battery</option>
+                </select>
               <button type="submit" className="hidden">Search</button>
             </form>
           </div>
-          <div className="mt-10 w-1/5 flex justify-end items-center content-center gap-4">
-                        <Link to={'/cart'} className="mx-4 hover:text-green-300 flex items-center">
-                {<FaShoppingCart/>}
-                <span className="ml-2">Cart</span>
-              </Link>
+          <div className="w-1/4 flex justify-end">
+            <Link to={'/cart'} className="mx-4 hover:text-green-300 flex items-center">
+              {<FaShoppingCart />}
+              <span className="ml-2">Cart</span>
+            </Link>
+            <Link to={'/purchase'} className="mx-4 hover:text-green-300 flex items-center">
+              {<LuShoppingBag />}
+              <span className="ml-2">Purchase</span>
+            </Link>
           </div>
         </div>
       </div>

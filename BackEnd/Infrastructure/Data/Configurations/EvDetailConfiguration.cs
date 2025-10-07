@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Infrastructure.Data.Configurations
 {
-    public class EvDetailConfiguration : IEntityTypeConfiguration<EVDetail>
+    public class EVDetailConfiguration : IEntityTypeConfiguration<EVDetail>
     {
         public void Configure(EntityTypeBuilder<EVDetail> entity)
         {

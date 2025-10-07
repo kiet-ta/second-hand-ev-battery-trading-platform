@@ -1,7 +1,7 @@
 ﻿using Application.DTOs;
 using System.Threading.Tasks;
 
-namespace Application.Services
+namespace Application.IServices
 {
     public interface IMailService
     {

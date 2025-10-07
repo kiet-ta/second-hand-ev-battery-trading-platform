@@ -15,6 +15,7 @@ import PurchaseHistory from "../components/HistoryBought";
 import SellerHistory from "../components/HistorySold";
 import PaymentSuccessPage from "../pages/PaymentSuccessPage";
 import PaymentFailPage from "../pages/PaymentFailPage";
+import PurchasePage from "../pages/PurchasePage";
 
 export const router = createBrowserRouter([
   {
@@ -46,6 +47,10 @@ export const router = createBrowserRouter([
         path: "/checkout",
         element: <CheckoutPage />,
       },
+      {
+        path: "/purchase",
+        element: <PurchasePage/>
+      }
     ],
   },
   {

@@ -21,18 +21,6 @@ namespace Infrastructure.Data.Configurations
             entity.Property(e => e.UserId).HasColumnName("user_id");
             entity.Property(e => e.ItemId).HasColumnName("item_id");
             entity.Property(e => e.CreatedAt).HasColumnName("created_at");
-
-            // Relationship: Favorite -> User
-            //entity.HasOne(f => f.User)
-            //      .WithMany(u => u.Favorites)
-            //      .HasForeignKey(f => f.UserId)
-            //      .HasConstraintName("FK_Favorite_User");
-
-            // Relationship: Favorite -> Item
-            //entity.HasOne(f => f.Item)
-            //      .WithMany(i => i.Favorites)
-            //      .HasForeignKey(f => f.ItemId)
-            //      .HasConstraintName("FK_Favorite_Item");
         }
     }
 }

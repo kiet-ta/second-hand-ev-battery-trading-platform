@@ -312,8 +312,8 @@
     padding: 2rem 3rem;
     flex: 1;
     background-color: #f8fafc;
-    min-height: calc(100vh - 76px);
     box-sizing: border-box;
+    overflow-y: auto
 }
 
 .profile-main {

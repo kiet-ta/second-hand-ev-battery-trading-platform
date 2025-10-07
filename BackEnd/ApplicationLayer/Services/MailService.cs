@@ -1,6 +1,6 @@
 ﻿using Application.DTOs;
 using Application.IRepositories;
-using Domain.DTOs;
+using Application.IServices;
 using MailKit.Net.Smtp;
 using Microsoft.Extensions.Options;
 using MimeKit;
