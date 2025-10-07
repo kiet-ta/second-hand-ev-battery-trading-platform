@@ -1,4 +1,5 @@
 ﻿using Application.DTOs;
+using Application.DTOs.ItemDtos;
 using Domain.Entities;
 using System;
 using System.Collections.Generic;
@@ -21,5 +22,6 @@ namespace Application.IRepositories
 
         Task<List<Item>> GetAllSellerItemsAsync(int sellerId);
         Task<List<BatteryItemDto>> MapToBatteryItemsAsync(List<Item> batteryItems);
+        Task<List<Item>> GetCanceledItemsAsync(int sellerId);
     }
 }
