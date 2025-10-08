@@ -8,7 +8,7 @@ function CardComponent({ title, price, sales, image, type, id}) {
   return (
     <Link to={'/' + type + '/' + id} state={id}>
       <div className="border-gray-100 border-3 p-2 m-5 w-80 h-100 hover:border-maincolor hover:w-81 hover:h-101 hover:mt-2 bg-white rounded-lg shadow flex flex-col">
-        <div className="overflow-hidden h-4/6 w-full mx-auto bg-gray-400 flex items-center justify-center">
+        <div className="overflow-hidden h-4/6 w-full mx-auto bg-gray-400 flex items-center justify-center z-0">
           <img
             className="mx-auto rounded-lg bg-gray-50 object-cover w-full h-full"
             src={image}
