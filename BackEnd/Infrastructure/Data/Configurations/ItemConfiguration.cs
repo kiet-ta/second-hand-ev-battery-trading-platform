@@ -13,7 +13,7 @@ namespace Infrastructure.Data.Configurations
     {
         public void Configure(EntityTypeBuilder<Item> entity)
         {
-            entity.ToTable("Item");
+            entity.ToTable("items");
 
             entity.HasKey(e => e.ItemId);
 
@@ -49,6 +49,13 @@ namespace Infrastructure.Data.Configurations
                    .WithOne()
                    .HasForeignKey<BatteryDetail>(b => b.ItemId)
                    .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasMany(i => i.Reviews)
+                  .WithOne(r => r.Item)
+                  .HasForeignKey(r => r.ItemId)
+                  .OnDelete(DeleteBehavior.Cascade);
+
+
         }
     }
 }

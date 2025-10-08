@@ -40,6 +40,10 @@ namespace PresentationLayer
             builder.Services.AddScoped<IEVDetailRepository, EVDetailRepository>();
             builder.Services.AddScoped<IBatteryDetailRepository, BatteryDetailRepository>();
             builder.Services.AddScoped<IHistorySoldRepository, HistorySoldRepository>();
+            builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
+
+            builder.Services.AddScoped<IReviewService, ReviewService>();
+
             //builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 
             // JWT Authentication

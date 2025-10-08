@@ -13,13 +13,17 @@ namespace Infrastructure.Data.Configurations
     {
         public void Configure(EntityTypeBuilder<ReviewImage> entity)
         {
-            entity.ToTable("Review_Image");
+            entity.ToTable("review_images");
 
             entity.HasKey(e => e.ImageId);
 
             entity.Property(e => e.ImageId).HasColumnName("image_id");
             entity.Property(e => e.ReviewId).HasColumnName("review_id");
             entity.Property(e => e.ImageUrl).HasColumnName("image_url");
+            entity.HasOne(img => img.Review)
+             .WithMany(r => r.ReviewImages)
+             .HasForeignKey(img => img.ReviewId)
+             .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

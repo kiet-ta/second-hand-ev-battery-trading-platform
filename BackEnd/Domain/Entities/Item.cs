@@ -24,7 +24,7 @@ public class Item
     public DateOnly CreatedAt { get; set; }
 
     public DateOnly UpdatedAt { get; set; }
-
+    public virtual ICollection<Review> Reviews { get; set; } = new List<Review>();
     public int? UpdatedBy { get; set; }
 
     public bool IsDeleted { get; set; }
