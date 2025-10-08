@@ -36,13 +36,13 @@ namespace PresentationLayer
             builder.Services.AddScoped<ISellerDashboardService, SellerDashboardService>();
             builder.Services.AddScoped<IAuctionService, AuctionService>();
             //---Repositories
+            builder.Services.AddScoped<IAuctionRepository, AuctionRepository>();
             builder.Services.AddScoped<IUserRepository, UserRepository>();
             builder.Services.AddScoped<IItemRepository, ItemRepository>();
             builder.Services.AddScoped<IOrderRepository, OrderRepository>();
             builder.Services.AddScoped<IEVDetailRepository, EVDetailRepository>();
             builder.Services.AddScoped<IBatteryDetailRepository, BatteryDetailRepository>();
             builder.Services.AddScoped<IHistorySoldRepository, HistorySoldRepository>();
-            builder.Services.AddScoped<IItemBiddingRepository, ItemBiddingRepository>();
             builder.Services.AddScoped<IBidRepository, BidRepository>();
             builder.Services.AddScoped<IWalletRepository, WalletRepository>();
             builder.Services.AddScoped<IWalletTransactionRepository, WalletTransactionRepository>();
@@ -113,7 +113,7 @@ namespace PresentationLayer
             builder.Services.AddScoped<IUserService, UserService>();
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
-            builder.Configuration.AddUserSecrets<Program>(); 
+            builder.Configuration.AddUserSecrets<Program>();
             builder.Services.Configure<MailSettings>(builder.Configuration.GetSection("MailSettings"));
             builder.Services.AddScoped<IMailService, MailService>();
             builder.Services.AddScoped<IEmailRepository, EmailTemplateRepository>();
@@ -121,7 +121,6 @@ namespace PresentationLayer
             builder.Services.AddScoped<IWalletRepository, WalletRepository>();
             builder.Services.AddScoped<IBidRepository, BidRepository>();
             builder.Services.AddScoped<IAuctionService, AuctionService>();
-            builder.Services.AddScoped<IItemBiddingRepository, ItemBiddingRepository>();
             builder.Services.AddDbContext<EvBatteryTradingContext>(options =>
             options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
             //builder.Services.AddSwaggerGen();

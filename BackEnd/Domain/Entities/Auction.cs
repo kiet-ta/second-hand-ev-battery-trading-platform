@@ -1,8 +1,8 @@
-﻿namespace Application.DTOs;
+namespace Domain.Entities;
 
-public class ItemBiddingDto
+public class Auction
 {
-    public int BiddingId { get; set; }
+    public int AuctionId { get; set; }
 
     public int ItemId { get; set; }
 
@@ -10,11 +10,15 @@ public class ItemBiddingDto
 
     public decimal CurrentPrice { get; set; }
 
+    public int TotalBids { get; set; } = 0;
+
     public DateTime StartTime { get; set; }
 
     public DateTime EndTime { get; set; }
 
-    public string Status { get; set; } = "active";
+    public string Status { get; set; } = "upcoming"; // upcoming, ongoing, ended, cancelled
 
     public DateTime CreatedAt { get; set; } = DateTime.Now;
+
+    public DateTime UpdatedAt { get; set; } = DateTime.Now;
 }

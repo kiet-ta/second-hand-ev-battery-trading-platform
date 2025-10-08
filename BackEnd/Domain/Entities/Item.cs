@@ -7,7 +7,7 @@ public class Item
 {
     public int ItemId { get; set; }
 
-    public string? ItemType { get; set; }
+    public string ItemType { get; set; } = string.Empty;
 
     public int? CategoryId { get; set; }
 
@@ -28,5 +28,4 @@ public class Item
     public int? UpdatedBy { get; set; }
 
     public bool IsDeleted { get; set; }
-
 }

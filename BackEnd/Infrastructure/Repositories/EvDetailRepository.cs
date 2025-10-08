@@ -13,6 +13,7 @@ namespace Infrastructure.Repositories
     public class EVDetailRepository : IEVDetailRepository
     {
         private readonly EvBatteryTradingContext _ctx;
+
         public EVDetailRepository(EvBatteryTradingContext ctx) => _ctx = ctx;
 
         public async Task AddAsync(EVDetail evDetail, CancellationToken ct = default)

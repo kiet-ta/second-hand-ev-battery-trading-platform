@@ -19,6 +19,8 @@ public partial class EvBatteryTradingContext : DbContext
 
     public DbSet<Address> Addresses { get; set; }
 
+    public DbSet<Auction> Auctions { get; set; } 
+
     public DbSet<BatteryDetail> BatteryDetails { get; set; }
 
     public DbSet<Bid> Bids { get; set; }
@@ -33,7 +35,7 @@ public partial class EvBatteryTradingContext : DbContext
 
     public DbSet<Item> Items { get; set; }
 
-    public DbSet<ItemBidding> ItemBiddings { get; set; }
+    public DbSet<ItemBidding> ItemBiddings { get; set; } 
 
     public DbSet<ItemImage> ItemImages { get; set; }
 
