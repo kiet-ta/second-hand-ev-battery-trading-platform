@@ -8,7 +8,7 @@ namespace Infrastructure.Data.Configurations
     {
         public void Configure(EntityTypeBuilder<Address> entity)
         {
-            entity.ToTable("Address");
+            entity.ToTable("addresses");
 
             entity.HasKey(e => e.AddressId);
 
