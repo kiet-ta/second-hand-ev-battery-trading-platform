@@ -1,4 +1,5 @@
 ﻿using Application.DTOs;
+using Application.DTOs.ItemDtos;
 using Domain.Entities;
 using System;
 using System.Collections.Generic;
@@ -20,5 +21,6 @@ namespace Application.IRepositories
         Task<int> CountBySellerAsync(int sellerId);
         Task<int> CountByStatusAsync(int sellerId, string status);
         Task<List<OrdersByMonthDto>> GetOrdersByMonthAsync(int sellerId);
+        Task<List<OrderDto>> GetOrdersByUserIdAsync(int userId);
     }
 }

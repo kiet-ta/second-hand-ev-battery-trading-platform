@@ -34,6 +34,7 @@ namespace Application.Services
                 Description = item.Description,
                 Price = item.Price,
                 Quantity = item.Quantity ?? 0,
+                CreatedAt = item.CreatedAt
                 //Status = item.Status ?? "",
                 //IsDeleted = false
             };
@@ -121,6 +122,7 @@ namespace Application.Services
                 Description = i.Description,
                 Price = i.Price,    
                 Quantity = i.Quantity ?? 0,
+                CreatedAt = i.CreatedAt
                 //Status = i.Status ?? "active",
                 //IsDeleted = i.IsDeleted
             });
@@ -138,6 +140,7 @@ namespace Application.Services
                 Description = i.Description,
                 Price = i.Price,
                 Quantity = i.Quantity ?? 0,
+                CreatedAt = i.CreatedAt
                 //Status = i.Status ?? "active",
                 //IsDeleted = i.IsDeleted
             });

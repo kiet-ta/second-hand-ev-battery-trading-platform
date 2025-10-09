@@ -14,5 +14,6 @@ namespace Application.IServices
         Task<int> CreateOrderAsync(OrderDto dto);
         Task<bool> UpdateOrderAsync(OrderDto dto);
         Task<bool> DeleteOrderAsync(int id);
+        Task<List<OrderDto>> GetOrdersByUserIdAsync(int userId);
     }
 }
