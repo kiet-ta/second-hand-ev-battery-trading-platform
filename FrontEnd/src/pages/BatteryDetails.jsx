@@ -4,6 +4,7 @@ import { InputNumber } from 'antd'
 import { FiShoppingCart } from 'react-icons/fi'
 import itemApi from "../api/itemApi"
 import { useLocation } from 'react-router-dom'
+import userApi from '../api/userApi'
 
 const images = [
   "https://i.pinimg.com/1200x/55/53/06/55530643312e136a9fa2a576d6fcfbd0.jpg",
@@ -25,17 +26,21 @@ function BatteryDetails() {
   const location = useLocation();
   const itemId = location.state;
 
+  const [itemSummary, setItemSummary] = useState([])
   const [itemDetails, setItemDetails] = useState([])
-      const fetchItems = async () => {
-      try {
-        const data = await itemApi.getItemById(itemId);
-        console.log(data);
-        setItemDetails(data);
-      } catch (error) {
-        console.error("Error fetching items", error);
-      }
-    };
+  const [sellerProfile, setSellerProfile] = useState([])
 
+  const fetchItems = async () => {
+    try {
+      const data = await itemApi.getItemDetailByID(itemId);
+      setItemSummary(data)
+      setItemDetails(data.batteryDetail);
+      const user = await userApi.getUserByID(data.updatedBy);
+      setSellerProfile(user)
+    } catch (error) {
+      console.error("Error fetching items", error);
+    }
+  };
   useEffect(() => {
     fetchItems();
   }, []);
@@ -54,47 +59,38 @@ function BatteryDetails() {
               height="h-10 sm:h-20 md:h-100"
               width="w-full max-w-3xl"
             /></div>
-          <div className="more-info grid gird-flow-col grid-rows-3 gap-10 grid-cols-4 bg-white mt-5 h-4/10 rounded-2xl p-4 m-4">
-            <div className='text-gray-400 text-1xl text-left'>Brand :</div>
-            <div className='font-bold text-left text-1xl'>2</div>
-            <div className='text-gray-400 text-1xl text-left'>Model :</div>
-            <div className='font-bold text-left text-1xl'>2</div>
-            <div className='text-gray-400 text-1xl text-left'>Body Style :</div>
-            <div className='font-bold text-left text-1xl'>2</div>
-            <div className='text-gray-400 text-1xl text-left'>Color :</div>
-            <div className='font-bold text-left text-1xl'>2</div>
-            <div className='text-gray-400 text-1xl text-left'>Location :</div>
-            <div className='font-bold text-left text-1xl'>2</div>
-            <div className='text-gray-400 text-1xl text-left'>Has Accessories :</div>
-            <div className='font-bold text-left text-1xl'>2</div>
-          </div>
           <div className="description bg-white rounded-2xl p-4 h-2/5 m-4">
             <div className="header text-left font-bold">Description</div>
             <div className="content p-4 m-4 text-left">
-              {itemDetails.description}
+              {itemSummary.description}
                           </div>
           </div>
         </div>
         <div className="col-span-2">
           <div className="product-info bg-white rounded-2xl p-4 h-2/3">
             <div className="title h-1/9 text-3xl  text-left content-center flex-none font-semibold text-black overflow-hidden whitespace-pre-wrap" style={{ display: 'block', wordBreak: 'break-word' }}>
-              {itemDetails.title}
+              {itemSummary.title}
             </div>
-            <div className="product-general-info flex h-1/10 text-left mt-2 text-1xl text-gray-500">
-              <div>1910 |</div><div>| 20000 km</div>
+            <div className="product-general-info flex h-1/10 text-left mt-2 text-2xl text-gray-500">
+              {itemDetails ? (
+                <div>
+                  {itemDetails.brand} - Capacity: {itemDetails.capacity}Ah - Voltage: {itemDetails.voltage}V - Charge Cycle: {itemDetails.chargeCycles}
+                </div>
+              ):
+              <div>Loading...</div>}
             </div>
             <div className="price-tag flex h-1/10 text-left mt-2 bg-gray-50">
-              <div className='ml-4 text-2xl font-bold text-red-500 content-center' >${itemDetails.price}</div>
+              <div className='ml-4 text-2xl font-bold text-red-500 content-center' >${itemSummary.price}</div>
               <div className="ml-5 text-2xl text-gray-300 line-through content-center"></div>
             </div>
             <div className='flex h-1/10 text-left mt-2 text-1xl text-gray-500 gap-4 items-center'>
               <div className=''>Quantity:</div>
-              <InputNumber min={1} max={itemDetails.quantity} defaultValue={1} onChange={onChange} />
+              <InputNumber min={1} max={itemSummary.quantity} defaultValue={1} onChange={onChange} />
               <div>
               </div>
             </div>
             <div className="phone-number flex gap-4 h-1/10 mt-4">
-              <div className="bg-gray-200 w-1/4 rounded-2xl font-bold text-1xl content-center ">Chat</div>
+              <div className="bg-yellow-200 hover:bg-yellow-500 hover:border-1 w-1/4 rounded-2xl font-bold text-1xl content-center text-center ">Add to Cart</div>
               <button
                 type="button"
                 className="bg-maincolor w-1/4 px-2 py-1 text-2xl rounded-full flex items-center justify-center text-white"
@@ -109,10 +105,15 @@ function BatteryDetails() {
                 <div className="w-2/8 h-2/4 rounded-full overflow-hidden">
                   <img className="object-cover w-full h-full" src="https://i.pinimg.com/736x/b6/10/ae/b610ae5879e2916e1bb7c4c161754f4d.jpg" />
                 </div>
+                {sellerProfile ? (
                 <div className="seller-name w-2/4">
-                  <div className="text-1xl font-bold ml-4">Seller Name</div>
+                                      <div className="text-1xl font-bold ml-4">{sellerProfile.fullName}</div>
                   <div className="text-1xl ml-4 text-gray-500">Active 5 minutes ago</div>
-                </div>
+
+                  </div>
+                ): (
+                  <div>Waiting...</div>
+                )}
               </div>
               <div className="right w-1/2 h-full flex items-center">
                 <div className="seller-rating w-2/4">

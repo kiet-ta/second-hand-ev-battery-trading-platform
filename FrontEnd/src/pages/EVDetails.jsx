@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import Carousel from '../components/Carousel'
 import { useLocation } from 'react-router-dom';
 import itemApi from '../api/itemApi';
+import userApi from '../api/userApi'
 import { GiGemChain } from "react-icons/gi";
 
 
@@ -21,19 +22,21 @@ const commenter = [
   { name: "Tran Thi B", picture: "https://i.pinimg.com/736x/b6/10/ae/b610ae5879e2916e1bb7c4c161754f4d.jpg", comment: "Not bad, but could be better", rating: 3, time: "2023-10-02 12:30", imagefollow: ["https://i.pinimg.com/1200x/e9/22/29/e9222949753e671a7e8f7c09725ebed0.jpg"] },
   { name: "Le Van C", picture: "https://i.pinimg.com/736x/ae/5d/4f/ae5d4f0a3f4e8b9c8e4e4e4e4e4e4e4e.jpg", comment: "I had some issues with the delivery", rating: 2, time: "2023-10-03 14:45", imagefollow: [] }
 ]
-const phone = "0312345678";
-const hiddenphone = "Show phone " + phone.slice(0, -4) + "****";
 function EVDetails() {
   const [isPhoneVisible, setIsPhoneVisible] = useState(false);
   const location = useLocation();
   const itemId = location.state;
   const [itemSummary, setItemSummary] = useState([])
   const [itemDetails, setItemDetails] = useState([])
+  const [sellerProfile, setSellerProfile] = useState([])
+
   const fetchItems = async () => {
     try {
       const data = await itemApi.getItemDetailByID(itemId);
       setItemSummary(data)
       setItemDetails(data.evDetail);
+      const user = await userApi.getUserByID(data.updatedBy);
+      setSellerProfile(user)
     } catch (error) {
       console.error("Error fetching items", error);
     }
@@ -81,7 +84,7 @@ function EVDetails() {
             {itemDetails ? (
               <div className="product-general-info flex h-1/10 text-left gap-4 mt-2 text-2xl text-gray-500 justify-start items-center ">
                 <div>{itemDetails.year}</div><div>|</div><div className="">{itemDetails.mileage}km</div>
-                {itemDetails.hasAccessories == true ? (<div className="bg-maincolor-darker rounded-2xl flex content-center text-center text-2xl font-bold text-white justify-center items-center p-5"><GiGemChain/> Has Accessory</div>): (<div></div>)}
+                {itemDetails.hasAccessories == true ? (<div className="bg-maincolor-darker rounded-2xl flex content-center text-center text-1xl font-bold text-white justify-center items-center p-2"><GiGemChain/> Has Accessory</div>): (<div></div>)}
               </div>
             ) : (
               <div> loading... </div>
@@ -91,10 +94,10 @@ function EVDetails() {
               <div className="ml-5 text-2xl text-gray-300 line-through content-center"></div>
             </div>
             <div className="phone-number flex gap-4 h-1/10 mt-4">
-              <div className="bg-gray-200 w-1/4 rounded-2xl font-bold text-1xl content-center text-center ">Chat</div>
-              <div className="bg-gray-200 w-2/4 rounded-2xl font-bold text-1xl content-center text-center">
+              <div className="bg-yellow-200 hover:bg-yellow-500 hover:border-1 w-1/4 rounded-2xl font-bold text-1xl content-center text-center ">Chat</div>
+              <div className="bg-green-200 hover:bg-green-500 hover:border-1 w-1/4 rounded-2xl font-bold text-1xl content-center text-center">
                 <button onClick={() => setIsPhoneVisible(!isPhoneVisible)}>
-                  <span>{isPhoneVisible ? phone : hiddenphone}</span>
+                  <span>{isPhoneVisible && sellerProfile ? sellerProfile.phone : "********"}</span>
                 </button>
               </div>
             </div>
@@ -103,10 +106,15 @@ function EVDetails() {
                 <div className="w-2/8 h-2/4 rounded-full overflow-hidden">
                   <img className="object-cover w-full h-full" src="https://i.pinimg.com/736x/b6/10/ae/b610ae5879e2916e1bb7c4c161754f4d.jpg" />
                 </div>
+                {sellerProfile ? (
                 <div className="seller-name w-2/4">
-                  <div className="text-1xl font-bold ml-4">Seller Name</div>
+                                      <div className="text-1xl font-bold ml-4">{sellerProfile.fullName}</div>
                   <div className="text-1xl ml-4 text-gray-500">Active 5 minutes ago</div>
-                </div>
+
+                  </div>
+                ): (
+                  <div>Waiting...</div>
+                )}
               </div>
               <div className="right w-1/2 h-full flex items-center">
                 <div className="seller-rating w-2/4">
