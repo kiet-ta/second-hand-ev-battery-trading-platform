@@ -27,15 +27,27 @@ namespace Application.Services
             _jwtAudience = config["Jwt:Audience"]!;
         }
 
+        public static int GenerateUserId()
+        {
+            var now = DateTime.Now; // hoặc DateTime.UtcNow
+            string timestamp = now.ToString("yyyyMMdd"); // VD: 20251006194532123
+            int random = new Random().Next(1, 9); // thêm phần ngẫu nhiên 3 số
+            string combined = timestamp + random.ToString();
+
+            // vì int chỉ tối đa 2,147,483,647 nên ta rút gọn bớt
+            int hash = combined.GetHashCode();
+            return Math.Abs(hash); // luôn dương
+        }
+
         public async Task<AuthResponseDto> RegisterAsync(RegisterDto dto)
         {
             var existing = await _userRepository.GetByEmailAsync(dto.Email);
             if (existing != null)
                 throw new Exception("Email already registered");
-            int userID = DateTime.Now.Date.GetHashCode();
+            //int userID = DateTime.Now.Date.GetHashCode();
             var user = new User
             {
-                UserId = userID,
+                UserId = GenerateUserId(),
                 FullName = dto.FullName,
                 Email = dto.Email,
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),

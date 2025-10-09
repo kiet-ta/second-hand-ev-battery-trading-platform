@@ -12,16 +12,16 @@ namespace Application.Services
 {
     public class OrderService : IOrderService
     {
-        private readonly IOrderRepository _repo;
+        private readonly IOrderRepository _orderRepository;
 
-        public OrderService(IOrderRepository repo)
+        public OrderService(IOrderRepository orderRepository)
         {
-            _repo = repo;
+            _orderRepository = orderRepository;
         }
 
         public async Task<OrderDto> GetOrderByIdAsync(int id)
         {
-            var order = await _repo.GetByIdAsync(id);
+            var order = await _orderRepository.GetByIdAsync(id);
             if (order == null) return null;
 
             return new OrderDto
@@ -41,7 +41,7 @@ namespace Application.Services
 
         public async Task<IEnumerable<OrderDto>> GetAllOrdersAsync()
         {
-            var orders = await _repo.GetAllAsync();
+            var orders = await _orderRepository.GetAllAsync();
             return orders.Select(order => new OrderDto
             {
                 OrderId = order.OrderId,
@@ -68,25 +68,29 @@ namespace Application.Services
                 //}).ToList()
             };
 
-            await _repo.AddAsync(order);
+            await _orderRepository.AddAsync(order);
             return order.OrderId;
         }
 
         public async Task<bool> UpdateOrderAsync(OrderDto dto)
         {
-            var order = await _repo.GetByIdAsync(dto.OrderId);
+            var order = await _orderRepository.GetByIdAsync(dto.OrderId);
             if (order == null) return false;
 
             order.Status = dto.Status;
             order.UpdatedAt = null; // DateTime.Now;
-            await _repo.UpdateAsync(order);
+            await _orderRepository.UpdateAsync(order);
             return true;
         }
 
         public async Task<bool> DeleteOrderAsync(int id)
         {
-            await _repo.DeleteAsync(id);
+            await _orderRepository.DeleteAsync(id);
             return true;
+        }
+        public async Task<List<OrderDto>> GetOrdersByUserIdAsync(int userId)
+        {
+            return await _orderRepository.GetOrdersByUserIdAsync(userId);
         }
     }
 }
