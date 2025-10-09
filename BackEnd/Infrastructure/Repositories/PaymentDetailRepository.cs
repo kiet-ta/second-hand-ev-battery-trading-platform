@@ -13,6 +13,7 @@ namespace Infrastructure.Repositories
     public class PaymentDetailRepository : IPaymentDetailRepository
     {
         private readonly EvBatteryTradingContext _context;
+
         public PaymentDetailRepository(EvBatteryTradingContext context)
         {
             _context = context;
