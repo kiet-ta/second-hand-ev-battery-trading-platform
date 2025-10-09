@@ -1,6 +1,6 @@
 
 import { useEffect, useRef, useState } from 'react';
-import Navbar from '../components/Navbar/Navbar';
+import Navbar from '../components/Navbar';
 import { Outlet } from 'react-router-dom';
 import ScrollToTop from '../components/ScrollToTop';
 import userApi from '../api/userApi';
