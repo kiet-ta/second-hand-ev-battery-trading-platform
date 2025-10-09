@@ -1,13 +1,21 @@
 ﻿using Application.DTOs;
+using Application.DTOs.AuctionDtos;
 
-namespace Application.IServices
+namespace Application.IServices;
+
+public interface IAuctionService
 {
-    public interface IAuctionService
-    {
-        Task<bool> PlaceBidAsync(int biddingId, int userId, decimal bidAmount);
+    Task<AuctionListResponse> GetAuctionsAsync(int page = 1, int pageSize = 10, string? status = null);
 
-        Task<ItemBiddingDto> GetAuctionStatusAsync(int biddingId);
+    Task<AuctionDto?> GetAuctionByIdAsync(int auctionId);
 
-        Task<CreateAuctionResponse> CreateAuctionAsync(CreateAuctionRequest request);
-    }
+    Task<CreateAuctionResponse> CreateAuctionAsync(CreateAuctionRequest request);
+
+    Task<bool> PlaceBidAsync(int auctionId, int userId, decimal bidAmount);
+
+    Task UpdateAuctionStatusesAsync();
+
+    Task<AuctionStatusDto> GetAuctionStatusAsync(int auctionId);
+
+    Task<AuctionListResponse> GetAllAuctionsAsync(int page, int pageSize);
 }

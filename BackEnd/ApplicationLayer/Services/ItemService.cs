@@ -114,6 +114,7 @@ namespace Application.Services
 
             return items.Select(i => new ItemDto
             {
+                ItemId = i.ItemId,
                 ItemType = i.ItemType ?? "",
                 CategoryId = i.CategoryId,
                 Title = i.Title,
@@ -130,6 +131,7 @@ namespace Application.Services
 
             return items.Select(i => new ItemDto
             {
+                ItemId = i.ItemId,
                 ItemType = i.ItemType ?? "",
                 CategoryId = i.CategoryId,
                 Title = i.Title,

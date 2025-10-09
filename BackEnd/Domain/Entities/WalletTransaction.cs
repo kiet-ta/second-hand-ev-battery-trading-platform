@@ -1,3 +1,6 @@
+﻿using System;
+using System.Collections.Generic;
+
 namespace Domain.Entities;
 
 public class WalletTransaction
@@ -8,9 +11,10 @@ public class WalletTransaction
 
     public decimal Amount { get; set; }
 
-    public string? Type { get; set; } // deposit, withdraw, hold, release, payment
+    public string Type { get; set; } = null!;
 
     public int? RefId { get; set; }
 
-    public DateTime CreatedAt { get; set; } = DateTime.Now;
+    public DateTime? CreatedAt { get; set; }
+
 }

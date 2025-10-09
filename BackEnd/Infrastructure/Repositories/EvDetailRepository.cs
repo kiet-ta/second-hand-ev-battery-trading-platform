@@ -32,7 +32,7 @@ namespace Infrastructure.Repositories
             var query =
                 from e in _ctx.EvDetails
                 join i in _ctx.Items on e.ItemId equals i.ItemId
-                where !i.IsDeleted
+                where !(i.IsDeleted == true)
                 select e;
 
             return await query.ToListAsync(ct);
@@ -43,7 +43,7 @@ namespace Infrastructure.Repositories
             var query =
                 from e in _ctx.EvDetails
                 join i in _ctx.Items on e.ItemId equals i.ItemId
-                where e.ItemId == itemId && !i.IsDeleted
+                where e.ItemId == itemId && !(i.IsDeleted == true)
                 select e;
 
             return await query.FirstOrDefaultAsync(ct);

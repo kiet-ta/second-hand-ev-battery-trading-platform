@@ -1,6 +1,7 @@
 ﻿using Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Org.BouncyCastle.Asn1.Cmp;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,30 +14,55 @@ namespace Infrastructure.Data.Configurations
     {
         public void Configure(EntityTypeBuilder<EVDetail> entity)
         {
-            entity.ToTable("EV_Detail");
+            entity.HasKey(e => e.ItemId).HasName("PK__ev_detai__52020FDD8C33BFB7");
 
-            entity.HasKey(e => e.ItemId); // PK is also FK to Item
+            entity.ToTable("ev_details");
 
-            entity.Property(e => e.ItemId).HasColumnName("item_id");
-            entity.Property(e => e.Brand).HasColumnName("brand");
-            entity.Property(e => e.Model).HasColumnName("model");
-            entity.Property(e => e.Version).HasColumnName("version");
-            entity.Property(e => e.Year).HasColumnName("year");
-            entity.Property(e => e.BodyStyle).HasColumnName("body_style");
-            entity.Property(e => e.Color).HasColumnName("color");
-            entity.Property(e => e.LicensePlate).HasColumnName("license_plate");
-            entity.Property(e => e.HasAccessories).HasColumnName("has_accessories").HasDefaultValue(false);
-            entity.Property(e => e.PreviousOwners).HasColumnName("previous_owners").HasDefaultValue(1);
-            entity.Property(e => e.IsRegistrationValid).HasColumnName("is_registration_valid").HasDefaultValue(false);
+            entity.HasIndex(e => e.LicensePlate, "UQ__ev_detai__F72CD56E36E9D667").IsUnique();
+
+            entity.Property(e => e.ItemId)
+                .ValueGeneratedNever()
+                .HasColumnName("item_id");
+            entity.Property(e => e.BodyStyle)
+                .HasMaxLength(100)
+                .IsUnicode(false)
+                .HasColumnName("body_style");
+            entity.Property(e => e.Brand)
+                .HasMaxLength(100)
+                .HasColumnName("brand");
+            entity.Property(e => e.Color)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("color");
+            entity.Property(e => e.HasAccessories)
+                .HasDefaultValue(false)
+                .HasColumnName("has_accessories");
+            entity.Property(e => e.IsRegistrationValid)
+                .HasDefaultValue(false)
+                .HasColumnName("is_registration_valid");
+            entity.Property(e => e.LicensePlate)
+                .HasMaxLength(20)
+                .IsUnicode(false)
+                .HasColumnName("license_plate");
             entity.Property(e => e.Mileage).HasColumnName("mileage");
-            entity.Property(e => e.UpdatedAt).HasColumnName("updated_at").HasDefaultValueSql("GETDATE()");
+            entity.Property(e => e.Model)
+                .HasMaxLength(100)
+                .HasColumnName("model");
+            entity.Property(e => e.PreviousOwners)
+                .HasDefaultValue(1)
+                .HasColumnName("previous_owners");
+            entity.Property(e => e.UpdatedAt)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnName("updated_at");
+            entity.Property(e => e.Version)
+                .HasMaxLength(255)
+                .HasColumnName("version");
+            entity.Property(e => e.Year).HasColumnName("year");
 
-            // Relationship: EV_Detail 1-1 Item (Item is principal)
-            entity.HasOne<Item>()
-                  .WithOne()
-                  .HasForeignKey<EVDetail>(d => d.ItemId)
-                  .HasConstraintName("FK_EVDetail_Item")
-                  .OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne<Item>().WithOne()
+                .HasForeignKey<EVDetail>(d => d.ItemId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK__ev_detail__item___47DBAE45");
         }
     }
 }

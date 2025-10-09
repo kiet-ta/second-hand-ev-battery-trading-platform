@@ -9,7 +9,11 @@ public class KycDocument
 
     public int UserId { get; set; }
 
-    public string? DocType { get; set; }
+    public string? IdCardUrl { get; set; }
+
+    public string? VehicleRegistrationUrl { get; set; }
+
+    public string? SelfieUrl { get; set; }
 
     public string? DocUrl { get; set; }
 
@@ -22,4 +26,5 @@ public class KycDocument
     public string? Status { get; set; }
 
     public string? Note { get; set; }
+
 }
