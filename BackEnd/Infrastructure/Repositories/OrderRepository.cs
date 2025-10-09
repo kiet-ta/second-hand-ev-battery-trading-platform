@@ -127,6 +127,7 @@ namespace Infrastructure.Repositories
                         .Select(oi => new OrderItemDto
                         {
                             OrderItemId = oi.OrderItemId,
+                            OrderId = oi.OrderId,
                             ItemId = oi.ItemId,
                             Quantity = oi.Quantity,
                             Price = oi.Price
@@ -136,6 +137,12 @@ namespace Infrastructure.Repositories
                 .ToListAsync();
 
             return orders;
+        }
+        public async Task<Order> AddOrderAsync(Order order)
+        {
+            _context.Orders.Add(order);
+            await _context.SaveChangesAsync();
+            return order;
         }
     }
 }

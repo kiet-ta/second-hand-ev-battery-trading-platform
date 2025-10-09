@@ -1,4 +1,5 @@
-﻿using Application.DTOs.ItemDtos;
+﻿using Application.DTOs;
+using Application.DTOs.ItemDtos;
 using Application.IRepositories;
 using Application.IServices;
 using Domain.Entities;
@@ -13,10 +14,12 @@ namespace Application.Services
     public class OrderService : IOrderService
     {
         private readonly IOrderRepository _orderRepository;
+        private readonly IOrderItemRepository _orderItemRepository;
 
-        public OrderService(IOrderRepository orderRepository)
+        public OrderService(IOrderRepository orderRepository, IOrderItemRepository orderItemRepository)
         {
             _orderRepository = orderRepository;
+            _orderItemRepository = orderItemRepository;
         }
 
         public async Task<OrderDto> GetOrderByIdAsync(int id)
@@ -93,6 +96,55 @@ namespace Application.Services
         public async Task<List<OrderDto>> GetOrdersByUserIdAsync(int userId)
         {
             return await _orderRepository.GetOrdersByUserIdAsync(userId);
+        }
+
+        public async Task<OrderResponseDto> CreateOrderAsync(CreateOrderRequestDto request)
+        {
+            // Step 1: Validate items
+            var orderItems = await _orderItemRepository.GetItemsByIdsAsync(request.OrderItemIds);
+            if (!orderItems.Any())
+                throw new Exception("No valid order items found");
+
+            // Step 2: Create order
+            var order = new Order
+            {
+                BuyerId = request.BuyerId,
+                AddressId = request.AddressId,
+                Status = "pending",
+                CreatedAt = request.CreatedAt,
+                UpdatedAt = request.UpdatedAt
+                
+            };
+            var createdOrder = await _orderRepository.AddOrderAsync(order);
+
+            // Step 3: Update order items
+            foreach (var item in orderItems)
+            {
+                item.OrderId = createdOrder.OrderId;
+            }
+
+            await _orderItemRepository.UpdateRangeAsync(orderItems);
+
+            // Step 4: Build response
+            var response = new OrderResponseDto
+            {
+                OrderId = createdOrder.OrderId,
+                BuyerId = createdOrder.BuyerId,
+                AddressId = createdOrder.AddressId,
+                Status = createdOrder.Status,
+                CreatedAt = createdOrder.CreatedAt,
+                isDeleted = true,
+                Items = orderItems.Select(x => new OrderItemDto
+                {
+                    OrderItemId = x.OrderItemId,
+                    OrderId = x.OrderId,
+                    ItemId = x.ItemId,
+                    Quantity = x.Quantity,
+                    Price = x.Price
+                }).ToList()
+            };
+
+            return response;
         }
     }
 }

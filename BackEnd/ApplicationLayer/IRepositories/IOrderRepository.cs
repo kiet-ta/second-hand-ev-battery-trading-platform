@@ -22,5 +22,6 @@ namespace Application.IRepositories
         Task<int> CountByStatusAsync(int sellerId, string status);
         Task<List<OrdersByMonthDto>> GetOrdersByMonthAsync(int sellerId);
         Task<List<OrderDto>> GetOrdersByUserIdAsync(int userId);
+        Task<Order> AddOrderAsync(Order order);
     }
 }

@@ -1,4 +1,5 @@
-﻿using Application.DTOs.ItemDtos;
+﻿using Application.DTOs;
+using Application.DTOs.ItemDtos;
 using Application.IServices;
 using Application.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -67,6 +68,13 @@ namespace PresentationLayer.Controllers
             var result = await _orderService.DeleteOrderAsync(id);
             if (!result) return NotFound();
             return NoContent();
+        }
+
+        [HttpPost("new")]
+        public async Task<IActionResult> CreateOrder([FromBody] CreateOrderRequestDto request)
+        {
+            var result = await _orderService.CreateOrderAsync(request);
+            return Ok(result);
         }
     }
 }
