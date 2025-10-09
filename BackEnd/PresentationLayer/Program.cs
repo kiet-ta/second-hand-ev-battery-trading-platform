@@ -35,6 +35,7 @@ namespace PresentationLayer
             builder.Services.AddScoped<IHistorySoldService, HistorySoldService>();
             builder.Services.AddScoped<ISellerDashboardService, SellerDashboardService>();
             builder.Services.AddScoped<IAuctionService, AuctionService>();
+            builder.Services.AddScoped<IOrderItemService, OrderItemService>();
             //---Repositories
             builder.Services.AddScoped<IAuctionRepository, AuctionRepository>();
             builder.Services.AddScoped<IUserRepository, UserRepository>();
@@ -48,6 +49,7 @@ namespace PresentationLayer
             builder.Services.AddScoped<IWalletTransactionRepository, WalletTransactionRepository>();
             builder.Services.AddScoped<IEmailRepository, EmailTemplateRepository>();
             builder.Services.AddScoped<IPaymentDetailRepository, PaymentDetailRepository>();
+            builder.Services.AddScoped<IOrderItemRepository, OrderItemRepository>();
 
             // JWT Authentication
             builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
