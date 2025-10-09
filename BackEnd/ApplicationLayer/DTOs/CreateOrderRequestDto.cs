@@ -4,16 +4,14 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Application.DTOs.ItemDtos
+namespace Application.DTOs
 {
-    public class OrderDto
+    public class CreateOrderRequestDto
     {
-        public int OrderId { get; set; }
         public int BuyerId { get; set; }
         public int AddressId { get; set; }
-        public string? Status { get; set; }
+        public List<int> OrderItemIds { get; set; } = new();
         public DateOnly CreatedAt { get; set; }
         public DateOnly? UpdatedAt { get; set; }
-        public List<OrderItemDto> Items { get; set; } = new();
     }
 }

@@ -1,7 +1,6 @@
 ﻿using Domain.Entities;
 using Infrastructure.Data.Configurations;
 using Microsoft.EntityFrameworkCore;
-using StackExchange.Redis;
 using System;
 using System.Collections.Generic;
 using System.Reflection.Metadata;
@@ -44,7 +43,7 @@ public class EvBatteryTradingContext : DbContext
 
     public DbSet<KycDocument> KycDocuments { get; set; }
 
-    public DbSet<Domain.Entities.Order> Orders { get; set; }
+    public DbSet<Order> Orders { get; set; }
 
     public DbSet<OrderItem> OrderItems { get; set; }
 
