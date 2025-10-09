@@ -6,8 +6,7 @@ public class AuctionDto
     public int ItemId { get; set; }
     public string Title { get; set; } = string.Empty;
     public string Type { get; set; } = string.Empty;
-    public string Category { get; set; } = string.Empty;
-    public string Brand { get; set; } = string.Empty;
+    public string Description { get; set; } = string.Empty;
     public decimal StartingPrice { get; set; }
     public decimal CurrentPrice { get; set; }
     public int TotalBids { get; set; }
