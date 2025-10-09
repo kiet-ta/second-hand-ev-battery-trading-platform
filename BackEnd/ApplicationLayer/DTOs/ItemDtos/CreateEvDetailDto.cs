@@ -12,7 +12,7 @@ namespace Application.DTOs.ItemDtos
         public int? CategoryId { get; set; }
         public string Title { get; set; } = null!;
         public string? Description { get; set; }
-        public decimal? Price { get; set; }
+        public decimal Price { get; set; }
         public int Quantity { get; set; } = 1;
         public string Status { get; set; } = "active";
         public int? UpdatedBy { get; set; }
