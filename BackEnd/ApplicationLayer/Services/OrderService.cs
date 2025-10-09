@@ -30,6 +30,7 @@ namespace Application.Services
                 BuyerId = order.BuyerId,
                 AddressId = order.AddressId,
                 Status = order.Status,
+                CreatedAt = order.CreatedAt
                 //Items = order.OrderItems?.Select(i => new OrderItemDto
                 //{
                 //    ItemId = i.ItemId,
@@ -47,7 +48,8 @@ namespace Application.Services
                 OrderId = order.OrderId,
                 BuyerId = order.BuyerId,
                 AddressId = order.AddressId,
-                Status = order.Status
+                Status = order.Status,
+                CreatedAt = order.CreatedAt
             });
         }
 

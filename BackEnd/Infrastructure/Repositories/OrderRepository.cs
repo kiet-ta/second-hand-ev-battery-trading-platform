@@ -37,7 +37,10 @@ namespace Infrastructure.Repositories
                 order = new Order
                 {
                     OrderId = order.OrderId,
-                    CreatedAt = order.CreatedAt,
+                    BuyerId = order.BuyerId,
+                    AddressId = order.AddressId,
+                    Status = order.Status,
+                    CreatedAt = order.CreatedAt
                     // fields other...
                 };
             }

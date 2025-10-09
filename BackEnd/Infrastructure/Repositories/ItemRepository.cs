@@ -111,6 +111,13 @@ namespace Infrastructure.Repositories
                             ItemId = i.ItemId,
                             Title = i.Title,
                             ItemType = i.ItemType,
+                            CategoryId = i.CategoryId,
+                            Description = i.Description,
+                            Price = i.Price,
+                            Quantity = i.Quantity,
+                            CreatedAt = i.CreatedAt,
+                            UpdatedAt = i.UpdatedAt,
+                            UpdatedBy = i.UpdatedBy,
                             EVDetail = evDetail,
                             BatteryDetail = batDetail
                         };
@@ -133,6 +140,13 @@ namespace Infrastructure.Repositories
                             ItemId = i.ItemId,
                             Title = i.Title,
                             ItemType = i.ItemType,
+                            CategoryId = i.CategoryId,
+                            Description = i.Description,
+                            Price = i.Price,
+                            Quantity = i.Quantity,
+                            CreatedAt = i.CreatedAt,
+                            UpdatedAt = i.UpdatedAt,
+                            UpdatedBy = i.UpdatedBy,
                             EVDetail = evDetail,
                             BatteryDetail = batDetail
                         };
