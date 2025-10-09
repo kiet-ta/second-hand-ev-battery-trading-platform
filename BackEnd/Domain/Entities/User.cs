@@ -7,11 +7,11 @@ public class User
 {
     public int UserId { get; set; }
 
-    public string FullName { get; set; } = string.Empty;
+    public string FullName { get; set; } = null!;
 
-    public string Email { get; set; } = string.Empty;
+    public string Email { get; set; } = null!;
 
-    public string PasswordHash { get; set; } = string.Empty;
+    public string PasswordHash { get; set; } = null!;
 
     public string? Gender { get; set; }
 
@@ -21,7 +21,7 @@ public class User
 
     public string? AvatarProfile { get; set; }
 
-    public string? Role { get; set; }
+    public string Role { get; set; } = null!;
 
     public string? KycStatus { get; set; }
 
@@ -31,5 +31,6 @@ public class User
 
     public DateTime? UpdatedAt { get; set; }
 
-    public bool IsDeleted { get; set; } = false;
+    public bool? IsDeleted { get; set; }
+
 }

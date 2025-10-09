@@ -1,54 +1,141 @@
 ﻿using Application.DTOs;
+using Application.DTOs.AuctionDtos;
 using Application.IRepositories;
 using Application.IRepositories.IBiddingRepositories;
 using Application.IServices;
 using Domain.Entities;
+using Microsoft.EntityFrameworkCore;
 
 namespace Application.Services;
 
 public class AuctionService : IAuctionService
 {
-    private readonly IItemBiddingRepository _itemBiddingRepository;
+    private readonly IAuctionRepository _auctionRepository;
     private readonly IBidRepository _bidRepository;
     private readonly IWalletRepository _walletRepository;
     private readonly IWalletTransactionRepository _walletTransactionRepository;
     private readonly IItemRepository _itemRepository;
+    private readonly ICategoryRepository _categoryRepository;
+    private readonly IItemImageRepository _itemImageRepository;
+    private readonly IEVDetailRepository _eVDetailRepository;
+    private readonly IBatteryDetailRepository _batteryDetailRepository;
 
     public AuctionService(
-        IItemBiddingRepository itemBiddingRepository,
+        IAuctionRepository auctionRepository,
         IBidRepository bidRepository,
         IWalletRepository walletRepository,
-        IWalletTransactionRepository walletTransactionRepository
-        )
+        IWalletTransactionRepository walletTransactionRepository,
+        IItemRepository itemRepository,
+        IEVDetailRepository eVDetailRepository,
+        IBatteryDetailRepository batteryDetailRepository)
     {
-        _itemBiddingRepository = itemBiddingRepository;
+        _auctionRepository = auctionRepository;
         _bidRepository = bidRepository;
         _walletRepository = walletRepository;
         _walletTransactionRepository = walletTransactionRepository;
+        _itemRepository = itemRepository;
+        _eVDetailRepository = eVDetailRepository;
+        _batteryDetailRepository = batteryDetailRepository;
     }
 
-    // Place a bid on an active auction
-    public async Task<bool> PlaceBidAsync(int biddingId, int userId, decimal bidAmount)
+    public async Task<AuctionListResponse> GetAuctionsAsync(int page = 1, int pageSize = 10, string? status = null)
     {
-        var bidding = await _itemBiddingRepository.GetByIdAsync(biddingId);
+        var (auctions, total) = await _auctionRepository.GetAuctionsWithPaginationAsync(page, pageSize, status);
 
-        // Validate bidding status and time
-        if (bidding == null || bidding.Status != "active" || DateTime.Now > bidding.EndTime)
+        var auctionDtos = new List<AuctionDto>();
+
+        foreach (var auction in auctions)
+        {
+            var auctionDto = await MapToAuctionDto(auction);
+            if (auctionDto != null)
+            {
+                auctionDtos.Add(auctionDto);
+            }
+        }
+
+        return new AuctionListResponse
+        {
+            Status = "success",
+            Data = auctionDtos,
+            Meta = new AuctionMeta
+            {
+                Total = total,
+                Page = page,
+                PageSize = pageSize
+            }
+        };
+    }
+
+    public async Task<AuctionDto?> GetAuctionByIdAsync(int auctionId)
+    {
+        var auction = await _auctionRepository.GetByIdAsync(auctionId);
+        if (auction == null) return null;
+
+        return await MapToAuctionDto(auction);
+    }
+
+    public async Task<CreateAuctionResponse> CreateAuctionAsync(CreateAuctionRequest request)
+    {
+        var existingItem = await _itemRepository.GetByIdAsync(request.ItemId);
+        if (existingItem == null)
+            throw new KeyNotFoundException($"Item with ID {request.ItemId} not found.");
+
+        // check item has not in auction
+        var existingAuction = await _auctionRepository.GetByItemIdAsync(request.ItemId);
+        if (existingAuction != null)
+            throw new InvalidOperationException($"Item {request.ItemId} already has an auction.");
+
+        // check time valid
+        if (request.StartTime >= request.EndTime)
+            throw new ArgumentException("Start time must be earlier than end time.");
+
+        var auction = new Auction
+        {
+            ItemId = request.ItemId,
+            StartingPrice = request.StartingPrice,
+            CurrentPrice = request.StartingPrice,
+            StartTime = request.StartTime,
+            EndTime = request.EndTime,
+            Status = DateTime.Now >= request.StartTime ? "ongoing" : "upcoming"
+        };
+
+        await _auctionRepository.CreateAsync(auction);
+
+        return new CreateAuctionResponse
+        {
+            AuctionId = auction.AuctionId,
+            ItemId = auction.ItemId,
+            StartingPrice = auction.StartingPrice,
+            CurrentPrice = auction.CurrentPrice,
+            StartTime = auction.StartTime,
+            EndTime = auction.EndTime,
+            Status = auction.Status
+        };
+    }
+
+    public async Task<bool> PlaceBidAsync(int auctionId, int userId, decimal bidAmount)
+    {
+        var auction = await _auctionRepository.GetByIdAsync(auctionId);
+
+        // Validate auction status and time
+        if (auction == null || auction.Status != "ongoing" || DateTime.Now > auction.EndTime)
         {
             return false;
         }
-        if (bidAmount <= bidding.CurrentPrice)
+
+        var currentPrice = auction.CurrentPrice;
+        if (bidAmount <= currentPrice)
         {
-            // Bid must be higher than current price
             return false;
         }
+
         var wallet = await _walletRepository.GetWalletByUserIdAsync(userId);
-        // Validate user wallet balance
         if (wallet == null || wallet.Balance < bidAmount)
         {
             return false;
         }
-        // Deduct bid amount from user wallet - hold the amount
+
+        // Deduct bid amount from user wallet
         await _walletRepository.UpdateBalanceAsync(wallet.WalletId, -bidAmount);
         await _walletTransactionRepository.CreateTransactionAsync(new WalletTransaction()
         {
@@ -61,85 +148,152 @@ public class AuctionService : IAuctionService
         // Record the bid
         await _bidRepository.PlaceBidAsync(new Bid()
         {
-            BiddingId = biddingId,
+            AuctionId = auctionId,
             UserId = userId,
             BidAmount = bidAmount,
             BidTime = DateTime.Now
         });
 
-        // Update current price in bidding
-        await _itemBiddingRepository.UpdateCurrentPriceAsync(bidding);
+        // Update current price and total bids
+        auction.CurrentPrice = bidAmount;
+        await _auctionRepository.UpdateCurrentPriceAsync(auction);
+        await _auctionRepository.UpdateTotalBidsAsync(auctionId);
 
         return true;
     }
 
-    public async Task<ItemBiddingDto> GetAuctionStatusAsync(int biddingId)
-
+    public async Task UpdateAuctionStatusesAsync()
     {
-        // Retrieve auction details
-        var biddingEntity = await _itemBiddingRepository.GetByIdAsync(biddingId);
+        var now = DateTime.Now;
 
-        // Handle case where auction is not found
-        if (biddingEntity == null)
+        // Update upcoming to ongoing
+        var upcomingAuctions = await _auctionRepository.GetUpcomingAuctionsAsync();
+
+        foreach (var auction in upcomingAuctions)
         {
-            throw new KeyNotFoundException($"Auction with ID {biddingId} not found.");
+            if (auction.StartTime < now)
+                await _auctionRepository.UpdateStatusAsync(auction, "ongoing");
         }
 
-        // Map entity to DTO
-        var dto = new ItemBiddingDto
-        {
-            BiddingId = biddingEntity.BiddingId,
-            ItemId = biddingEntity.ItemId,
-            StartingPrice = biddingEntity.StartingPrice,
-            CurrentPrice = biddingEntity.CurrentPrice,
-            StartTime = biddingEntity.StartTime,
-            EndTime = biddingEntity.EndTime,
-            Status = biddingEntity.Status
-        };
+        // Update ongoing to ended
+        var ongoingAuctions = await _auctionRepository.GetActiveAuctionsAsync();
 
-        return dto;
+        foreach (var auction in ongoingAuctions)
+        {
+            if (auction.EndTime < now)
+                await _auctionRepository.UpdateStatusAsync(auction, "ended");
+        }
     }
 
-    public async Task<CreateAuctionResponse> CreateAuctionAsync(CreateAuctionRequest request)
+    private async Task<AuctionDto?> MapToAuctionDto(Auction auction)
     {
-        // 1. Kiểm tra item tồn tại
-        var existingItem = await _itemRepository.GetByIdAsync(request.ItemId);
-        if (existingItem == null)
-            throw new KeyNotFoundException($"Item with ID {request.ItemId} not found.");
+        var item = await _itemRepository.GetByIdAsync(auction.ItemId);
+        if (item == null) return null;
 
-        // 2. Kiểm tra item chưa có auction nào
-        var existingAuction = await _itemBiddingRepository.GetByItemIdAsync(request.ItemId);
-        if (existingAuction != null)
-            throw new InvalidOperationException($"Item {request.ItemId} already has an auction.");
-
-        // 3. Kiểm tra thời gian hợp lệ
-        if (request.StartTime >= request.EndTime)
-            throw new ArgumentException("Start time must be earlier than end time.");
-
-        // 4. Tạo auction mới
-        var auction = new ItemBidding
+        Category? category = null;
+        if (item.CategoryId.HasValue)
         {
-            ItemId = request.ItemId,
-            StartingPrice = request.StartingPrice,
-            CurrentPrice = request.StartingPrice,
-            StartTime = request.StartTime,
-            EndTime = request.EndTime,
-            Status = "active"
-        };
+            category = await _categoryRepository.GetCategoryByIdAsync(item.CategoryId.Value);
+        }
 
-        // 5. Lưu xuống DB
-        await _itemBiddingRepository.CreateAsync(auction);
-
-        // 6. Map sang DTO trả về
-        return new CreateAuctionResponse
+        ItemImage? image = null;
+        if (category != null && category.CategoryId == auction.ItemId)
         {
-            BiddingId = auction.BiddingId,
+            image = await _itemImageRepository.GetItemImageById(auction.ItemId);
+        }
+        var auctionDto = new AuctionDto
+        {
+            AuctionId = auction.AuctionId,
             ItemId = auction.ItemId,
+            Title = item.Title,
+            Type = item.ItemType ?? "unknown",
+            Category = category?.Name ?? "Unknown",
             StartingPrice = auction.StartingPrice,
             CurrentPrice = auction.CurrentPrice,
+            TotalBids = auction.TotalBids,
             StartTime = auction.StartTime,
             EndTime = auction.EndTime,
-            Status = auction.Status
+            Status = auction.Status.ToUpper(),
+            ImageUrl = image?.ImageUrl
+        };
+
+        // Get specific details based on item type
+        switch (item.ItemType?.ToLower())
+        {
+            case "ev":
+                var evDetail = await _eVDetailRepository.GetByIdAsync(auction.ItemId);
+                if (evDetail != null)
+                {
+                    auctionDto.Brand = evDetail.Brand ?? "Unknown";
+                    auctionDto.Title = $"{evDetail.Model} {evDetail.Version}".Trim();
+                }
+                break;
+
+            case "battery":
+                var batteryDetail = await _batteryDetailRepository.GetByIdAsync(auction.ItemId);
+                if (batteryDetail != null)
+                {
+                    auctionDto.Brand = batteryDetail.Brand ?? "Unknown";
+                    auctionDto.Title = $"{item.Title}"; // giữ nguyên tên item
+                }
+                break;
+
+            default:
+                auctionDto.Brand = "Unknown";
+                break;
+        }
+
+        return auctionDto;
+    }
+
+    public async Task<AuctionStatusDto?> GetAuctionStatusAsync(int auctionId)
+    {
+        var auction = await _auctionRepository.GetByIdAsync(auctionId);
+        if (auction == null)
+            return null;
+
+        var now = DateTime.Now;
+        string status;
+
+        if (now < auction.StartTime)
+            status = "upcoming";
+        else if (now >= auction.StartTime && now < auction.EndTime)
+            status = "ongoing";
+        else
+            status = "ended";
+
+        return new AuctionStatusDto
+        {
+            AuctionId = auction.AuctionId,
+            Status = status,
+            StartTime = auction.StartTime,
+            EndTime = auction.EndTime
+        };
+    }
+
+    public async Task<AuctionListResponse> GetAllAuctionsAsync(int page, int pageSize)
+    {
+        var auctions = await _auctionRepository.GetAllAsync(page, pageSize);
+        var totalCount = await _auctionRepository.GetTotalCountAsync();
+
+        var now = DateTime.UtcNow;
+
+        foreach (var a in auctions)
+        {
+            a.Status = now < a.StartTime ? "UPCOMING" :
+                       now >= a.StartTime && now < a.EndTime ? "ONGOING" : "ENDED";
+        }
+
+        return new AuctionListResponse
+        {
+            Status = "success",
+            Data = auctions,
+            Meta = new AuctionMeta
+            {
+                Total = totalCount,
+                Page = page,
+                PageSize = pageSize
+            }
         };
     }
 }

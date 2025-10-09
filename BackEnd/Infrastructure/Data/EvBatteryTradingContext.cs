@@ -1,12 +1,15 @@
 ﻿using Domain.Entities;
 using Infrastructure.Data.Configurations;
 using Microsoft.EntityFrameworkCore;
+using StackExchange.Redis;
 using System;
 using System.Collections.Generic;
+using System.Reflection.Metadata;
+using System.Security.Cryptography;
 
 namespace Infrastructure.Data;
 
-public partial class EvBatteryTradingContext : DbContext
+public class EvBatteryTradingContext : DbContext
 {
     public EvBatteryTradingContext()
     {
@@ -19,6 +22,8 @@ public partial class EvBatteryTradingContext : DbContext
 
     public DbSet<Address> Addresses { get; set; }
 
+    public DbSet<Auction> Auctions { get; set; }
+
     public DbSet<BatteryDetail> BatteryDetails { get; set; }
 
     public DbSet<Bid> Bids { get; set; }
@@ -27,19 +32,19 @@ public partial class EvBatteryTradingContext : DbContext
 
     public DbSet<Category> Categories { get; set; }
 
+    public DbSet<CommissionFeeRule> CommissionFeeRules { get; set; }
+
     public DbSet<EVDetail> EvDetails { get; set; }
 
     public DbSet<Favorite> Favorites { get; set; }
 
     public DbSet<Item> Items { get; set; }
 
-    public DbSet<ItemBidding> ItemBiddings { get; set; }
-
     public DbSet<ItemImage> ItemImages { get; set; }
 
     public DbSet<KycDocument> KycDocuments { get; set; }
 
-    public DbSet<Order> Orders { get; set; }
+    public DbSet<Domain.Entities.Order> Orders { get; set; }
 
     public DbSet<OrderItem> OrderItems { get; set; }
 
@@ -50,6 +55,8 @@ public partial class EvBatteryTradingContext : DbContext
     public DbSet<Review> Reviews { get; set; }
 
     public DbSet<ReviewImage> ReviewImages { get; set; }
+
+    public DbSet<TransactionCommission> TransactionCommissions { get; set; }
 
     public DbSet<User> Users { get; set; }
 

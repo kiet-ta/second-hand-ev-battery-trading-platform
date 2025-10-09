@@ -1,4 +1,5 @@
 ﻿using Application.DTOs;
+using Application.DTOs.AuctionDtos;
 using Application.IServices;
 using Microsoft.AspNetCore.Mvc;
 
@@ -13,6 +14,13 @@ public class AuctionController : ControllerBase
     public AuctionController(IAuctionService auctionService)
     {
         _auctionService = auctionService;
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GetAllAuction([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+    {
+        var response = await _auctionService.GetAllAuctionsAsync(page, pageSize);
+        return Ok(response);
     }
 
     [HttpPost("{auctionId}/bid")]
