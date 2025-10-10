@@ -5,10 +5,8 @@ export default function SellerAuctionPage({ onClose }) {
     const [formData, setFormData] = useState({
         name: "",
         description: "",
-        category: "",
+        price: "",
         startPrice: "",
-        bidStep: "",
-        buyNowPrice: "", // ✅ Thêm buyNowPrice
         startTime: "",
         endTime: "",
         image: null,
@@ -31,18 +29,97 @@ export default function SellerAuctionPage({ onClose }) {
         }
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        alert("Auction created successfully!");
-        onClose();
+        const token = localStorage.getItem("token");
+
+        try {
+            const today = new Date().toISOString().split("T")[0];
+
+            // 🧩 Bước 1: Tạo Item
+            const itemBody = {
+                itemId: 0,
+                itemType: "ev",
+                categoryId: 1,
+                title: formData.name,
+                description: formData.description,
+                price: parseFloat(formData.price),
+                quantity: 1,
+                createdAt: today,
+                updatedAt: today,
+            };
+
+            const itemRes = await fetch("https://localhost:7272/api/Item", {
+                method: "POST",
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(itemBody),
+            });
+
+            const text = await itemRes.text();
+            console.log("📩 Item raw:", text);
+
+            if (!itemRes.ok) throw new Error("Không thể tạo xe mới! " + text);
+
+            let itemData;
+            try {
+                itemData = JSON.parse(text);
+            } catch (e) {
+                console.error("❌ Không parse được JSON:", e);
+            }
+
+            console.log("✅ Parsed itemData:", itemData);
+            console.log("🆔 itemId nhận được:", itemData?.itemId);
+
+
+            // 🧩 Bước 2: Tạo phiên đấu giá cho xe vừa tạo
+            const auctionBody = {
+                itemId: itemData.itemId, // ✅ Lấy ID thật
+                startingPrice: parseFloat(formData.startPrice),
+                startTime: new Date(formData.startTime).toISOString(),
+                endTime: new Date(formData.endTime).toISOString(),
+            };
+
+            console.log("📦 AUCTION BODY:", auctionBody);
+
+            const auctionRes = await fetch("https://localhost:7272/api/auction", {
+                method: "POST",
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(auctionBody),
+            });
+
+            if (!auctionRes.ok) {
+                const errText = await auctionRes.text();
+                throw new Error("Không thể tạo đấu giá! " + errText);
+            }
+
+            const auctionData = await auctionRes.json();
+            console.log("✅ Auction created:", auctionData);
+
+            alert("🎉 Tạo đấu giá thành công!");
+            onClose();
+        } catch (err) {
+            console.error("❌ Lỗi khi tạo đấu giá:", err);
+            alert("❌ " + err.message);
+        }
     };
+
+
 
     return (
         <div className="bg-white rounded-lg shadow-lg w-[800px] max-h-[90vh] overflow-y-auto animate-fadeIn">
             {/* Header */}
             <div className="flex justify-between items-center border-b px-6 py-4">
-                <h1 className="text-xl font-semibold text-gray-800">Create New Auction</h1>
-                <button onClick={onClose} className="text-gray-500 hover:text-gray-700 text-xl font-bold">
+                <h1 className="text-xl font-semibold text-gray-800">Create EV Auction</h1>
+                <button
+                    onClick={onClose}
+                    className="text-gray-500 hover:text-gray-700 text-xl font-bold"
+                >
                     ✕
                 </button>
             </div>
@@ -54,18 +131,18 @@ export default function SellerAuctionPage({ onClose }) {
                     <div className="space-y-6">
                         <div>
                             <h2 className="text-lg font-medium mb-3 flex items-center gap-2">
-                                <Tag className="w-5 h-5 text-gray-700" /> Product Information
+                                <Tag className="w-5 h-5 text-gray-700" /> Vehicle Information
                             </h2>
 
                             <label className="block text-sm font-medium text-gray-600 mb-1">
-                                Product Name
+                                Vehicle Name
                             </label>
                             <input
                                 name="name"
                                 value={formData.name}
                                 onChange={handleChange}
                                 className="w-full border rounded px-3 py-2 mb-3 focus:ring-1 focus:ring-orange-500"
-                                placeholder="Enter product name"
+                                placeholder="Enter EV name"
                                 required
                             />
 
@@ -77,30 +154,26 @@ export default function SellerAuctionPage({ onClose }) {
                                 value={formData.description}
                                 onChange={handleChange}
                                 className="w-full border rounded px-3 py-2 h-24 focus:ring-1 focus:ring-orange-500"
-                                placeholder="Enter short description..."
+                                placeholder="Short description..."
                                 required
                             />
 
                             <label className="block text-sm font-medium text-gray-600 mb-1">
-                                Category
+                                Base Price (₫)
                             </label>
-                            <select
-                                name="category"
-                                value={formData.category}
+                            <input
+                                name="price"
+                                type="number"
+                                value={formData.price}
                                 onChange={handleChange}
-                                className="w-full border rounded px-3 py-2 focus:ring-1 focus:ring-orange-500"
+                                className="w-full border rounded px-3 py-2 mb-3 focus:ring-1 focus:ring-orange-500"
                                 required
-                            >
-                                <option value="">Select category</option>
-                                <option value="ev">Electric Vehicle</option>
-                                <option value="battery">Battery</option>
-                                <option value="accessory">Accessory</option>
-                            </select>
+                            />
 
                             {/* Image upload */}
                             <div className="mt-4">
                                 <label className="block text-sm font-medium text-gray-600 mb-2">
-                                    Product Image
+                                    Vehicle Image
                                 </label>
                                 <label className="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-lg p-4 cursor-pointer hover:border-orange-400">
                                     <Upload className="w-6 h-6 text-gray-500" />
@@ -132,119 +205,43 @@ export default function SellerAuctionPage({ onClose }) {
                                 <Clock className="w-5 h-5 text-gray-700" /> Auction Details
                             </h2>
 
-                            {/* Starting Price */}
                             <label className="block text-sm font-medium text-gray-600 mb-1">
                                 Starting Price (₫)
                             </label>
                             <input
                                 name="startPrice"
+                                type="number"
                                 value={formData.startPrice}
                                 onChange={handleChange}
-                                type="number"
                                 className="w-full border rounded px-3 py-2 mb-3 focus:ring-1 focus:ring-gray-800"
                                 required
                             />
 
-                            {/* Bid Step */}
-                            <label className="block text-sm font-medium text-gray-600 mb-1">
-                                Bid Increment (₫)
-                            </label>
-                            <input
-                                name="bidStep"
-                                value={formData.bidStep}
-                                onChange={handleChange}
-                                type="number"
-                                className="w-full border rounded px-3 py-2 mb-3 focus:ring-1 focus:ring-gray-800"
-                                required
-                            />
-
-                            {/* ✅ Buy Now Price */}
-                            <label className="block text-sm font-medium text-gray-600 mb-1">
-                                Buy Now Price (₫)
-                            </label>
-                            <input
-                                name="buyNowPrice"
-                                value={formData.buyNowPrice}
-                                onChange={handleChange}
-                                type="number"
-                                className="w-full border rounded px-3 py-2 mb-3 focus:ring-1 focus:ring-gray-800"
-                                placeholder="Optional — user can buy instantly at this price"
-                            />
-
-                            {/* Start Time */}
                             <label className="block text-sm font-medium text-gray-600 mb-1">
                                 Start Time
                             </label>
                             <input
                                 name="startTime"
+                                type="datetime-local"
                                 value={formData.startTime}
                                 onChange={handleChange}
-                                type="datetime-local"
                                 className="w-full border rounded px-3 py-2 mb-3 focus:ring-1 focus:ring-gray-800"
                                 required
                             />
 
-                            {/* End Time */}
                             <label className="block text-sm font-medium text-gray-600 mb-1">
                                 End Time
                             </label>
                             <input
                                 name="endTime"
+                                type="datetime-local"
                                 value={formData.endTime}
                                 onChange={handleChange}
-                                type="datetime-local"
                                 className="w-full border rounded px-3 py-2 focus:ring-1 focus:ring-gray-800"
                                 required
                             />
                         </div>
 
-                        {/* Preview */}
-                        {formData.name && (
-                            <div className="border rounded-lg p-4 bg-orange-50">
-                                <h3 className="text-gray-700 font-medium mb-2">
-                                    Product Preview
-                                </h3>
-                                <div className="flex gap-3">
-                                    {formData.imagePreview ? (
-                                        <img
-                                            src={formData.imagePreview}
-                                            className="w-24 h-24 object-cover rounded"
-                                        />
-                                    ) : (
-                                        <div className="w-24 h-24 bg-gray-200 rounded"></div>
-                                    )}
-                                    <div>
-                                        <h4 className="font-semibold text-gray-800">
-                                            {formData.name}
-                                        </h4>
-                                        <p className="text-sm text-gray-600 mb-1">
-                                            {formData.description}
-                                        </p>
-                                        <p className="text-sm text-gray-500">
-                                            Starting at{" "}
-                                            <span className="text-orange-600 font-semibold">
-                                                {formData.startPrice
-                                                    ? new Intl.NumberFormat("vi-VN").format(
-                                                        formData.startPrice
-                                                    )
-                                                    : "—"}₫
-                                            </span>
-                                        </p>
-                                        {formData.buyNowPrice && (
-                                            <p className="text-sm text-green-600 font-medium mt-1">
-                                                Buy Now:{" "}
-                                                {new Intl.NumberFormat("vi-VN").format(
-                                                    formData.buyNowPrice
-                                                )}
-                                                ₫
-                                            </p>
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Buttons */}
                         <div className="flex justify-end gap-3">
                             <button
                                 type="button"

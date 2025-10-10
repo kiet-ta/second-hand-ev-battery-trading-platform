@@ -10,14 +10,13 @@ import CheckoutPage from '../pages/CheckoutPage';
 import LoginPage from '../pages/LoginPage';
 import RegisterPage from '../pages/RegisterPage';
 import ProfileContent from '../pages/ProfileContent';
-import UserManagementSystem from '../pages/UserManagementSystem';
 import SellerDashboard from '../pages/DashboardSeller';
 import PurchaseHistory from '../components/HistoryBought';
 import SellerHistory from '../components/HistorySold';
 import DetailedCheckoutPage from '../pages/DetailCheckout';
-import SellerAuctionListPage from '../pages/SellerAuctionListPage';
 import BlogList from "../pages/BlogList";
 import BlogDetail from "../pages/BlogDetail";
+import ManagerDashboard from "../pages/ManagerDashboard";
 
 export const router = createBrowserRouter([
     {
@@ -64,10 +63,6 @@ export const router = createBrowserRouter([
         element: <ProfileContent />
     },
     {
-        path: "/manage",
-        element: <UserManagementSystem />
-    },
-    {
         path: "/seller",
         element: <SellerDashboard />
     },
@@ -90,6 +85,10 @@ export const router = createBrowserRouter([
     {
         path: "/blog/:id",
         element: <BlogDetail />
+    },
+    {
+        path: "/manage",
+        element: <ManagerDashboard />
     }
 
 ]);
