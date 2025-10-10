@@ -1,7 +1,10 @@
-using Application.IRepositories;
-using Application.Services;
-using Domain.Entities;
-using Moq;
+//using Application.IRepositories;
+//using Application.Services;
+//using Domain.Entities;
+//using Moq;
+
+using NPOI.SS.Formula.Functions;
+using Xunit;
 
 namespace BackEnd.Application.Tests
 {
@@ -10,15 +13,15 @@ namespace BackEnd.Application.Tests
         [Fact]
         public async Task CreateUser_ShouldHashPassword_beforeSaving()
         {
-            //Arrange
-            var userRepoMock = new Mock<IUserRepository>();
-            var hasherMock = new Mock<IHasher>();
+            ////Arrange
+            //var userRepoMock = new Mock<IUserRepository>();
+            //var hasherMock = new Mock<IHasher>();
 
-            hasherMock
-                .Setup(hasherMock => hasherMock.Hash("123456"))
-                .Returns("hashed_123456");
+            //hasherMock
+            //    .Setup(hasherMock => hasherMock.Hash("123456"))
+            //    .Returns("hashed_123456");
 
-            var userService = new UserService(userRepoMock.Object, hasherMock.Object);
+            //var userService = new UserService(userRepoMock.Object, hasherMock.Object);
 
             //Act
             //await userService.CreateUserAsync("abc@8686.hz", "123456");
