@@ -1,20 +1,27 @@
-namespace Domain.Entities;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-public class ItemBidding
+namespace Domain.Entities
 {
-    public int BiddingId { get; set; }
+    public class ItemBidding
+    {
+        public int BiddingId { get; set; }
 
-    public int ItemId { get; set; }
+        public int ItemId { get; set; }
 
-    public decimal StartingPrice { get; set; }
+        public decimal StartingPrice { get; set; }
 
-    public decimal CurrentPrice { get; set; }
+        public decimal CurrentPrice { get; set; }
 
-    public DateTime StartTime { get; set; }
+        public DateTime StartTime { get; set; }
 
-    public DateTime EndTime { get; set; }
+        public DateTime EndTime { get; set; }
 
-    public string Status { get; set; } = "active"; // active, ended, cancelled
+        public string Status { get; set; } = "active"; // active, ended, cancelled
 
-    public DateTime CreatedAt { get; set; } = DateTime.Now;
+        public DateTime CreatedAt { get; set; } = DateTime.Now;
+    }
 }

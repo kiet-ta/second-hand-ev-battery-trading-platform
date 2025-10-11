@@ -26,7 +26,7 @@ namespace Infrastructure.Repositories
                         join u in _context.Users
                             on i.UpdatedBy equals u.UserId into gj
                         from user in gj.DefaultIfEmpty() // LEFT JOIN
-                        where !i.IsDeleted   // remove soft deleted items
+                        where !(i.IsDeleted == true)   // remove soft deleted items
                         select new ItemDto
                         {
                             ItemId = i.ItemId,
@@ -65,14 +65,14 @@ namespace Infrastructure.Repositories
         }
 
         public async Task<IEnumerable<Item>> GetAllAsync() =>
-            await _context.Items.Where(i => !i.IsDeleted).ToListAsync();
+            await _context.Items.Where(i => !(i.IsDeleted == true)).ToListAsync();
         public async Task<Item?> GetByIdAsync(int itemId, CancellationToken ct = default)
             => await _context.Items.FindAsync(new object[] { itemId }, ct);
 
         public void Update(Item item) => _context.Items.Update(item);
 
         public async Task<IEnumerable<Item>> GetItemsByFilterAsync(CancellationToken ct = default)
-            => await _context.Items.Where(i => !i.IsDeleted).ToListAsync(ct);
+            => await _context.Items.Where(i => !(i.IsDeleted == true)).ToListAsync(ct);
         public async Task<bool> ExistsAsync(int itemId, CancellationToken ct = default)
             => await _context.Items.AnyAsync(i => i.ItemId == itemId, ct);
 
@@ -99,7 +99,7 @@ namespace Infrastructure.Repositories
         public async Task<ItemWithDetailDto?> GetItemWithDetailsAsync(int id)
         {
             var query = from i in _context.Items
-                        where i.ItemId == id && !i.IsDeleted
+                        where i.ItemId == id && !(i.IsDeleted == true)
                         join ev in _context.EvDetails
                             on i.ItemId equals ev.ItemId into evj
                         from evDetail in evj.DefaultIfEmpty()
@@ -111,6 +111,13 @@ namespace Infrastructure.Repositories
                             ItemId = i.ItemId,
                             Title = i.Title,
                             ItemType = i.ItemType,
+                            CategoryId = i.CategoryId,
+                            Description = i.Description,
+                            Price = i.Price,
+                            Quantity = i.Quantity,
+                            CreatedAt = i.CreatedAt,
+                            UpdatedAt = i.UpdatedAt,
+                            UpdatedBy = i.UpdatedBy,
                             EVDetail = evDetail,
                             BatteryDetail = batDetail
                         };
@@ -121,7 +128,7 @@ namespace Infrastructure.Repositories
         public async Task<IEnumerable<ItemWithDetailDto>> GetAllItemsWithDetailsAsync()
         {
             var query = from i in _context.Items
-                        where !i.IsDeleted
+                        where !(i.IsDeleted == true)
                         join ev in _context.EvDetails
                             on i.ItemId equals ev.ItemId into evj
                         from evDetail in evj.DefaultIfEmpty()
@@ -133,6 +140,13 @@ namespace Infrastructure.Repositories
                             ItemId = i.ItemId,
                             Title = i.Title,
                             ItemType = i.ItemType,
+                            CategoryId = i.CategoryId,
+                            Description = i.Description,
+                            Price = i.Price,
+                            Quantity = i.Quantity,
+                            CreatedAt = i.CreatedAt,
+                            UpdatedAt = i.UpdatedAt,
+                            UpdatedBy = i.UpdatedBy,
                             EVDetail = evDetail,
                             BatteryDetail = batDetail
                         };
@@ -202,12 +216,12 @@ namespace Infrastructure.Repositories
         //Feature: Seller Dashboard
         public async Task<int> CountAllBySellerAsync(int sellerId)
         {
-            return await _context.Items.CountAsync(i => i.UpdatedBy == sellerId && !i.IsDeleted);
+            return await _context.Items.CountAsync(i => i.UpdatedBy == sellerId && !(i.IsDeleted == true));
         }
 
         public async Task<int> CountByStatusAsync(int sellerId, string status)
         {
-            return await _context.Items.CountAsync(i => i.UpdatedBy == sellerId && i.Status == status && !i.IsDeleted);
+            return await _context.Items.CountAsync(i => i.UpdatedBy == sellerId && i.Status == status && !(i.IsDeleted == true));
         }
 
         public async Task<decimal> GetTotalRevenueAsync(int sellerId)

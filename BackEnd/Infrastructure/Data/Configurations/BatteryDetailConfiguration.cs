@@ -13,23 +13,29 @@ namespace Infrastructure.Data.Configurations
     {
         public void Configure(EntityTypeBuilder<BatteryDetail> entity)
         {
-            entity.ToTable("Battery_Detail");
+            entity.HasKey(e => e.ItemId).HasName("PK__battery___52020FDDC30195D9");
 
-            entity.HasKey(e => e.ItemId); // PK is also FK to Item
+            entity.ToTable("battery_details");
 
-            entity.Property(e => e.ItemId).HasColumnName("item_id");
-            entity.Property(e => e.Brand).HasColumnName("brand");
+            entity.Property(e => e.ItemId)
+                .ValueGeneratedNever()
+                .HasColumnName("item_id");
+            entity.Property(e => e.Brand)
+                .HasMaxLength(100)
+                .HasColumnName("brand");
             entity.Property(e => e.Capacity).HasColumnName("capacity");
-            entity.Property(e => e.Voltage).HasColumnName("voltage");
             entity.Property(e => e.ChargeCycles).HasColumnName("charge_cycles");
-            entity.Property(e => e.UpdatedAt).HasColumnName("updated_at").HasDefaultValueSql("GETDATE()");
+            entity.Property(e => e.UpdatedAt)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnName("updated_at");
+            entity.Property(e => e.Voltage)
+                .HasColumnType("decimal(5, 2)")
+                .HasColumnName("voltage");
 
-            // Relationship: Battery_Detail 1-1 Item
-            entity.HasOne<Item>()
-                  .WithOne()
-                  .HasForeignKey<BatteryDetail>(d => d.ItemId)
-                  .HasConstraintName("FK_BatteryDetail_Item")
-                  .OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne<Item>().WithOne()
+                .HasForeignKey<BatteryDetail>(d => d.ItemId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK__battery_d__item___4BAC3F29");
         }
     }
 }

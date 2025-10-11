@@ -24,7 +24,7 @@ namespace Application.Services
             //_uow = uow;
         }
 
-        public async Task<EvDetailDto> CreateAsync(CreateEvDetailDto dto, CancellationToken ct = default)
+        public async Task<EVDetailDto> CreateAsync(CreateEvDetailDto dto, CancellationToken ct = default)
         {
             // basic validation (add more as needed)
             if (string.IsNullOrWhiteSpace(dto.Title)) throw new ArgumentException("Title required");
@@ -90,10 +90,10 @@ namespace Application.Services
             return true;
         }
 
-        public async Task<IEnumerable<EvDetailDto>> GetAllAsync(CancellationToken ct = default)
+        public async Task<IEnumerable<EVDetailDto>> GetAllAsync(CancellationToken ct = default)
         {
             var evs = await _evRepo.GetAllAsync(ct);
-            var result = new List<EvDetailDto>();
+            var result = new List<EVDetailDto>();
             foreach (var e in evs)
             {
                 var item = await _itemRepo.GetByIdAsync(e.ItemId, ct);
@@ -102,7 +102,7 @@ namespace Application.Services
             return result;
         }
 
-        public async Task<EvDetailDto?> GetByIdAsync(int itemId, CancellationToken ct = default)
+        public async Task<EVDetailDto?> GetByIdAsync(int itemId, CancellationToken ct = default)
         {
             var e = await _evRepo.GetByIdAsync(itemId, ct);
             if (e == null) return null;
@@ -158,8 +158,8 @@ namespace Application.Services
             return true;
         }
 
-        private static EvDetailDto MapToDto(EVDetail e, Item? item)
-            => new EvDetailDto
+        private static EVDetailDto MapToDto(EVDetail e, Item? item)
+            => new EVDetailDto
             {
                 ItemId = e.ItemId,
                 Brand = e.Brand,
@@ -169,9 +169,9 @@ namespace Application.Services
                 BodyStyle = e.BodyStyle,
                 Color = e.Color,
                 LicensePlate = e.LicensePlate,
-                HasAccessories = e.HasAccessories ?? false,
+                HasAccessories = e.HasAccessories,
                 PreviousOwners = e.PreviousOwners,
-                IsRegistrationValid = e.IsRegistrationValid ?? false,
+                IsRegistrationValid = e.IsRegistrationValid,
                 Mileage = e.Mileage,
                 Title = item?.Title,
                 Price = item?.Price,

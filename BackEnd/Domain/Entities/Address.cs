@@ -26,4 +26,5 @@ public class Address
     public DateOnly? CreatedAt { get; set; }
 
     public bool? IsDeleted { get; set; }
+
 }
