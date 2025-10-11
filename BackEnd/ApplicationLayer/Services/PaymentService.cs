@@ -1,7 +1,8 @@
-﻿using Application.DTOs;
+﻿using Application.DTOs.PaymentDtos;
 using Application.IRepositories;
 using Application.IServices;
 using Domain.Entities;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.Extensions.Configuration;
 using Net.payOS;
 using Net.payOS.Types;
@@ -57,7 +58,7 @@ public class PaymentService : IPaymentService
         if (request.Method == "wallet")
         {
             if (wallet.Balance < request.TotalAmount)
-                throw new ArgumentException("Số dư wallet không đủ");
+                throw new ArgumentException("Insufficient wallet balance");
 
             await _paymentRepository.DeductWalletBalanceAsync(wallet, request.TotalAmount, payment.PaymentId);
             await _paymentRepository.UpdatePaymentStatusAsync(payment.PaymentId, "completed");
@@ -98,22 +99,19 @@ public class PaymentService : IPaymentService
                 Status = "pending"
             };
         }
-        throw new ArgumentException("Method không hỗ trợ");
+        throw new ArgumentException("Method not supported");
     }
 
     public async Task<PaymentInfoDto> GetPaymentInfoAsync(long orderCode)
     {
-        // Lấy từ DB trước (sử dụng GroupJoin thủ công)
         var info = await _paymentRepository.GetPaymentInfoByOrderCodeAsync(orderCode);
         if (info == null)
-            throw new ArgumentException("Payment không tồn tại");
+            throw new ArgumentException("Payment does not exist");
 
-        // Nếu payos, bổ sung info từ PayOS và sync status
         if (info.Method == "payos")
         {
             var payOsInfo = await _payOS.getPaymentLinkInformation(orderCode);
-            info.Status = payOsInfo.status;  // Sync status từ PayOS
-            // Map thêm fields nếu cần (ví dụ: paymentLinkId)
+            info.Status = payOsInfo.status;
         }
 
         return info;
@@ -121,12 +119,25 @@ public class PaymentService : IPaymentService
 
     public async Task CancelPaymentAsync(long orderCode, string reason)
     {
-        var info = await GetPaymentInfoAsync(orderCode);  // Reuse để lấy paymentId
+        var info = await GetPaymentInfoAsync(orderCode);
         if (info.Method == "payos")
         {
             await _payOS.cancelPaymentLink(orderCode, reason);
         }
         await _paymentRepository.UpdatePaymentStatusAsync(info.PaymentId, "canceled");
-        // Optional: Add refund logic cho wallet nếu cần, nhưng theo yêu cầu chỉ cancel
+    }
+
+    public async Task HandleWebhookAsync(WebhookType body)
+    {
+        var data = _payOS.verifyPaymentWebhookData(body);
+        if (data.code != "00" || data.desc != "success")
+            return;
+
+        var info = await _paymentRepository.GetPaymentInfoByOrderCodeAsync(data.orderCode);
+        if (info != null)
+        {
+            await _paymentRepository.UpdatePaymentStatusAsync(info.PaymentId, "completed");
+            await _paymentRepository.UpdateRelatedEntitiesAsync(info.Details);
+        }
     }
 }

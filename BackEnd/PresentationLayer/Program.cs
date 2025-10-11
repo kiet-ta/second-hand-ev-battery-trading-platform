@@ -1,12 +1,16 @@
 ﻿using Application.DTOs;
+using Application.DTOs.PaymentDtos;
 using Application.IRepositories;
 using Application.IRepositories.IBiddingRepositories;
+using Application.IRepositories.IPaymentRepositories;
 using Application.IServices;
 using Application.Services;
 using Application.Validations;
 using CloudinaryDotNet;
+using FluentValidation;
 using Infrastructure.Data;
 using Infrastructure.Repositories;
+using Infrastructure.Ulties;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -93,6 +97,13 @@ namespace PresentationLayer
                               .AllowAnyHeader()
                               .AllowAnyMethod();
                     });
+                options.AddPolicy("AllowNgrok",
+                    policy =>
+                    {
+                        policy.WithOrigins("https://318132ab9f7d.ngrok-free.app")
+                              .AllowAnyHeader()
+                              .AllowAnyMethod();
+                    });
             });
             // register PayOS via DI (Dependency Injection)
             var payosConfig = builder.Configuration.GetSection("PayOS");
@@ -102,7 +113,7 @@ namespace PresentationLayer
                 var clientId = payosConfig["ClientId"];
                 var apiKey = payosConfig["ApiKey"];
                 var checksumKey = payosConfig["ChecksumKey"];
-                return new PayOS(clientId = "abc", apiKey = "abc", checksumKey = "abc");
+                return new PayOS(clientId, apiKey, checksumKey);
             });
 
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -125,6 +136,8 @@ namespace PresentationLayer
             builder.Services.AddScoped<IBidRepository, BidRepository>();
             builder.Services.AddScoped<IAuctionService, AuctionService>();
             builder.Services.AddScoped<IItemBiddingRepository, ItemBiddingRepository>();
+            builder.Services.AddScoped<IValidator<PaymentRequestDto>, PaymentRequestValidator>();
+            builder.Services.AddHostedService<PayOSWebhookInitializer>();
 
             builder.Services.AddDbContext<EvBatteryTradingContext>(options =>
             options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -177,6 +190,7 @@ namespace PresentationLayer
 
             app.UseHttpsRedirection();
             app.UseCors("AllowReactApp");
+            app.UseCors("AllowNgrok");
             app.UseAuthorization();
 
             app.MapControllers();

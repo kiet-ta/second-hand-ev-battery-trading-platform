@@ -1,7 +1,7 @@
-﻿using Application.DTOs;
+﻿using Application.DTOs.PaymentDtos;
 using Domain.Entities;
 
-namespace Application.IRepositories;
+namespace Application.IRepositories.IPaymentRepositories;
 
 public interface IPaymentRepository
 {

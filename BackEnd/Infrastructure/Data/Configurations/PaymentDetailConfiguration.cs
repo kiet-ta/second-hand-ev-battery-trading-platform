@@ -11,14 +11,11 @@ namespace Infrastructure.Data.Configurations
 {
     public class PaymentDetailConfiguration : IEntityTypeConfiguration<PaymentDetail>
     {
-            
-        
-
         public void Configure(EntityTypeBuilder<PaymentDetail> entity)
         {
             entity.HasKey(e => e.PaymentDetailId).HasName("PK__Payment___C66E6E36E9E2A3A2");
 
-            entity.ToTable("Payment_Detail");
+            entity.ToTable("payment_details");
 
             entity.Property(e => e.PaymentDetailId).HasColumnName("payment_detail_id");
             entity.Property(e => e.Amount).HasColumnType("decimal(18, 2)").HasColumnName("amount");

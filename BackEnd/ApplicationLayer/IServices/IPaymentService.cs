@@ -1,4 +1,6 @@
-﻿using Application.DTOs;
+﻿using Application.DTOs.PaymentDtos;
+using Net.payOS.Types;
+using System.Text.Json;
 
 namespace Application.IServices;
 
@@ -9,4 +11,6 @@ public interface IPaymentService
     Task<PaymentInfoDto> GetPaymentInfoAsync(long orderCode);
 
     Task CancelPaymentAsync(long orderCode, string reason);
+
+    Task HandleWebhookAsync(WebhookType body);
 }

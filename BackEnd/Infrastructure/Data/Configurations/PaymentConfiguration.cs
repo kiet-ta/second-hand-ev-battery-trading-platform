@@ -15,7 +15,7 @@ namespace Infrastructure.Data.Configurations
         {
             entity.HasKey(e => e.PaymentId).HasName("PK__Payment__ED1FC9EAA8679B03");
 
-            entity.ToTable("Payment");
+            entity.ToTable("payments");
 
             entity.HasIndex(e => e.OrderCode, "UQ__Payment__99D12D3F05355D24").IsUnique();
 

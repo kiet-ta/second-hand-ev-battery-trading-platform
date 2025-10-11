@@ -8,7 +8,7 @@ public class WalletConfiguration : IEntityTypeConfiguration<Wallet>
 {
     public void Configure(EntityTypeBuilder<Wallet> entity)
     {
-        entity.ToTable("Wallet");
+        entity.ToTable("wallets");
         entity.HasKey(e => e.WalletId);
 
         entity.Property(e => e.WalletId).HasColumnName("wallet_id");
