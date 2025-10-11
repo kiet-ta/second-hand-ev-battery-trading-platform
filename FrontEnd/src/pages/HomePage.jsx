@@ -1,6 +1,4 @@
 import React, { useEffect, useState } from 'react'
-import MainLayout from '../layout/MainLayout'
-import Navbar from '../components/Navbar/Navbar';
 import CardComponent from '../components/Cards/Card';
 import '../styles/HomePage.css'
 import itemApi from '../api/itemApi';

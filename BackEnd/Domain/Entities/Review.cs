@@ -11,6 +11,8 @@ public class Review
 
     public int TargetUserId { get; set; }
 
+    public int ItemId { get; set; }
+
     public int? Rating { get; set; }
 
     public string? Comment { get; set; }
@@ -18,4 +20,5 @@ public class Review
     public DateOnly? CreatedAt { get; set; }
 
     public DateOnly? UpdatedAt { get; set; }
+
 }

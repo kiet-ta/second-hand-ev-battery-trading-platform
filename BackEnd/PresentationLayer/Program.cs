@@ -35,19 +35,24 @@ namespace PresentationLayer
             builder.Services.AddScoped<IHistorySoldService, HistorySoldService>();
             builder.Services.AddScoped<ISellerDashboardService, SellerDashboardService>();
             builder.Services.AddScoped<IAuctionService, AuctionService>();
+            builder.Services.AddScoped<IOrderItemService, OrderItemService>();
+            builder.Services.AddScoped<IFavoriteService, FavoriteService>();
+
             //---Repositories
+            builder.Services.AddScoped<IAuctionRepository, AuctionRepository>();
             builder.Services.AddScoped<IUserRepository, UserRepository>();
             builder.Services.AddScoped<IItemRepository, ItemRepository>();
             builder.Services.AddScoped<IOrderRepository, OrderRepository>();
             builder.Services.AddScoped<IEVDetailRepository, EVDetailRepository>();
             builder.Services.AddScoped<IBatteryDetailRepository, BatteryDetailRepository>();
             builder.Services.AddScoped<IHistorySoldRepository, HistorySoldRepository>();
-            builder.Services.AddScoped<IItemBiddingRepository, ItemBiddingRepository>();
             builder.Services.AddScoped<IBidRepository, BidRepository>();
             builder.Services.AddScoped<IWalletRepository, WalletRepository>();
             builder.Services.AddScoped<IWalletTransactionRepository, WalletTransactionRepository>();
             builder.Services.AddScoped<IEmailRepository, EmailTemplateRepository>();
             builder.Services.AddScoped<IPaymentDetailRepository, PaymentDetailRepository>();
+            builder.Services.AddScoped<IOrderItemRepository, OrderItemRepository>();
+            builder.Services.AddScoped<IFavoriteRepository, FavoriteRepository>();
 
             builder.Services.AddScoped<IAddressRepository, AddressRepository>();
             builder.Services.AddScoped<IAddressService, AddressService>();
@@ -124,7 +129,6 @@ namespace PresentationLayer
             builder.Services.AddScoped<IWalletRepository, WalletRepository>();
             builder.Services.AddScoped<IBidRepository, BidRepository>();
             builder.Services.AddScoped<IAuctionService, AuctionService>();
-            builder.Services.AddScoped<IItemBiddingRepository, ItemBiddingRepository>();
             builder.Services.AddDbContext<EvBatteryTradingContext>(options =>
             options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
             //builder.Services.AddSwaggerGen();

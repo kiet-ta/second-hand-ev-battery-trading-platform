@@ -26,7 +26,7 @@ namespace Infrastructure.Repositories
                 .Where(u =>
                     u.UserId == id &&
                     u.Role == "seller" &&
-                    !u.IsDeleted &&
+                    !(u.IsDeleted == true) &&
                     u.KycStatus == "approved" &&
                     u.AccountStatus != "ban"
                 )
@@ -37,7 +37,7 @@ namespace Infrastructure.Repositories
         public async Task<List<Item>> GetAllSellerItemsAsync(int sellerId)
         {
             return await _context.Items
-                .Where(i => i.UpdatedBy == sellerId && !i.IsDeleted)
+                .Where(i => i.UpdatedBy == sellerId && !(i.IsDeleted == true))
                 .ToListAsync();
         }
 
@@ -46,7 +46,7 @@ namespace Infrastructure.Repositories
             var items = await _context.Items
                 .Where(item =>
                     item.UpdatedBy == sellerId &&
-                    !item.IsDeleted &&
+                    !(item.IsDeleted == true) &&
                     _context.OrderItems
                         .Join(_context.Orders, oi => oi.OrderId, o => o.OrderId, (oi, o) => new { oi, o })
                         .Any(joined =>
@@ -68,7 +68,7 @@ namespace Infrastructure.Repositories
             var items = await _context.Items
                 .Where(item =>
                     item.UpdatedBy == sellerId &&
-                    !item.IsDeleted &&
+                    !(item.IsDeleted == true) &&
                     _context.PaymentDetails
                         .Join(_context.Payments, pd => pd.PaymentId, p => p.PaymentId, (pd, p) => new { pd, p })
                         .Any(joined =>
@@ -89,7 +89,7 @@ namespace Infrastructure.Repositories
             var items = await _context.Items
                 .Where(item =>
                     item.UpdatedBy == sellerId &&
-                    !item.IsDeleted &&
+                    !(item.IsDeleted == true) &&
                     (
                         _context.PaymentDetails
                             .Join(_context.Payments,
@@ -130,7 +130,7 @@ namespace Infrastructure.Repositories
             var items = await _context.Items
                 .Where(item =>
                     item.UpdatedBy == sellerId &&
-                    !item.IsDeleted &&
+                    !(item.IsDeleted == true) &&
                     _context.PaymentDetails
                         .Join(_context.Payments, pd => pd.PaymentId, p => p.PaymentId, (pd, p) => new { pd, p })
                         .Any(joined =>

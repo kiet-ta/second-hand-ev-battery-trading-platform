@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Application.DTOs.ItemDtos
 {
-    public class EvDetailDto
+    public class EVDetailDto
     {
         // read model (returned to client)
         public int ItemId { get; set; }

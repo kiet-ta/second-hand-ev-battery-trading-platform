@@ -4,7 +4,7 @@ import ProfileForm from "../components/ProfileForm";
 import AddressManagement from "../pages/AddressManagement";
 import HistoryBought from "../components/HistoryBought";
 import "../assets/styles/ProfileContent.css";
-import anhtao from "../assets/images/anhtao.png";
+import anhtao from "../assets/images/Logo.png";
 import { FaRegUser } from "react-icons/fa";
 import { LuClipboardList } from "react-icons/lu";
 import { IoSettingsOutline } from "react-icons/io5";
@@ -12,7 +12,7 @@ import { IoMdSearch } from "react-icons/io";
 import { IoMdNotificationsOutline } from "react-icons/io";
 import { IoCartOutline } from "react-icons/io5";
 import { MdLogout } from "react-icons/md";
-import Logo from "../components/Logo/Logo";
+import Logo from "../components/Logo";
 
 const ProfileContent = () => {
     const [activeSection, setActiveSection] = useState("profile");
