@@ -1,4 +1,3 @@
-comment từng dòng code cicd dưới đây:
 name: CI/CD Pipeline - Second-hand EV And Battery Trading Platform
 on:
   push:
