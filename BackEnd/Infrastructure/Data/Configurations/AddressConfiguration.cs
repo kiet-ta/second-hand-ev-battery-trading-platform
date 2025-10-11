@@ -8,6 +8,7 @@ namespace Infrastructure.Data.Configurations
     {
         public void Configure(EntityTypeBuilder<Address> entity)
         {
+
             entity.HasKey(e => e.AddressId).HasName("PK__addresse__CAA247C889301E67");
 
             entity.ToTable("addresses");
