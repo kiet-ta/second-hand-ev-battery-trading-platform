@@ -1,12 +1,12 @@
 import axios from "axios";
-const baseURL = import.meta.env.VITE_API_BASE_URL + "User";
-const userApi = {
-    getUser: async () => {
+const baseURL = import.meta.env.VITE_API_BASE_URL + "Orders";
+const token = localStorage.getItem('token');
+const orderApi = {
+    getOrder: async () => {
         const response = await axios.get(baseURL);
         return response.data;
     },
-    getUserByID: async (id) => {
-        const token = localStorage.getItem('token');
+    getOrderById: async (id) => {
         const response = await axios.get(baseURL + '/' + id,
             {headers: {
                             // This line is essential for authorized endpoints
@@ -15,6 +15,14 @@ const userApi = {
                         }}
         )
         return response.data;
+    },
+    postOrderNew : async (data) => {
+        const token = localStorage.getItem('token');
+        await axios.post(`${baseURL}/new`,data,{
+            headers:{
+                'Authorization': `Bearer ${token}`
+            }
+        })
     }
 };
-export default userApi;
+export default orderApi;

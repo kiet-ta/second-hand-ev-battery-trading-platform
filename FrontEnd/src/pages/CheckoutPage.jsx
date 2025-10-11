@@ -1,40 +1,51 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
+import orderApi from "../api/orderApi";
 
 function CheckoutPage() {
-    const items = [
-        {
-            id: 1,
-            name: "Very cute Furina picture",
-            type: "Pre-Order",
-            variant: "Cute",
-            price: 280,
-            quantity: 1,
-            image: "https://i.pinimg.com/736x/1d/86/08/1d86084db7913c1bb14308057738eace.jpg",
-        },
-        {
-            id: 2,
-            name: "Amane Kanata Pop up Parade Figure - Hololive",
-            type: "In Stock",
-            variant: "Default",
-            price: 1350,
-            quantity: 1,
-            image: "https://i.pinimg.com/736x/25/31/5b/25315b5a3d3fa0b8d19753e4c6b2506b.jpg",
-        },
-    ];
+    const [addInsurance, setAddInsurance] = useState(true);
+    const [address, setAddress] = useState();
+    const location = useLocation();
+    const orderData = location.state;
+    console.log(orderData)
 
     const insurance = { name: "Product Damage Insurance", price: 6 };
     const shipping = { name: "Express Shipping", price: 10 };
-    const location = useLocation();
-    const receivedPrice = location.state;
 
+    const calculateTotal = () => {
+        let total = orderData.totalAmount || 0;
+        if (addInsurance) {
+            total += insurance.price;
+        }
+        total += shipping.price;
+        return total;
+    };
+
+    const finalTotalPrice = calculateTotal();
+    const confirmOrder = () => {
+        const order = {
+            buyerId: localStorage.getItem("userId"),
+            addressId: 1,
+            orderItemIds: orderData.itemsToPurchase.map(order => order.id),
+            createdAt: new Date().toISOString().split("T")[0],
+            updatedAt: new Date().toISOString().split("T")[0]
+        }
+        console.log(order)
+        orderApi.postOrderNew(order)
+    }
+    const finalOrderPayload = {
+        ...orderData,
+        insuranceAdded: addInsurance,
+        shippingMethod: shipping.name,
+        finalAmount: finalTotalPrice,
+    };
 
     return (
         <div className="p-6 bg-gray-100 min-h-screen">
             <div className="bg-white shadow-md rounded-lg p-6">
                 <h2 className="text-lg font-semibold mb-4">Products</h2>
                 <div className="divide-y">
-                    {items.map((item) => (
+                    {orderData && orderData.itemsToPurchase.map((item) => (
                         <div
                             key={item.id}
                             className="flex items-center justify-between py-4"
@@ -45,14 +56,11 @@ function CheckoutPage() {
                                     alt={item.name}
                                     className="w-16 h-16 rounded object-cover"
                                 />
-                                <div className='flex gap-4'>
+                                <div className='flex flex-col gap-1'>
                                     <p className="font-medium">{item.name}</p>
                                     <p className="text-sm text-gray-500">
-                                        Variant: {item.variant}
+                                        Quantity: {item.quantity}
                                     </p>
-                                    <span className="text-xs px-2 py-1 rounded bg-maincolor text-white">
-                                        {item.type}
-                                    </span>
                                 </div>
                             </div>
                             <div className="flex items-center space-x-12">
@@ -66,9 +74,15 @@ function CheckoutPage() {
                     ))}
                 </div>
 
+                {/* Insurance Section */}
                 <div className="flex items-center justify-between py-4 border-t">
                     <div className="flex items-center space-x-2">
-                        <input type="checkbox" defaultChecked className="accent-maincolor" />
+                        <input
+                            type="checkbox"
+                            checked={addInsurance}
+                            onChange={() => setAddInsurance(!addInsurance)} // Toggle insurance state
+                            className="accent-maincolor"
+                        />
                         <div>
                             <p className="font-medium">{insurance.name}</p>
                             <p className="text-xs text-gray-500">
@@ -79,6 +93,7 @@ function CheckoutPage() {
                     <p className="font-semibold">${insurance.price.toFixed(2)}</p>
                 </div>
 
+                {/* Shipping and Message Section */}
                 <div className="grid grid-cols-2 gap-6 py-6 border-t">
                     <div>
                         <label className="text-sm font-medium text-gray-600">
@@ -99,23 +114,23 @@ function CheckoutPage() {
                             <p className="font-semibold">${shipping.price.toFixed(2)}</p>
                         </div>
                         <p className="text-xs text-gray-500 mt-1">
-                            Estimated delivery: Oct 4 - Oct 7, 2025
+                            Estimated delivery: Oct 14 - Oct 17, 2025
                         </p>
                     </div>
                 </div>
 
+                {/* Final Total */}
                 <div className="flex justify-between items-center border-t pt-6">
                     <p className="text-lg font-semibold">
-                        Total ({items.length} items):
+                        Total ({orderData.itemsToPurchase.length} items):
                     </p>
                     <p className="text-2xl font-bold text-maincolor">
-                        {console.log(receivedPrice)}
-                        ${receivedPrice}
+                        ${finalTotalPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </p>
                 </div>
 
                 <div className="flex justify-end mt-6">
-                    <Link to={'/'}  state={receivedPrice}>
+                    <Link to={'/payment-success'} onClick={confirmOrder} state={finalOrderPayload}>
                         <button className="px-6 py-3 bg-maincolor text-white font-semibold rounded-lg shadow hover:opacity-90">
                             Confirm & Pay
                         </button>
@@ -127,3 +142,4 @@ function CheckoutPage() {
 }
 
 export default CheckoutPage;
+

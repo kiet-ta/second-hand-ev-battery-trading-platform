@@ -5,6 +5,7 @@ import { FiShoppingCart } from 'react-icons/fi'
 import itemApi from "../api/itemApi"
 import { useLocation } from 'react-router-dom'
 import userApi from '../api/userApi'
+import orderItemApi from '../api/orderItemApi'
 
 const images = [
   "https://i.pinimg.com/1200x/55/53/06/55530643312e136a9fa2a576d6fcfbd0.jpg",
@@ -29,6 +30,9 @@ function BatteryDetails() {
   const [itemSummary, setItemSummary] = useState([])
   const [itemDetails, setItemDetails] = useState([])
   const [sellerProfile, setSellerProfile] = useState([])
+  const [cartItem, setCartItem] = useState([])
+  const [quantity, setQuantity] = useState(1);
+
 
   const fetchItems = async () => {
     try {
@@ -41,10 +45,24 @@ function BatteryDetails() {
       console.error("Error fetching items", error);
     }
   };
+  const handleAddToCart = async () => {
+        // Create the payload directly here instead of using state
+        const cartPayload = {
+            "buyerId": localStorage.getItem("userId"),
+            "itemId": itemId,
+            "quantity": quantity, // Use the current quantity from state, not quantity - 1
+            "price": itemSummary.price // Use the dynamic price from the fetched item
+        };
+
+        try {
+            await orderItemApi.postOrderItem(cartPayload);
+        } catch (error) {
+            console.error("Error adding item to cart", error);
+        }
+    };
   useEffect(() => {
     fetchItems();
-  }, []);
-  const [quantity, setQuantity] = useState(1);
+  }, [itemId]);
   const onChange = value => {
     setQuantity(value);
   };
@@ -63,7 +81,7 @@ function BatteryDetails() {
             <div className="header text-left font-bold">Description</div>
             <div className="content p-4 m-4 text-left">
               {itemSummary.description}
-                          </div>
+            </div>
           </div>
         </div>
         <div className="col-span-2">
@@ -76,8 +94,8 @@ function BatteryDetails() {
                 <div>
                   {itemDetails.brand} - Capacity: {itemDetails.capacity}Ah - Voltage: {itemDetails.voltage}V - Charge Cycle: {itemDetails.chargeCycles}
                 </div>
-              ):
-              <div>Loading...</div>}
+              ) :
+                <div>Loading...</div>}
             </div>
             <div className="price-tag flex h-1/10 text-left mt-2 bg-gray-50">
               <div className='ml-4 text-2xl font-bold text-red-500 content-center' >${itemSummary.price}</div>
@@ -94,7 +112,7 @@ function BatteryDetails() {
               <button
                 type="button"
                 className="bg-maincolor w-1/4 px-2 py-1 text-2xl rounded-full flex items-center justify-center text-white"
-                onClick={() => console.log(quantity)}
+                onClick={handleAddToCart}
               >
                 <FiShoppingCart className="mr-1" />
                 Buy
@@ -106,12 +124,12 @@ function BatteryDetails() {
                   <img className="object-cover w-full h-full" src="https://i.pinimg.com/736x/b6/10/ae/b610ae5879e2916e1bb7c4c161754f4d.jpg" />
                 </div>
                 {sellerProfile ? (
-                <div className="seller-name w-2/4">
-                                      <div className="text-1xl font-bold ml-4">{sellerProfile.fullName}</div>
-                  <div className="text-1xl ml-4 text-gray-500">Active 5 minutes ago</div>
+                  <div className="seller-name w-2/4">
+                    <div className="text-1xl font-bold ml-4">{sellerProfile.fullName}</div>
+                    <div className="text-1xl ml-4 text-gray-500">Active 5 minutes ago</div>
 
                   </div>
-                ): (
+                ) : (
                   <div>Waiting...</div>
                 )}
               </div>
