@@ -1,5 +1,6 @@
 ﻿using Application.DTOs.PaymentDtos;
 using Application.IRepositories;
+using Application.IRepositories.IPaymentRepositories;
 using Application.IServices;
 using Domain.Entities;
 using Microsoft.AspNetCore.Http.HttpResults;

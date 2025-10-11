@@ -143,7 +143,6 @@ namespace PresentationLayer
             builder.Services.AddScoped<IWalletRepository, WalletRepository>();
             builder.Services.AddScoped<IBidRepository, BidRepository>();
             builder.Services.AddScoped<IAuctionService, AuctionService>();
-            builder.Services.AddScoped<IItemBiddingRepository, ItemBiddingRepository>();
             builder.Services.AddScoped<IValidator<PaymentRequestDto>, PaymentRequestValidator>();
             builder.Services.AddHostedService<PayOSWebhookInitializer>();
 
