@@ -8,9 +8,9 @@ public class WalletConfiguration : IEntityTypeConfiguration<Wallet>
 {
     public void Configure(EntityTypeBuilder<Wallet> entity)
     {
-        entity.HasKey(e => e.WalletId).HasName("PK__wallets__0EE6F041F0C57219");
 
         entity.ToTable("wallets");
+        entity.HasKey(e => e.WalletId);
 
         entity.HasIndex(e => e.UserId, "UQ__wallets__B9BE370EDA87C2F7").IsUnique();
 

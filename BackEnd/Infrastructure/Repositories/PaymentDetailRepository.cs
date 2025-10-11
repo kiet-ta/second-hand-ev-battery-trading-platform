@@ -1,5 +1,5 @@
 ﻿using Application.DTOs;
-using Application.IRepositories;
+using Application.IRepositories.IPaymentRepositories;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -13,6 +13,7 @@ namespace Infrastructure.Repositories
     public class PaymentDetailRepository : IPaymentDetailRepository
     {
         private readonly EvBatteryTradingContext _context;
+
         public PaymentDetailRepository(EvBatteryTradingContext context)
         {
             _context = context;

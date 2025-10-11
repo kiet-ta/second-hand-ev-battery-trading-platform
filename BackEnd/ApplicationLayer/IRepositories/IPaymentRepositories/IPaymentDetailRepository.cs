@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Application.IRepositories
+namespace Application.IRepositories.IPaymentRepositories
 {
     public interface IPaymentDetailRepository
     {

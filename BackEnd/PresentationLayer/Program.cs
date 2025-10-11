@@ -1,17 +1,22 @@
-﻿using Application.IRepositories.IBiddingRepositories;
+﻿using Application.DTOs;
+using Application.DTOs.PaymentDtos;
 using Application.IRepositories;
+using Application.IRepositories.IBiddingRepositories;
+using Application.IRepositories.IPaymentRepositories;
 using Application.IServices;
 using Application.Services;
+using Application.Validations;
 using CloudinaryDotNet;
+using FluentValidation;
 using Infrastructure.Data;
 using Infrastructure.Repositories;
+using Infrastructure.Ulties;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Net.payOS;
 using System.Text;
-using Application.DTOs;
 
 namespace PresentationLayer
 {
@@ -35,6 +40,7 @@ namespace PresentationLayer
             builder.Services.AddScoped<IHistorySoldService, HistorySoldService>();
             builder.Services.AddScoped<ISellerDashboardService, SellerDashboardService>();
             builder.Services.AddScoped<IAuctionService, AuctionService>();
+            builder.Services.AddScoped<IPaymentService, PaymentService>();
             builder.Services.AddScoped<IOrderItemService, OrderItemService>();
             builder.Services.AddScoped<IFavoriteService, FavoriteService>();
 
@@ -51,6 +57,7 @@ namespace PresentationLayer
             builder.Services.AddScoped<IWalletTransactionRepository, WalletTransactionRepository>();
             builder.Services.AddScoped<IEmailRepository, EmailTemplateRepository>();
             builder.Services.AddScoped<IPaymentDetailRepository, PaymentDetailRepository>();
+            builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
             builder.Services.AddScoped<IOrderItemRepository, OrderItemRepository>();
             builder.Services.AddScoped<IFavoriteRepository, FavoriteRepository>();
 
@@ -98,6 +105,13 @@ namespace PresentationLayer
                               .AllowAnyHeader()
                               .AllowAnyMethod();
                     });
+                options.AddPolicy("AllowNgrok",
+                    policy =>
+                    {
+                        policy.WithOrigins("https://318132ab9f7d.ngrok-free.app")
+                              .AllowAnyHeader()
+                              .AllowAnyMethod();
+                    });
             });
             // register PayOS via DI (Dependency Injection)
             var payosConfig = builder.Configuration.GetSection("PayOS");
@@ -107,7 +121,7 @@ namespace PresentationLayer
                 var clientId = payosConfig["ClientId"];
                 var apiKey = payosConfig["ApiKey"];
                 var checksumKey = payosConfig["ChecksumKey"];
-                return new PayOS(clientId = "abc", apiKey = "abc", checksumKey = "abc");
+                return new PayOS(clientId, apiKey, checksumKey);
             });
 
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -121,7 +135,7 @@ namespace PresentationLayer
             builder.Services.AddScoped<IUserService, UserService>();
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
-            builder.Configuration.AddUserSecrets<Program>(); 
+            builder.Configuration.AddUserSecrets<Program>();
             builder.Services.Configure<MailSettings>(builder.Configuration.GetSection("MailSettings"));
             builder.Services.AddScoped<IMailService, MailService>();
             builder.Services.AddScoped<IEmailRepository, EmailTemplateRepository>();
@@ -129,6 +143,10 @@ namespace PresentationLayer
             builder.Services.AddScoped<IWalletRepository, WalletRepository>();
             builder.Services.AddScoped<IBidRepository, BidRepository>();
             builder.Services.AddScoped<IAuctionService, AuctionService>();
+            builder.Services.AddScoped<IItemBiddingRepository, ItemBiddingRepository>();
+            builder.Services.AddScoped<IValidator<PaymentRequestDto>, PaymentRequestValidator>();
+            builder.Services.AddHostedService<PayOSWebhookInitializer>();
+
             builder.Services.AddDbContext<EvBatteryTradingContext>(options =>
             options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
             //builder.Services.AddSwaggerGen();
@@ -180,6 +198,7 @@ namespace PresentationLayer
 
             app.UseHttpsRedirection();
             app.UseCors("AllowReactApp");
+            app.UseCors("AllowNgrok");
             app.UseAuthorization();
 
             app.MapControllers();
