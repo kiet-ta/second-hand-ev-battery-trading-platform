@@ -1,7 +1,6 @@
-namespace BackEnd.Integration.Tests;
-
 using Testcontainers.MsSql;
-using Xunit;
+
+namespace BackEnd.Integration.Tests;
 
 // This class is a fixture responsible for managing the lifecycle of an MsSqlContainer.
 // It implements IAsyncLifetime to start the container before tests run and stop it after they finish.
