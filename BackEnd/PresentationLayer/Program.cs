@@ -1,7 +1,9 @@
-﻿using Application.IRepositories.IBiddingRepositories;
+﻿using Application.DTOs;
 using Application.IRepositories;
+using Application.IRepositories.IBiddingRepositories;
 using Application.IServices;
 using Application.Services;
+using Application.Validations;
 using CloudinaryDotNet;
 using Infrastructure.Data;
 using Infrastructure.Repositories;
@@ -11,7 +13,6 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Net.payOS;
 using System.Text;
-using Application.DTOs;
 
 namespace PresentationLayer
 {
@@ -36,6 +37,8 @@ namespace PresentationLayer
             builder.Services.AddScoped<ISellerDashboardService, SellerDashboardService>();
             builder.Services.AddScoped<IAuctionService, AuctionService>();
             builder.Services.AddScoped<IOrderItemService, OrderItemService>();
+            builder.Services.AddScoped<IPaymentService, PaymentService>();
+
             //---Repositories
             builder.Services.AddScoped<IAuctionRepository, AuctionRepository>();
             builder.Services.AddScoped<IUserRepository, UserRepository>();
@@ -51,6 +54,7 @@ namespace PresentationLayer
             builder.Services.AddScoped<IPaymentDetailRepository, PaymentDetailRepository>();
             builder.Services.AddScoped<IOrderItemRepository, OrderItemRepository>();
 
+            builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
             // JWT Authentication
             builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(options =>
@@ -115,7 +119,7 @@ namespace PresentationLayer
             builder.Services.AddScoped<IUserService, UserService>();
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
-            builder.Configuration.AddUserSecrets<Program>(); 
+            builder.Configuration.AddUserSecrets<Program>();
             builder.Services.Configure<MailSettings>(builder.Configuration.GetSection("MailSettings"));
             builder.Services.AddScoped<IMailService, MailService>();
             builder.Services.AddScoped<IEmailRepository, EmailTemplateRepository>();
@@ -123,6 +127,8 @@ namespace PresentationLayer
             builder.Services.AddScoped<IWalletRepository, WalletRepository>();
             builder.Services.AddScoped<IBidRepository, BidRepository>();
             builder.Services.AddScoped<IAuctionService, AuctionService>();
+            builder.Services.AddScoped<IItemBiddingRepository, ItemBiddingRepository>();
+
             builder.Services.AddDbContext<EvBatteryTradingContext>(options =>
             options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
             //builder.Services.AddSwaggerGen();
