@@ -39,6 +39,8 @@ public class EvBatteryTradingContext : DbContext
 
     public DbSet<Item> Items { get; set; }
 
+    public DbSet<ItemBidding> ItemBiddings { get; set; }
+
     public DbSet<ItemImage> ItemImages { get; set; }
 
     public DbSet<KycDocument> KycDocuments { get; set; }

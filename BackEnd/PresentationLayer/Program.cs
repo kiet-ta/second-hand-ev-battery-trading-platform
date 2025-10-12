@@ -1,10 +1,14 @@
-using Domain.Mappings;
-using Application.IRepositories.IBiddingRepositories;
+using Application.DTOs;
+using Application.DTOs.PaymentDtos;
+using Application.IHelpers;
 using Application.IRepositories;
+using Application.IRepositories.IBiddingRepositories;
+using Application.IRepositories.IPaymentRepositories;
 using Application.IServices;
 using Application.Services;
 using Application.Validations;
 using CloudinaryDotNet;
+using Domain.Mappings;
 using FluentValidation;
 using Infrastructure.Data;
 using Infrastructure.Helpers;
@@ -12,6 +16,7 @@ using Infrastructure.Repositories;
 using Infrastructure.Ulties;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Net.payOS;
@@ -27,7 +32,6 @@ namespace PresentationLayer
 
             //  Đăng ký DbContext (DB First)
             builder.Services.AddDbContext<EvBatteryTradingContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-
             // DI cho Repository + Service
             //---Services
             builder.Services.AddScoped<IAuthService, AuthService>();
@@ -140,11 +144,13 @@ namespace PresentationLayer
             builder.Services.AddScoped<IAuctionService, AuctionService>();
             builder.Services.AddScoped<IValidator<PaymentRequestDto>, PaymentRequestValidator>();
             builder.Services.AddHostedService<PayOSWebhookInitializer>();
-            builder.Services.AddScoped<IKYC_DocumentRepository, KYC_DocumentRepository>();
             builder.Services.AddScoped<IKYC_DocumentService, KYC_DocumentService>();
+            builder.Services.AddScoped<IRedisCacheHelper, RedisCacheHelper>();
+            builder.Services.AddScoped<IFavoriteRepository, FavoriteRepository>();
+            builder.Services.AddScoped<IUserService, UserService>();
+            builder.Services.AddScoped<IFavoriteService, FavoriteService>();
+            builder.Services.AddScoped<IKYC_DocumentRepository, KYC_DocumentRepository>();
             builder.Services.AddAutoMapper(typeof(KYC_DocumentProfile).Assembly);
-            builder.Services.AddDbContext<EvBatteryTradingContext>(options =>
-            options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
             //builder.Services.AddSwaggerGen();
 
             builder.Services.AddSwaggerGen(c =>
