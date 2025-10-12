@@ -9,6 +9,7 @@ namespace BackEnd.Integration.Tests;
 
 // This test class uses the DatabaseFixture to ensure a fresh database container is available.
 // IClassFixture tells xUnit to create one instance of DatabaseFixture for all tests in this class.
+[Trait("Category", "Integration")]
 public class UserControllerTests : IClassFixture<DatabaseFixture>
 {
     private readonly HttpClient _client;

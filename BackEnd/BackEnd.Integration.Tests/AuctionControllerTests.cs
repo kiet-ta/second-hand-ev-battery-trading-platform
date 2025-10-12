@@ -9,6 +9,7 @@ using System.Net.Http.Json;
 
 namespace BackEnd.Integration.Tests;
 
+[Trait("Category", "Integration")]
 public class AuctionControllerTests : IClassFixture<DatabaseFixture>
 {
     private readonly HttpClient _client;
