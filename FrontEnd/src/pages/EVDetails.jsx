@@ -1,7 +1,8 @@
-import {useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import Carousel from '../components/Carousel'
 import { useLocation } from 'react-router-dom';
 import itemApi from '../api/itemApi';
+import { GiGemChain } from "react-icons/gi";
 
 
 const images = [
@@ -24,20 +25,20 @@ const phone = "0312345678";
 const hiddenphone = "Show phone " + phone.slice(0, -4) + "****";
 function EVDetails() {
   const [isPhoneVisible, setIsPhoneVisible] = useState(false);
-    const location = useLocation();
+  const location = useLocation();
   const itemId = location.state;
-
+  const [itemSummary, setItemSummary] = useState([])
   const [itemDetails, setItemDetails] = useState([])
+  const fetchItems = async () => {
+    try {
+      const data = await itemApi.getItemDetailByID(itemId);
+      setItemSummary(data)
+      setItemDetails(data.evDetail);
+    } catch (error) {
+      console.error("Error fetching items", error);
+    }
+  };
   useEffect(() => {
-    const fetchItems = async () => {
-      try {
-        const data = await itemApi.getItemById(itemId);
-        console.log(data);
-        setItemDetails(data);
-      } catch (error) {
-        console.error("Error fetching items", error);
-      }
-    };
     fetchItems();
   }, []);
 
@@ -51,42 +52,47 @@ function EVDetails() {
               height="h-10 sm:h-20 md:h-100"
               width="w-full max-w-3xl"
             /></div>
-          <div className="more-info grid gird-flow-col grid-rows-3 gap-10 grid-cols-4 bg-white mt-5 h-4/10 rounded-2xl p-4 m-4">
-            <div className='text-gray-400 text-1xl text-left'>Brand :</div>
-            <div className='font-bold text-left text-1xl'>2</div>
-            <div className='text-gray-400 text-1xl text-left'>Model :</div>
-            <div className='font-bold text-left text-1xl'>2</div>
-            <div className='text-gray-400 text-1xl text-left'>Body Style :</div>
-            <div className='font-bold text-left text-1xl'>2</div>
-            <div className='text-gray-400 text-1xl text-left'>Color :</div>
-            <div className='font-bold text-left text-1xl'>2</div>
-            <div className='text-gray-400 text-1xl text-left'>Location :</div>
-            <div className='font-bold text-left text-1xl'>2</div>
-            <div className='text-gray-400 text-1xl text-left'>Has Accessories :</div>
-            <div className='font-bold text-left text-1xl'>2</div>
-          </div>
+          {itemDetails ? (
+            <div className="more-info grid gird-flow-col grid-rows-3 gap-2 grid-cols-4 bg-white mt-5 h-4/10 rounded-2xl p-4 m-4">
+              <div className='text-gray-400 text-1xl text-left'>Brand :</div>
+              <div className='font-bold text-left text-1xl'>{itemDetails.brand}</div>
+              <div className='text-gray-400 text-1xl text-left'>Model :</div>
+              <div className='font-bold text-left text-1xl'>{itemDetails.model}</div>
+              <div className='text-gray-400 text-1xl text-left'>Body Style :</div>
+              <div className='font-bold text-left text-1xl'>{itemDetails.bodyStyle}</div>
+              <div className='text-gray-400 text-1xl text-left'>Color :</div>
+              <div className='font-bold text-left text-1xl'>{itemDetails.color}</div>
+              <div className='text-gray-400 text-1xl text-left'>Location :</div>
+              <div className='font-bold text-left text-1xl row-span-2'>{itemDetails.licensePlate}</div>
+            </div>
+          ) : (<div> </div>)}
           <div className="description bg-white rounded-2xl p-4 h-2/5 m-4">
             <div className="header text-left font-bold">Description</div>
             <div className="content p-4 m-4 text-left">
-            {itemDetails.description}
+              {itemSummary.description}
             </div>
           </div>
         </div>
         <div className="col-span-2">
           <div className="product-info bg-white rounded-2xl p-4 h-2/3">
             <div className="title h-1/8 text-3xl  text-left content-center flex-none font-semibold text-black overflow-hidden whitespace-pre-wrap" style={{ display: 'block', wordBreak: 'break-word' }}>
-              {itemDetails.title}
+              {itemSummary.title}
             </div>
-            <div className="product-general-info flex h-1/10 text-left mt-2 text-1xl text-gray-500">
-              <div>1910 |</div><div>| 20000 km</div>
-            </div>
+            {itemDetails ? (
+              <div className="product-general-info flex h-1/10 text-left gap-4 mt-2 text-2xl text-gray-500 justify-start items-center ">
+                <div>{itemDetails.year}</div><div>|</div><div className="">{itemDetails.mileage}km</div>
+                {itemDetails.hasAccessories == true ? (<div className="bg-maincolor-darker rounded-2xl flex content-center text-center text-2xl font-bold text-white justify-center items-center p-5"><GiGemChain/> Has Accessory</div>): (<div></div>)}
+              </div>
+            ) : (
+              <div> loading... </div>
+            )}
             <div className="price-tag flex h-1/10 text-left mt-2 bg-gray-50">
-              <div className='ml-4 text-2xl font-bold text-red-500 content-center' >${itemDetails.price}</div>
-              <div className="ml-5 text-2xl text-gray-300 line-through content-center">$100000</div>
+              <div className='ml-4 text-2xl font-bold text-red-500 content-center' >${itemSummary.price}</div>
+              <div className="ml-5 text-2xl text-gray-300 line-through content-center"></div>
             </div>
             <div className="phone-number flex gap-4 h-1/10 mt-4">
-              <div className="bg-gray-200 w-1/4 rounded-2xl font-bold text-1xl content-center ">Chat</div>
-              <div className="bg-gray-200 w-2/4 rounded-2xl font-bold text-1xl content-center">
+              <div className="bg-gray-200 w-1/4 rounded-2xl font-bold text-1xl content-center text-center ">Chat</div>
+              <div className="bg-gray-200 w-2/4 rounded-2xl font-bold text-1xl content-center text-center">
                 <button onClick={() => setIsPhoneVisible(!isPhoneVisible)}>
                   <span>{isPhoneVisible ? phone : hiddenphone}</span>
                 </button>

@@ -13,7 +13,4 @@ public class Favorite
 
     public DateOnly? CreatedAt { get; set; }
 
-    //public virtual Item Item { get; set; } = null!;
-
-    //public virtual User User { get; set; } = null!;
 }

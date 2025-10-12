@@ -15,5 +15,4 @@ public class UserLog
 
     public DateOnly? CreatedAt { get; set; }
 
-    //public virtual User User { get; set; } = null!;
 }

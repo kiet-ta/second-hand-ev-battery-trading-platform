@@ -1,12 +1,22 @@
+/* ======================================
+   🌟 PROFILE FORM V2 - CÂN ĐỐI, HIỆN ĐẠI
+   ====================================== */
+
 .profile-form-container {
-    max-width: 800px;
+    flex: 1;
+    padding: 1rem 0;
+    display: block;
 }
 
+
+
+/* ==== PHẦN ẢNH & TÊN NGƯỜI DÙNG ==== */
 .profile-photo-section {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    padding: 2rem 0;
+    justify-content: flex-start;
+    gap: 2rem;
+    padding-bottom: 2rem;
     border-bottom: 1px solid #e2e8f0;
     margin-bottom: 2rem;
 }
@@ -14,65 +24,116 @@
 .photo-upload {
     display: flex;
     align-items: center;
-    gap: 1rem;
+    gap: 1.25rem;
+}
+
+/* ẢNH ĐẠI DIỆN */
+.avatar-wrapper {
+    position: relative;
+    width: 90px;
+    height: 90px;
 }
 
 .profile-photo {
-    width: 80px;
-    height: 80px;
+    width: 100%;
+    height: 100%;
     border-radius: 50%;
     object-fit: cover;
     border: 3px solid #e2e8f0;
 }
 
-.upload-info h3 {
-    font-size: 1.125rem;
-    font-weight: 600;
-    color: #1e293b;
-    margin-bottom: 0.25rem;
+.readonly-input {
+    background-color: #f9fafb;
+    /* xám nhạt để phân biệt */
+    color: #4b5563;
+    cursor: not-allowed;
 }
 
-.upload-info p {
-    font-size: 0.875rem;
-    color: #64748b;
-}
-
-.update-btn {
-    background: #f1f5f9;
-    border: 1px solid #e2e8f0;
-    color: #475569;
-    padding: 0.75rem 1.5rem;
-    border-radius: 0.5rem;
-    font-weight: 500;
+/* Overlay camera icon */
+.upload-overlay {
+    position: absolute;
+    bottom: 2px;
+    right: 2px;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.6);
+    color: white;
+    border-radius: 50%;
+    font-size: 14px;
     cursor: pointer;
     transition: all 0.2s ease;
 }
 
-.update-btn:hover {
-    background: #e2e8f0;
+.upload-overlay:hover {
+    background: rgba(0, 0, 0, 0.8);
+    transform: scale(1.05);
 }
 
+/* TÊN NGƯỜI DÙNG */
+.upload-info h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #1e293b;
+}
+
+/* ==== FORM PHẦN DƯỚI ==== */
 .form-section {
     margin-top: 2rem;
 }
 
 .form-title {
-    font-size: 1.5rem;
+    font-size: 1.25rem;
     font-weight: 600;
-    color: #1e293b;
-    margin-bottom: 2rem;
+    color: #111827;
+    margin-bottom: 1.5rem;
+    border-left: 4px solid #667eea;
+    padding-left: 0.75rem;
 }
 
+/* Bố cục form */
 .profile-form {
     display: flex;
     flex-direction: column;
-    gap: 1.5rem;
+    gap: 1.75rem;
 }
+
+/* Phone input + toggle eye */
+.phone-wrapper {
+    position: relative;
+}
+
+.phone-wrapper input {
+    width: 100%;
+    padding-right: 2.5rem;
+    font-family: monospace;
+    letter-spacing: 0.05rem;
+}
+
+.toggle-phone-btn {
+    position: absolute;
+    right: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #64748b;
+    font-size: 1.2rem;
+}
+
+.toggle-phone-btn:hover {
+    color: #1e293b;
+}
+
+
 
 .form-row {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 1.5rem;
+    gap: 1.75rem;
 }
 
 .form-group {
@@ -85,35 +146,35 @@
     grid-column: 1 / -1;
 }
 
+/* Label */
 .form-group label {
     font-weight: 500;
     color: #374151;
-    font-size: 0.875rem;
+    font-size: 0.9rem;
 }
 
+/* Input */
 .form-group input,
 .form-group select {
-    padding: 0.75rem 1rem;
+    padding: 0.8rem 1rem;
     border: 2px solid #e2e8f0;
-    border-radius: 0.5rem;
+    border-radius: 0.6rem;
     font-size: 1rem;
-    transition: border-color 0.2s ease;
-    background: white;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    background: #ffffff;
 }
 
 .form-group input:focus,
 .form-group select:focus {
     outline: none;
     border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15);
 }
 
-.form-group select {
-    cursor: pointer;
-}
-
+/* Nút Update */
 .submit-btn {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
+    color: #fff;
     border: none;
     padding: 1rem 2rem;
     border-radius: 0.75rem;
@@ -122,26 +183,39 @@
     cursor: pointer;
     transition: all 0.2s ease;
     margin-top: 1rem;
+    align-self: center;
+    width: 100%;
+    max-width: 400px;
 }
 
 .submit-btn:hover {
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
 }
 
+/* ==== RESPONSIVE ==== */
 @media (max-width: 768px) {
+    .profile-form-container {
+        padding: 1.5rem;
+    }
+
     .profile-photo-section {
         flex-direction: column;
-        gap: 1rem;
+        align-items: center;
         text-align: center;
+    }
+
+    .photo-upload {
+        flex-direction: column;
+        gap: 0.75rem;
     }
 
     .form-row {
         grid-template-columns: 1fr;
-        gap: 1rem;
+        gap: 1.25rem;
     }
 
-    .profile-form-container {
+    .submit-btn {
         max-width: 100%;
     }
 }

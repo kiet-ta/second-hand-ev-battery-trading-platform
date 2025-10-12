@@ -17,5 +17,4 @@ public class BatteryDetail
 
     public DateOnly? UpdatedAt { get; set; }
 
-    //public virtual Item Item { get; set; } = null!;
 }

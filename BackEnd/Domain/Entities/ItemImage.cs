@@ -11,5 +11,4 @@ public class ItemImage
 
     public string? ImageUrl { get; set; }
 
-    //public virtual Item Item { get; set; } = null!;
 }

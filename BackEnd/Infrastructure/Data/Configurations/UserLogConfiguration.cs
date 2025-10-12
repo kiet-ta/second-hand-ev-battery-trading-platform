@@ -13,21 +13,24 @@ namespace Infrastructure.Data.Configurations
     {
         public void Configure(EntityTypeBuilder<UserLog> entity)
         {
-            entity.ToTable("User_Log");
+            entity.HasKey(e => e.LogId).HasName("PK__user_log__9E2397E0F1560ABF");
 
-            entity.HasKey(e => e.LogId);
+            entity.ToTable("user_logs");
 
             entity.Property(e => e.LogId).HasColumnName("log_id");
-            entity.Property(e => e.UserId).HasColumnName("user_id");
-            entity.Property(e => e.Action).HasColumnName("action");
+            entity.Property(e => e.Action)
+                .HasMaxLength(200)
+                .HasColumnName("action");
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnName("created_at");
             entity.Property(e => e.Details).HasColumnName("details");
-            entity.Property(e => e.CreatedAt).HasColumnName("created_at");
+            entity.Property(e => e.UserId).HasColumnName("user_id");
 
-            // Relationship: User_Log -> User
-            //entity.HasOne(l => l.User)
-            //      .WithMany(u => u.Logs)
-            //      .HasForeignKey(l => l.UserId)
-            //      .HasConstraintName("FK_UserLog_User");
+            entity.HasOne<User>().WithMany()
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK__user_logs__user___76969D2E");
         }
     }
 }

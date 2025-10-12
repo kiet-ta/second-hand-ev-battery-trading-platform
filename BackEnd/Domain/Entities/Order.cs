@@ -13,15 +13,8 @@ public class Order
 
     public string? Status { get; set; }
 
-    public DateOnly? CreatedAt { get; set; }
+    public DateOnly CreatedAt { get; set; }
 
     public DateOnly? UpdatedAt { get; set; }
 
-    //public virtual Address Address { get; set; } = null!;
-
-    //public virtual User Buyer { get; set; } = null!;
-
-    //public virtual ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
-
-    //public virtual ICollection<Payment> Payments { get; set; } = new List<Payment>();
 }

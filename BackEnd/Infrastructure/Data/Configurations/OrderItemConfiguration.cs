@@ -13,40 +13,37 @@ namespace Infrastructure.Data.Configurations
     {
         public void Configure(EntityTypeBuilder<OrderItem> entity)
         {
-            entity.ToTable("Order_Item");
+            entity.HasKey(e => e.OrderItemId).HasName("PK__order_it__3764B6BC9779F382");
 
-            entity.HasKey(e => e.OrderItemId);
+            entity.ToTable("order_items");
 
             entity.Property(e => e.OrderItemId).HasColumnName("order_item_id");
-            entity.Property(e => e.OrderId).HasColumnName("order_id");
+            entity.Property(e => e.BuyerId).HasColumnName("buyer_id");
+            entity.Property(e => e.IsDeleted)
+                .HasDefaultValue(false)
+                .HasColumnName("is_deleted");
             entity.Property(e => e.ItemId).HasColumnName("item_id");
-            entity.Property(e => e.Quantity).HasColumnName("quantity");
-            entity.Property(e => e.Price).HasColumnName("price").HasColumnType("decimal(18,2)");
+            entity.Property(e => e.OrderId).HasColumnName("order_id");
+            entity.Property(e => e.Price)
+                .HasColumnType("decimal(18, 2)")
+                .HasColumnName("price");
+            entity.Property(e => e.Quantity)
+                .HasDefaultValue(1)
+                .HasColumnName("quantity");
 
-            // Relationship: Order_Item -> Orders
-            //entity.HasOne<OrderItem>(oi => oi.Order)
-            //      .WithMany(o => o.OrderItems)
-            //      .HasForeignKey(oi => oi.OrderId)
-            //      .HasConstraintName("FK_OrderItem_Order")
-            //      .OnDelete(DeleteBehavior.Cascade);
+            //entity.HasOne(d => d.Buyer).WithMany(p => p.OrderItems)
+            //    .HasForeignKey(d => d.BuyerId)
+            //    .OnDelete(DeleteBehavior.ClientSetNull)
+            //    .HasConstraintName("FK__order_ite__buyer__60A75C0F");
 
-            // Relationship: Order_Item -> Item
-            //entity.HasOne(oi => oi.Item)
-            //      .WithMany(i => i.OrderItems)
-            //      .HasForeignKey(oi => oi.ItemId)
-            //      .HasConstraintName("FK_OrderItem_Item");
-
-            entity.HasOne<Item>()
-                .WithMany()
+            entity.HasOne<Item>().WithMany()
                 .HasForeignKey(d => d.ItemId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__Order_Ite__item___5EBF139D");
+                .HasConstraintName("FK__order_ite__item___5FB337D6");
 
-            entity.HasOne<Order>()  // target type
-              .WithMany()       // không có collection trong Order
-              .HasForeignKey(e => e.OrderId)
-              .OnDelete(DeleteBehavior.ClientSetNull)
-              .HasConstraintName("FK_OrderItem_Order");
+            entity.HasOne<Order>().WithMany()
+                .HasForeignKey(d => d.OrderId)
+                .HasConstraintName("FK__order_ite__is_de__5EBF139D");
         }
     }
 }

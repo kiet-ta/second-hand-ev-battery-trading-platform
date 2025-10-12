@@ -1,3 +1,4 @@
+import "../index.css";
 import "../assets/styles/UserForm.css";
 
 const UserForm = ({
