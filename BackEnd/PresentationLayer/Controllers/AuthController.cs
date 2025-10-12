@@ -1,4 +1,4 @@
-﻿using Application.DTOs;
+﻿using Application.DTOs.AuthenticationDtos;
 using Application.IServices;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -46,7 +46,6 @@ namespace PresentationLayer.Controllers
             }
         }
 
-        // Ví dụ endpoint yêu cầu phải có JWT token
         [HttpGet("profile")]
         [Authorize]
         public IActionResult GetProfile()

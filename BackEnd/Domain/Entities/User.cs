@@ -1,66 +1,36 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Domain.Entities;
-[Table("Users")]
+
 public class User
 {
-    [Key]
-    [Column("user_id")]
     public int UserId { get; set; }
 
-    [Required]
-    [MaxLength(100)]
-    [Column("full_name")]
-    public string FullName { get; set; } = string.Empty;
+    public string FullName { get; set; } = null!;
 
-    [Required]
-    [MaxLength(100)]
-    [Column("email")]
-    public string Email { get; set; } = string.Empty;
+    public string Email { get; set; } = null!;
 
-    [Required]
-    [MaxLength(255)]
-    [Column("password_hash")]
-    public string PasswordHash { get; set; } = string.Empty;
+    public string PasswordHash { get; set; } = null!;
 
-    [MaxLength(50)]
-    [Column("gender")]
     public string? Gender { get; set; }
 
-    [Column("year_of_birth")]
-    public DateTime? YearOfBirth { get; set; }
+    public DateOnly? YearOfBirth { get; set; }
 
-    [MaxLength(20)]
-    [Column("phone")]
     public string? Phone { get; set; }
 
-    [MaxLength(500)]
-    [Column("avatar_profile")]
     public string? AvatarProfile { get; set; }
 
-    [Required]
-    [MaxLength(20)]
-    [Column("role")]
-    public string Role { get; set; } = "Buyer";
+    public string Role { get; set; } = null!;
 
-    [MaxLength(20)]
-    [Column("kyc_status")]
-    public string KycStatus { get; set; } = "not_submitted";
+    public string? KycStatus { get; set; }
 
-    [MaxLength(20)]
-    [Column("account_status")]
-    public string AccountStatus { get; set; } = "active";
+    public string? AccountStatus { get; set; }
 
-    [Column("created_at")]
-    public DateTime CreatedAt { get; set; } = DateTime.Now;
+    public DateTime? CreatedAt { get; set; }
 
-    [Column("updated_at")]
-    public DateTime UpdatedAt { get; set; } = DateTime.Now;
+    public DateTime? UpdatedAt { get; set; }
 
-    [Column("is_deleted")]
-    public bool? IsDeleted { get; set; } 
+    public bool? IsDeleted { get; set; }
+
 }
-

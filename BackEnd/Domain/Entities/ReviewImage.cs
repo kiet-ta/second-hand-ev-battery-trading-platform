@@ -11,5 +11,4 @@ public class ReviewImage
 
     public string? ImageUrl { get; set; }
 
-    //public virtual Review Review { get; set; } = null!;
 }

@@ -1,26 +1,54 @@
-﻿using Application.IServices;
+﻿using Application.DTOs.UserDtos;
+using Application.IServices;
 using Domain.Entities;
-using Infrastructure.Data;
+using Infrastructure.Helpers;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
-namespace PresentationLayer.Controllers.UserController
+namespace PresentationLayer.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class UsersController : ControllerBase
+    [Authorize(Roles = "Manager")]
+
+    public class UserController : ControllerBase
     {
         private readonly IUserService _userService;
 
-        public UsersController(IUserService userService)
+        public UserController(IUserService userService)
         {
             _userService = userService;
         }
 
+        [HttpGet("count-by-role")]
+        public async Task<IActionResult> CountUsersByRole()
+        {
+            var result = await _userService.GetUsersByRoleAsync();
+            return Ok(result);
+        }
+
+        [HttpPost("Register")]
+        public async Task<IActionResult> AddUser([FromBody] CreateUserDto dto)
+        {
+            try
+            {
+                var result = await _userService.AddUserAsync(dto);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
         [HttpGet]
+        [Authorize(Roles = "Manager")]
         public async Task<IActionResult> Get() => Ok(await _userService.GetAllUsersAsync());
 
         [HttpGet("{id}")]
+        [Authorize]
+        [CacheResult(600)]
         public async Task<IActionResult> Get(int id)
         {
             var user = await _userService.GetUserByIdAsync(id);
@@ -49,7 +77,6 @@ namespace PresentationLayer.Controllers.UserController
             await _userService.DeleteUserAsync(id);
             return NoContent();
         }
+
     }
 }
-
-

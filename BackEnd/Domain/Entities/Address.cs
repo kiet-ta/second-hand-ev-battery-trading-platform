@@ -27,7 +27,4 @@ public class Address
 
     public bool? IsDeleted { get; set; }
 
-    //public virtual ICollection<Order> Orders { get; set; } = new List<Order>();
-
-    //public virtual User User { get; set; } = null!;
 }

@@ -1,4 +1,4 @@
-﻿using Application.DTOs;
+﻿using Application.DTOs.ItemDtos;
 using Domain.Entities;
 using System;
 using System.Collections.Generic;
@@ -8,16 +8,14 @@ using System.Threading.Tasks;
 
 namespace Application.IRepositories
 {
-    public interface IItemRepository //: IRepository<Item>
+    public interface IItemRepository
     {
-        Task<Item?> GetByIdAsync(int id);
-
-        Task<IEnumerable<Item>> GetAllAsync();
-
-        Task AddAsync(Item item);
-
+        Task<Item> AddAsync(Item item, CancellationToken ct = default);
+        Task<Item?> GetByIdAsync(int itemId, CancellationToken ct = default);
         void Update(Item item);
-
+        Task<bool> ExistsAsync(int itemId, CancellationToken ct = default);
+        Task<IEnumerable<Item>> GetItemsByFilterAsync(CancellationToken ct = default);
+        Task<IEnumerable<Item>> GetAllAsync();
         void Delete(Item item);
 
         Task SaveChangesAsync();
@@ -36,5 +34,12 @@ namespace Application.IRepositories
         /// </summary>
         /// <returns></returns>
         IQueryable<ItemDto> QueryItemsWithSeller();
+
+        Task<IEnumerable<ItemBoughtDto>> GetBoughtItemsWithDetailsAsync(int userId);
+
+        //Feature: Seller Dashboard
+        Task<int> CountAllBySellerAsync(int sellerId);
+        Task<int> CountByStatusAsync(int sellerId, string status);
+        Task<decimal> GetTotalRevenueAsync(int sellerId);
     }
 }
