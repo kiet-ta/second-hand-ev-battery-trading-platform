@@ -3,7 +3,7 @@ using Domain.DTOs;
 using Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
 
-namespace WebAPI.Controllers
+namespace PresentationLayer.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
@@ -90,7 +90,7 @@ namespace WebAPI.Controllers
             }
             catch (KeyNotFoundException ex)
             {
-                return NotFound(new { Message = ex.Message });
+                return NotFound(new { ex.Message });
             }
         }
 
