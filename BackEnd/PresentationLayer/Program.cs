@@ -169,25 +169,17 @@ namespace PresentationLayer
             //builder.Services.AddScoped<IPasswordHelper, PasswordHelper>();
             //builder.Services.AddScoped<IUserValidation, UserValidation>();
 
-            builder.Services.AddScoped<IUserRepository, UserRepository>();
-            builder.Services.AddScoped<IUserService, UserService>();
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
             builder.Configuration.AddUserSecrets<Program>();
             
             builder.Services.AddScoped<IMailService, MailService>();
             builder.Services.AddScoped<IEmailRepository, EmailTemplateRepository>();
-            builder.Services.AddScoped<IWalletTransactionRepository, WalletTransactionRepository>();
-            builder.Services.AddScoped<IWalletRepository, WalletRepository>();
-            builder.Services.AddScoped<IBidRepository, BidRepository>();
-            builder.Services.AddScoped<IAuctionService, AuctionService>();
             builder.Services.AddScoped<IValidator<PaymentRequestDto>, PaymentRequestValidator>();
             builder.Services.AddHostedService<PayOSWebhookInitializer>();
             builder.Services.AddScoped<IKYC_DocumentService, KYC_DocumentService>();
             builder.Services.AddScoped<IRedisCacheHelper, RedisCacheHelper>();
             builder.Services.AddScoped<IFavoriteRepository, FavoriteRepository>();
-            builder.Services.AddScoped<IUserService, UserService>();
-            builder.Services.AddScoped<IFavoriteService, FavoriteService>();
             builder.Services.AddScoped<IKYC_DocumentRepository, KYC_DocumentRepository>();
             builder.Services.AddAutoMapper(typeof(KYC_DocumentProfile).Assembly);
             //builder.Services.AddSwaggerGen();

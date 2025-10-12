@@ -1,4 +1,5 @@
 using Application.DTOs;
+using Application.DTOs.ItemDtos;
 using Application.IRepositories;
 using Application.Services;
 using Domain.Entities;
@@ -31,7 +32,7 @@ namespace BackEnd.Application.Tests
                 Quantity = 5
             };
 
-            repoMock.Setup(repo => repo.GetByIdAsync(1))
+            repoMock.Setup(repo => repo.GetByIdAsync(1, null))
                 .ReturnsAsync(item);
 
             var itemService = new ItemService(repoMock.Object);
@@ -54,7 +55,7 @@ namespace BackEnd.Application.Tests
             // Arrange
             var repoMock = new Mock<IItemRepository>();
             
-            repoMock.Setup(repo => repo.GetByIdAsync(999))
+            repoMock.Setup(repo => repo.GetByIdAsync(999, null))
                 .ReturnsAsync((Item)null);
 
             var itemService = new ItemService(repoMock.Object);
@@ -117,7 +118,7 @@ namespace BackEnd.Application.Tests
             var result = await itemService.CreateAsync(itemDto);
 
             // Assert
-            repoMock.Verify(repo => repo.AddAsync(It.IsAny<Item>()), Times.Once);
+            repoMock.Verify(repo => repo.AddAsync(It.IsAny<Item>(), null), Times.Once);
             repoMock.Verify(repo => repo.SaveChangesAsync(), Times.Once);
             Assert.Equal(itemDto.Title, result.Title);
             Assert.Equal(itemDto.Price, result.Price);
@@ -139,7 +140,7 @@ namespace BackEnd.Application.Tests
                 Quantity = 5
             };
 
-            repoMock.Setup(repo => repo.GetByIdAsync(1))
+            repoMock.Setup(repo => repo.GetByIdAsync(1, null))
                 .ReturnsAsync(existingItem);
 
             var itemService = new ItemService(repoMock.Object);
@@ -174,7 +175,7 @@ namespace BackEnd.Application.Tests
             // Arrange
             var repoMock = new Mock<IItemRepository>();
             
-            repoMock.Setup(repo => repo.GetByIdAsync(999))
+            repoMock.Setup(repo => repo.GetByIdAsync(999, null))
                 .ReturnsAsync((Item)null);
 
             var itemService = new ItemService(repoMock.Object);
@@ -204,7 +205,7 @@ namespace BackEnd.Application.Tests
             var repoMock = new Mock<IItemRepository>();
             var existingItem = new Item { ItemId = 1 };
 
-            repoMock.Setup(repo => repo.GetByIdAsync(1))
+            repoMock.Setup(repo => repo.GetByIdAsync(1, null))
                 .ReturnsAsync(existingItem);
 
             var itemService = new ItemService(repoMock.Object);
@@ -225,7 +226,7 @@ namespace BackEnd.Application.Tests
             // Arrange
             var repoMock = new Mock<IItemRepository>();
             
-            repoMock.Setup(repo => repo.GetByIdAsync(999))
+            repoMock.Setup(repo => repo.GetByIdAsync(999, null))
                 .ReturnsAsync((Item)null);
 
             var itemService = new ItemService(repoMock.Object);
@@ -559,7 +560,7 @@ namespace BackEnd.Application.Tests
                 Description = "Test Description",
                 Price = 1000,
                 ItemType = "EV",
-                EvDetail = new Domain.Entities.EvDetail
+                EVDetail = new Domain.Entities.EVDetail
                 {
                     Brand = "Tesla",
                     Model = "Model S",
@@ -580,9 +581,9 @@ namespace BackEnd.Application.Tests
             Assert.Equal(1, result.ItemId);
             Assert.Equal("Test Item", result.Title);
             Assert.Equal("EV", result.ItemType);
-            Assert.NotNull(result.EvDetail);
-            Assert.Equal("Tesla", result.EvDetail.Brand);
-            Assert.Equal("Model S", result.EvDetail.Model);
+            Assert.NotNull(result.EVDetail);
+            Assert.Equal("Tesla", result.EVDetail.Brand);
+            Assert.Equal("Model S", result.EVDetail.Model);
         }
 
 
@@ -617,7 +618,7 @@ namespace BackEnd.Application.Tests
                     ItemId = 1,
                     Title = "EV Item",
                     ItemType = "EV",
-                    EvDetail = new Domain.Entities.EvDetail { Brand = "Tesla" }
+                    EVDetail = new Domain.Entities.EVDetail { Brand = "Tesla" }
                 },
                 new ItemWithDetailDto
                 {
@@ -642,8 +643,8 @@ namespace BackEnd.Application.Tests
             
             Assert.Equal(1, resultList[0].ItemId);
             Assert.Equal("EV", resultList[0].ItemType);
-            Assert.NotNull(resultList[0].EvDetail);
-            Assert.Equal("Tesla", resultList[0].EvDetail.Brand);
+            Assert.NotNull(resultList[0].EVDetail);
+            Assert.Equal("Tesla", resultList[0].EVDetail.Brand);
             
             Assert.Equal(2, resultList[1].ItemId);
             Assert.Equal("Battery", resultList[1].ItemType);
@@ -678,7 +679,7 @@ namespace BackEnd.Application.Tests
                 i.Price == 1000 && 
                 i.ItemType == "" && // Default empty string for null ItemType
                 i.Status == "pending" && // Default status
-                i.IsDeleted == false)), // Default IsDeleted
+                i.IsDeleted == false), null), // Default IsDeleted
                 Times.Once);
         }
     }

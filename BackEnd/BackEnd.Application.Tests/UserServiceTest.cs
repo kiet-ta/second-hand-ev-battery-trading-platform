@@ -2,6 +2,7 @@ using Application.IHelpers;
 using Application.IRepositories;
 using Application.Services;
 using Domain.Entities;
+using Microsoft.Extensions.Configuration;
 using Moq;
 using System;
 using System.Collections.Generic;
@@ -19,13 +20,14 @@ namespace BackEnd.Application.Tests
         {
             //Arrange
             var userRepoMock = new Mock<IUserRepository>();
+            var configMock = new Mock<IConfiguration>();
             var passwordHelperMock = new Mock<IPasswordHelper>();
 
             passwordHelperMock
                 .Setup(helper => helper.HashPassword("123456"))
                 .Returns("hashed_123456");
 
-            var userService = new UserService(userRepoMock.Object, passwordHelperMock.Object);
+            var userService = new UserService(userRepoMock.Object, configMock.Object, passwordHelperMock.Object);
 
             var user = new User
             {
@@ -49,6 +51,7 @@ namespace BackEnd.Application.Tests
         {
             // Arrange
             var userRepoMock = new Mock<IUserRepository>();
+            var configMock = new Mock<IConfiguration>();
             var passwordHelperMock = new Mock<IPasswordHelper>();
 
             var users = new List<User>
@@ -60,7 +63,7 @@ namespace BackEnd.Application.Tests
             userRepoMock.Setup(repo => repo.GetAllAsync())
                 .ReturnsAsync(users);
 
-            var userService = new UserService(userRepoMock.Object, passwordHelperMock.Object);
+            var userService = new UserService(userRepoMock.Object, configMock.Object, passwordHelperMock.Object);
 
             // Act
             var result = await userService.GetAllUsersAsync();
@@ -77,6 +80,7 @@ namespace BackEnd.Application.Tests
         {
             // Arrange
             var userRepoMock = new Mock<IUserRepository>();
+            var configMock = new Mock<IConfiguration>();
             var passwordHelperMock = new Mock<IPasswordHelper>();
 
             var user = new User { UserId = 1, Email = "user1@example.com", FullName = "User 1" };
@@ -84,7 +88,7 @@ namespace BackEnd.Application.Tests
             userRepoMock.Setup(repo => repo.GetByIdAsync(1))
                 .ReturnsAsync(user);
 
-            var userService = new UserService(userRepoMock.Object, passwordHelperMock.Object);
+            var userService = new UserService(userRepoMock.Object, configMock.Object, passwordHelperMock.Object);
 
             // Act
             var result = await userService.GetUserByIdAsync(1);
@@ -101,12 +105,13 @@ namespace BackEnd.Application.Tests
         {
             // Arrange
             var userRepoMock = new Mock<IUserRepository>();
+            var configMock = new Mock<IConfiguration>();
             var passwordHelperMock = new Mock<IPasswordHelper>();
 
             userRepoMock.Setup(repo => repo.GetByIdAsync(999))
                 .ReturnsAsync((User)null);
 
-            var userService = new UserService(userRepoMock.Object, passwordHelperMock.Object);
+            var userService = new UserService(userRepoMock.Object, configMock.Object, passwordHelperMock.Object);
 
             // Act
             var result = await userService.GetUserByIdAsync(999);
@@ -122,6 +127,7 @@ namespace BackEnd.Application.Tests
         {
             // Arrange
             var userRepoMock = new Mock<IUserRepository>();
+            var configMock = new Mock<IConfiguration>();
             var passwordHelperMock = new Mock<IPasswordHelper>();
 
             var user = new User { UserId = 1, Email = "user1@example.com", FullName = "User 1" };
@@ -129,7 +135,7 @@ namespace BackEnd.Application.Tests
             userRepoMock.Setup(repo => repo.GetByEmailAsync("user1@example.com"))
                 .ReturnsAsync(user);
 
-            var userService = new UserService(userRepoMock.Object, passwordHelperMock.Object);
+            var userService = new UserService(userRepoMock.Object, configMock.Object, passwordHelperMock.Object);
 
             // Act
             var result = await userService.GetUserByEmailAsync("user1@example.com");
@@ -146,12 +152,13 @@ namespace BackEnd.Application.Tests
         {
             // Arrange
             var userRepoMock = new Mock<IUserRepository>();
+            var configMock = new Mock<IConfiguration>();
             var passwordHelperMock = new Mock<IPasswordHelper>();
 
             userRepoMock.Setup(repo => repo.GetByEmailAsync("nonexistent@example.com"))
                 .ReturnsAsync((User)null);
 
-            var userService = new UserService(userRepoMock.Object, passwordHelperMock.Object);
+            var userService = new UserService(userRepoMock.Object, configMock.Object, passwordHelperMock.Object);
 
             // Act
             var result = await userService.GetUserByEmailAsync("nonexistent@example.com");
@@ -167,6 +174,7 @@ namespace BackEnd.Application.Tests
         {
             // Arrange
             var userRepoMock = new Mock<IUserRepository>();
+            var configMock = new Mock<IConfiguration>();
             var passwordHelperMock = new Mock<IPasswordHelper>();
 
             userRepoMock.Setup(repo => repo.GetByEmailAsync("new@example.com"))
@@ -175,7 +183,7 @@ namespace BackEnd.Application.Tests
             passwordHelperMock.Setup(helper => helper.HashPassword("password123"))
                 .Returns("hashed_password");
 
-            var userService = new UserService(userRepoMock.Object, passwordHelperMock.Object);
+            var userService = new UserService(userRepoMock.Object, configMock.Object, passwordHelperMock.Object);
 
             var newUser = new User
             {
@@ -200,6 +208,7 @@ namespace BackEnd.Application.Tests
         {
             // Arrange
             var userRepoMock = new Mock<IUserRepository>();
+            var configMock = new Mock<IConfiguration>();
             var passwordHelperMock = new Mock<IPasswordHelper>();
 
             var existingUser = new User { UserId = 1, Email = "existing@example.com" };
@@ -207,7 +216,7 @@ namespace BackEnd.Application.Tests
             userRepoMock.Setup(repo => repo.GetByEmailAsync("existing@example.com"))
                 .ReturnsAsync(existingUser);
 
-            var userService = new UserService(userRepoMock.Object, passwordHelperMock.Object);
+            var userService = new UserService(userRepoMock.Object, configMock.Object, passwordHelperMock.Object);
 
             var newUser = new User
             {
@@ -229,6 +238,7 @@ namespace BackEnd.Application.Tests
         {
             // Arrange
             var userRepoMock = new Mock<IUserRepository>();
+            var configMock = new Mock<IConfiguration>();
             var passwordHelperMock = new Mock<IPasswordHelper>();
 
             var existingUser = new User
@@ -246,7 +256,7 @@ namespace BackEnd.Application.Tests
             userRepoMock.Setup(repo => repo.GetByIdAsync(1))
                 .ReturnsAsync(existingUser);
 
-            var userService = new UserService(userRepoMock.Object, passwordHelperMock.Object);
+            var userService = new UserService(userRepoMock.Object, configMock.Object, passwordHelperMock.Object);
 
             var updatedUser = new User
             {
@@ -280,12 +290,13 @@ namespace BackEnd.Application.Tests
         {
             // Arrange
             var userRepoMock = new Mock<IUserRepository>();
+            var configMock = new Mock<IConfiguration>();
             var passwordHelperMock = new Mock<IPasswordHelper>();
 
             userRepoMock.Setup(repo => repo.GetByIdAsync(999))
                 .ReturnsAsync((User)null);
 
-            var userService = new UserService(userRepoMock.Object, passwordHelperMock.Object);
+            var userService = new UserService(userRepoMock.Object, configMock.Object, passwordHelperMock.Object);
 
             var user = new User
             {
@@ -306,9 +317,10 @@ namespace BackEnd.Application.Tests
         {
             // Arrange
             var userRepoMock = new Mock<IUserRepository>();
+            var configMock = new Mock<IConfiguration>();
             var passwordHelperMock = new Mock<IPasswordHelper>();
 
-            var userService = new UserService(userRepoMock.Object, passwordHelperMock.Object);
+            var userService = new UserService(userRepoMock.Object, configMock.Object, passwordHelperMock.Object);
 
             // Act
             await userService.DeleteUserAsync(1);
@@ -324,6 +336,7 @@ namespace BackEnd.Application.Tests
         {
             // Arrange
             var userRepoMock = new Mock<IUserRepository>();
+            var configMock = new Mock<IConfiguration>();
             var passwordHelperMock = new Mock<IPasswordHelper>();
 
             userRepoMock.Setup(repo => repo.GetByEmailAsync("full@example.com"))
@@ -332,7 +345,7 @@ namespace BackEnd.Application.Tests
             passwordHelperMock.Setup(helper => helper.HashPassword("password123"))
                 .Returns("hashed_password");
 
-            var userService = new UserService(userRepoMock.Object, passwordHelperMock.Object);
+            var userService = new UserService(userRepoMock.Object, configMock.Object, passwordHelperMock.Object);
 
             var newUser = new User
             {
@@ -368,6 +381,7 @@ namespace BackEnd.Application.Tests
         {
             // Arrange
             var userRepoMock = new Mock<IUserRepository>();
+            var configMock = new Mock<IConfiguration>();
             var passwordHelperMock = new Mock<IPasswordHelper>();
 
             userRepoMock.Setup(repo => repo.GetByEmailAsync("minimal@example.com"))
@@ -376,7 +390,7 @@ namespace BackEnd.Application.Tests
             passwordHelperMock.Setup(helper => helper.HashPassword("password123"))
                 .Returns("hashed_password");
 
-            var userService = new UserService(userRepoMock.Object, passwordHelperMock.Object);
+            var userService = new UserService(userRepoMock.Object, configMock.Object, passwordHelperMock.Object);
 
             var newUser = new User
             {
@@ -404,6 +418,7 @@ namespace BackEnd.Application.Tests
         {
             // Arrange
             var userRepoMock = new Mock<IUserRepository>();
+            var configMock = new Mock<IConfiguration>();
             var passwordHelperMock = new Mock<IPasswordHelper>();
 
             var existingUser = new User
@@ -421,7 +436,7 @@ namespace BackEnd.Application.Tests
             userRepoMock.Setup(repo => repo.GetByIdAsync(1))
                 .ReturnsAsync(existingUser);
 
-            var userService = new UserService(userRepoMock.Object, passwordHelperMock.Object);
+            var userService = new UserService(userRepoMock.Object, configMock.Object, passwordHelperMock.Object);
 
             var updatedUser = new User
             {
@@ -450,6 +465,7 @@ namespace BackEnd.Application.Tests
         {
             // Arrange
             var userRepoMock = new Mock<IUserRepository>();
+            var configMock = new Mock<IConfiguration>();
             var passwordHelperMock = new Mock<IPasswordHelper>();
 
             var existingUser = new User
@@ -463,7 +479,7 @@ namespace BackEnd.Application.Tests
             userRepoMock.Setup(repo => repo.GetByIdAsync(1))
                 .ReturnsAsync(existingUser);
 
-            var userService = new UserService(userRepoMock.Object, passwordHelperMock.Object);
+            var userService = new UserService(userRepoMock.Object, configMock.Object, passwordHelperMock.Object);
 
             var updatedUser = new User
             {
@@ -487,6 +503,7 @@ namespace BackEnd.Application.Tests
         {
             // Arrange
             var userRepoMock = new Mock<IUserRepository>();
+            var configMock = new Mock<IConfiguration>();
             var passwordHelperMock = new Mock<IPasswordHelper>();
 
             var existingUser = new User
@@ -500,7 +517,7 @@ namespace BackEnd.Application.Tests
             userRepoMock.Setup(repo => repo.GetByIdAsync(1))
                 .ReturnsAsync(existingUser);
 
-            var userService = new UserService(userRepoMock.Object, passwordHelperMock.Object);
+            var userService = new UserService(userRepoMock.Object, configMock.Object, passwordHelperMock.Object);
 
             var updatedUser = new User
             {
@@ -523,6 +540,7 @@ namespace BackEnd.Application.Tests
         {
             // Arrange
             var userRepoMock = new Mock<IUserRepository>();
+            var configMock = new Mock<IConfiguration>();
             var passwordHelperMock = new Mock<IPasswordHelper>();
 
             var existingUser = new User
@@ -536,7 +554,7 @@ namespace BackEnd.Application.Tests
             userRepoMock.Setup(repo => repo.GetByIdAsync(1))
                 .ReturnsAsync(existingUser);
 
-            var userService = new UserService(userRepoMock.Object, passwordHelperMock.Object);
+            var userService = new UserService(userRepoMock.Object, configMock.Object, passwordHelperMock.Object);
 
             var updatedUser = new User
             {
@@ -559,6 +577,7 @@ namespace BackEnd.Application.Tests
         {
             // Arrange
             var userRepoMock = new Mock<IUserRepository>();
+            var configMock = new Mock<IConfiguration>();
             var passwordHelperMock = new Mock<IPasswordHelper>();
 
             var existingUser = new User
@@ -572,7 +591,7 @@ namespace BackEnd.Application.Tests
             userRepoMock.Setup(repo => repo.GetByIdAsync(1))
                 .ReturnsAsync(existingUser);
 
-            var userService = new UserService(userRepoMock.Object, passwordHelperMock.Object);
+            var userService = new UserService(userRepoMock.Object, configMock.Object, passwordHelperMock.Object);
 
             var updatedUser = new User
             {
@@ -595,6 +614,7 @@ namespace BackEnd.Application.Tests
         {
             // Arrange
             var userRepoMock = new Mock<IUserRepository>();
+            var configMock = new Mock<IConfiguration>();
             var passwordHelperMock = new Mock<IPasswordHelper>();
 
             var existingUser = new User
@@ -608,7 +628,7 @@ namespace BackEnd.Application.Tests
             userRepoMock.Setup(repo => repo.GetByIdAsync(1))
                 .ReturnsAsync(existingUser);
 
-            var userService = new UserService(userRepoMock.Object, passwordHelperMock.Object);
+            var userService = new UserService(userRepoMock.Object, configMock.Object, passwordHelperMock.Object);
 
             var updatedUser = new User
             {
@@ -631,6 +651,7 @@ namespace BackEnd.Application.Tests
         {
             // Arrange
             var userRepoMock = new Mock<IUserRepository>();
+            var configMock = new Mock<IConfiguration>();
             var passwordHelperMock = new Mock<IPasswordHelper>();
 
             var existingUser = new User
@@ -644,7 +665,7 @@ namespace BackEnd.Application.Tests
             userRepoMock.Setup(repo => repo.GetByIdAsync(1))
                 .ReturnsAsync(existingUser);
 
-            var userService = new UserService(userRepoMock.Object, passwordHelperMock.Object);
+            var userService = new UserService(userRepoMock.Object, configMock.Object, passwordHelperMock.Object);
 
             var updatedUser = new User
             {
@@ -667,12 +688,13 @@ namespace BackEnd.Application.Tests
         {
             // Arrange
             var userRepoMock = new Mock<IUserRepository>();
+            var configMock = new Mock<IConfiguration>();
             var passwordHelperMock = new Mock<IPasswordHelper>();
 
             userRepoMock.Setup(repo => repo.GetByEmailAsync("new@example.com"))
                 .ReturnsAsync((User)null);
 
-            var userService = new UserService(userRepoMock.Object, passwordHelperMock.Object);
+            var userService = new UserService(userRepoMock.Object, configMock.Object, passwordHelperMock.Object);
 
             var newUser = new User
             {
