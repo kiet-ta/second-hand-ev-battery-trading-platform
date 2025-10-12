@@ -1,14 +1,12 @@
-﻿using Application.DTOs;
-using Application.DTOs.PaymentDtos;
+﻿using Application.IRepositories.IBiddingRepositories;
 using Application.IRepositories;
-using Application.IRepositories.IBiddingRepositories;
-using Application.IRepositories.IPaymentRepositories;
 using Application.IServices;
 using Application.Services;
 using Application.Validations;
 using CloudinaryDotNet;
 using FluentValidation;
 using Infrastructure.Data;
+using Infrastructure.Helpers;
 using Infrastructure.Repositories;
 using Infrastructure.Ulties;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -59,10 +57,6 @@ namespace PresentationLayer
             builder.Services.AddScoped<IPaymentDetailRepository, PaymentDetailRepository>();
             builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
             builder.Services.AddScoped<IOrderItemRepository, OrderItemRepository>();
-            builder.Services.AddScoped<IFavoriteRepository, FavoriteRepository>();
-
-            builder.Services.AddScoped<IAddressRepository, AddressRepository>();
-            builder.Services.AddScoped<IAddressService, AddressService>();
 
             // JWT Authentication
             builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
