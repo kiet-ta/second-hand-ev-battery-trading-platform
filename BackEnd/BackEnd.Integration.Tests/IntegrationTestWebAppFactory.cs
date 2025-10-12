@@ -1,4 +1,5 @@
 ﻿using Infrastructure.Data;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
@@ -41,6 +42,14 @@ public class IntegrationTestWebAppFactory<TProgram> : WebApplicationFactory<TPro
             using var scope = serviceProvider.CreateScope();
             var dbContext = scope.ServiceProvider.GetRequiredService<EvBatteryTradingContext>();
             dbContext.Database.EnsureCreated();
+
+            // 1. Remove the existing authentication configuration.
+            services.RemoveAll(typeof(IAuthenticationService));
+
+            // 2. Add our custom test authentication handler.
+            services.AddAuthentication("TestScheme")
+                .AddScheme<AuthenticationSchemeOptions, TestAuthHandler>(
+                    "TestScheme", options => { });
         });
     }
 }

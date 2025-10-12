@@ -15,7 +15,7 @@ public class DatabaseFixture : IAsyncLifetime
         // A random port will be assigned on the host.
         MsSqlContainer = new MsSqlBuilder()
             .WithImage("mcr.microsoft.com/mssql/server:2022-latest")
-            .WithPassword("12345")
+            .WithPassword("Pass@word12345")
             .Build();
     }
 

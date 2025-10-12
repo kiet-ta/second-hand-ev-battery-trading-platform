@@ -2,14 +2,14 @@
 using Domain.Entities;
 using Infrastructure.Data;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.VisualStudio.TestPlatform.TestHost;
 using Org.BouncyCastle.Crypto.Operators;
+using PresentationLayer;
 using System.Net;
 using System.Net.Http.Json;
 
 namespace BackEnd.Integration.Tests;
 
-public class AuctionControllerTests
+public class AuctionControllerTests : IClassFixture<DatabaseFixture>
 {
     private readonly HttpClient _client;
     private readonly IntegrationTestWebAppFactory<Program> _factory;

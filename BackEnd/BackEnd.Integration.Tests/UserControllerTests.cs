@@ -1,5 +1,7 @@
 ﻿using Domain.DTOs;
 using PresentationLayer;
+using System.Net;
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using Xunit;
 
@@ -19,6 +21,22 @@ public class UserControllerTests : IClassFixture<DatabaseFixture>
         var factory = new IntegrationTestWebAppFactory<Program>(fixture);
         // Create an HttpClient to send requests to the in-memory test server.
         _client = factory.CreateClient();
+
+        _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("TestScheme");
+    }
+
+    [Fact]
+    public async Task GetAllUsers_WhenCalled_ReturnsOk() // Renamed for clarity
+    {
+        // Arrange - No specific arrangement needed.
+        // The authorization header is already set in the constructor.
+
+        // Act
+        var response = await _client.GetAsync("/api/user");
+
+        // Assert
+        response.EnsureSuccessStatusCode();
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }
 
     [Fact]
