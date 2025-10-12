@@ -3,13 +3,12 @@
     "",
     "\\BackEnd",
     "\\BackEnd\\ApplicationLayer",
+    "\\BackEnd\\ApplicationLayer\\IRepositories",
     "\\BackEnd\\ApplicationLayer\\IServices",
     "\\BackEnd\\ApplicationLayer\\Services",
     "\\BackEnd\\Domain",
-    "\\BackEnd\\Domain\\DTO",
-    "\\BackEnd\\PresentationLayer",
-    "\\BackEnd\\PresentationLayer\\Properties",
-    "\\CSharpDbProject"
+    "\\BackEnd\\Infrastructure"
   ],
+  "SelectedNode": "\\BackEnd\\ApplicationLayer",
   "PreviewInSolutionExplorer": false
 }
