@@ -1,5 +1,7 @@
 ﻿using Application.DTOs.PaymentDtos;
 using Application.IRepositories;
+using Application.IRepositories.IBiddingRepositories;
+using Application.IRepositories.IPaymentRepositories;
 using Application.IServices;
 using Domain.Entities;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -13,13 +15,15 @@ public class PaymentService : IPaymentService
 {
     private readonly PayOS _payOS;
     private readonly IPaymentRepository _paymentRepository;
+    private readonly IWalletRepository _walletRepository;
     private readonly IConfiguration _config;
 
-    public PaymentService(PayOS payOS, IPaymentRepository paymentRepository, IConfiguration config)
+    public PaymentService(PayOS payOS, IPaymentRepository paymentRepository, IWalletRepository walletRepository, IConfiguration config)
     {
         _payOS = payOS;
         _paymentRepository = paymentRepository;
         _config = config;
+        _walletRepository = walletRepository;
     }
 
     public async Task<PaymentResponseDto> CreatePaymentAsync(PaymentRequestDto request)
@@ -132,12 +136,34 @@ public class PaymentService : IPaymentService
         var data = _payOS.verifyPaymentWebhookData(body);
         if (data.code != "00" || data.desc != "success")
             return;
-
         var info = await _paymentRepository.GetPaymentInfoByOrderCodeAsync(data.orderCode);
-        if (info != null)
+
+        // Check if payment exists and hasn't been processed yet to avoid duplicates
+        if (info != null && info.Status != "completed")
         {
+            // Update internal payment status
             await _paymentRepository.UpdatePaymentStatusAsync(info.PaymentId, "completed");
             await _paymentRepository.UpdateRelatedEntitiesAsync(info.Details);
+
+            // Find the user's wallet
+            var wallet = await _walletRepository.GetWalletByUserIdAsync(info.UserId);
+            if (wallet != null)
+            {
+                // Add the money to wallet
+                await _walletRepository.UpdateBalanceAsync(wallet.WalletId, info.TotalAmount);
+
+                // Create a transaction record for the history
+                var transaction = new WalletTransaction
+                {
+                    WalletId = wallet.WalletId,
+                    Amount = info.TotalAmount,
+                    Type = "deposit",
+                    RefId = info.PaymentId,
+                    CreatedAt = DateTime.UtcNow
+                };
+
+                await _walletRepository.AddWalletTransactionAsync(transaction);
+            }
         }
     }
 }
