@@ -45,7 +45,6 @@ namespace Infrastructure.Repositories
                         };
 
             return query.AsNoTracking(); // Optimized for read-only queries
-
         }
 
         public async Task<Item> AddAsync(Item item, CancellationToken ct = default)
@@ -65,19 +64,21 @@ namespace Infrastructure.Repositories
         }
 
         public async Task<IEnumerable<Item>> GetAllAsync() =>
-            await _context.Items.Where(i => !(i.IsDeleted == true)).ToListAsync();
+            await _context.Items.Where(i => !i.IsDeleted).ToListAsync();
+
         public async Task<Item?> GetByIdAsync(int itemId, CancellationToken ct = default)
             => await _context.Items.FindAsync(new object[] { itemId }, ct);
 
         public void Update(Item item) => _context.Items.Update(item);
 
         public async Task<IEnumerable<Item>> GetItemsByFilterAsync(CancellationToken ct = default)
-            => await _context.Items.Where(i => !(i.IsDeleted == true)).ToListAsync(ct);
+            => await _context.Items.Where(i => !i.IsDeleted).ToListAsync(ct);
+
         public async Task<bool> ExistsAsync(int itemId, CancellationToken ct = default)
             => await _context.Items.AnyAsync(i => i.ItemId == itemId, ct);
 
         //ChatGPT recommended me to use IUnitOfWork instance of SaveChangesAsync
-        public async Task SaveChangesAsync() => await _context.SaveChangesAsync(); 
+        public async Task SaveChangesAsync() => await _context.SaveChangesAsync();
 
         public async Task<IEnumerable<Item>> GetLatestEVsAsync(int count)
         {
@@ -87,6 +88,7 @@ namespace Infrastructure.Repositories
                 .Take(count)
                 .ToListAsync();
         }
+
         public async Task<IEnumerable<Item>> GetLatestBatteriesAsync(int count)
         {
             return await _context.Items

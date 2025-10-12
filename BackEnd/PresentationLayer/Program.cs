@@ -1,5 +1,7 @@
 using Application.DTOs;
 using Application.DTOs.PaymentDtos;
+
+using Application.IHelpers;
 using Application.IRepositories;
 using Application.IRepositories.IBiddingRepositories;
 using Application.IRepositories.IChatRepositories;
@@ -17,6 +19,7 @@ using Infrastructure.Repositories.ChatRepositories;
 using Infrastructure.Ulties;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Net.payOS;
@@ -180,9 +183,13 @@ namespace PresentationLayer
             builder.Services.AddScoped<IAuctionService, AuctionService>();
             builder.Services.AddScoped<IValidator<PaymentRequestDto>, PaymentRequestValidator>();
             builder.Services.AddHostedService<PayOSWebhookInitializer>();
-            builder.Services.AddScoped<IKYC_DocumentRepository, KYC_DocumentRepository>();
             builder.Services.AddScoped<IKYC_DocumentService, KYC_DocumentService>();
-            //builder.Services.AddAutoMapper(typeof(KYC_DocumentProfile).Assembly);
+            builder.Services.AddScoped<IRedisCacheHelper, RedisCacheHelper>();
+            builder.Services.AddScoped<IFavoriteRepository, FavoriteRepository>();
+            builder.Services.AddScoped<IUserService, UserService>();
+            builder.Services.AddScoped<IFavoriteService, FavoriteService>();
+            builder.Services.AddScoped<IKYC_DocumentRepository, KYC_DocumentRepository>();
+            builder.Services.AddAutoMapper(typeof(KYC_DocumentProfile).Assembly);
             //builder.Services.AddSwaggerGen();
 
             builder.Services.AddSwaggerGen(c =>

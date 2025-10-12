@@ -1,10 +1,8 @@
-﻿using Application.DTOs;
 using Application.DTOs.AuctionDtos;
 using Application.IRepositories;
 using Application.IRepositories.IBiddingRepositories;
 using Application.IServices;
 using Domain.Entities;
-using Microsoft.EntityFrameworkCore;
 
 namespace Application.Services;
 
@@ -207,7 +205,6 @@ public class AuctionService : IAuctionService
             ItemId = auction.ItemId,
             Title = item.Title,
             Type = item.ItemType ?? "unknown",
-            Category = category?.Name ?? "Unknown",
             StartingPrice = auction.StartingPrice,
             CurrentPrice = auction.CurrentPrice,
             TotalBids = auction.TotalBids,
@@ -224,7 +221,6 @@ public class AuctionService : IAuctionService
                 var evDetail = await _eVDetailRepository.GetByIdAsync(auction.ItemId);
                 if (evDetail != null)
                 {
-                    auctionDto.Brand = evDetail.Brand ?? "Unknown";
                     auctionDto.Title = $"{evDetail.Model} {evDetail.Version}".Trim();
                 }
                 break;
@@ -233,13 +229,11 @@ public class AuctionService : IAuctionService
                 var batteryDetail = await _batteryDetailRepository.GetByIdAsync(auction.ItemId);
                 if (batteryDetail != null)
                 {
-                    auctionDto.Brand = batteryDetail.Brand ?? "Unknown";
                     auctionDto.Title = $"{item.Title}"; // giữ nguyên tên item
                 }
                 break;
 
             default:
-                auctionDto.Brand = "Unknown";
                 break;
         }
 
