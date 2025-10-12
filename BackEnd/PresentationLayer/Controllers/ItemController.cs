@@ -2,6 +2,7 @@
 using Application.DTOs.ItemDtos.BatteryDto;
 using Application.IServices;
 using Application.Services;
+using Infrastructure.Helpers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -73,6 +74,7 @@ namespace PresentationLayer.Controllers
         /// Query params: itemType, sellerName, minPrice, maxPrice, page, pageSize, sortBy, sortDir
         /// </summary>
         [HttpGet("search")]
+        [CacheResult(600)]
         public async Task<IActionResult> SearchItem(
             [FromQuery] string itemType,
             [FromQuery] string title,
