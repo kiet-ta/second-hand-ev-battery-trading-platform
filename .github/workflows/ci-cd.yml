@@ -134,7 +134,9 @@ jobs:
           tags: ${{ env.DOCKER_IMAGE_NAME }}:latest
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache
-
+      
+      - name: Trigger Render Deploy
+        run: curl -X POST ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
   deploy-frontend:
     name: Deploy Frontend to Vercel
     needs: [frontend-build-test, security-scan]
