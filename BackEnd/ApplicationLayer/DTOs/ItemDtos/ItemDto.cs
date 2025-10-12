@@ -26,7 +26,7 @@ namespace Application.DTOs.ItemDtos
 
         public DateOnly UpdatedAt { get; set; }
 
-        //public int? UpdatedBy { get; set; }
+        public int? UpdatedBy { get; set; }
         //public string? SellerName { get; set; }
         //public string Status { get; set; } = "active";
         //public bool? IsDeleted { get; set; }

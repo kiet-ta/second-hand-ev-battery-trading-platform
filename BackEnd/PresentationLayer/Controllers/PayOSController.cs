@@ -10,10 +10,12 @@ namespace PresentationLayer.Controllers;
 public class PayOSController : ControllerBase
 {
     private readonly PayOS _payOS;
+
     public PayOSController(PayOS payOS)
     {
         _payOS = payOS;
     }
+
     [HttpPost("create-payment-link")]
     public async Task<IActionResult> CreatePaymenLink([FromBody] CreatePaymentRequest request)
     {
@@ -44,17 +46,18 @@ public class PayOSController : ControllerBase
             result.paymentLinkId
         });
     }
+
     [HttpGet("info/{orderCode:long}")]
     public async Task<IActionResult> GetPaymentInfo(long orderCode)
     {
         var info = await _payOS.getPaymentLinkInformation(orderCode);
         return Ok(info);
     }
+
     [HttpPost("cancel/{orderCode:long}")]
-    public async Task<IActionResult>  CancelPaymentLink(long orderCode, [FromBody] CancelRequest cancel)
+    public async Task<IActionResult> CancelPaymentLink(long orderCode, [FromBody] CancelRequest cancel)
     {
         var info = await _payOS.cancelPaymentLink(orderCode, cancel.Reason);
         return Ok(info);
     }
 }
-

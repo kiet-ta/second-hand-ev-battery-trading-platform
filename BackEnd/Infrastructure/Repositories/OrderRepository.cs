@@ -1,4 +1,5 @@
 ﻿using Application.DTOs;
+using Application.DTOs.ItemDtos;
 using Application.IRepositories;
 using Domain.Entities;
 using Infrastructure.Data;
@@ -36,7 +37,10 @@ namespace Infrastructure.Repositories
                 order = new Order
                 {
                     OrderId = order.OrderId,
-                    CreatedAt = order.CreatedAt,
+                    BuyerId = order.BuyerId,
+                    AddressId = order.AddressId,
+                    Status = order.Status,
+                    CreatedAt = order.CreatedAt
                     // fields other...
                 };
             }
@@ -104,6 +108,41 @@ namespace Infrastructure.Repositories
                     TotalOrders = g.Count()
                 })
                 .ToListAsync();
+        }
+
+        public async Task<List<OrderDto>> GetOrdersByUserIdAsync(int userId)
+        {
+            var orders = await _context.Orders
+                .Where(o => o.BuyerId == userId)
+                .Select(o => new OrderDto
+                {
+                    OrderId = o.OrderId,
+                    BuyerId = o.BuyerId,
+                    AddressId = o.AddressId,
+                    Status = o.Status,
+                    CreatedAt = o.CreatedAt,
+                    UpdatedAt = o.UpdatedAt,
+                    Items = _context.OrderItems
+                        .Where(oi => oi.OrderId == o.OrderId && !(oi.IsDeleted == true))
+                        .Select(oi => new OrderItemDto
+                        {
+                            OrderItemId = oi.OrderItemId,
+                            OrderId = oi.OrderId,
+                            ItemId = oi.ItemId,
+                            Quantity = oi.Quantity,
+                            Price = oi.Price
+                        })
+                        .ToList()
+                })
+                .ToListAsync();
+
+            return orders;
+        }
+        public async Task<Order> AddOrderAsync(Order order)
+        {
+            _context.Orders.Add(order);
+            await _context.SaveChangesAsync();
+            return order;
         }
     }
 }

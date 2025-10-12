@@ -16,4 +16,5 @@ public class BatteryDetail
     public int? ChargeCycles { get; set; }
 
     public DateOnly? UpdatedAt { get; set; }
+
 }

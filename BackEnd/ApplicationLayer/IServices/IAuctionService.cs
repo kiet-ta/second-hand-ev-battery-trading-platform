@@ -1,4 +1,4 @@
-﻿using Application.DTOs.AuctionDtos;
+using Application.DTOs.AuctionDtos;
 
 namespace Application.IServices;
 

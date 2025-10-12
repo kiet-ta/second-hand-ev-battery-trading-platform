@@ -1,17 +1,26 @@
-﻿using Application.IRepositories.IBiddingRepositories;
+using Application.DTOs;
+using Application.DTOs.PaymentDtos;
+using Application.IHelpers;
 using Application.IRepositories;
+using Application.IRepositories.IBiddingRepositories;
+using Application.IRepositories.IPaymentRepositories;
 using Application.IServices;
 using Application.Services;
+using Application.Validations;
 using CloudinaryDotNet;
+using Domain.Mappings;
+using FluentValidation;
 using Infrastructure.Data;
+using Infrastructure.Helpers;
 using Infrastructure.Repositories;
+using Infrastructure.Ulties;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Net.payOS;
 using System.Text;
-using Application.DTOs;
 
 namespace PresentationLayer
 {
@@ -23,7 +32,6 @@ namespace PresentationLayer
 
             //  Đăng ký DbContext (DB First)
             builder.Services.AddDbContext<EvBatteryTradingContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-
             // DI cho Repository + Service
             //---Services
             builder.Services.AddScoped<IAuthService, AuthService>();
@@ -35,6 +43,10 @@ namespace PresentationLayer
             builder.Services.AddScoped<IHistorySoldService, HistorySoldService>();
             builder.Services.AddScoped<ISellerDashboardService, SellerDashboardService>();
             builder.Services.AddScoped<IAuctionService, AuctionService>();
+            builder.Services.AddScoped<IPaymentService, PaymentService>();
+            builder.Services.AddScoped<IOrderItemService, OrderItemService>();
+            builder.Services.AddScoped<IFavoriteService, FavoriteService>();
+
             //---Repositories
             builder.Services.AddScoped<IAuctionRepository, AuctionRepository>();
             builder.Services.AddScoped<IUserRepository, UserRepository>();
@@ -48,6 +60,8 @@ namespace PresentationLayer
             builder.Services.AddScoped<IWalletTransactionRepository, WalletTransactionRepository>();
             builder.Services.AddScoped<IEmailRepository, EmailTemplateRepository>();
             builder.Services.AddScoped<IPaymentDetailRepository, PaymentDetailRepository>();
+            builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
+            builder.Services.AddScoped<IOrderItemRepository, OrderItemRepository>();
 
             // JWT Authentication
             builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -90,6 +104,13 @@ namespace PresentationLayer
                               .AllowAnyHeader()
                               .AllowAnyMethod();
                     });
+                options.AddPolicy("AllowNgrok",
+                    policy =>
+                    {
+                        policy.WithOrigins("https://318132ab9f7d.ngrok-free.app")
+                              .AllowAnyHeader()
+                              .AllowAnyMethod();
+                    });
             });
             // register PayOS via DI (Dependency Injection)
             var payosConfig = builder.Configuration.GetSection("PayOS");
@@ -99,7 +120,7 @@ namespace PresentationLayer
                 var clientId = payosConfig["ClientId"];
                 var apiKey = payosConfig["ApiKey"];
                 var checksumKey = payosConfig["ChecksumKey"];
-                return new PayOS(clientId = "abc", apiKey = "abc", checksumKey = "abc");
+                return new PayOS(clientId, apiKey, checksumKey);
             });
 
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -121,8 +142,15 @@ namespace PresentationLayer
             builder.Services.AddScoped<IWalletRepository, WalletRepository>();
             builder.Services.AddScoped<IBidRepository, BidRepository>();
             builder.Services.AddScoped<IAuctionService, AuctionService>();
-            builder.Services.AddDbContext<EvBatteryTradingContext>(options =>
-            options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+            builder.Services.AddScoped<IValidator<PaymentRequestDto>, PaymentRequestValidator>();
+            builder.Services.AddHostedService<PayOSWebhookInitializer>();
+            builder.Services.AddScoped<IKYC_DocumentService, KYC_DocumentService>();
+            builder.Services.AddScoped<IRedisCacheHelper, RedisCacheHelper>();
+            builder.Services.AddScoped<IFavoriteRepository, FavoriteRepository>();
+            builder.Services.AddScoped<IUserService, UserService>();
+            builder.Services.AddScoped<IFavoriteService, FavoriteService>();
+            builder.Services.AddScoped<IKYC_DocumentRepository, KYC_DocumentRepository>();
+            builder.Services.AddAutoMapper(typeof(KYC_DocumentProfile).Assembly);
             //builder.Services.AddSwaggerGen();
 
             builder.Services.AddSwaggerGen(c =>
@@ -172,6 +200,7 @@ namespace PresentationLayer
 
             app.UseHttpsRedirection();
             app.UseCors("AllowReactApp");
+            app.UseCors("AllowNgrok");
             app.UseAuthorization();
 
             app.MapControllers();

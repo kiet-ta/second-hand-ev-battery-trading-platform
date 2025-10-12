@@ -1,9 +1,8 @@
-﻿using Application.DTOs.AuctionDtos;
+using Application.DTOs.AuctionDtos;
 using Application.IRepositories;
 using Application.IRepositories.IBiddingRepositories;
 using Application.IServices;
 using Domain.Entities;
-using Microsoft.EntityFrameworkCore;
 
 namespace Application.Services;
 

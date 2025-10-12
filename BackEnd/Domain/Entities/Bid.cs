@@ -1,3 +1,6 @@
+﻿using System;
+using System.Collections.Generic;
+
 namespace Domain.Entities;
 
 public class Bid
@@ -10,5 +13,6 @@ public class Bid
 
     public decimal BidAmount { get; set; }
 
-    public DateTime BidTime { get; set; } = DateTime.Now;
+    public DateTime? BidTime { get; set; }
+
 }
