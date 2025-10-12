@@ -1,4 +1,5 @@
-﻿using Application.IRepositories.IBiddingRepositories;
+using Domain.Mappings;
+using Application.IRepositories.IBiddingRepositories;
 using Application.IRepositories;
 using Application.IServices;
 using Application.Services;
@@ -139,7 +140,9 @@ namespace PresentationLayer
             builder.Services.AddScoped<IAuctionService, AuctionService>();
             builder.Services.AddScoped<IValidator<PaymentRequestDto>, PaymentRequestValidator>();
             builder.Services.AddHostedService<PayOSWebhookInitializer>();
-
+            builder.Services.AddScoped<IKYC_DocumentRepository, KYC_DocumentRepository>();
+            builder.Services.AddScoped<IKYC_DocumentService, KYC_DocumentService>();
+            builder.Services.AddAutoMapper(typeof(KYC_DocumentProfile).Assembly);
             builder.Services.AddDbContext<EvBatteryTradingContext>(options =>
             options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
             //builder.Services.AddSwaggerGen();
