@@ -47,9 +47,9 @@ namespace Infrastructure.Repositories
             return query.AsNoTracking(); // Optimized for read-only queries
         }
 
-        public async Task<Item> AddAsync(Item item, CancellationToken ct = default)
+        public async Task<Item> AddAsync(Item item, CancellationToken? ct = null)
         {
-            var en = (await _context.Items.AddAsync(item, ct)).Entity;
+            var en = (await _context.Items.AddAsync(item)).Entity;
             return en;
         }
 
@@ -66,7 +66,7 @@ namespace Infrastructure.Repositories
         public async Task<IEnumerable<Item>> GetAllAsync() =>
             await _context.Items.Where(i => !i.IsDeleted).ToListAsync();
 
-        public async Task<Item?> GetByIdAsync(int itemId, CancellationToken ct = default)
+        public async Task<Item?> GetByIdAsync(int itemId, CancellationToken? ct = null)
             => await _context.Items.FindAsync(new object[] { itemId }, ct);
 
         public void Update(Item item) => _context.Items.Update(item);
@@ -74,8 +74,8 @@ namespace Infrastructure.Repositories
         public async Task<IEnumerable<Item>> GetItemsByFilterAsync(CancellationToken ct = default)
             => await _context.Items.Where(i => !i.IsDeleted).ToListAsync(ct);
 
-        public async Task<bool> ExistsAsync(int itemId, CancellationToken ct = default)
-            => await _context.Items.AnyAsync(i => i.ItemId == itemId, ct);
+        public async Task<bool> ExistsAsync(int itemId, CancellationToken? ct = null)
+            => await _context.Items.AnyAsync(i => i.ItemId == itemId);
 
         //ChatGPT recommended me to use IUnitOfWork instance of SaveChangesAsync
         public async Task SaveChangesAsync() => await _context.SaveChangesAsync();

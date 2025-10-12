@@ -10,10 +10,10 @@ namespace Application.IRepositories
 {
     public interface IItemRepository
     {
-        Task<Item> AddAsync(Item item, CancellationToken ct = default);
-        Task<Item?> GetByIdAsync(int itemId, CancellationToken ct = default);
+        Task<Item> AddAsync(Item item, CancellationToken? ct = null);
+        Task<Item?> GetByIdAsync(int itemId, CancellationToken? ct = null);
         void Update(Item item);
-        Task<bool> ExistsAsync(int itemId, CancellationToken ct = default);
+        Task<bool> ExistsAsync(int itemId, CancellationToken? ct = null);
         Task<IEnumerable<Item>> GetItemsByFilterAsync(CancellationToken ct = default);
         Task<IEnumerable<Item>> GetAllAsync();
         void Delete(Item item);

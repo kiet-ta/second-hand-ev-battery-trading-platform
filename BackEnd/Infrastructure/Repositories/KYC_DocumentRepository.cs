@@ -1,5 +1,6 @@
 ﻿using Application.IRepositories;
 using Domain.Entities;
+using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using System.Runtime.ConstrainedExecution;
 
@@ -8,9 +9,9 @@ namespace Infrastructure.Repositories
 {
     public class KYC_DocumentRepository : IKYC_DocumentRepository
     {
-        private readonly Data.AppDbContext _context;
+        private readonly EvBatteryTradingContext _context;
 
-        public KYC_DocumentRepository(Data.AppDbContext context)
+        public KYC_DocumentRepository(EvBatteryTradingContext context)
         {
             _context = context;
         }
