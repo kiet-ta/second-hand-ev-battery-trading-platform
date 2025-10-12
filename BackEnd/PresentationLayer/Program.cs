@@ -1,8 +1,10 @@
 using Application.DTOs;
 using Application.DTOs.PaymentDtos;
+
 using Application.IHelpers;
 using Application.IRepositories;
 using Application.IRepositories.IBiddingRepositories;
+using Application.IRepositories.IChatRepositories;
 using Application.IRepositories.IPaymentRepositories;
 using Application.IServices;
 using Application.Services;
@@ -13,6 +15,7 @@ using FluentValidation;
 using Infrastructure.Data;
 using Infrastructure.Helpers;
 using Infrastructure.Repositories;
+using Infrastructure.Repositories.ChatRepositories;
 using Infrastructure.Ulties;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -20,6 +23,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Net.payOS;
+using PresentationLayer.Hubs;
 using System.Text;
 
 namespace PresentationLayer
@@ -30,9 +34,12 @@ namespace PresentationLayer
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            //  Đăng ký DbContext (DB First)
+            //  Register DbContext (DB First)
             builder.Services.AddDbContext<EvBatteryTradingContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-            // DI cho Repository + Service
+            builder.Services.Configure<FirebaseOptions>(builder.Configuration.GetSection("Firebase"));
+
+
+            // DI for Repository + Service
             //---Services
             builder.Services.AddScoped<IAuthService, AuthService>();
             builder.Services.AddScoped<IItemService, ItemService>();
@@ -46,6 +53,7 @@ namespace PresentationLayer
             builder.Services.AddScoped<IPaymentService, PaymentService>();
             builder.Services.AddScoped<IOrderItemService, OrderItemService>();
             builder.Services.AddScoped<IFavoriteService, FavoriteService>();
+            builder.Services.AddScoped<IChatService, ChatService>();
 
             //---Repositories
             builder.Services.AddScoped<IAuctionRepository, AuctionRepository>();
@@ -63,6 +71,10 @@ namespace PresentationLayer
             builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
             builder.Services.AddScoped<IOrderItemRepository, OrderItemRepository>();
 
+            // AddHttp 
+            builder.Services.AddHttpClient<IChatRepository, FirebaseChatRepository>();
+            builder.Services.AddHttpContextAccessor();
+
             // JWT Authentication
             builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(options =>
@@ -79,17 +91,44 @@ namespace PresentationLayer
                             Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!)
                         )
                     };
+
+                    options.Events = new JwtBearerEvents
+                    {
+                        OnMessageReceived = context =>
+                        {
+                            var accessToken = context.Request.Query["access_token"];
+                            var path = context.HttpContext.Request.Path;
+
+                            if (!string.IsNullOrEmpty(accessToken) &&
+                                (path.StartsWithSegments("/notificationHub") ||
+                                 path.StartsWithSegments("/chatHub")))
+                            {
+                                context.Token = accessToken;
+                            }
+                            return Task.CompletedTask;
+                        }
+                    };
                 });
+            //SignalR
+            builder.Services.AddSignalR(options =>
+            {
+                options.EnableDetailedErrors = true;
+                options.MaximumReceiveMessageSize = 102400000;
+                options.KeepAliveInterval = TimeSpan.FromSeconds(15);
+                options.ClientTimeoutInterval = TimeSpan.FromSeconds(30);
+            });
 
             // Bind Cloudinary settings
             builder.Services.Configure<CloudinarySettings>(
                 builder.Configuration.GetSection("CloudinarySettings"));
 
+            // Singleton
             builder.Services.AddSingleton(sp =>
             {
                 var config = builder.Configuration.GetSection("CloudinarySettings").Get<CloudinarySettings>();
                 return new Cloudinary(new Account(config.CloudName, config.ApiKey, config.ApiSecret));
             });
+            builder.Services.AddSingleton<IUserContextService, UserContextService>();
 
             builder.Services.AddAuthorization();
 
@@ -135,7 +174,7 @@ namespace PresentationLayer
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
             builder.Configuration.AddUserSecrets<Program>();
-            builder.Services.Configure<MailSettings>(builder.Configuration.GetSection("MailSettings"));
+            
             builder.Services.AddScoped<IMailService, MailService>();
             builder.Services.AddScoped<IEmailRepository, EmailTemplateRepository>();
             builder.Services.AddScoped<IWalletTransactionRepository, WalletTransactionRepository>();
@@ -201,9 +240,11 @@ namespace PresentationLayer
             app.UseHttpsRedirection();
             app.UseCors("AllowReactApp");
             app.UseCors("AllowNgrok");
+            app.UseAuthentication();
             app.UseAuthorization();
 
             app.MapControllers();
+            app.MapHub<ChatHub>("/chatHub");
             app.Run();
         }
     }
