@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import {
     LayoutDashboard,
-    Image,
+    Hammer,
     ShoppingBag,
     MessageSquare,
     Settings,
@@ -14,7 +14,8 @@ import {
 } from 'lucide-react';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import HistorySold from '../components/HistorySold'; // ✅ thêm HistorySold
-import MyProduct from '../components/OrderItem';
+import SellerAuctionListPage from "../pages/SellerAuctionListPage";
+
 
 export default function SellerDashboard() {
     const [activeMenu, setActiveMenu] = useState('dashboard');
@@ -44,7 +45,7 @@ export default function SellerDashboard() {
 
     const menuItems = [
         { id: 'dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-        { id: 'listings', icon: Image, label: 'Listings' },
+        { id: 'bidding', icon: Hammer, label: 'Bidding' },
         { id: 'orders', icon: ShoppingBag, label: 'Orders' },
         { id: 'history', icon: Clock, label: 'History Sold' }, // ✅ thêm menu History Sold
         { id: 'messages', icon: MessageSquare, label: 'Messages' },
@@ -85,8 +86,9 @@ export default function SellerDashboard() {
                     <HistorySold />
                 ) : activeMenu == "orders" ? (
                     <MyProduct/>
-                ) : 
-                (
+                ) : activeMenu === "bidding" ? (
+                    <SellerAuctionListPage />
+                ) : (
                     <div className="p-8">
                         {/* Header with Avatar */}
                         <div className="flex justify-end mb-8">
