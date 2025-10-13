@@ -82,26 +82,10 @@ namespace Application.Services
         {
             var user = await _userRepository.GetByEmailAsync(dto.Email);
             if (user == null)
-                throw new ValidationException("Invalid credentials.");
-
-            if (user.LockoutEnd.HasValue && user.LockoutEnd > DateTime.UtcNow)
-                throw new ValidationException("Account is locked. Try again later.");
+                throw new Exception("Invalid email");
 
             if (!BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash))
-            {
-                user.FailedLoginAttempts++;
-                if (user.FailedLoginAttempts >= 3)
-                {
-                    user.LockoutEnd = DateTime.UtcNow.AddMinutes(5);
-                    user.FailedLoginAttempts = 0;
-                }
-                await _userRepository.UpdateAsync(user);
-                throw new ValidationException("Invalid credentials.");
-            }
-
-            // reset fail count
-            user.FailedLoginAttempts = 0;
-            await _userRepository.UpdateAsync(user);
+                throw new Exception("Invalid password");
 
             return GenerateToken(user);
         }
