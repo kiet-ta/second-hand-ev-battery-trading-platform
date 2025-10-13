@@ -1,4 +1,5 @@
-﻿using Domain.Entities;
+﻿using Domain;
+using Domain.Entities;
 using Infrastructure.Data.Configurations;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -66,6 +67,8 @@ public class EvBatteryTradingContext : DbContext
     public DbSet<Wallet> Wallets { get; set; }
 
     public DbSet<WalletTransaction> WalletTransactions { get; set; }
+    public DbSet<Permission> Permissions { get; set; }
+    public DbSet<StaffPermission> StaffPermissions { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

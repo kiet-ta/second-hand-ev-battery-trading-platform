@@ -5,6 +5,7 @@ using Application.IHelpers;
 using Application.IRepositories;
 using Application.IRepositories.IBiddingRepositories;
 using Application.IRepositories.IChatRepositories;
+using Application.IRepositories.IManageStaffRepositories;
 using Application.IRepositories.IPaymentRepositories;
 using Application.IServices;
 using Application.Services;
@@ -16,6 +17,7 @@ using Infrastructure.Data;
 using Infrastructure.Helpers;
 using Infrastructure.Repositories;
 using Infrastructure.Repositories.ChatRepositories;
+using Infrastructure.Repositories.ManageStaffRepositories;
 using Infrastructure.Ulties;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -37,7 +39,6 @@ namespace PresentationLayer
             //  Register DbContext (DB First)
             builder.Services.AddDbContext<EvBatteryTradingContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
             builder.Services.Configure<FirebaseOptions>(builder.Configuration.GetSection("Firebase"));
-
 
             // DI for Repository + Service
             //---Services
@@ -71,7 +72,7 @@ namespace PresentationLayer
             builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
             builder.Services.AddScoped<IOrderItemRepository, OrderItemRepository>();
 
-            // AddHttp 
+            // AddHttp
             builder.Services.AddHttpClient<IChatRepository, FirebaseChatRepository>();
             builder.Services.AddHttpContextAccessor();
 
@@ -172,7 +173,7 @@ namespace PresentationLayer
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
             builder.Configuration.AddUserSecrets<Program>();
-            
+
             builder.Services.AddScoped<IMailService, MailService>();
             builder.Services.AddScoped<IEmailRepository, EmailTemplateRepository>();
             builder.Services.AddScoped<IValidator<PaymentRequestDto>, PaymentRequestValidator>();
@@ -181,6 +182,9 @@ namespace PresentationLayer
             builder.Services.AddScoped<IRedisCacheHelper, RedisCacheHelper>();
             builder.Services.AddScoped<IFavoriteRepository, FavoriteRepository>();
             builder.Services.AddScoped<IKYC_DocumentRepository, KYC_DocumentRepository>();
+            builder.Services.AddScoped<IPermissionRepository, PermissionRepository>();
+            builder.Services.AddScoped<IStaffPermissionRepository, StaffPermissionRepository>();
+            builder.Services.AddScoped<IStaffManagementService, StaffManagementService>();
             builder.Services.AddAutoMapper(typeof(KYC_DocumentProfile).Assembly);
             //builder.Services.AddSwaggerGen();
 
