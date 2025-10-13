@@ -1,5 +1,6 @@
 using Application.DTOs.AuthenticationDtos;
 using Application.DTOs.UserDtos;
+using Application.IHelpers;
 using Application.IRepositories;
 using Application.IServices;
 using Domain.Entities;
@@ -22,14 +23,19 @@ namespace Application.Services
         private readonly string _jwtIssuer;
         private readonly string _jwtAudience;
         private readonly IConfiguration _config;
+        private readonly IPasswordHelper _password;
 
-        public UserService(IUserRepository repo, IConfiguration config)
+        public UserService()
+        {
+        }
+        public UserService(IUserRepository repo, IConfiguration config, IPasswordHelper password)
         {
             _userRepository = repo;
             _config = config;
             _jwtSecret = config["Jwt:Key"]!;
             _jwtIssuer = config["Jwt:Issuer"]!;
             _jwtAudience = config["Jwt:Audience"]!;
+            _password = password;
         }
 
         public async Task<List<UserRoleCountDto>> GetUsersByRoleAsync()
@@ -98,7 +104,11 @@ namespace Application.Services
 
         public Task<IEnumerable<User>> GetAllUsersAsync() => _userRepository.GetAllAsync();
 
-        public Task<User?> GetUserByIdAsync(int id) => _userRepository.GetByIdAsync(id);
+        public async Task<User?> GetUserByIdAsync(int id)
+        {
+            return await _userRepository.GetByIdAsync(id);
+        }
+
 
         public Task<User?> GetUserByEmailAsync(string email) => _userRepository.GetByEmailAsync(email);
 
@@ -120,7 +130,6 @@ namespace Application.Services
             if (existing == null)
                 throw new KeyNotFoundException("User không tồn tại!");
 
-            // cập nhật các field cần thiết
             existing.FullName = user.FullName;
             existing.Phone = user.Phone;
             existing.Gender = user.Gender;
@@ -134,5 +143,9 @@ namespace Application.Services
         }
 
         public Task DeleteUserAsync(int id) => _userRepository.DeleteAsync(id);
+
+
+
+
     }
 }

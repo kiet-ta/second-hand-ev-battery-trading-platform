@@ -21,11 +21,11 @@ public class EVDetail
 
     public string? LicensePlate { get; set; }
 
-    public bool? HasAccessories { get; set; }
+    public bool HasAccessories { get; set; }
 
     public int? PreviousOwners { get; set; }
 
-    public bool? IsRegistrationValid { get; set; }
+    public bool IsRegistrationValid { get; set; }
 
     public int? Mileage { get; set; }
 

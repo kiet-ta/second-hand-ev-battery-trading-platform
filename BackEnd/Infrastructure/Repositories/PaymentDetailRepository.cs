@@ -1,5 +1,5 @@
 ﻿using Application.DTOs;
-using Application.IRepositories;
+using Application.IRepositories.IPaymentRepositories;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using System;

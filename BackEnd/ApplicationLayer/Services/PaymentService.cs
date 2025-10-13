@@ -1,7 +1,10 @@
-﻿using Application.DTOs;
+﻿using Application.DTOs.PaymentDtos;
 using Application.IRepositories;
+using Application.IRepositories.IBiddingRepositories;
+using Application.IRepositories.IPaymentRepositories;
 using Application.IServices;
 using Domain.Entities;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.Extensions.Configuration;
 using Net.payOS;
 using Net.payOS.Types;
@@ -12,13 +15,15 @@ public class PaymentService : IPaymentService
 {
     private readonly PayOS _payOS;
     private readonly IPaymentRepository _paymentRepository;
+    private readonly IWalletRepository _walletRepository;
     private readonly IConfiguration _config;
 
-    public PaymentService(PayOS payOS, IPaymentRepository paymentRepository, IConfiguration config)
+    public PaymentService(PayOS payOS, IPaymentRepository paymentRepository, IWalletRepository walletRepository, IConfiguration config)
     {
         _payOS = payOS;
         _paymentRepository = paymentRepository;
         _config = config;
+        _walletRepository = walletRepository;
     }
 
     public async Task<PaymentResponseDto> CreatePaymentAsync(PaymentRequestDto request)
@@ -57,7 +62,7 @@ public class PaymentService : IPaymentService
         if (request.Method == "wallet")
         {
             if (wallet.Balance < request.TotalAmount)
-                throw new ArgumentException("Số dư wallet không đủ");
+                throw new ArgumentException("Insufficient wallet balance");
 
             await _paymentRepository.DeductWalletBalanceAsync(wallet, request.TotalAmount, payment.PaymentId);
             await _paymentRepository.UpdatePaymentStatusAsync(payment.PaymentId, "completed");
@@ -98,22 +103,19 @@ public class PaymentService : IPaymentService
                 Status = "pending"
             };
         }
-        throw new ArgumentException("Method không hỗ trợ");
+        throw new ArgumentException("Method not supported");
     }
 
     public async Task<PaymentInfoDto> GetPaymentInfoAsync(long orderCode)
     {
-        // Lấy từ DB trước (sử dụng GroupJoin thủ công)
         var info = await _paymentRepository.GetPaymentInfoByOrderCodeAsync(orderCode);
         if (info == null)
-            throw new ArgumentException("Payment không tồn tại");
+            throw new ArgumentException("Payment does not exist");
 
-        // Nếu payos, bổ sung info từ PayOS và sync status
         if (info.Method == "payos")
         {
             var payOsInfo = await _payOS.getPaymentLinkInformation(orderCode);
-            info.Status = payOsInfo.status;  // Sync status từ PayOS
-            // Map thêm fields nếu cần (ví dụ: paymentLinkId)
+            info.Status = payOsInfo.status;
         }
 
         return info;
@@ -121,12 +123,47 @@ public class PaymentService : IPaymentService
 
     public async Task CancelPaymentAsync(long orderCode, string reason)
     {
-        var info = await GetPaymentInfoAsync(orderCode);  // Reuse để lấy paymentId
+        var info = await GetPaymentInfoAsync(orderCode);
         if (info.Method == "payos")
         {
             await _payOS.cancelPaymentLink(orderCode, reason);
         }
         await _paymentRepository.UpdatePaymentStatusAsync(info.PaymentId, "canceled");
-        // Optional: Add refund logic cho wallet nếu cần, nhưng theo yêu cầu chỉ cancel
+    }
+
+    public async Task HandleWebhookAsync(WebhookType body)
+    {
+        var data = _payOS.verifyPaymentWebhookData(body);
+        if (data.code != "00" || data.desc != "success")
+            return;
+        var info = await _paymentRepository.GetPaymentInfoByOrderCodeAsync(data.orderCode);
+
+        // Check if payment exists and hasn't been processed yet to avoid duplicates
+        if (info != null && info.Status != "completed")
+        {
+            // Update internal payment status
+            await _paymentRepository.UpdatePaymentStatusAsync(info.PaymentId, "completed");
+            await _paymentRepository.UpdateRelatedEntitiesAsync(info.Details);
+
+            // Find the user's wallet
+            var wallet = await _walletRepository.GetWalletByUserIdAsync(info.UserId);
+            if (wallet != null)
+            {
+                // Add the money to wallet
+                await _walletRepository.UpdateBalanceAsync(wallet.WalletId, info.TotalAmount);
+
+                // Create a transaction record for the history
+                var transaction = new WalletTransaction
+                {
+                    WalletId = wallet.WalletId,
+                    Amount = info.TotalAmount,
+                    Type = "deposit",
+                    RefId = info.PaymentId,
+                    CreatedAt = DateTime.UtcNow
+                };
+
+                await _walletRepository.AddWalletTransactionAsync(transaction);
+            }
+        }
     }
 }

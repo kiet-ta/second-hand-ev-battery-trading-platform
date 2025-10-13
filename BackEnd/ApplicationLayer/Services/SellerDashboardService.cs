@@ -1,5 +1,6 @@
 ﻿using Application.DTOs;
 using Application.IRepositories;
+using Application.IRepositories.IPaymentRepositories;
 using Application.IServices;
 using System;
 using System.Collections.Generic;

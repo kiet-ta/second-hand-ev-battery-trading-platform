@@ -1,6 +1,7 @@
 ﻿using Application.DTOs.UserDtos;
 using Application.IServices;
 using Domain.Entities;
+using Infrastructure.Helpers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -9,6 +10,7 @@ namespace PresentationLayer.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(Roles = "Manager")]
 
     public class UserController : ControllerBase
     {
@@ -45,6 +47,8 @@ namespace PresentationLayer.Controllers
         public async Task<IActionResult> Get() => Ok(await _userService.GetAllUsersAsync());
 
         [HttpGet("{id}")]
+        [Authorize]
+        [CacheResult(600)]
         public async Task<IActionResult> Get(int id)
         {
             var user = await _userService.GetUserByIdAsync(id);
@@ -73,5 +77,6 @@ namespace PresentationLayer.Controllers
             await _userService.DeleteUserAsync(id);
             return NoContent();
         }
+
     }
 }
