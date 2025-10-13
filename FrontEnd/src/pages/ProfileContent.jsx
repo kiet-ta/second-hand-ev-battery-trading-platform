@@ -42,7 +42,7 @@ const ProfileContent = () => {
     // ✅ Hàm xử lý logout
     const handleLogoutConfirm = () => {
         localStorage.clear();
-        window.location.href = "/login"; // hoặc navigate("/login") nếu bạn dùng react-router
+        window.location.href = "/login";
     };
 
     // ✅ Hủy logout

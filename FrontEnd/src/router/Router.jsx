@@ -17,10 +17,10 @@ import PaymentSuccessPage from "../pages/PaymentSuccessPage";
 import PaymentFailPage from "../pages/PaymentFailPage";
 import PurchasePage from "../pages/PurchasePage";
 import DetailedCheckoutPage from '../pages/DetailCheckout';
-import SellerAuctionListPage from '../pages/SellerAuctionListPage';
 import BlogList from "../pages/BlogList";
 import BlogDetail from "../pages/BlogDetail";
 import AuctionMainPage from "../pages/Auctions/AuctionMainPage";
+import ManagerDashboard from "../pages/ManagerDashboard";
 
 export const router = createBrowserRouter([
   {
@@ -54,11 +54,11 @@ export const router = createBrowserRouter([
       },
       {
         path: "/purchase",
-        element: <PurchasePage/>
+        element: <PurchasePage />
       },
       {
         path: "/auctions",
-        element: <AuctionMainPage/>
+        element: <AuctionMainPage />
       }
     ],
   },
@@ -98,16 +98,20 @@ export const router = createBrowserRouter([
     path: "/payment/fail",
     element: <PaymentFailPage />,
   },
-      {
-        path: "/detailcheckout",
-        element: <DetailedCheckoutPage />
-    },
-    {
-        path: "/blog",
-        element: <BlogList />
-    },
-    {
-        path: "/blog/:id",
-        element: <BlogDetail />
-    }
+  {
+    path: "/detailcheckout",
+    element: <DetailedCheckoutPage />
+  },
+  {
+    path: "/blog",
+    element: <BlogList />
+  },
+  {
+    path: "/blog/:id",
+    element: <BlogDetail />
+  },
+  {
+    path: "/manage",
+    element: <ManagerDashboard />
+  }
 ])

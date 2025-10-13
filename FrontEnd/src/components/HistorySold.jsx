@@ -24,7 +24,7 @@ export default function HistorySold() {
         const fetchSales = async () => {
             try {
                 const res = await fetch(
-                    `https://localhost:7272/api/HistorySold/all/${sellerId}`,
+                    `https://localhost:7272/api/History/${sellerId}`,
                     {
                         headers: {
                             Authorization: `Bearer ${token}`,
