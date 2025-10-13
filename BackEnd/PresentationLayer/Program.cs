@@ -20,11 +20,13 @@ using Infrastructure.Repositories.ChatRepositories;
 using Infrastructure.Repositories.ManageStaffRepositories;
 using Infrastructure.Ulties;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Net.payOS;
+using PresentationLayer.Authorization;
 using PresentationLayer.Hubs;
 using System.Text;
 
@@ -130,6 +132,8 @@ namespace PresentationLayer
                 return new Cloudinary(new Account(config.CloudName, config.ApiKey, config.ApiSecret));
             });
             builder.Services.AddSingleton<IUserContextService, UserContextService>();
+            builder.Services.AddScoped<IAuthorizationHandler, PermissionAuthorizationHandler>();
+            builder.Services.AddSingleton<IAuthorizationPolicyProvider, PermissionPolicyProvider>();
 
             builder.Services.AddAuthorization();
 
