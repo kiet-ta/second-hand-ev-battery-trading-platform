@@ -46,6 +46,24 @@ namespace PresentationLayer.Controllers
             }
         }
 
+        [HttpPost("google")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GoogleLogin([FromBody] TokenRequestDto dto)
+        {
+            if (string.IsNullOrWhiteSpace(dto.Credential))
+                return BadRequest("Missing Google ID Token");
+
+            try
+            {
+                var result = await _authService.LoginWithGoogleAsync(dto.Credential);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return Unauthorized(new { message = ex.Message });
+            }
+        }
+
         [HttpGet("profile")]
         [Authorize]
         public IActionResult GetProfile()
