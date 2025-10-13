@@ -20,6 +20,8 @@ import DetailedCheckoutPage from '../pages/DetailCheckout';
 import SellerAuctionListPage from '../pages/SellerAuctionListPage';
 import BlogList from "../pages/BlogList";
 import BlogDetail from "../pages/BlogDetail";
+import AuctionMainPage from "../pages/Auctions/AuctionMainPage";
+
 export const router = createBrowserRouter([
   {
     path: "/",
@@ -53,6 +55,10 @@ export const router = createBrowserRouter([
       {
         path: "/purchase",
         element: <PurchasePage/>
+      },
+      {
+        path: "/auctions",
+        element: <AuctionMainPage/>
       }
     ],
   },

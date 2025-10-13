@@ -8,11 +8,13 @@ const userApi = {
     getUserByID: async (id) => {
         const token = localStorage.getItem('token');
         const response = await axios.get(baseURL + '/' + id,
-            {headers: {
-                            // This line is essential for authorized endpoints
-                            'Authorization': `Bearer ${token}`,
-                            'Content-Type': 'application/json'
-                        }}
+            {
+                headers: {
+                    // This line is essential for authorized endpoints
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            }
         )
         return response.data;
     }

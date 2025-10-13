@@ -7,24 +7,26 @@ import userApi from '../api/userApi';
 function MainLayout() {
   const userData = localStorage.getItem('userId');
   const [userProfile, setUser] = useState(null);
-  const fetchUser = async () => {
+  const fetchUser =  () => {
     try {
-      const userByID = await userApi.getUserByID(userData);
-      setUser(userByID)
+      userApi.getUserByID(userData)
+      .then(user => {
+              setUser(user)
+      })
     } catch (error) {
       console.error("Error fetching items", error);
     }
   }
   useEffect(() => {
     fetchUser();
-  },[]);
+  }, []);
   const mainRef = useRef(null);
   return (
-    <div className="h-screen w-screen flex flex-col m-0 p-0 bg-gray-200">
-            <ScrollToTop scrollRef={mainRef} />
+    <div className="h-screen w-screen flex flex-col m-0 p-0">
+      <ScrollToTop scrollRef={mainRef} />
 
-      <Navbar className="w-full h-16 sticky top-0 z-50" data={userProfile}/>
-      <main ref ={mainRef} className="flex-1 overflow-y-auto">   
+      <Navbar className="w-full h-16 sticky" data={userProfile} />
+      <main ref={mainRef} className=" bg-gray-300 ">
         <Outlet />
       </main>
     </div>
