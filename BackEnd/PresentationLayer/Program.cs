@@ -10,6 +10,7 @@ using Application.IServices;
 using Application.Services;
 using Application.Validations;
 using CloudinaryDotNet;
+using Domain.Entities;
 using Domain.Mappings;
 using FluentValidation;
 using Infrastructure.Data;
@@ -55,6 +56,8 @@ namespace PresentationLayer
             builder.Services.AddScoped<IOrderItemService, OrderItemService>();
             builder.Services.AddScoped<IFavoriteService, FavoriteService>();
             builder.Services.AddScoped<IChatService, ChatService>();
+            builder.Services.AddScoped<IUploadService, UploadService>();
+            builder.Services.AddScoped<IItemImageService, ItemImageService>();
 
             //---Repositories
             builder.Services.AddScoped<IAuctionRepository, AuctionRepository>();
@@ -72,6 +75,8 @@ namespace PresentationLayer
             builder.Services.AddScoped<IPaymentDetailRepository, PaymentDetailRepository>();
             builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
             builder.Services.AddScoped<IOrderItemRepository, OrderItemRepository>();
+            builder.Services.AddScoped<IItemImageRepository, ItemImageRepository>();
+
             // AddHttp 
             builder.Services.AddHttpClient<IChatRepository, FirebaseChatRepository>();
             builder.Services.AddHttpContextAccessor();

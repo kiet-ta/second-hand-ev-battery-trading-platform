@@ -233,5 +233,17 @@ namespace Infrastructure.Repositories
                     .Any(i => i.ItemId == p.ItemId && i.UpdatedBy == sellerId))
                 .SumAsync(p => p.Amount);
         }
+
+        public async Task AddAsync(ItemImage image)
+        {
+            await _context.ItemImages.AddAsync(image);
+        }
+
+        public async Task<IEnumerable<ItemImage>> GetByItemIdAsync(int itemId)
+        {
+            return await _context.ItemImages
+                .Where(x => x.ItemId == itemId)
+                .ToListAsync();
+        }
     }
 }

@@ -23,6 +23,8 @@ public class UserRepository : IUserRepository
 
     public async Task<User?> GetByIdAsync(int id)
     {
+        if (_context == null)
+            throw new Exception("_context is NULL");
         return await _context.Users
             .FirstOrDefaultAsync(u => u.UserId == id && !(u.IsDeleted == true));
     }
@@ -55,6 +57,17 @@ public class UserRepository : IUserRepository
         _context.Users.Update(user);
         await _context.SaveChangesAsync();
     }
+    public async Task UpdateAvatarAsync(int userId, string avatarUrl)
+    {
+        var user = await GetByIdAsync(userId);
+        if (user == null)
+            throw new Exception("User not found");
+
+        user.AvatarProfile = avatarUrl;
+        user.UpdatedAt = DateTime.UtcNow;
+
+        _context.Users.Update(user);
+    }
 
     public async Task DeleteAsync(int id)
     {
@@ -67,4 +80,9 @@ public class UserRepository : IUserRepository
             await _context.SaveChangesAsync();
         }
     }
+    public async Task SaveChangesAsync()
+    {
+        await _context.SaveChangesAsync();
+    }
+
 }

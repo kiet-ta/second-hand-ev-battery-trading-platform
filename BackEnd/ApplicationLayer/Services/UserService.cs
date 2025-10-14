@@ -4,6 +4,7 @@ using Application.IHelpers;
 using Application.IRepositories;
 using Application.IServices;
 using Domain.Entities;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System;
@@ -24,9 +25,9 @@ namespace Application.Services
         private readonly string _jwtAudience;
         private readonly IConfiguration _config;
 
-        public UserService(IUserRepository repo, IConfiguration config)
+        public UserService(IUserRepository userRepository, IConfiguration config)
         {
-            _userRepository = repo;
+            _userRepository = userRepository;
             _config = config;
             _jwtSecret = config["Jwt:Key"]!;
             _jwtIssuer = config["Jwt:Issuer"]!;
@@ -139,8 +140,15 @@ namespace Application.Services
 
         public Task DeleteUserAsync(int id) => _userRepository.DeleteAsync(id);
 
+        public async Task<string?> GetAvatarAsync(int userId)
+        {
+            if (_userRepository == null)
+                throw new Exception("_userRepository is NULL");
+            var user = await _userRepository.GetByIdAsync(userId);
+            if (user == null)
+                throw new Exception("User not found");
 
-
-
+            return user.AvatarProfile;
+        }
     }
 }
