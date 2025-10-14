@@ -53,7 +53,6 @@ export const CarAuctionCard = ({
 }) => {
 
     const navigate = useNavigate();
-    const [currentImageIndex, setCurrentImageIndex] = useState(0);
     const placeholderImage = `https://placehold.co/600x400/374151/d1d5db?text=${encodeURIComponent(title)}`;
 
     const displayImage = imageUrls && imageUrls[0] ? imageUrls[0] : placeholderImage;

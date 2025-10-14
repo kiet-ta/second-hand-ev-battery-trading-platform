@@ -157,8 +157,8 @@ namespace PresentationLayer
 
             builder.Services.AddSingleton(sp =>
             {
-                var clientId = payosConfig["ClientId"];
-                var apiKey = payosConfig["ApiKey"];
+                var clientId = payosConfig["Client_Id"];
+                var apiKey = payosConfig["Api_Key"];
                 var checksumKey = payosConfig["ChecksumKey"];
                 return new PayOS(clientId, apiKey, checksumKey);
             });
