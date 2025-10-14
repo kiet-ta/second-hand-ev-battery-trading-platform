@@ -172,9 +172,9 @@ export default function ManagerDashboard() {
 
     return (
         <div className="min-h-screen bg-slate-50">
-            {/* Top Bar */}
+            {/* 🔝 Top Bar */}
             <div className="sticky top-0 z-30 bg-white/80 backdrop-blur border-b border-slate-200">
-                <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+                <div className="max-w-[1600px] mx-auto px-6 py-3 flex items-center justify-between">
                     <div className="flex items-center gap-3">
                         <div className="w-9 h-9 rounded-xl border border-slate-200 grid place-items-center">
                             <ShieldCheck size={18} />
@@ -198,15 +198,15 @@ export default function ManagerDashboard() {
                             />
                             <Filter size={16} className="opacity-70" />
                         </div>
-                        <button className="px-3 py-2 rounded-xl border border-slate-200 bg-white text-slate-700 text-sm flex items-center gap-2">
+                        <button className="px-3 py-2 rounded-xl border border-slate-200 bg-white text-slate-700 text-sm flex items-center gap-2 hover:bg-slate-50">
                             <RefreshCw size={16} /> Refresh
                         </button>
                     </div>
                 </div>
             </div>
 
-            {/* Body */}
-            <div className="max-w-7xl mx-auto grid grid-cols-12 gap-6 px-4 py-6">
+            {/* 🔧 Body */}
+            <div className="max-w-[1600px] mx-auto grid grid-cols-12 gap-6 px-6 py-6">
                 {/* Sidebar */}
                 <aside className="col-span-12 lg:col-span-3 xl:col-span-2">
                     <Card>
@@ -215,10 +215,10 @@ export default function ManagerDashboard() {
                                 <button
                                     key={m.key}
                                     onClick={() => setActive(m.key)}
-                                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm border ${active === m.key
+                                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm border transition ${active === m.key
                                         ? "bg-slate-900 text-white border-slate-900"
                                         : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50"
-                                        } mb-2 transition`}
+                                        } mb-2`}
                                 >
                                     {m.icon}
                                     {m.label}
@@ -252,194 +252,47 @@ export default function ManagerDashboard() {
                     </Card>
                 </aside>
 
-                {/* Main */}
+                {/* Main content */}
                 <main className="col-span-12 lg:col-span-9 xl:col-span-10 space-y-6">
-
-                    {active === "dashboard" && (
-                        <>
-                            {/* phần dashboard hiện có (KPI, charts, etc.) */}
-                        </>
-                    )}
-
-                    {active === "users" && (
-                        <Card>
-                            <CardHeader
-                                title="User Management"
-                                icon={<UserCog size={18} className="text-slate-700" />}
-                                action={
-                                    <button className="px-3 py-2 text-sm border border-slate-200 rounded-xl hover:bg-slate-50">
-                                        + Add User
-                                    </button>
-                                }
-                            />
-                            <div className="p-4">
-                                <table className="min-w-full text-sm">
-                                    <thead>
-                                        <tr className="text-left text-slate-500 border-b">
-                                            <th className="py-2">ID</th>
-                                            <th className="py-2">Name</th>
-                                            <th className="py-2">Email</th>
-                                            <th className="py-2">Role</th>
-                                            <th className="py-2">Status</th>
-                                            <th className="py-2">Action</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {users.map((u) => (
-                                            <tr key={u.id} className="border-b last:border-0">
-                                                <td className="py-2 font-medium text-slate-700">{u.id}</td>
-                                                <td className="py-2">{u.name}</td>
-                                                <td className="py-2">{u.email}</td>
-                                                <td className="py-2">
-                                                    <span
-                                                        className={`px-2.5 py-1 rounded-lg text-xs border ${u.role === "Staff"
-                                                            ? "bg-indigo-50 text-indigo-700 border-indigo-200"
-                                                            : u.role === "Seller"
-                                                                ? "bg-amber-50 text-amber-700 border-amber-200"
-                                                                : "bg-sky-50 text-sky-700 border-sky-200"
-                                                            }`}
-                                                    >
-                                                        {u.role}
-                                                    </span>
-                                                </td>
-                                                <td className="py-2">
-                                                    <span
-                                                        className={`px-2.5 py-1 rounded-lg text-xs border ${u.status === "active"
-                                                            ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                                                            : "bg-rose-50 text-rose-700 border-rose-200"
-                                                            }`}
-                                                    >
-                                                        {u.status}
-                                                    </span>
-                                                </td>
-                                                <td className="py-2">
-                                                    <div className="flex gap-2">
-                                                        <button className="px-2.5 py-1 rounded-lg text-xs border border-slate-200">
-                                                            Edit
-                                                        </button>
-                                                        <button className="px-2.5 py-1 rounded-lg text-xs border border-slate-200">
-                                                            {u.status === "active" ? "Deactivate" : "Activate"}
-                                                        </button>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </Card>
-                    )}
-
-                    {active === "products" && (
-                        <Card>
-                            <CardHeader
-                                title="Product Management"
-                                icon={<PackageSearch size={18} className="text-slate-700" />}
-                                action={
-                                    <button className="px-3 py-2 text-sm border border-slate-200 rounded-xl hover:bg-slate-50">
-                                        + Add Product
-                                    </button>
-                                }
-                            />
-                            <div className="p-4 overflow-auto">
-                                <table className="min-w-full text-sm">
-                                    <thead>
-                                        <tr className="text-left text-slate-500 border-b">
-                                            <th className="py-2">ID</th>
-                                            <th className="py-2">Image</th>
-                                            <th className="py-2">Title</th>
-                                            <th className="py-2">Type</th>
-                                            <th className="py-2">Seller</th>
-                                            <th className="py-2">Price</th>
-                                            <th className="py-2">Status</th>
-                                            <th className="py-2">Action</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {products.map((p) => (
-                                            <tr key={p.id} className="border-b last:border-0 hover:bg-slate-50">
-                                                <td className="py-2 font-medium text-slate-700">{p.id}</td>
-                                                <td className="py-2">
-                                                    <img
-                                                        src={p.image}
-                                                        alt={p.title}
-                                                        className="w-14 h-14 object-cover rounded-lg border border-slate-200"
-                                                    />
-                                                </td>
-                                                <td className="py-2">{p.title}</td>
-                                                <td className="py-2">
-                                                    <span
-                                                        className={`px-2.5 py-1 rounded-lg text-xs border ${p.type === "EV"
-                                                                ? "bg-blue-50 text-blue-700 border-blue-200"
-                                                                : "bg-teal-50 text-teal-700 border-teal-200"
-                                                            }`}
-                                                    >
-                                                        {p.type}
-                                                    </span>
-                                                </td>
-                                                <td className="py-2">{p.seller}</td>
-                                                <td className="py-2">{currencyVND(p.price)}</td>
-                                                <td className="py-2">
-                                                    <span
-                                                        className={`px-2.5 py-1 rounded-lg text-xs border ${p.status === "active"
-                                                                ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                                                                : p.status === "sold"
-                                                                    ? "bg-amber-50 text-amber-700 border-amber-200"
-                                                                    : "bg-rose-50 text-rose-700 border-rose-200"
-                                                            }`}
-                                                    >
-                                                        {p.status}
-                                                    </span>
-                                                </td>
-                                                <td className="py-2">
-                                                    <div className="flex gap-2">
-                                                        <button className="px-2.5 py-1 rounded-lg text-xs border border-slate-200">
-                                                            Edit
-                                                        </button>
-                                                        <button className="px-2.5 py-1 rounded-lg text-xs border border-slate-200">
-                                                            Delete
-                                                        </button>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </Card>
-                    )}
-
-                    {/* KPI Row */}
-                    <div className="grid sm:grid-cols-2 xl:grid-cols-5 gap-4">
+                    {/* KPI Tiles */}
+                    <div className="grid sm:grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
                         <StatTile
                             icon={<DollarSign size={18} className="text-slate-800" />}
                             label="Revenue (month)"
-                            value={metrics ? currencyVND(metrics.revenueThisMonth) : "—"}
+                            value={
+                                metrics
+                                    ? currencyVND(metrics.revenueThisMonth)
+                                    : "—"
+                            }
                             hint={`YTD: ${currencyVND(revenueTotal)}`}
                             trend={metrics?.growth ?? 0}
                         />
                         <StatTile
                             icon={<Users size={18} className="text-slate-800" />}
                             label="Total Users"
-                            value={metrics ? metrics.totalUsers.toLocaleString("vi-VN") : "—"}
+                            value={
+                                metrics
+                                    ? metrics.totalUsers.toLocaleString("vi-VN")
+                                    : "—"
+                            }
                             hint="Buyer / Seller / Staff"
                         />
                         <StatTile
                             icon={<PackageSearch size={18} className="text-slate-800" />}
                             label="Active Listings"
-                            value={metrics ? metrics.activeListings.toLocaleString("vi-VN") : "—"}
+                            value={
+                                metrics
+                                    ? metrics.activeListings.toLocaleString("vi-VN")
+                                    : "—"
+                            }
                             hint="EV & Battery"
-                        />
-                        <StatTile
-                            icon={<AlertTriangle size={18} className="text-slate-800" />}
-                            label="Complaint Rate"
-                            value={metrics ? `${metrics.complaintRate}%` : "—"}
-                            hint="Open disputes"
                         />
                         <StatTile
                             icon={<TrendingUp size={18} className="text-slate-800" />}
                             label="Growth MoM"
-                            value={metrics ? `${metrics.growth}%` : "—"}
+                            value={
+                                metrics ? `${metrics.growth}%` : "—"
+                            }
                             hint="vs last month"
                             trend={metrics?.growth ?? 0}
                         />
@@ -547,9 +400,7 @@ export default function ManagerDashboard() {
                                     <tbody>
                                         {transactions.map((t) => (
                                             <tr key={t.id} className="border-b last:border-0">
-                                                <td className="py-2 font-medium text-slate-700">
-                                                    {t.id}
-                                                </td>
+                                                <td className="py-2 font-medium text-slate-700">{t.id}</td>
                                                 <td className="py-2">{t.item}</td>
                                                 <td className="py-2">{t.buyer}</td>
                                                 <td className="py-2">{t.seller}</td>
@@ -574,8 +425,8 @@ export default function ManagerDashboard() {
                         </Card>
                     </div>
 
-                    {/* Approvals & Disputes */}
-                    <div className="grid lg:grid-cols-2 gap-4">
+                    {/* Seller Approvals */}
+                    <div className="grid lg:grid-cols-1 gap-4">
                         <Card>
                             <CardHeader
                                 title="New Seller Approvals"
@@ -595,9 +446,7 @@ export default function ManagerDashboard() {
                                     <tbody>
                                         {approvals.map((a) => (
                                             <tr key={a.id} className="border-b last:border-0">
-                                                <td className="py-2 font-medium text-slate-700">
-                                                    {a.id}
-                                                </td>
+                                                <td className="py-2 font-medium text-slate-700">{a.id}</td>
                                                 <td className="py-2">{a.seller}</td>
                                                 <td className="py-2">{a.region}</td>
                                                 <td className="py-2">{a.submittedAt}</td>
@@ -610,47 +459,6 @@ export default function ManagerDashboard() {
                                                             Reject
                                                         </button>
                                                     </div>
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </Card>
-
-                        <Card>
-                            <CardHeader
-                                title="Pending Disputes"
-                                icon={<AlertTriangle size={18} className="text-slate-700" />}
-                            />
-                            <div className="p-4 overflow-auto">
-                                <table className="min-w-full text-sm">
-                                    <thead>
-                                        <tr className="text-left text-slate-500 border-b">
-                                            <th className="py-2">ID</th>
-                                            <th className="py-2">Order</th>
-                                            <th className="py-2">Type</th>
-                                            <th className="py-2">Status</th>
-                                            <th className="py-2">Action</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {disputes.map((d) => (
-                                            <tr key={d.id} className="border-b last:border-0">
-                                                <td className="py-2 font-medium text-slate-700">
-                                                    {d.id}
-                                                </td>
-                                                <td className="py-2">{d.orderCode}</td>
-                                                <td className="py-2">{d.type}</td>
-                                                <td className="py-2">
-                                                    <span className="px-2.5 py-1 rounded-lg text-xs border border-amber-200 bg-amber-50 text-amber-700">
-                                                        {d.status}
-                                                    </span>
-                                                </td>
-                                                <td className="py-2">
-                                                    <button className="px-2.5 py-1 rounded-lg text-xs border border-slate-200">
-                                                        Open
-                                                    </button>
                                                 </td>
                                             </tr>
                                         ))}

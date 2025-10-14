@@ -4,18 +4,26 @@ import Navbar from '../components/Navbar/Navbar';
 import CardComponent from '../components/Cards/Card';
 import '../styles/HomePage.css'
 import itemApi from '../api/itemApi';
+import { useRef } from 'react';
+import GeminiChatWidget from "../components/GeminiChatWidget";
+
 function HomePage() {
   const [itemList, setItemList] = useState([]);
 
+  const handleMinimize = () => {
+    tawkMessengerRef.current.minimize();
+  };
+
   useEffect(() => {
     const fetchItems = async () => {
-    try {
-      const data = await itemApi.getItem();
-      console.log(data);
-      setItemList(data);
-    } catch (error) {
-      console.error("Error fetching items", error);
-    }};
+      try {
+        const data = await itemApi.getItem();
+        console.log(data);
+        setItemList(data);
+      } catch (error) {
+        console.error("Error fetching items", error);
+      }
+    };
     fetchItems();
   }, []);
 
@@ -32,15 +40,18 @@ function HomePage() {
             <div className="row-span-3 w-70 h-50 content-center"><img src="https://i.pinimg.com/1200x/73/9d/61/739d6130ed4b7c1abf45a429d1e83b0b.jpg" /></div>
           </div>
           <div className="Products flex w-2/4 justify-center content-center self-center gap-4 p-4 m-0 ">
+            <button onClick={handleMinimize}> Minimize the Chat </button>
+
+
             {first_sale.map((item) => (
-                <CardComponent title={item.title} 
-                type={item.itemType} 
-                price={item.price} 
-                sales={0} 
-                image={"https://i.pinimg.com/1200x/55/53/06/55530643312e136a9fa2a576d6fcfbd0.jpg"} 
-                id={item.itemId} 
-                />
-              ))}
+              <CardComponent title={item.title}
+                type={item.itemType}
+                price={item.price}
+                sales={0}
+                image={"https://i.pinimg.com/1200x/55/53/06/55530643312e136a9fa2a576d6fcfbd0.jpg"}
+                id={item.itemId}
+              />
+            ))}
           </div>
         </div>
         <div className="Banner">
@@ -53,35 +64,37 @@ function HomePage() {
           </div>
           <div className="Products flex justify-center content-center self-center gap-4 p-4 m-0 ">
             {second_sale.map((item) => (
-                <CardComponent title={item.title} 
-                type={item.itemType} 
-                price={item.price} 
-                sales={0} 
-                image={"https://i.pinimg.com/1200x/55/53/06/55530643312e136a9fa2a576d6fcfbd0.jpg"} 
-                id={item.itemId} 
-                />
-              ))}
+              <CardComponent title={item.title}
+                type={item.itemType}
+                price={item.price}
+                sales={0}
+                image={"https://i.pinimg.com/1200x/55/53/06/55530643312e136a9fa2a576d6fcfbd0.jpg"}
+                id={item.itemId}
+              />
+            ))}
           </div>
         </div>
-                <div className="Car bg-white mt-2 w-full">
+        <div className="Car bg-white mt-2 w-full">
           <div className="text-left text-2xl m-4 p-4 font-bold border-b-1">
             Battery
           </div>
           <div className="Products flex justify-center content-center self-center gap-4 p-4 m-0 ">
             {third_sale.map((item) => (
-                <CardComponent title={item.title} 
-                type={item.itemType} 
-                price={item.price} 
-                sales={0} 
-                image={"https://i.pinimg.com/1200x/55/53/06/55530643312e136a9fa2a576d6fcfbd0.jpg"} 
-                id={item.itemId} 
-                />
-              ))}
+              <CardComponent title={item.title}
+                type={item.itemType}
+                price={item.price}
+                sales={0}
+                image={"https://i.pinimg.com/1200x/55/53/06/55530643312e136a9fa2a576d6fcfbd0.jpg"}
+                id={item.itemId}
+              />
+            ))}
           </div>
         </div>
 
 
       </div>
+      <GeminiChatWidget />
+
 
     </>
 

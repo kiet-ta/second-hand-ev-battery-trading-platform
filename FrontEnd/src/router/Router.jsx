@@ -17,6 +17,7 @@ import DetailedCheckoutPage from '../pages/DetailCheckout';
 import BlogList from "../pages/BlogList";
 import BlogDetail from "../pages/BlogDetail";
 import ManagerDashboard from "../pages/ManagerDashboard";
+import BuyerViewSeller from '../pages/BuyerViewSeller';
 
 export const router = createBrowserRouter([
     {
@@ -89,6 +90,11 @@ export const router = createBrowserRouter([
     {
         path: "/manage",
         element: <ManagerDashboard />
-    }
+    },
+    {
+        path: "/seller/:sellerId",
+        element: <BuyerViewSeller />
+    },
+
 
 ]);

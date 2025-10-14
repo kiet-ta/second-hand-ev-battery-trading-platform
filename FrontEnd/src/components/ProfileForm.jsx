@@ -106,7 +106,7 @@ const ProfileForm = () => {
             updatedAt: new Date().toISOString(),
         };
 
-        fetch(`https://localhost:7272/api/Users/${userId}`, {
+        fetch(`https://localhost:7272/api/User/${userId}`, {
             method: "PUT",
             headers: {
                 "Authorization": `Bearer ${token}`,
