@@ -17,5 +17,9 @@ namespace Application.IRepositories
         Task DeleteAsync(int id);
 
         Task<List<(string Role, int Count)>> GetUsersByRoleAsync();
+
+        Task UpdateAvatarAsync(int userId, string avatarUrl);
+
+        Task SaveChangesAsync();
     }
 }

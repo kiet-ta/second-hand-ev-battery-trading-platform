@@ -12,4 +12,14 @@ public class ItemImageRepository : IItemImageRepository
     public ItemImageRepository(EvBatteryTradingContext context) => _context = context;
 
     public async Task<ItemImage?> GetItemImageById(int id) => await _context.ItemImages.FindAsync(id);
+    public async Task AddAsync(ItemImage image) =>  await _context.ItemImages.AddAsync(image);
+    
+
+    public async Task<IEnumerable<ItemImage>> GetByItemIdAsync(int itemId) =>
+        await _context.ItemImages
+            .Where(x => x.ItemId == itemId)
+            .ToListAsync();
+
+    public async Task SaveChangesAsync() => await _context.SaveChangesAsync();
+    
 }

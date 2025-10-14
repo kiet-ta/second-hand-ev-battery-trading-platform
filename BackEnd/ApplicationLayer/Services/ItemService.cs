@@ -1,7 +1,10 @@
 ﻿using Application.DTOs.ItemDtos;
 using Application.IRepositories;
 using Application.IServices;
+using CloudinaryDotNet;
+using CloudinaryDotNet.Actions;
 using Domain.Entities;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -239,5 +242,6 @@ namespace Application.Services
         {
             return await _repo.GetBoughtItemsWithDetailsAsync(userId);
         }
+        
     }
 }
