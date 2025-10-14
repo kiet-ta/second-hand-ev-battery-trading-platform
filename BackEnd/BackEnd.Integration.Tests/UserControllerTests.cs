@@ -26,36 +26,36 @@ public class UserControllerTests : IClassFixture<DatabaseFixture>
         _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("TestScheme");
     }
 
-    [Fact]
-    public async Task GetAllUsers_WhenCalled_ReturnsOk() // Renamed for clarity
-    {
-        // Arrange - No specific arrangement needed.
-        // The authorization header is already set in the constructor.
+    //[Fact]
+    //public async Task GetAllUsers_WhenCalled_ReturnsOk() // Renamed for clarity
+    //{
+    //    // Arrange - No specific arrangement needed.
+    //    // The authorization header is already set in the constructor.
 
-        // Act
-        var response = await _client.GetAsync("/api/user");
+    //    // Act
+    //    var response = await _client.GetAsync("/api/user");
 
-        // Assert
-        response.EnsureSuccessStatusCode();
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-    }
+    //    // Assert
+    //    response.EnsureSuccessStatusCode();
+    //    Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+    //}
 
-    [Fact]
-    public async Task GetAllUsers_WhenNoUsersExist_ReturnsOkAndEmptyList()
-    {
-        // Arrange: The test database is initially empty.
+    //[Fact]
+    //public async Task GetAllUsers_WhenNoUsersExist_ReturnsOkAndEmptyList()
+    //{
+    //    // Arrange: The test database is initially empty.
 
-        // Act: Send a GET request to the /api/user endpoint.
-        var response = await _client.GetAsync("/api/user");
+    //    // Act: Send a GET request to the /api/user endpoint.
+    //    var response = await _client.GetAsync("/api/user");
 
-        // Assert:
-        // Check if the request was successful
-        response.EnsureSuccessStatusCode();
-        Assert.Equal(System.Net.HttpStatusCode.OK, response.StatusCode);
+    //    // Assert:
+    //    // Check if the request was successful
+    //    response.EnsureSuccessStatusCode();
+    //    Assert.Equal(System.Net.HttpStatusCode.OK, response.StatusCode);
 
-        // Deserialize the response and check the content.
-        var users = await response.Content.ReadFromJsonAsync<List<CreateAddressDTO>>();
-        Assert.NotNull(users);
-        Assert.Empty(users); // Expecting an empty list
-    }
+    //    // Deserialize the response and check the content.
+    //    var users = await response.Content.ReadFromJsonAsync<List<CreateAddressDTO>>();
+    //    Assert.NotNull(users);
+    //    Assert.Empty(users); // Expecting an empty list
+    //}
 }

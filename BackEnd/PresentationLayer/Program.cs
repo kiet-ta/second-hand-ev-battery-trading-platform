@@ -38,7 +38,6 @@ namespace PresentationLayer
             builder.Services.AddDbContext<EvBatteryTradingContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
             builder.Services.Configure<FirebaseOptions>(builder.Configuration.GetSection("Firebase"));
 
-
             // DI for Repository + Service
             //---Services
             builder.Services.AddScoped<IAuthService, AuthService>();
@@ -71,7 +70,7 @@ namespace PresentationLayer
             builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
             builder.Services.AddScoped<IOrderItemRepository, OrderItemRepository>();
 
-            // AddHttp 
+            // AddHttp
             builder.Services.AddHttpClient<IChatRepository, FirebaseChatRepository>();
             builder.Services.AddHttpContextAccessor();
 
@@ -172,7 +171,7 @@ namespace PresentationLayer
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
             builder.Configuration.AddUserSecrets<Program>();
-            
+
             builder.Services.AddScoped<IMailService, MailService>();
             builder.Services.AddScoped<IEmailRepository, EmailTemplateRepository>();
             builder.Services.AddScoped<IValidator<PaymentRequestDto>, PaymentRequestValidator>();

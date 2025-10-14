@@ -27,7 +27,7 @@ namespace BackEnd.Application.Tests
         }
 
         // GET ORDER BY ID
-        
+
         [Fact]
         public async Task GetOrderByIdAsync_ShouldReturnOrder_WhenExists()
         {
@@ -73,7 +73,7 @@ namespace BackEnd.Application.Tests
         }
 
         // GET ALL ORDERS
-        
+
         [Fact]
         public async Task GetAllOrdersAsync_ShouldReturnEmpty_WhenNoOrders()
         {
@@ -115,7 +115,7 @@ namespace BackEnd.Application.Tests
         }
 
         // CREATE ORDER (OrderDto)
-        
+
         [Fact]
         public async Task CreateOrderAsync_ShouldCallAddAsync()
         {
@@ -172,7 +172,7 @@ namespace BackEnd.Application.Tests
         }
 
         // D. UPDATE ORDER
-        
+
         [Fact]
         public async Task UpdateOrderAsync_ShouldReturnFalse_WhenOrderNotFound()
         {
@@ -223,7 +223,7 @@ namespace BackEnd.Application.Tests
         }
 
         // E. DELETE ORDER
-        
+
         [Fact]
         public async Task DeleteOrderAsync_ShouldCallRepositoryDelete()
         {
@@ -256,7 +256,7 @@ namespace BackEnd.Application.Tests
         }
 
         // F. GET ORDERS BY USER ID
-        
+
         [Fact]
         public async Task GetOrdersByUserIdAsync_ShouldReturnList()
         {
@@ -280,7 +280,7 @@ namespace BackEnd.Application.Tests
         }
 
         // G. CREATE ORDER (CreateOrderRequestDto)
-        
+
         [Fact]
         public async Task CreateOrder_Request_ShouldCreateOrderAndAttachItems()
         {
