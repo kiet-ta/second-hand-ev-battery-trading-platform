@@ -4,6 +4,7 @@ import Navbar from '../components/Navbar';
 import { Outlet } from 'react-router-dom';
 import ScrollToTop from '../components/ScrollToTop';
 import userApi from '../api/userApi';
+import ComparePopup from '../pages/ComparePage';
 function MainLayout() {
   const userData = localStorage.getItem('userId');
   const [userProfile, setUser] = useState(null);
@@ -29,6 +30,7 @@ function MainLayout() {
       <main ref={mainRef} className=" bg-gray-300 ">
         <Outlet />
       </main>
+      <ComparePopup />
     </div>
   );
 }

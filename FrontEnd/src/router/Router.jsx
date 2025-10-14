@@ -9,7 +9,6 @@ import CheckoutPage from "../pages/CheckoutPage";
 import LoginPage from "../pages/LoginPage";
 import RegisterPage from "../pages/RegisterPage";
 import ProfileContent from "../pages/ProfileContent";
-import UserManagementSystem from "../pages/UserManagementSystem";
 import SellerDashboard from "../pages/DashboardSeller";
 import PurchaseHistory from "../components/HistoryBought";
 import SellerHistory from "../components/HistorySold";
@@ -21,6 +20,8 @@ import BlogList from "../pages/BlogList";
 import BlogDetail from "../pages/BlogDetail";
 import AuctionMainPage from "../pages/Auctions/AuctionMainPage";
 import ManagerDashboard from "../pages/ManagerDashboard";
+import AuctionDetailPage from "../pages/Auctions/AuctionDetailPage";
+import ComparePage from "../pages/ComparePage";
 
 export const router = createBrowserRouter([
   {
@@ -60,6 +61,14 @@ export const router = createBrowserRouter([
         path: "/auctions",
         element: <AuctionMainPage />
       }
+      ,{
+        path:"/auction/:id",
+        element: <AuctionDetailPage/>
+      },
+      {
+        path: "/compare",
+        element: <ComparePage/>
+      }
     ],
   },
   {
@@ -73,10 +82,6 @@ export const router = createBrowserRouter([
   {
     path: "/profile",
     element: <ProfileContent />,
-  },
-  {
-    path: "/manage",
-    element: <UserManagementSystem />,
   },
   {
     path: "/seller",
@@ -110,7 +115,7 @@ export const router = createBrowserRouter([
     path: "/blog/:id",
     element: <BlogDetail />
   },
-  {
+   {
     path: "/manage",
     element: <ManagerDashboard />
   }

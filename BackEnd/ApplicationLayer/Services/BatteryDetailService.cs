@@ -1,4 +1,5 @@
-﻿using Application.DTOs.ItemDtos.BatteryDto;
+﻿using Application.DTOs.ItemDtos;
+using Application.DTOs.ItemDtos.BatteryDto;
 using Application.IRepositories;
 using Application.IServices;
 using Domain.Entities;
@@ -50,8 +51,21 @@ namespace Application.Services
                 UpdatedAt = b.UpdatedAt
             };
         }
+        private static BatteryDetailDto MapToDto(BatteryDetail e, Item? item)
+    => new BatteryDetailDto
+    {
+        ItemId = e.ItemId,
+        Brand = e.Brand,
+        Capacity = e.Capacity,
+        Voltage = e.Voltage,
+        ChargeCycles = e.ChargeCycles,
+        Title = item?.Title,
+        Price = item?.Price,
+        Status = item?.Status
+    };
 
-        public async Task CreateAsync(CreateBatteryDetailDto dto)
+
+        public async Task<BatteryDetailDto> CreateAsync(CreateBatteryDetailDto dto)
         {
             var item = new Item
             {
@@ -81,6 +95,7 @@ namespace Application.Services
 
             await _repository.AddAsync(entity);
             await _repository.SaveChangesAsync();
+            return MapToDto(entity, item);
         }
 
         public async Task UpdateAsync(int itemId, UpdateBatteryDetailDto dto)

@@ -43,6 +43,7 @@ namespace PresentationLayer
             //---Services
             builder.Services.AddScoped<IAuthService, AuthService>();
             builder.Services.AddScoped<IItemService, ItemService>();
+            builder.Services.AddScoped<IAddressService, AddressService>();
             builder.Services.AddScoped<IOrderService, OrderService>();
             builder.Services.AddScoped<IUserService, UserService>();
             builder.Services.AddScoped<IEVDetailService, EVDetailService>();
@@ -57,6 +58,7 @@ namespace PresentationLayer
 
             //---Repositories
             builder.Services.AddScoped<IAuctionRepository, AuctionRepository>();
+            builder.Services.AddScoped<IAddressRepository, AddressRepository>();
             builder.Services.AddScoped<IUserRepository, UserRepository>();
             builder.Services.AddScoped<IItemRepository, ItemRepository>();
             builder.Services.AddScoped<IOrderRepository, OrderRepository>();
@@ -70,7 +72,6 @@ namespace PresentationLayer
             builder.Services.AddScoped<IPaymentDetailRepository, PaymentDetailRepository>();
             builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
             builder.Services.AddScoped<IOrderItemRepository, OrderItemRepository>();
-
             // AddHttp 
             builder.Services.AddHttpClient<IChatRepository, FirebaseChatRepository>();
             builder.Services.AddHttpContextAccessor();

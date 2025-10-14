@@ -67,7 +67,7 @@ namespace Infrastructure.Repositories
             await _context.Items.Where(i => !i.IsDeleted).ToListAsync();
 
         public async Task<Item?> GetByIdAsync(int itemId, CancellationToken? ct = null)
-            => await _context.Items.FindAsync(new object[] { itemId }, ct);
+            => await _context.Items.FirstOrDefaultAsync(item => item.ItemId == itemId, ct ?? CancellationToken.None);
 
         public void Update(Item item) => _context.Items.Update(item);
 

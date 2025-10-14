@@ -1,183 +1,220 @@
-import { useEffect, useState } from 'react'
-import Carousel from '../components/Carousel'
+import { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
-import itemApi from '../api/itemApi';
-import userApi from '../api/userApi'
+import { Spin, Alert, message } from 'antd'; // Using Ant Design for feedback
+import { FiMessageSquare, FiPhone, FiMapPin, FiCalendar, FiTrendingUp } from 'react-icons/fi';
+import { FaStar } from 'react-icons/fa';
 import { GiGemChain } from "react-icons/gi";
 
+// API Hooks
+import itemApi from '../api/itemApi';
+import userApi from '../api/userApi';
 
-const images = [
-  "https://i.pinimg.com/1200x/55/53/06/55530643312e136a9fa2a576d6fcfbd0.jpg",
-  "https://i.pinimg.com/736x/b6/96/16/b6961611f87b3433707d937b3f4871b1.jpg",
-  "https://i.pinimg.com/1200x/e9/22/29/e9222949753e671a7e8f7c09725ebed0.jpg",
-  "https://i.pinimg.com/1200x/73/9d/61/739d6130ed4b7c1abf45a429d1e83b0b.jpg",
-  "https://i.pinimg.com/736x/fe/e1/a3/fee1a362132647952f9c8db5923f344c.jpg",
-  "https://i.pinimg.com/736x/3c/c2/9e/3cc29ee040980e48089cbc0ec2ef7c2f.jpg",
-  "https://i.pinimg.com/736x/d7/97/c6/d797c643ecef1b670452bd52079f5ad3.jpg",
-  "https://i.pinimg.com/736x/8d/78/fd/8d78fda3aef2a2db7d21a59909ebb1a9.jpg"
-]
+// Reusable component for star ratings
+const StarRating = ({ rating }) => (
+  <div className="flex items-center">
+    {Array.from({ length: 5 }).map((_, i) => (
+      <FaStar key={i} className={i < rating ? 'text-yellow-400' : 'text-gray-300'} />
+    ))}
+  </div>
+);
 
+// MOCK DATA: Using your provided mock review data as requested.
 const commenter = [
-  { name: "Nguyen Van A", picture: "https://i.pinimg.com/736x/5b/3f/09/5b3f09d67f448e39dab9e8d8f3cc3f94.jpg", comment: "Very good product, I love it so much", rating: 5, time: "2023-10-01 10:00", imagefollow: ["https://i.pinimg.com/1200x/55/53/06/55530643312e136a9fa2a576d6fcfbd0.jpg", "https://i.pinimg.com/736x/b6/96/16/b6961611f87b3433707d937b3f4871b1.jpg"] },
-  { name: "Tran Thi B", picture: "https://i.pinimg.com/736x/b6/10/ae/b610ae5879e2916e1bb7c4c161754f4d.jpg", comment: "Not bad, but could be better", rating: 3, time: "2023-10-02 12:30", imagefollow: ["https://i.pinimg.com/1200x/e9/22/29/e9222949753e671a7e8f7c09725ebed0.jpg"] },
-  { name: "Le Van C", picture: "https://i.pinimg.com/736x/ae/5d/4f/ae5d4f0a3f4e8b9c8e4e4e4e4e4e4e4e.jpg", comment: "I had some issues with the delivery", rating: 2, time: "2023-10-03 14:45", imagefollow: [] }
-]
+    { name: "Nguyen Van A", picture: "https://i.pinimg.com/736x/5b/3f/09/5b3f09d67f448e39dab9e8d8f3cc3f94.jpg", comment: "The car was in excellent condition, exactly as described!", rating: 5, time: "2023-10-01 10:00", imagefollow: ["https://i.pinimg.com/1200x/55/53/06/55530643312e136a9fa2a576d6fcfbd0.jpg"] },
+    { name: "Tran Thi B", picture: "https://i.pinimg.com/736x/b6/10/ae/b610ae5879e2916e1bb7c4c161754f4d.jpg", comment: "Good communication with the seller, smooth transaction.", rating: 4, time: "2023-10-02 12:30", imagefollow: [] },
+    { name: "Le Van C", picture: "https://i.pinimg.com/736x/ae/5d/4f/ae5d4f0a3f4e8b9c8e4e4e4e4e4e4e4e.jpg", comment: "A few minor scratches that weren't mentioned, but overall happy.", rating: 3, time: "2023-10-03 14:45", imagefollow: [] }
+];
+
 function EVDetails() {
-  const [isPhoneVisible, setIsPhoneVisible] = useState(false);
   const location = useLocation();
   const itemId = location.state;
-  const [itemSummary, setItemSummary] = useState([])
-  const [itemDetails, setItemDetails] = useState([])
-  const [sellerProfile, setSellerProfile] = useState([])
 
-  const fetchItems = async () => {
-    try {
-      const data = await itemApi.getItemDetailByID(itemId);
-      setItemSummary(data)
-      setItemDetails(data.evDetail);
-      const user = await userApi.getUserByID(data.updatedBy);
-      setSellerProfile(user)
-    } catch (error) {
-      console.error("Error fetching items", error);
-    }
-  };
+  // State Management: Consolidated state with loading and error handling
+  const [item, setItem] = useState(null);
+  const [sellerProfile, setSellerProfile] = useState(null);
+  const [isPhoneVisible, setIsPhoneVisible] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
   useEffect(() => {
-    fetchItems();
-  }, []);
+    if (!itemId) {
+      setError("No item ID provided.");
+      setLoading(false);
+      return;
+    }
+
+    const fetchItemData = async () => {
+      try {
+        setLoading(true);
+        const itemData = await itemApi.getItemDetailByID(itemId);
+        setItem(itemData);
+
+        const userData = await userApi.getUserByID(itemData.updatedBy);
+        setSellerProfile(userData);
+      } catch (err) {
+        console.error("Error fetching EV details:", err);
+        setError("Failed to load vehicle details. Please try again later.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchItemData();
+  }, [itemId]);
+
+  // Loading State
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-screen bg-gray-50">
+        <Spin size="large" />
+      </div>
+    );
+  }
+
+  // Error State
+  if (error) {
+    return (
+      <div className="p-8">
+        <Alert message="Error" description={error} type="error" showIcon />
+      </div>
+    );
+  }
+
+  // No Data State
+  if (!item) {
+    return null;
+  }
+  
+  const { evDetail } = item;
+
+  // Key Specifications for easy mapping
+  const keySpecs = [
+      { label: 'Brand', value: evDetail?.brand },
+      { label: 'Model', value: evDetail?.model },
+      { label: 'Body Style', value: evDetail?.bodyStyle },
+      { label: 'Color', value: evDetail?.color },
+      { label: 'License Plate', value: evDetail?.licensePlate }
+  ];
 
   return (
-    <div className="w-full">
-      <div className="grid grid-cols-4 gap-4 p-4 mt-2 w-full">
-        <div className="col-span-2 gap-4 ">
-          <div className="product bg-white rounded-2xl p-4 flex justify-center">
-            <Carousel
-              images={images}
-              height="h-10 sm:h-20 md:h-100"
-              width="w-full max-w-3xl"
-            /></div>
-          {itemDetails ? (
-            <div className="more-info grid gird-flow-col grid-rows-3 gap-2 grid-cols-4 bg-white mt-5 h-4/10 rounded-2xl p-4 m-4">
-              <div className='text-gray-400 text-1xl text-left'>Brand :</div>
-              <div className='font-bold text-left text-1xl'>{itemDetails.brand}</div>
-              <div className='text-gray-400 text-1xl text-left'>Model :</div>
-              <div className='font-bold text-left text-1xl'>{itemDetails.model}</div>
-              <div className='text-gray-400 text-1xl text-left'>Body Style :</div>
-              <div className='font-bold text-left text-1xl'>{itemDetails.bodyStyle}</div>
-              <div className='text-gray-400 text-1xl text-left'>Color :</div>
-              <div className='font-bold text-left text-1xl'>{itemDetails.color}</div>
-              <div className='text-gray-400 text-1xl text-left'>Location :</div>
-              <div className='font-bold text-left text-1xl row-span-2'>{itemDetails.licensePlate}</div>
+    <div className="bg-gray-50 min-h-screen p-4 sm:p-6 lg:p-8">
+      <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-5 gap-8">
+        
+        {/* Left Column: Image, Specs, Description */}
+        <div className="lg:col-span-3 flex flex-col gap-8">
+          <div className="bg-white rounded-lg shadow-md overflow-hidden">
+             {/* Assuming you have an images array in your item object */}
+             <img src="https://i.pinimg.com/1200x/55/53/06/55530643312e136a9fa2a576d6fcfbd0.jpg" alt={item.title} className="w-full h-auto object-cover" />
+          </div>
+
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <h2 className="text-2xl font-bold border-b pb-4 mb-4">Key Specifications</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
+              {keySpecs.map(spec => (
+                spec.value && <div key={spec.label}>
+                  <p className="text-sm text-gray-500">{spec.label}</p>
+                  <p className="font-semibold">{spec.value}</p>
+                </div>
+              ))}
             </div>
-          ) : (<div> </div>)}
-          <div className="description bg-white rounded-2xl p-4 h-2/5 m-4">
-            <div className="header text-left font-bold">Description</div>
-            <div className="content p-4 m-4 text-left">
-              {itemSummary.description}
-            </div>
+          </div>
+
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <h2 className="text-2xl font-bold border-b pb-4 mb-4">Description</h2>
+            <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
+              {item.description}
+            </p>
           </div>
         </div>
-        <div className="col-span-2">
-          <div className="product-info bg-white rounded-2xl p-4 h-2/3">
-            <div className="title h-1/8 text-3xl  text-left content-center flex-none font-semibold text-black overflow-hidden whitespace-pre-wrap" style={{ display: 'block', wordBreak: 'break-word' }}>
-              {itemSummary.title}
-            </div>
-            {itemDetails ? (
-              <div className="product-general-info flex h-1/10 text-left gap-4 mt-2 text-2xl text-gray-500 justify-start items-center ">
-                <div>{itemDetails.year}</div><div>|</div><div className="">{itemDetails.mileage}km</div>
-                {itemDetails.hasAccessories == true ? (<div className="bg-maincolor-darker rounded-2xl flex content-center text-center text-1xl font-bold text-white justify-center items-center p-2"><GiGemChain/> Has Accessory</div>): (<div></div>)}
-              </div>
-            ) : (
-              <div> loading... </div>
-            )}
-            <div className="price-tag flex h-1/10 text-left mt-2 bg-gray-50">
-              <div className='ml-4 text-2xl font-bold text-red-500 content-center' >${itemSummary.price}</div>
-              <div className="ml-5 text-2xl text-gray-300 line-through content-center"></div>
-            </div>
-            <div className="phone-number flex gap-4 h-1/10 mt-4">
-              <div className="bg-yellow-200 hover:bg-yellow-500 hover:border-1 w-1/4 rounded-2xl font-bold text-1xl content-center text-center ">Chat</div>
-              <div className="bg-green-200 hover:bg-green-500 hover:border-1 w-1/4 rounded-2xl font-bold text-1xl content-center text-center">
-                <button onClick={() => setIsPhoneVisible(!isPhoneVisible)}>
-                  <span>{isPhoneVisible && sellerProfile ? sellerProfile.phone : "********"}</span>
-                </button>
-              </div>
-            </div>
-            <div className="seller-profile h-3/10 mt-10 flex justify-around content-center items-center border-t-2 border-gray-200 pt-4 ">
-              <div className="left w-1/2 h-full object-fit flex items-center">
-                <div className="w-2/8 h-2/4 rounded-full overflow-hidden">
-                  <img className="object-cover w-full h-full" src="https://i.pinimg.com/736x/b6/10/ae/b610ae5879e2916e1bb7c4c161754f4d.jpg" />
-                </div>
-                {sellerProfile ? (
-                <div className="seller-name w-2/4">
-                                      <div className="text-1xl font-bold ml-4">{sellerProfile.fullName}</div>
-                  <div className="text-1xl ml-4 text-gray-500">Active 5 minutes ago</div>
 
-                  </div>
-                ): (
-                  <div>Waiting...</div>
-                )}
+        {/* Right Column: Main Info, Seller, Reviews */}
+        <div className="lg:col-span-2 flex flex-col gap-8">
+          <div className="bg-white rounded-lg shadow-md p-6 flex flex-col gap-4">
+            <h1 className="text-3xl font-bold text-gray-900 leading-tight">
+              {item.title}
+            </h1>
+            
+            {evDetail && (
+              <div className="flex flex-wrap gap-x-4 gap-y-2 text-gray-600 items-center">
+                <div className="flex items-center gap-2"><FiCalendar /><span>{evDetail.year}</span></div>
+                <div className="flex items-center gap-2"><FiTrendingUp /><span>{evDetail.mileage.toLocaleString()} km</span></div>
+                <div className="flex items-center gap-2"><FiMapPin /><span>{evDetail.location}</span></div>
               </div>
-              <div className="right w-1/2 h-full flex items-center">
-                <div className="seller-rating w-2/4">
-                  <div className="text-1xl font-bold ml-4">Seller Rating</div>
-                  <div className="text-1xl ml-4 text-gray-500">⭐⭐⭐⭐⭐ (4.5)</div>
+            )}
+             {evDetail?.hasAccessories && (
+                <div className="bg-teal-100 text-teal-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded-full inline-flex items-center gap-1 self-start">
+                    <GiGemChain /> Includes Accessories
                 </div>
-                <div className="seller-other-listing w-2/4 items-center">
-                  <div className="text-1xl font-bold ml-4">Other Listings</div>
-                  <div className="text-1xl ml-4 text-gray-500">10 Listings</div>
-                </div>
-              </div>
+            )}
+
+            <div className="bg-gray-100 p-4 rounded-lg my-2">
+              <span className="text-4xl font-extrabold text-indigo-600">${item.price.toLocaleString()}</span>
+            </div>
+            
+            <div className="flex flex-col sm:flex-row gap-3 mt-2">
+              <button className="flex-1 bg-blue-500 text-white font-bold py-3 px-6 rounded-lg flex items-center justify-center gap-2 hover:bg-blue-600 transition-colors">
+                <FiMessageSquare /> Chat with Seller
+              </button>
+              <button
+                onClick={() => setIsPhoneVisible(!isPhoneVisible)}
+                className="flex-1 bg-green-500 text-white font-bold py-3 px-6 rounded-lg flex items-center justify-center gap-2 hover:bg-green-600 transition-colors"
+              >
+                <FiPhone />
+                {isPhoneVisible ? (sellerProfile?.phone || 'N/A') : 'Show Phone'}
+              </button>
             </div>
           </div>
-          <div className="comment bg-white rounded-2xl p-4 h-2.5/4 mt-5">
-            <div className="header text-left font-bold">Comment</div>
-            <div>
-              {commenter && commenter.length > 0 ? (
-                commenter.map((item, index) => (
-                  <div key={index} className="comment-item mt-4 border-b-2 pb-4 border-gray-200">
-                    <div className='flex items-center mb-2 w-3/4 h-10'>
-                      <div className="left w-full h-full object-fit flex ">
-                        <div className="w-1/12 rounded-full overflow-hidden">
-                          <img className="object-cover w-full h-full" src="https://i.pinimg.com/736x/b6/10/ae/b610ae5879e2916e1bb7c4c161754f4d.jpg" />
-                        </div>
-                        <div className="seller-name w-5/6">
-                          <div className="text-1xl text-left font-bold ml-4 flex">
-                            <div className="text-1xl">{item.name}</div>
-                            <div className="text-1xl ml-2 text-left text-gray-500">{item.time}</div>
-                          </div>
-                          <div className="text-1xl ml-4 text-left text-gray-500">
-                            {
-                              item.rating && item.rating > 0 ? (
-                                Array.from({ length: item.rating }).map((_, i) => (
-                                  <span key={i}>⭐</span>
-                                ))
-                              ) : (
-                                <span>No rating</span>
-                              )
-                            }
+          
+          {sellerProfile && (
+            <div className="bg-white rounded-lg shadow-md p-6 flex items-center gap-4">
+              <img 
+                className="w-16 h-16 rounded-full object-cover" 
+                src={sellerProfile.avatar || 'https://i.pinimg.com/736x/b6/10/ae/b610ae5879e2916e1bb7c4c161754f4d.jpg'}
+                alt={sellerProfile.fullName}
+              />
+              <div className="flex-1">
+                <p className="font-bold text-lg">{sellerProfile.fullName}</p>
+                <p className="text-sm text-gray-500">Active recently</p>
+              </div>
+              <button className="border border-indigo-600 text-indigo-600 font-semibold py-2 px-4 rounded-lg hover:bg-indigo-50 transition-colors">
+                View Profile
+              </button>
+            </div>
+          )}
 
-                          </div>
-                        </div>
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <h2 className="text-2xl font-bold border-b pb-4 mb-4">Reviews ({commenter.length})</h2>
+            <div className="flex flex-col gap-6">
+              {commenter.length > 0 ? (
+                commenter.map((review, index) => (
+                  <div key={index} className="flex gap-4 border-b border-gray-100 pb-4 last:border-b-0">
+                    <img src={review.picture} alt={review.name} className="w-12 h-12 rounded-full object-cover flex-shrink-0"/>
+                    <div className="flex-1">
+                      <div className="flex justify-between items-center">
+                        <p className="font-bold">{review.name}</p>
+                        <p className="text-xs text-gray-500">{new Date(review.time).toLocaleDateString()}</p>
                       </div>
-
+                      <div className="my-1"><StarRating rating={review.rating} /></div>
+                      <p className="text-gray-800">{review.comment}</p>
+                       {review.imagefollow && review.imagefollow.length > 0 && (
+                        <div className="flex gap-2 mt-2">
+                          {review.imagefollow.map((img, idx) => (
+                            <img key={idx} src={img} className="w-20 h-20 object-cover rounded-md cursor-pointer hover:opacity-80 transition" alt="review"/>
+                          ))}
+                        </div>
+                      )}
                     </div>
-                    <div className='text-left'>{item.comment}</div>
-                    <div className='flex w-20'>{
-                      item.imagefollow && item.imagefollow.length > 0 ? (
-                        item.imagefollow.map((img, idx) => (
-                          <img key={idx} src={img} className="w-full h-full object-contain mr-4 bg-white " />
-                        ))) : (<div></div>)
-                    }</div>
                   </div>
                 ))
               ) : (
-                <div>No comments available.</div>
+                <p className="text-gray-500 text-center py-4">No reviews for this vehicle yet.</p>
               )}
             </div>
           </div>
         </div>
       </div>
     </div>
-  )
+  );
 }
 
-export default EVDetails
+export default EVDetails;

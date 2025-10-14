@@ -1,11 +1,13 @@
 import React, { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import orderApi from "../api/orderApi";
+import paymentApi from "../api/paymentApi"
 
 function CheckoutPage() {
     const [addInsurance, setAddInsurance] = useState(true);
     const [address, setAddress] = useState();
     const location = useLocation();
+    const navigate = useNavigate();
     const orderData = location.state;
     console.log(orderData)
 
@@ -22,7 +24,7 @@ function CheckoutPage() {
     };
 
     const finalTotalPrice = calculateTotal();
-    const confirmOrder = () => {
+    const confirmOrder = async () => {
         const order = {
             buyerId: localStorage.getItem("userId"),
             addressId: 1,
@@ -30,8 +32,47 @@ function CheckoutPage() {
             createdAt: new Date().toISOString().split("T")[0],
             updatedAt: new Date().toISOString().split("T")[0]
         }
-        console.log(order)
-        orderApi.postOrderNew(order)
+        const response = await orderApi.postOrderNew(order)
+        console.log(response)
+        const paymentPayload = {
+            userId: orderData.buyerId,
+            method: "payos",
+            totalAmount: finalTotalPrice,
+            details: [
+                {
+                    orderId: response.ordrerId, 
+                    itemId: 1, 
+                    amount: finalTotalPrice
+                }
+            ]
+        };
+        try {
+            const response = paymentApi.createPaymentLink(paymentPayload)
+            alert("Payment successful!"); // Placeholder for success feedback
+            navigate('/payment/success', { state: { orderDetails: paymentPayload } });
+
+        } catch (error) {
+            if (error.response) {
+                console.error("API Error Response:", error.response);
+                // Navigate and pass error details to the error page
+                navigate('/payment-error', { 
+                    state: { 
+                        status: error.response.status,
+                        // Get the text from the response body if it exists
+                        message: typeof error.response.data === 'string' ? error.response.data : "An unknown server error occurred.",
+                    } 
+                });
+            } else {
+                // Handle network errors or other issues
+                console.error("Payment failed:", error);
+                navigate('/payment-error', { 
+                    state: { 
+                        status: 'Network Error',
+                        message: 'Could not connect to the payment service. Please check your internet connection and try again.'
+                    } 
+                });
+            }
+        }
     }
     const finalOrderPayload = {
         ...orderData,
@@ -130,7 +171,7 @@ function CheckoutPage() {
                 </div>
 
                 <div className="flex justify-end mt-6">
-                    <Link to={'/payment-success'} onClick={confirmOrder} state={finalOrderPayload}>
+                    <Link onClick={confirmOrder} state={finalOrderPayload}>
                         <button className="px-6 py-3 bg-maincolor text-white font-semibold rounded-lg shadow hover:opacity-90">
                             Confirm & Pay
                         </button>

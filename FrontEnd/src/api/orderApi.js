@@ -18,11 +18,12 @@ const orderApi = {
     },
     postOrderNew : async (data) => {
         const token = localStorage.getItem('token');
-        await axios.post(`${baseURL}/new`,data,{
+        const response = await axios.post(`${baseURL}/new`,data,{
             headers:{
                 'Authorization': `Bearer ${token}`
             }
         })
+        return response.data;   
     }
 };
 export default orderApi;

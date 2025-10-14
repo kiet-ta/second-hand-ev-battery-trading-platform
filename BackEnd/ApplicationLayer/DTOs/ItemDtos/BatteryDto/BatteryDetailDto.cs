@@ -14,5 +14,10 @@ namespace Application.DTOs.ItemDtos.BatteryDto
         public decimal? Voltage { get; set; }
         public int? ChargeCycles { get; set; }
         public DateOnly? UpdatedAt { get; set; }
+
+        public string? Title { get; set; }
+        public decimal? Price { get; set; }
+        public string? Status { get; set; }
+
     }
 }

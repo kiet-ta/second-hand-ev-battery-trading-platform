@@ -25,6 +25,7 @@ import {
 } from "recharts";
 import HistorySold from "../components/HistorySold";
 import SellerAuctionListPage from "../pages/SellerAuctionListPage";
+import MyProduct from "../components/AddProductForm"
 
 export default function SellerDashboard() {
     const [activeMenu, setActiveMenu] = useState("dashboard");

@@ -6,6 +6,10 @@ const auctionApi = {
         const response = await axios.get(baseURL)
         console.log(response.data)
         return response.data
+    },
+    postAuction: async (payload) => {
+        const response = await axios.post(baseURL,payload)
+        return response.data
     }
 }
 export default auctionApi

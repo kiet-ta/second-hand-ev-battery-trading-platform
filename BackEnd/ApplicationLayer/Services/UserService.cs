@@ -23,19 +23,14 @@ namespace Application.Services
         private readonly string _jwtIssuer;
         private readonly string _jwtAudience;
         private readonly IConfiguration _config;
-        private readonly IPasswordHelper _password;
 
-        public UserService()
-        {
-        }
-        public UserService(IUserRepository repo, IConfiguration config, IPasswordHelper password)
+        public UserService(IUserRepository repo, IConfiguration config)
         {
             _userRepository = repo;
             _config = config;
             _jwtSecret = config["Jwt:Key"]!;
             _jwtIssuer = config["Jwt:Issuer"]!;
             _jwtAudience = config["Jwt:Audience"]!;
-            _password = password;
         }
 
         public async Task<List<UserRoleCountDto>> GetUsersByRoleAsync()
