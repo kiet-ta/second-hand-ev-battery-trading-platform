@@ -1,4 +1,4 @@
-using Application.DTOs;
+﻿using Application.DTOs;
 using Application.DTOs.PaymentDtos;
 
 using Application.IHelpers;
@@ -44,6 +44,7 @@ namespace PresentationLayer
             //---Services
             builder.Services.AddScoped<IAuthService, AuthService>();
             builder.Services.AddScoped<IItemService, ItemService>();
+            builder.Services.AddScoped<IAddressService, AddressService>();
             builder.Services.AddScoped<IOrderService, OrderService>();
             builder.Services.AddScoped<IUserService, UserService>();
             builder.Services.AddScoped<IEVDetailService, EVDetailService>();
@@ -60,6 +61,7 @@ namespace PresentationLayer
 
             //---Repositories
             builder.Services.AddScoped<IAuctionRepository, AuctionRepository>();
+            builder.Services.AddScoped<IAddressRepository, AddressRepository>();
             builder.Services.AddScoped<IUserRepository, UserRepository>();
             builder.Services.AddScoped<IItemRepository, ItemRepository>();
             builder.Services.AddScoped<IOrderRepository, OrderRepository>();
@@ -160,8 +162,8 @@ namespace PresentationLayer
 
             builder.Services.AddSingleton(sp =>
             {
-                var clientId = payosConfig["ClientId"];
-                var apiKey = payosConfig["ApiKey"];
+                var clientId = payosConfig["Client_Id"];
+                var apiKey = payosConfig["Api_Key"];
                 var checksumKey = payosConfig["ChecksumKey"];
                 return new PayOS(clientId, apiKey, checksumKey);
             });

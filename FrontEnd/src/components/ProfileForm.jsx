@@ -57,10 +57,10 @@ const ProfileForm = () => {
         try {
             const formDataUpload = new FormData();
             formDataUpload.append("file", file);
-            formDataUpload.append("upload_preset", "ml_default"); // preset Cloudinary của bạn
+            formDataUpload.append("upload_preset", "EV.Battery.Trading"); // preset Cloudinary của bạn
             formDataUpload.append("folder", "EV_BATTERY_TRADING/Electric_Verhicle");
 
-            const response = await fetch("https://api.cloudinary.com/v1_1/tucore/image/upload", {
+            const response = await fetch("https://api.cloudinary.com/v1_1/dmokmlroc/image/upload", {
                 method: "POST",
                 body: formDataUpload,
             });

@@ -11,7 +11,7 @@ namespace Application.IServices
     {
         Task<IEnumerable<BatteryDetailDto>> GetAllAsync();
         Task<BatteryDetailDto?> GetByIdAsync(int itemId);
-        Task CreateAsync(CreateBatteryDetailDto dto);
+        Task<BatteryDetailDto> CreateAsync(CreateBatteryDetailDto dto);
         Task UpdateAsync(int itemId, UpdateBatteryDetailDto dto);
         Task DeleteAsync(int itemId);
     }

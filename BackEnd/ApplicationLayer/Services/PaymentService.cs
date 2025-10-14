@@ -128,7 +128,7 @@ public class PaymentService : IPaymentService
         {
             await _payOS.cancelPaymentLink(orderCode, reason);
         }
-        await _paymentRepository.UpdatePaymentStatusAsync(info.PaymentId, "canceled");
+        await _paymentRepository.UpdatePaymentStatusAsync(info.PaymentId, "failed");
     }
 
     public async Task HandleWebhookAsync(WebhookType body)
