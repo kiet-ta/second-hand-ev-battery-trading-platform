@@ -1,4 +1,5 @@
 ﻿using Application.DTOs;
+using Application.DTOs.ItemDtos;
 using Application.IServices;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -34,6 +35,26 @@ namespace PresentationLayer.Controllers
             var result = await _orderItemService.GetCartItemsByBuyerIdAsync(buyerId);
             if (!result.Any()) return NotFound("No items found in cart.");
             return Ok(result);
+        }
+
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateOrderItem(int id, [FromBody] UpdateOrderItemDto dto)
+        {
+            var result = await _orderItemService.UpdateOrderItemAsync(id, dto);
+            if (!result)
+                return NotFound(new { message = "Order item not found or already deleted." });
+
+            return Ok(new { message = "Order item updated successfully." });
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteOrderItem(int id)
+        {
+            var result = await _orderItemService.DeleteOrderItemAsync(id);
+            if (!result)
+                return NotFound(new { message = "Order item not found or already deleted." });
+
+            return Ok(new { message = "Order item deleted successfully." });
         }
     }
 }
