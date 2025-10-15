@@ -1,6 +1,5 @@
 ﻿using Application.DTOs;
 using Application.DTOs.PaymentDtos;
-
 using Application.IHelpers;
 using Application.IRepositories;
 using Application.IRepositories.IBiddingRepositories;
@@ -58,6 +57,8 @@ namespace PresentationLayer
             builder.Services.AddScoped<IChatService, ChatService>();
             builder.Services.AddScoped<IUploadService, UploadService>();
             builder.Services.AddScoped<IItemImageService, ItemImageService>();
+            builder.Services.AddScoped<ISellerService, SellerService>();
+
 
             //---Repositories
             builder.Services.AddScoped<IAuctionRepository, AuctionRepository>();
@@ -76,6 +77,7 @@ namespace PresentationLayer
             builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
             builder.Services.AddScoped<IOrderItemRepository, OrderItemRepository>();
             builder.Services.AddScoped<IItemImageRepository, ItemImageRepository>();
+            builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
 
             // AddHttp 
             builder.Services.AddHttpClient<IChatRepository, FirebaseChatRepository>();
