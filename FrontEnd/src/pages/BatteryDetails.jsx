@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { InputNumber, Spin, Alert, message } from 'antd';
 import { FiShoppingCart, FiCreditCard } from 'react-icons/fi';
 import { FaStar } from 'react-icons/fa';
@@ -28,6 +28,7 @@ const StarRating = ({ rating }) => (
 
 function BatteryDetails() {
   const location = useLocation();
+  const navigate = useNavigate();
   const itemId = location.state;
 
   const [item, setItem] = useState(null);
@@ -62,6 +63,23 @@ function BatteryDetails() {
 
     fetchItemData();
   }, [itemId]);
+      const handleBuyNowClick = async () => {
+        const cartPayload = {
+            "buyerId": localStorage.getItem("userId"),
+            "itemId": itemId,
+            "quantity": quantity,
+            "price": 10
+        };
+        try {
+            await orderItemApi.postOrderItem(cartPayload);
+        } catch (error) {
+            console.error("Error adding item to cart", error);
+        }
+        navigate('/cart', { state: { selectedItemId: itemId } }); 
+        console.log(`'Buy Now' clicked for item ID: ${itemId}`);
+        // You can add your logic for buying now here
+    };
+
 
   const handleAddToCart = async () => {
     if (!item) return;
@@ -149,6 +167,7 @@ function BatteryDetails() {
               </button>
               <button
                 className="flex-1 bg-green-500 text-white font-bold py-3 px-6 rounded-lg flex items-center justify-center gap-2 hover:bg-green-600 transition-colors"
+                onClick={handleBuyNowClick}
               >
                 <FiCreditCard />
                 Buy Now

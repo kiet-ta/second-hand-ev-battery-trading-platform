@@ -25,7 +25,7 @@ const ProfileDropDown = ({users}) => (
                     <img
                         src={users.avatarProfile}
                         alt={users.fullName}
-                        className="w-10 h-10 rounded-full object-contain shadow-md" />
+                        className="w-15 h-15 rounded-full object-contain shadow-md" />
                 </div>
     
                 <DownOutlined />

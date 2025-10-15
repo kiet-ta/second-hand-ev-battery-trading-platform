@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useMemo } from "react";
 import CardCart from "../components/Cards/CardCart";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import orderItemApi from "../api/orderItemApi";
 import itemApi from "../api/itemApi";
 import addressApi from "../api/addressLocalApi"; // ✨ 1. Import addressApi
@@ -8,6 +8,9 @@ import { message, Spin } from "antd"; // ✨ For user feedback
 import { FiMapPin } from "react-icons/fi"; // ✨ For a nice icon
 
 function CartPage() {
+    const location = useLocation(); 
+
+
   const [cartItems, setCartItems] = useState([]);
   const [totalPrice, setTotalPrice] = useState(0);
   const [selectedItemIds, setSelectedItemIds] = useState([]);
@@ -77,7 +80,19 @@ function CartPage() {
       setIsLoading(false);
     }
   };
+  useEffect(() => {
+    const preselectedItemId = location.state?.selectedItemId;
 
+    if (preselectedItemId && cartItems.length > 0) {
+      const itemExistsInCart = cartItems.some(item => item.id === preselectedItemId);
+
+      if (itemExistsInCart) {
+        setSelectedItemIds(prev => 
+          prev.includes(preselectedItemId) ? prev : [...prev, preselectedItemId]
+        );
+      }
+    }
+  }, [cartItems, location.state]);
   useEffect(() => {
     fetchCartAndAddressData();
   }, []);
