@@ -48,5 +48,7 @@ namespace Application.IRepositories
         Task<int> GetTotalProductsAsync(int sellerId);
 
         Task<IEnumerable<ItemSellerDto>> GetItemsBySellerIdAsync(int sellerId);
+        Task<int> CountActiveAsync();
+        Task<IEnumerable<(string ItemType, int Count)>> GetItemTypeCountsAsync();
     }
 }

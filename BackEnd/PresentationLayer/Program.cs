@@ -58,6 +58,7 @@ namespace PresentationLayer
             builder.Services.AddScoped<IUploadService, UploadService>();
             builder.Services.AddScoped<IItemImageService, ItemImageService>();
             builder.Services.AddScoped<ISellerService, SellerService>();
+            builder.Services.AddScoped<IManagerDashboardService, ManagerDashboardService>();
 
 
             //---Repositories
@@ -78,6 +79,7 @@ namespace PresentationLayer
             builder.Services.AddScoped<IOrderItemRepository, OrderItemRepository>();
             builder.Services.AddScoped<IItemImageRepository, ItemImageRepository>();
             builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
+            builder.Services.AddScoped<IComplaintRepository, ComplaintRepository>();   
 
             // AddHttp 
             builder.Services.AddHttpClient<IChatRepository, FirebaseChatRepository>();

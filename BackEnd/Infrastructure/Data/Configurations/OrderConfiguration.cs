@@ -21,13 +21,13 @@ namespace Infrastructure.Data.Configurations
             entity.Property(e => e.AddressId).HasColumnName("address_id");
             entity.Property(e => e.BuyerId).HasColumnName("buyer_id");
             entity.Property(e => e.CreatedAt)
-                .HasDefaultValueSql("(getdate())")
+                .HasDefaultValueSql("getdate()")
                 .HasColumnName("created_at");
             entity.Property(e => e.Status)
                 .HasMaxLength(20)
                 .HasColumnName("status");
             entity.Property(e => e.UpdatedAt)
-                .HasDefaultValueSql("(getdate())")
+                .HasDefaultValueSql("getdate()")
                 .HasColumnName("updated_at");
 
             entity.HasOne<Address>().WithMany()

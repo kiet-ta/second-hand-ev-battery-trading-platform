@@ -307,5 +307,22 @@ namespace Infrastructure.Repositories
 
             return await query.ToListAsync();
         }
+
+        public async Task<int> CountActiveAsync()
+        {
+            return await _context.Items
+                .CountAsync(i => i.Status == "active" && i.IsDeleted == false);
+        }
+
+        public async Task<IEnumerable<(string ItemType, int Count)>> GetItemTypeCountsAsync()
+        {
+            var result = await _context.Items
+                .Where(i => !i.IsDeleted)
+                .GroupBy(i => i.ItemType)
+                .Select(g => new { ItemType = g.Key, Count = g.Count() })
+                .ToListAsync();
+
+            return result.Select(r => (r.ItemType, r.Count));
+        }
     }
 }
