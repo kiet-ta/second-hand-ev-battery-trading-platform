@@ -74,7 +74,7 @@ namespace PresentationLayer.Controllers
         /// Query params: itemType, sellerName, minPrice, maxPrice, page, pageSize, sortBy, sortDir
         /// </summary>
         [HttpGet("search")]
-        [CacheResult(600)]
+        //[CacheResult(600)]
         public async Task<IActionResult> SearchItem(
             [FromQuery] string itemType,
             [FromQuery] string title,

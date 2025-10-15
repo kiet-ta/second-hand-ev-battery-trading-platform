@@ -18,8 +18,8 @@ namespace Application.DTOs
         public string? PaymentMethod { get; set; }
         public string? Status { get; set; }
 
-        public DateOnly CreatedAt { get; set; } 
-        public DateOnly SoldAt { get; set; }  
+        public DateTime CreatedAt { get; set; } 
+        public DateTime SoldAt { get; set; }  
         //public int TotalDays => (SoldAt - CreatedAt).Days;
 
         public string? ImageUrl { get; set; }

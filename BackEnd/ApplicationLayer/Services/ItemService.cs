@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace Application.Services
 {
@@ -28,46 +29,69 @@ namespace Application.Services
             var item = await _repo.GetByIdAsync(id);
             if (item == null) return null;
 
+            var images = await _repo.GetByItemIdAsync(id);
+
             return new ItemDto
             {
                 ItemId = item.ItemId,
-                ItemType = item.ItemType ?? "",
+                ItemType = item.ItemType,
                 CategoryId = item.CategoryId,
                 Title = item.Title,
                 Description = item.Description,
                 Price = item.Price,
                 Quantity = item.Quantity ?? 0,
+                //Status = item.Status,
                 CreatedAt = item.CreatedAt,
                 UpdatedAt = item.UpdatedAt,
-                UpdatedBy = item.UpdatedBy
-                //Status = item.Status ?? "",
-                //IsDeleted = false
+                UpdatedBy = item.UpdatedBy,
+                //IsVerified = item.IsVerified,
+                //IsDeleted = item.IsDeleted,
+                Images = images.Select(img => new ItemImageDto
+                {
+                    ImageId = img.ImageId,
+                    ImageUrl = img.ImageUrl
+                }).ToList()
             };
         }
 
         public async Task<IEnumerable<ItemDto>> GetAllAsync()
         {
             var items = await _repo.GetAllAsync();
-            return items.Select(i => new ItemDto
+            var result = new List<ItemDto>();
+
+            foreach (var item in items)
             {
-                ItemId = i.ItemId,
-                ItemType = i.ItemType ?? "",
-                CategoryId = i.CategoryId,
-                Title = i.Title,
-                Description = i.Description,
-                Price = i.Price,
-                Quantity = i.Quantity ?? 0,
-                CreatedAt = i.CreatedAt,
-                UpdatedAt = i.UpdatedAt,
-                UpdatedBy = i.UpdatedBy
-                //Status = i.Status ?? "active",
-                //IsDeleted = i.IsDeleted
-            });
+                var images = await _repo.GetByItemIdAsync(item.ItemId);
+
+                result.Add(new ItemDto
+                {
+                    ItemId = item.ItemId,
+                    ItemType = item.ItemType,
+                    CategoryId = item.CategoryId,
+                    Title = item.Title,
+                    Description = item.Description,
+                    Price = item.Price,
+                    Quantity = item.Quantity ?? 0,
+                    //Status = item.Status,
+                    CreatedAt = item.CreatedAt,
+                    UpdatedAt = item.UpdatedAt,
+                    UpdatedBy = item.UpdatedBy,
+                    //IsVerified = item.IsVerified,
+                    //IsDeleted = item.IsDeleted,
+                    Images = images.Select(img => new ItemImageDto
+                    {
+                        ImageId = img.ImageId,
+                        ImageUrl = img.ImageUrl
+                    }).ToList()
+                });
+            }
+
+            return result;
         }
 
         public async Task<ItemDto> CreateAsync(ItemDto dto)
         {
-            var item = new Item
+            var entity = new Item
             {
                 ItemType = dto.ItemType,
                 CategoryId = dto.CategoryId,
@@ -77,14 +101,30 @@ namespace Application.Services
                 Quantity = dto.Quantity,
                 Status = "pending",
                 IsDeleted = false,
-                CreatedAt = dto.CreatedAt,
-                UpdatedAt = dto.UpdatedAt
+                CreatedAt = DateTime.Now,
+                UpdatedAt = DateTime.Now
             };
-            await _repo.AddAsync(item);
+
+            await _repo.AddAsync(entity);
             await _repo.SaveChangesAsync();
 
-            //dto.ItemId = item.ItemId;
-            return dto; 
+            // Save images
+            if (dto.Images?.Any() == true)
+            {
+                foreach (var imgDto in dto.Images)
+                {
+                    await _repo.AddImageAsync(new ItemImage
+                    {
+                        ItemId = entity.ItemId,
+                        ImageUrl = imgDto.ImageUrl
+                    });
+                }
+
+                await _repo.SaveChangesAsync();
+            }
+
+            dto.ItemId = entity.ItemId;
+            return dto;
         }
 
         public async Task<bool> UpdateAsync(int id, ItemDto dto)
@@ -119,37 +159,71 @@ namespace Application.Services
         {
             var items = await _repo.GetLatestEVsAsync(count);
 
-            return items.Select(i => new ItemDto
+            var result = new List<ItemDto>();
+
+            foreach (var item in items)
             {
-                ItemId = i.ItemId,
-                ItemType = i.ItemType ?? "",
-                CategoryId = i.CategoryId,
-                Title = i.Title,
-                Description = i.Description,
-                Price = i.Price,    
-                Quantity = i.Quantity ?? 0,
-                CreatedAt = i.CreatedAt
-                //Status = i.Status ?? "active",
-                //IsDeleted = i.IsDeleted
-            });
+                var images = await _repo.GetByItemIdAsync(item.ItemId);
+
+                result.Add(new ItemDto
+                {
+                    ItemId = item.ItemId,
+                    ItemType = item.ItemType,
+                    CategoryId = item.CategoryId,
+                    Title = item.Title,
+                    Description = item.Description,
+                    Price = item.Price,
+                    Quantity = item.Quantity ?? 0,
+                    //Status = item.Status,
+                    CreatedAt = item.CreatedAt,
+                    UpdatedAt = item.UpdatedAt,
+                    UpdatedBy = item.UpdatedBy,
+                    //IsVerified = item.IsVerified,
+                    //IsDeleted = item.IsDeleted,
+                    Images = images.Select(img => new ItemImageDto
+                    {
+                        ImageId = img.ImageId,
+                        ImageUrl = img.ImageUrl
+                    }).ToList()
+                });
+            }
+
+            return result;
         }
         public async Task<IEnumerable<ItemDto>> GetLatestBatteriesAsync(int count)
         {
             var items = await _repo.GetLatestBatteriesAsync(count);
 
-            return items.Select(i => new ItemDto
+            var result = new List<ItemDto>();
+
+            foreach (var item in items)
             {
-                ItemId = i.ItemId,
-                ItemType = i.ItemType ?? "",
-                CategoryId = i.CategoryId,
-                Title = i.Title,
-                Description = i.Description,
-                Price = i.Price,
-                Quantity = i.Quantity ?? 0,
-                CreatedAt = i.CreatedAt
-                //Status = i.Status ?? "active",
-                //IsDeleted = i.IsDeleted
-            });
+                var images = await _repo.GetByItemIdAsync(item.ItemId);
+
+                result.Add(new ItemDto
+                {
+                    ItemId = item.ItemId,
+                    ItemType = item.ItemType,
+                    CategoryId = item.CategoryId,
+                    Title = item.Title,
+                    Description = item.Description,
+                    Price = item.Price,
+                    Quantity = item.Quantity ?? 0,
+                    //Status = item.Status,
+                    CreatedAt = item.CreatedAt,
+                    UpdatedAt = item.UpdatedAt,
+                    UpdatedBy = item.UpdatedBy,
+                    //IsVerified = item.IsVerified,
+                    //IsDeleted = item.IsDeleted,
+                    Images = images.Select(img => new ItemImageDto
+                    {
+                        ImageId = img.ImageId,
+                        ImageUrl = img.ImageUrl
+                    }).ToList()
+                });
+            }
+
+            return result;
         }
 
         public async Task<PagedResult<ItemDto>> SearchItemsAsync(
@@ -163,43 +237,26 @@ namespace Application.Services
             if (page <= 0) page = 1;
             if (pageSize <= 0) pageSize = 20;
 
-            var query = _repo.QueryItemsWithSeller(); // IQueryable<Item>
+            var query = _repo.QueryItemsWithSeller();
 
-            // Filters
             if (!string.IsNullOrWhiteSpace(itemType))
-            {
-                var t = itemType.Trim();
-                query = query.Where(i => i.ItemType == t);
-            }
-
-            //if (!string.IsNullOrWhiteSpace(sellerName))
-            //{
-            //    var name = sellerName.Trim();
-
-            //    query = query.Where(i =>
-            //        EF.Functions.Like(EF.Property<User>(i, "UpdatedBy").FullName ?? "", $"%{name}%")
-            //    );
-            //}
+                query = query.Where(i => i.ItemType == itemType.Trim());
 
             if (!string.IsNullOrWhiteSpace(title))
-            {
-                var t = title.Trim();
-                query = query.Where(i => i.Title.Contains(t));
-            }
+                query = query.Where(i => i.Title.Contains(title.Trim()));
 
             if (minPrice.HasValue)
-                query = query.Where(i => i.Price.HasValue && i.Price.Value >= minPrice.Value);
+                query = query.Where(i => i.Price >= minPrice.Value);
 
             if (maxPrice.HasValue)
-                query = query.Where(i => i.Price.HasValue && i.Price.Value <= maxPrice.Value);
+                query = query.Where(i => i.Price <= maxPrice.Value);
 
-            // Sorting
-            bool descending = string.Equals(sortDir, "desc", StringComparison.OrdinalIgnoreCase);
+            bool desc = sortDir.Equals("desc", StringComparison.OrdinalIgnoreCase);
             query = sortBy switch
             {
-                "Price" => descending ? query.OrderByDescending(i => i.Price) : query.OrderBy(i => i.Price),
-                "Title" => descending ? query.OrderByDescending(i => i.Title) : query.OrderBy(i => i.Title),
-                _ => descending ? query.OrderByDescending(i => i.UpdatedAt) : query.OrderBy(i => i.UpdatedAt)
+                "Price" => desc ? query.OrderByDescending(i => i.Price) : query.OrderBy(i => i.Price),
+                "Title" => desc ? query.OrderByDescending(i => i.Title) : query.OrderBy(i => i.Title),
+                _ => desc ? query.OrderByDescending(i => i.UpdatedAt) : query.OrderBy(i => i.UpdatedAt)
             };
 
             var total = await query.LongCountAsync();
@@ -212,12 +269,11 @@ namespace Application.Services
                     ItemId = i.ItemId,
                     ItemType = i.ItemType,
                     Title = i.Title,
-                    //SellerName =  EF.Property<User>(i, "UpdatedByUser").FullName,
                     Price = i.Price,
-                    //Status = i.Status,
-                    UpdatedAt = i.UpdatedAt
-                })
-                .ToListAsync();
+                    UpdatedAt = i.UpdatedAt,
+                    //SellerName = i.UpdatedByUser.FullName,
+                    //Images = i.Images.ToList()
+                }).ToListAsync();
 
             return new PagedResult<ItemDto>
             {

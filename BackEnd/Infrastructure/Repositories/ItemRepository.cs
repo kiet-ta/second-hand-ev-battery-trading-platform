@@ -26,6 +26,9 @@ namespace Infrastructure.Repositories
                         join u in _context.Users
                             on i.UpdatedBy equals u.UserId into gj
                         from user in gj.DefaultIfEmpty() // LEFT JOIN
+                        //join im in _context.ItemImages
+                        //    on i.ItemId equals im.ItemId into imj
+                        //from itemImage in imj.DefaultIfEmpty()
                         where !(i.IsDeleted == true)   // remove soft deleted items
                         select new ItemDto
                         {
@@ -37,7 +40,12 @@ namespace Infrastructure.Repositories
                             Price = i.Price,
                             Quantity = i.Quantity ?? 0,
                             CreatedAt = i.CreatedAt,
-                            UpdatedAt = i.UpdatedAt
+                            UpdatedAt = i.UpdatedAt,
+                            //Images = imj.Select(im => new ItemImageDto
+                            //{
+                            //    ImageId = im.ImageId,
+                            //    ImageUrl = im.ImageUrl
+                            //}).ToList()
                             //UpdatedBy = i.UpdatedBy,
                             //SellerName = user != null
                             //? (user.FullName ?? string.Empty)
@@ -102,6 +110,9 @@ namespace Infrastructure.Repositories
         {
             var query = from i in _context.Items
                         where i.ItemId == id && !(i.IsDeleted == true)
+                        join im in _context.ItemImages
+                            on i.ItemId equals im.ItemId into imj
+                        from itemImage in imj.DefaultIfEmpty()
                         join ev in _context.EvDetails
                             on i.ItemId equals ev.ItemId into evj
                         from evDetail in evj.DefaultIfEmpty()
@@ -120,6 +131,7 @@ namespace Infrastructure.Repositories
                             CreatedAt = i.CreatedAt,
                             UpdatedAt = i.UpdatedAt,
                             UpdatedBy = i.UpdatedBy,
+                            ItemImage = itemImage,
                             EVDetail = evDetail,
                             BatteryDetail = batDetail
                         };
@@ -131,6 +143,9 @@ namespace Infrastructure.Repositories
         {
             var query = from i in _context.Items
                         where !(i.IsDeleted == true)
+                        join im in _context.ItemImages
+                            on i.ItemId equals im.ItemId into imj
+                        from itemImage in imj.DefaultIfEmpty()
                         join ev in _context.EvDetails
                             on i.ItemId equals ev.ItemId into evj
                         from evDetail in evj.DefaultIfEmpty()
@@ -149,6 +164,7 @@ namespace Infrastructure.Repositories
                             CreatedAt = i.CreatedAt,
                             UpdatedAt = i.UpdatedAt,
                             UpdatedBy = i.UpdatedBy,
+                            ItemImage = itemImage,
                             EVDetail = evDetail,
                             BatteryDetail = batDetail
                         };
@@ -234,10 +250,8 @@ namespace Infrastructure.Repositories
                 .SumAsync(p => p.Amount);
         }
 
-        public async Task AddAsync(ItemImage image)
-        {
-            await _context.ItemImages.AddAsync(image);
-        }
+        public async Task AddImageAsync(ItemImage image)
+        => await _context.ItemImages.AddAsync(image);
 
         public async Task<IEnumerable<ItemImage>> GetByItemIdAsync(int itemId)
         {

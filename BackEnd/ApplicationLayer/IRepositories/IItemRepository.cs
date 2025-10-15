@@ -41,7 +41,7 @@ namespace Application.IRepositories
         Task<int> CountAllBySellerAsync(int sellerId);
         Task<int> CountByStatusAsync(int sellerId, string status);
         Task<decimal> GetTotalRevenueAsync(int sellerId);
-        Task AddAsync(ItemImage image);
+        Task AddImageAsync(ItemImage image);
         Task<IEnumerable<ItemImage>> GetByItemIdAsync(int itemId);
     }
 }

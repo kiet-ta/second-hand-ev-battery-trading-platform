@@ -21,8 +21,8 @@ namespace Application.DTOs
             public string? PaymentMethod { get; set; }
             public string? Status { get; set; }
 
-            public DateOnly CreatedAt { get; set; } 
-            public DateOnly SoldAt { get; set; }  
+            public DateTime CreatedAt { get; set; } 
+            public DateTime SoldAt { get; set; }  
             //public int TotalDays => SoldAt.HasValue ? (SoldAt.Value - CreatedAt).Days : 0;
 
             public string? ImageUrl { get; set; }

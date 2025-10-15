@@ -59,7 +59,7 @@ namespace Application.Services
                     ItemId = itemId,
                     ImageUrl = url
                 };
-                await _itemRepository.AddAsync(entity);
+                await _itemRepository.AddImageAsync(entity);
                 uploadedUrls.Add(url);
             }
 
