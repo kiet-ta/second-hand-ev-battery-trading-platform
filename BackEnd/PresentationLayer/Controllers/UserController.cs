@@ -42,7 +42,7 @@ namespace PresentationLayer.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "Manager")]
+        //[Authorize(Roles = "Manager")]
         public async Task<IActionResult> Get() => Ok(await _userService.GetAllUsersAsync());
 
         [HttpGet("{id}")]

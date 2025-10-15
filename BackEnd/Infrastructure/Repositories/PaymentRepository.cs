@@ -121,7 +121,7 @@ public class PaymentRepository : IPaymentRepository
                 if (item != null)
                 {
                     item.Status = "sold";
-                    item.UpdatedAt = DateOnly.FromDateTime(DateTime.UtcNow);
+                    item.UpdatedAt = DateTime.UtcNow;
                 }
             }
         }
