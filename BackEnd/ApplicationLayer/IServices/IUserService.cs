@@ -25,5 +25,6 @@ namespace Application.IServices
         Task DeleteUserAsync(int id);
 
         Task<string?> GetAvatarAsync(int userId);
+
     }
 }

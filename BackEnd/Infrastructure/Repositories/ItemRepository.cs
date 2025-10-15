@@ -1,4 +1,5 @@
 ﻿using Application.DTOs.ItemDtos;
+using Application.DTOs.UserDtos;
 using Application.IRepositories;
 using Domain.Entities;
 using Infrastructure.Data;
@@ -258,6 +259,53 @@ namespace Infrastructure.Repositories
             return await _context.ItemImages
                 .Where(x => x.ItemId == itemId)
                 .ToListAsync();
+        }
+
+        public async Task<IEnumerable<Item>> GetBySellerIdAsync(int sellerId)
+        {
+            return await _context.Items
+                .Where(i => i.UpdatedBy == sellerId
+                            && !i.IsDeleted
+                            && i.Status == "active")
+                .AsNoTracking()
+                .ToListAsync();
+        }
+
+        public async Task<int> GetTotalProductsAsync(int sellerId)
+        {
+            return await _context.Items
+                .CountAsync(i => i.UpdatedBy == sellerId
+                                 && !i.IsDeleted
+                                 && i.Status == "active");
+        }
+
+        public async Task<IEnumerable<ItemSellerDto>> GetItemsBySellerIdAsync(int sellerId)
+        {
+            var query = from i in _context.Items
+                        join c in _context.Categories on i.CategoryId equals c.CategoryId
+                        join img in _context.ItemImages on i.ItemId equals img.ItemId into imgGroup
+                        where !i.IsDeleted
+                              && i.Status == "active"
+                              && i.UpdatedBy == sellerId
+                        select new ItemSellerDto
+                        {
+                            ItemId = i.ItemId,
+                            Title = i.Title,
+                            Description = i.Description,
+                            Price = i.Price,
+                            Quantity = i.Quantity,
+                            Status = i.Status,
+                            CreatedAt = i.CreatedAt,
+                            UpdatedAt = i.UpdatedAt,
+                            CategoryName = c.Name,
+                            Images = imgGroup.Select(img => new ItemImageDto
+                            {
+                                ImageId = img.ImageId,
+                                ImageUrl = img.ImageUrl
+                            }).ToList()
+                        };
+
+            return await query.ToListAsync();
         }
     }
 }

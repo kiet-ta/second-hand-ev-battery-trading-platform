@@ -25,8 +25,8 @@ public class Address
 
     public DateTime? CreatedAt { get; set; }
 
-    public bool? IsShopAddress { get; set; }
+    public bool IsShopAddress { get; set; }
 
-    public bool? IsDeleted { get; set; }
+    public bool IsDeleted { get; set; }
 
 }

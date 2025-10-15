@@ -10,5 +10,7 @@ namespace Application.IRepositories
         Task<List<Address>> GetAllAddressesAsync();
         Task UpdateAddressAsync(Address address);
         Task DeleteAddressAsync(Address address);
+
+        Task<Address?> GetShopAddressAsync(int userId);
     }
 }

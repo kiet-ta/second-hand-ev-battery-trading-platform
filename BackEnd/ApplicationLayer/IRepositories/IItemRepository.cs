@@ -1,4 +1,5 @@
 ﻿using Application.DTOs.ItemDtos;
+using Application.DTOs.UserDtos;
 using Domain.Entities;
 using System;
 using System.Collections.Generic;
@@ -43,5 +44,9 @@ namespace Application.IRepositories
         Task<decimal> GetTotalRevenueAsync(int sellerId);
         Task AddImageAsync(ItemImage image);
         Task<IEnumerable<ItemImage>> GetByItemIdAsync(int itemId);
+        Task<IEnumerable<Item>> GetBySellerIdAsync(int sellerId);
+        Task<int> GetTotalProductsAsync(int sellerId);
+
+        Task<IEnumerable<ItemSellerDto>> GetItemsBySellerIdAsync(int sellerId);
     }
 }
