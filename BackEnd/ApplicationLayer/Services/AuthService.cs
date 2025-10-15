@@ -1,4 +1,5 @@
 ﻿using Application.DTOs.AuthenticationDtos;
+using Application.DTOs.UserDtos;
 using Application.IRepositories;
 using Application.IServices;
 using Application.Validations;
@@ -149,6 +150,32 @@ namespace Application.Services
                 ExpiresAt = expires,
                 AuthProvider = provider
             };
+        }
+
+        public async Task<bool> ChangePasswordAsync(int userId, ChangePasswordRequestDto request)
+        {
+            // 1. Check new password and confirm
+            if (request.NewPassword != request.ConfirmPassword)
+                throw new ArgumentException("Confirmation password does not match.");
+
+            // 2. Get user from database
+            var user = await _userRepository.GetByIdAsync(userId);
+            if (user == null || user.IsDeleted)
+                throw new KeyNotFoundException("User not found.");
+
+            // 3. Confirm current password
+            bool isPasswordValid = BCrypt.Net.BCrypt.Verify(request.CurrentPassword, user.PasswordHash);
+            if (!isPasswordValid)
+                throw new UnauthorizedAccessException("The current password is incorrect.");
+
+            // 4. Hash new password
+            string newHashedPassword = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
+
+            // 5. Update
+            user.PasswordHash = newHashedPassword;
+            await _userRepository.UpdateAsync(user);
+
+            return true;
         }
     }
 }

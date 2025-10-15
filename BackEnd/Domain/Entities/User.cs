@@ -35,7 +35,7 @@ public class User
 
     public bool? Paid { get; set; }
 
-    public bool? IsDeleted { get; set; }
+    public bool IsDeleted { get; set; }
 
     //// Tuan add 2 field for account lockout
     //public int FailedLoginAttempts { get; set; }

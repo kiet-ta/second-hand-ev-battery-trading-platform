@@ -26,5 +26,7 @@ namespace Application.IServices
 
         Task<string?> GetAvatarAsync(int userId);
 
+        Task<bool> ChangePasswordAsync(int userId, ChangePasswordRequestDto request);
+
     }
 }

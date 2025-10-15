@@ -7,5 +7,7 @@ namespace Application.IServices
     {
         Task<OrderItemDto> CreateOrderItemAsync(CreateOrderItemRequest request);
         Task<IEnumerable<OrderItemDto>> GetCartItemsByBuyerIdAsync(int buyerId);
+        Task<bool> UpdateOrderItemAsync(int id, UpdateOrderItemDto dto);
+        Task<bool> DeleteOrderItemAsync(int id);
     }
 }

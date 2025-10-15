@@ -17,6 +17,6 @@ public class OrderItem
 
     public decimal Price { get; set; }
 
-    public bool? IsDeleted { get; set; }
+    public bool IsDeleted { get; set; }
 
 }
