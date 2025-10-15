@@ -112,7 +112,7 @@ public class PaymentRepository : IPaymentRepository
                 if (order != null)
                 {
                     order.Status = "paid";
-                    order.UpdatedAt = DateOnly.FromDateTime(DateTime.UtcNow);
+                    order.UpdatedAt = DateTime.UtcNow;
                 }
             }
             if (detail.ItemId.HasValue)

@@ -9,15 +9,15 @@ using System.Threading.Tasks;
 
 namespace Infrastructure.Data.Configurations
 {
-    public class BlogConfiguration : IEntityTypeConfiguration<Blog>
+    public class NewConfiguration : IEntityTypeConfiguration<News>
     {
-        public void Configure(EntityTypeBuilder<Blog> entity)
+        public void Configure(EntityTypeBuilder<News> entity)
         {
-            entity.HasKey(e => e.BlogId).HasName("PK__blogs__2975AA280A34B096");
+            entity.HasKey(e => e.NewsId).HasName("PK__blogs__2975AA280A34B096");
 
-            entity.ToTable("blogs");
+            entity.ToTable("news");
 
-            entity.Property(e => e.BlogId).HasColumnName("blog_id");
+            entity.Property(e => e.NewsId).HasColumnName("news_id");
             entity.Property(e => e.AuthorId).HasColumnName("author_id");
             entity.Property(e => e.Category)
                 .HasMaxLength(100)
@@ -35,6 +35,10 @@ namespace Infrastructure.Data.Configurations
                 .HasMaxLength(255)
                 .HasColumnName("title");
             entity.Property(e => e.UserId).HasColumnName("user_id");
+            entity.Property(e => e.Status)
+                .HasMaxLength(20)
+                .HasDefaultValue("pending")
+                .HasColumnName("status");
 
             entity.HasOne<User>().WithMany()
                 .HasForeignKey(d => d.UserId)

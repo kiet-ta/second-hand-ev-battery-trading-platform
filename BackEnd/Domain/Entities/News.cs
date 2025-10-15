@@ -3,15 +3,15 @@ using System.Collections.Generic;
 
 namespace Domain.Entities;
 
-public class Blog
+public class News
 {
-    public int BlogId { get; set; }
+    public int NewsId { get; set; }
 
     public int UserId { get; set; }
 
     public string? Title { get; set; }
 
-    public DateOnly? PublishDate { get; set; }
+    public DateTime? PublishDate { get; set; }
 
     public string? Category { get; set; }
 
@@ -25,4 +25,6 @@ public class Blog
 
     public string? Tags { get; set; }
 
-}
+    public string? Status { get; set; }
+
+    }
