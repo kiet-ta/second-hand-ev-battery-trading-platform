@@ -85,4 +85,27 @@ public class UserRepository : IUserRepository
         await _context.SaveChangesAsync();
     }
 
+    public async Task<int> CountAsync()
+    {
+        return await _context.Users.CountAsync(u => u.IsDeleted == false);
+    }
+    public async Task<double> GetMonthlyGrowthAsync()
+    {
+        var now = DateTime.UtcNow;
+        var prevMonth = now.AddMonths(-1);
+
+        var currentMonthUsers = await _context.Users.CountAsync(u =>
+            u.CreatedAt.Month == now.Month &&
+            u.CreatedAt.Year == now.Year);
+
+        var previousMonthUsers = await _context.Users.CountAsync(u =>
+            u.CreatedAt.Month == prevMonth.Month &&
+            u.CreatedAt.Year == prevMonth.Year);
+
+        if (previousMonthUsers == 0)
+            return currentMonthUsers > 0 ? 100 : 0;
+
+        return ((double)(currentMonthUsers - previousMonthUsers) / previousMonthUsers) * 100;
+    }
+
 }

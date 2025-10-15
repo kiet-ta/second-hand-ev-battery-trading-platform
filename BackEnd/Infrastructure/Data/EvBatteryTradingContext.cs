@@ -71,6 +71,8 @@ public class EvBatteryTradingContext : DbContext
 
     public DbSet<StaffPermission> StaffPermissions { get; set; }
 
+    public DbSet<Complaint> Complaints { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(EvBatteryTradingContext).Assembly);

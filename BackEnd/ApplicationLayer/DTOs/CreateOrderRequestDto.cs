@@ -12,6 +12,6 @@ namespace Application.DTOs
         public int AddressId { get; set; }
         public List<int> OrderItemIds { get; set; } = new();
         public DateTime CreatedAt { get; set; }
-        public DateTime? UpdatedAt { get; set; }
+        public DateTime UpdatedAt { get; set; }
     }
 }
