@@ -52,7 +52,7 @@ function Navbar(data) {
               </Link>
             ))}
             {data.data ? (
-              <div className="ml-4 pt-5">
+              <div className="ml-5">
                 <ProfileDropDown users={data.data} />
               </div>
             )
