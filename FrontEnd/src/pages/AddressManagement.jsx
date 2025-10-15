@@ -249,7 +249,7 @@ const AddressManagement = () => {
     // ----------------------
 
     return (
-        <div className="address-container">
+        <div className="address-container h-screen overflow-y-auto">
             <div className="address-header">
                 <h2 className="address-title">Địa chỉ của tôi</h2>
                 {!showForm && (

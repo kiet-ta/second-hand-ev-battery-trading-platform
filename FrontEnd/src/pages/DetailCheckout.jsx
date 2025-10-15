@@ -227,16 +227,6 @@ export default function DetailedCheckoutPage() {
                                     <span>Cash on Delivery</span>
                                 </label>
                             </div>
-
-                            {paymentMethod === 'shopee_pay' && (
-                                <div className="mt-4 p-4 bg-orange-50 rounded flex items-center gap-3">
-                                    <div className="w-16 h-10 bg-gradient-to-r from-orange-400 to-red-400 rounded"></div>
-                                    <div className="flex-1">
-                                        <div className="text-sm font-medium">ShopeePay Balance</div>
-                                        <div className="text-xs text-gray-600">₫0</div>
-                                    </div>
-                                </div>
-                            )}
                         </div>
                     </div>
 

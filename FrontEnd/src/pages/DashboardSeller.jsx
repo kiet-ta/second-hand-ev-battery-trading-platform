@@ -24,6 +24,8 @@ import {
     ResponsiveContainer,
 } from "recharts";
 import HistorySold from "../components/HistorySold";
+import { useNavigate } from "react-router-dom";
+import { IoLogOutOutline } from "react-icons/io5";
 import SellerAuctionListPage from "../pages/SellerAuctionListPage";
 import MyProduct from "../components/AddProductForm"
 
@@ -31,6 +33,7 @@ export default function SellerDashboard() {
     const [activeMenu, setActiveMenu] = useState("dashboard");
     const [dashboardData, setDashboardData] = useState(null);
     const [loading, setLoading] = useState(true);
+    const navigate = useNavigate();
     const [error, setError] = useState(null);
 
     const sellerId = localStorage.getItem("userId") || 2;
@@ -62,7 +65,11 @@ export default function SellerDashboard() {
         fetchDashboard();
     }, [sellerId, token]);
 
-    console.log(0.1 + 0.2 === 0.3);
+    const handleLogout = () => {
+        localStorage.clear();
+        navigate("/login");
+    };
+
 
     const menuItems = [
         { id: "dashboard", icon: LayoutDashboard, label: "Dashboard" },
@@ -107,6 +114,16 @@ export default function SellerDashboard() {
                         );
                     })}
                 </nav>
+
+                <div className="p-4 border-t border-gray-200">
+                    <button
+                        onClick={handleLogout}
+                        className="w-full flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-red-50 transition"
+                    >
+                        <IoLogOutOutline size={20} />
+                        <span className="font-medium">Logout</span>
+                    </button>
+                </div>
             </div>
 
             {/* Main Content */}

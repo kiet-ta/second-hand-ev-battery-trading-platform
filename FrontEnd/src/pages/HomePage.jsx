@@ -12,12 +12,14 @@ const FirstSaleSkeleton = () => (
         <div className="h-6 bg-gray-300 rounded w-1/2"></div>
     </div>
 );
+import GeminiChatWidget from "../components/GeminiChatWidget";
 
 function HomePage() {
   // Consolidated state for easier management
   const [data, setData] = useState({ firstSale: [], evList: [], batteryList: [] });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
 
   useEffect(() => {
     const fetchAllItems = async () => {
@@ -83,6 +85,8 @@ function HomePage() {
             ))}
         </div>
       </div>
+      <GeminiChatWidget />
+
 
       {/* --- Banner --- */}
       <div className="Banner mt-5 mx-auto px-4">

@@ -22,6 +22,7 @@ import AuctionMainPage from "../pages/Auctions/AuctionMainPage";
 import ManagerDashboard from "../pages/ManagerDashboard";
 import AuctionDetailPage from "../pages/Auctions/AuctionDetailPage";
 import ComparePage from "../pages/ComparePage";
+import BuyerViewSeller from '../pages/BuyerViewSeller';
 
 export const router = createBrowserRouter([
   {
@@ -118,5 +119,8 @@ export const router = createBrowserRouter([
    {
     path: "/manage",
     element: <ManagerDashboard />
-  }
+  },   {
+        path: "/seller/:sellerId",
+        element: <BuyerViewSeller />
+    }
 ])
