@@ -11,7 +11,7 @@ namespace Application.DTOs
         public int BuyerId { get; set; }
         public int AddressId { get; set; }
         public List<int> OrderItemIds { get; set; } = new();
-        public DateOnly CreatedAt { get; set; }
-        public DateOnly? UpdatedAt { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public DateTime? UpdatedAt { get; set; }
     }
 }

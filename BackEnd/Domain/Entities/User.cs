@@ -23,6 +23,8 @@ public class User
 
     public string Role { get; set; } = null!;
 
+    public string Bio { get; set; } = null!;
+
     public string? KycStatus { get; set; }
 
     public string? AccountStatus { get; set; }
@@ -30,6 +32,8 @@ public class User
     public DateTime? CreatedAt { get; set; }
 
     public DateTime? UpdatedAt { get; set; }
+
+    public bool? Paid { get; set; }
 
     public bool? IsDeleted { get; set; }
 
