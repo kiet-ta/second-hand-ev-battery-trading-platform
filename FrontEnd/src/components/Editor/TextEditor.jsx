@@ -1,7 +1,7 @@
 import { CKEditor } from "@ckeditor/ckeditor5-react";
 import { ClassicEditor, editorConfig } from "./config/editorConfig";
-import useAutoSave from "./hooks/useAutoSave";
 import "ckeditor5/ckeditor5.css";
+import { useState } from "react";
 
 function TextEditor() {
   const [editorData, setEditorData] = useState("");
@@ -43,7 +43,7 @@ function TextEditor() {
 
   return (
     <div style={{ padding: "20px" }}>
-      <CKEditor editor={ClassicEditor} onChange={handleChange} />
+      <CKEditor editor={ClassicEditor} config={editorConfig}  onChange={handleChange} />
       <button
         onClick={handleSubmit}
         style={{

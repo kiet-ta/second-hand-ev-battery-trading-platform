@@ -92,8 +92,6 @@ namespace PresentationLayer
             builder.Services.AddHttpClient<IChatRepository, FirebaseChatRepository>();
             builder.Services.AddHttpContextAccessor();
 
-            builder.Services.AddScoped<IBlogRepository, BlogRepository>();
-            builder.Services.AddScoped<IBlogService, BlogService>();
             // JWT Authentication
             builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(options =>

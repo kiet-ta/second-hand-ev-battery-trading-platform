@@ -2,12 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { PlusCircle, UploadCloud } from "lucide-react";
 import {
     Table, Tag, Image,
-    Checkbox, Form, Input, InputNumber, Modal, Radio, Select, Steps, message, DatePicker, Upload, Result, Spin
+    Checkbox, Form, Input, InputNumber, Modal, Radio, Select, Steps, message, DatePicker, Upload, Result, Spin,
+    Button
 } from 'antd';
 import evData from '../assets/datas/evData';
 import itemApi from '../api/itemApi';
 import auctionApi from '../api/auctionApi';
-
+import ImageUploader from './ImageUploader';
 // --- Helper Constants ---
 const { TextArea } = Input;
 const { Option } = Select;
@@ -119,7 +120,6 @@ export default function MyProductsPage() {
     );
 }
 
-// --- Modal and Form Logic Component ---
 function ProductCreationModal({ onSuccess }) {
     const [isOpenModal, setIsOpenModal] = useState(false);
     const [currentStep, setCurrentStep] = useState(0);
@@ -403,38 +403,26 @@ const Step2AuctionDetails = ({ form, onFinish }) => (
 );
 
 const Step3ImageUpload = ({ onSubmit }) => {
-    const [fileList, setFileList] = useState([]);
     
-    const handleChange = ({ fileList: newFileList }) => {
-        setFileList(newFileList);
+    const [uploadedUrls, setUploadedUrls] = useState([]);
+    const handleUploadComplete = (urls) => {
+        setUploadedUrls(urls);
     };
-
-    const handleUploadAndSubmit = () => {
-        // This is a simulation. In a real app, you would have an upload function
-        // that returns the URL from your service (like Cloudinary).
-        const uploadedUrls = fileList.map(file => `https://res.cloudinary.com/demo/image/upload/v1620000000/${file.uid}.jpg`);
-        onSubmit(uploadedUrls);
-    };
-
+    
     return (
         <div>
-            <Upload.Dragger 
-                name="file"
-                multiple
-                listType="picture"
-                fileList={fileList}
-                onChange={handleChange}
-                beforeUpload={() => false}
-            >
-                <p className="ant-upload-drag-icon"><UploadCloud size={48} className="mx-auto text-gray-400" /></p>
-                <p className="ant-upload-text">Click or drag files to this area to upload</p>
-                <p className="ant-upload-hint">Support for a single or bulk upload.</p>
-            </Upload.Dragger>
-            <div className="text-right mt-4">
-                <button onClick={handleUploadAndSubmit} className="px-4 py-2 rounded bg-blue-500 text-white">
-                    Confirm and Finish
-                </button>
-            </div>
+            <ImageUploader onUploadSuccess={handleUploadComplete} />
+            {uploadedUrls.length > 0 && (
+          <div className="mt-8 p-4 bg-green-50 border border-green-200 rounded-lg">
+            <h3 className="font-bold text-green-700">URLs captured in App.js:</h3>
+            <ul className="list-disc list-inside mt-2">
+              {uploadedUrls.map((url, index) => (
+                <li key={index} className="text-sm text-green-600 break-all">{url}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+        <div><Button onSubmit={onSubmit}></Button></div>
         </div>
     );
 };

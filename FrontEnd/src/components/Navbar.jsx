@@ -86,9 +86,9 @@ function Navbar(data) {
               {<FaShoppingCart />}
               <span className="ml-2">Cart</span>
             </Link>
-            <Link to={'/purchase'} className="mx-4 hover:text-green-300 flex items-center">
+            <Link to={'/favourite'} className="mx-4 hover:text-green-300 flex items-center">
               {<LuShoppingBag />}
-              <span className="ml-2">Purchase</span>
+              <span className="ml-2">Favourite</span>
             </Link>
           </div>
         </div>
