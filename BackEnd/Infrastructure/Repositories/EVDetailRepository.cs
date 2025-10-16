@@ -18,20 +18,20 @@ namespace Infrastructure.Repositories
 
         public async Task AddAsync(EVDetail evDetail, CancellationToken ct = default)
         {
-            await _ctx.EvDetails.AddAsync(evDetail, ct);
+            await _ctx.EVDetails.AddAsync(evDetail, ct);
         }
 
         public async Task DeleteAsync(int itemId, CancellationToken ct = default)
         {
-            var e = await _ctx.EvDetails.FindAsync(new object[] { itemId }, ct);
-            if (e != null) _ctx.EvDetails.Remove(e);
+            var e = await _ctx.EVDetails.FindAsync(new object[] { itemId }, ct);
+            if (e != null) _ctx.EVDetails.Remove(e);
         }
 
         public async Task<IEnumerable<EVDetail>> GetAllAsync(CancellationToken ct = default)
         {
             // filter out items that are soft-deleted (Item.IsDeleted)
             var query =
-                from e in _ctx.EvDetails
+                from e in _ctx.EVDetails
                 join i in _ctx.Items on e.ItemId equals i.ItemId
                 where !(i.IsDeleted == true)
                 select e;
@@ -42,7 +42,7 @@ namespace Infrastructure.Repositories
         public async Task<EVDetail?> GetByIdAsync(int itemId, CancellationToken ct = default)
         {
             var query =
-                from e in _ctx.EvDetails
+                from e in _ctx.EVDetails
                 join i in _ctx.Items on e.ItemId equals i.ItemId
                 where e.ItemId == itemId && !(i.IsDeleted == true)
                 select e;
@@ -51,11 +51,11 @@ namespace Infrastructure.Repositories
         }
 
         public async Task<bool> ExistsAsync(int itemId, CancellationToken ct = default)
-            => await _ctx.EvDetails.AnyAsync(e => e.ItemId == itemId, ct);
+            => await _ctx.EVDetails.AnyAsync(e => e.ItemId == itemId, ct);
 
         public void Update(EVDetail evDetail)
         {
-            _ctx.EvDetails.Update(evDetail);
+            _ctx.EVDetails.Update(evDetail);
         }
     }
 }

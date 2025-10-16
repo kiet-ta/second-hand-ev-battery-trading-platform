@@ -86,6 +86,7 @@ namespace PresentationLayer
             builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
             builder.Services.AddScoped<IComplaintRepository, ComplaintRepository>();
             builder.Services.AddScoped<ICommissionFeeRuleRepository, CommissionFeeRuleRepository>();
+            builder.Services.AddScoped<ITransactionRepository, TransactionRepository>();
 
             // AddHttp
             builder.Services.AddHttpClient<IChatRepository, FirebaseChatRepository>();

@@ -109,4 +109,24 @@ public class AuctionRepository : IAuctionRepository
     {
         return await _context.Auctions.CountAsync();
     }
+
+    public async Task<IEnumerable<Auction>> GetAuctionsByUserIdAsync(int userId)
+    {
+        var userItemIds = await _context.Items
+                                    .Where(item => item.UpdatedBy == userId)
+                                    .Select(item => item.ItemId)
+                                    .ToListAsync();
+
+        if (!userItemIds.Any())
+        {
+            return Enumerable.Empty<Auction>();
+        }
+
+        var auctions = await _context.Auctions
+            .Where(a => userItemIds.Contains(a.ItemId))
+            .OrderByDescending(a => a.CreatedAt)
+            .ToListAsync();
+
+        return auctions;
+    }
 }

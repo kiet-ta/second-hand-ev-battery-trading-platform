@@ -3,6 +3,7 @@ using Application.IRepositories;
 using Application.IRepositories.IBiddingRepositories;
 using Application.IServices;
 using Domain.Entities;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Application.Services;
 
@@ -289,5 +290,20 @@ public class AuctionService : IAuctionService
                 PageSize = pageSize
             }
         };
+    }
+
+    public async Task<IEnumerable<AuctionDto>> GetActionByUserId(int userId)
+    {
+        var auctions = await _auctionRepository.GetAuctionsByUserIdAsync(userId);
+        var auctionDtos = new List<AuctionDto>();
+        foreach (var auc in auctions)
+        {
+            var auctionDto = await MapToAuctionDto(auc);
+            if (auctionDto != null)
+            {
+                auctionDtos.Add(auctionDto);
+            }
+        }
+        return auctionDtos;
     }
 }
