@@ -504,6 +504,111 @@ body.dark-mode .hover\:bg-gray-200:hover {
     opacity: 0.9;
 }
 
+/* ===============================
+   🔒 LOGOUT CONFIRMATION POPUP
+   =============================== */
+.logout-overlay {
+    position: fixed;
+    inset: 0;
+    /* top:0;left:0;right:0;bottom:0 */
+    background: rgba(0, 0, 0, 0.45);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    animation: fadeIn 0.3s ease forwards;
+    backdrop-filter: blur(2px);
+}
+
+.logout-popup {
+    background: var(--color-surface, #fff);
+    padding: 2rem;
+    border-radius: 16px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+    width: 360px;
+    text-align: center;
+    transform: scale(0.85);
+    opacity: 0;
+    animation: popupIn 0.35s ease forwards;
+}
+
+/* ----- Text styles ----- */
+.logout-popup h3 {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--color-text, #111);
+    margin-bottom: 0.6rem;
+}
+
+.logout-popup p {
+    color: var(--color-text-muted, #555);
+    font-size: 0.95rem;
+    margin-bottom: 1.8rem;
+}
+
+/* ----- Buttons ----- */
+.logout-actions {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.btn-cancel,
+.btn-confirm {
+    flex: 1;
+    padding: 0.7rem;
+    font-weight: 600;
+    border-radius: 8px;
+    cursor: pointer;
+    border: none;
+    transition: all 0.25s ease;
+}
+
+/* Nút hủy */
+.btn-cancel {
+    background: var(--color-border, #e5e7eb);
+    color: var(--color-text, #111);
+}
+
+.btn-cancel:hover {
+    background: var(--color-hover, #f3f4f6);
+}
+
+/* Nút xác nhận */
+.btn-confirm {
+    background: var(--color-danger, #ef4444);
+    color: white;
+    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.4);
+}
+
+.btn-confirm:hover {
+    background: #dc2626;
+    transform: translateY(-1px);
+}
+
+/* ----- Animations ----- */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes popupIn {
+    0% {
+        opacity: 0;
+        transform: scale(0.85);
+    }
+
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
 
 /* ===============================
    🪄 ANIMATION
