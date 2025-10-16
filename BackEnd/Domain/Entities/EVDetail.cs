@@ -1,50 +1,34 @@
-﻿using System;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+using System;
+using System.Collections.Generic;
 
-namespace Domain.Entities
+namespace Domain.Entities;
+
+public class EVDetail
 {
-    [Table("ev_detail")]
-    public class EVDetail
-    {
-        [Key]
-        [Column("item_id")]
-        public int ItemId { get; set; }
+    public int ItemId { get; set; }
 
-        [Column("brand")]
-        public string Brand { get; set; }
+    public string? Brand { get; set; }
 
-        [Column("model")]
-        public string Model { get; set; }
+    public string? Model { get; set; }
 
-        [Column("version")]
-        public string Version { get; set; }
+    public string? Version { get; set; }
 
-        [Column("year")]
-        public int? Year { get; set; }
+    public int? Year { get; set; }
 
-        [Column("body_style")]
-        public string BodyStyle { get; set; }
+    public string? BodyStyle { get; set; }
 
-        [Column("color")]
-        public string Color { get; set; }
+    public string? Color { get; set; }
 
-        [Column("license_plate")]
-        public string LicensePlate { get; set; }
+    public string? LicensePlate { get; set; }
 
-        [Column("has_accessories")]
-        public bool? HasAccessories { get; set; }
+    public bool HasAccessories { get; set; }
 
-        [Column("previous_owners")]
-        public int? PreviousOwners { get; set; }
+    public int? PreviousOwners { get; set; }
 
-        [Column("is_registration_valid")]
-        public bool? IsRegistrationValid { get; set; }
+    public bool IsRegistrationValid { get; set; }
 
-        [Column("mileage")]
-        public int? Mileage { get; set; }
+    public int? Mileage { get; set; }
 
-        [Column("updated_at")]
-        public DateTime UpdatedAt { get; set; }
-    }
+    public DateTime? UpdatedAt { get; set; }
+
 }

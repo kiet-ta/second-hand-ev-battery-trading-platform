@@ -8,13 +8,13 @@ public class BidConfiguration : IEntityTypeConfiguration<Bid>
 {
     public void Configure(EntityTypeBuilder<Bid> entity)
     {
-        entity.ToTable("Bids");
+        entity.ToTable("bids");
         entity.HasKey(e => e.BidId);
 
         entity.Property(e => e.BidId).HasColumnName("bid_id");
-        entity.Property(e => e.BiddingId).HasColumnName("bidding_id");
+        entity.Property(e => e.AuctionId).HasColumnName("auction_id"); 
         entity.Property(e => e.UserId).HasColumnName("user_id");
-        entity.Property(e => e.BidAmount).HasColumnName("bid_amount");
-        entity.Property(e => e.BidTime).HasColumnName("bid_time");
+        entity.Property(e => e.BidAmount).HasColumnName("bid_amount").HasColumnType("decimal(18,2)");
+        entity.Property(e => e.BidTime).HasColumnName("bid_time").HasDefaultValueSql("GETDATE()");
     }
 }

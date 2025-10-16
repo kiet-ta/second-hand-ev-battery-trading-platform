@@ -7,4 +7,6 @@ public interface IWalletRepository
     Task<Wallet> GetWalletByUserIdAsync(int userId);
 
     Task<bool> UpdateBalanceAsync(int walletId, decimal amountChange);
+
+    Task AddWalletTransactionAsync(WalletTransaction transaction);
 }

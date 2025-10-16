@@ -17,17 +17,26 @@ const itemApi = {
         const response = await axios.get(baseURL + "/latest-batterys")
         return response.data;
     },
-    getItemBySearch : async (itemType,title,minPrice,maxPrice,page,pageSize,sortBy,sortDir) => {
-        const response = await axios.get(`${baseURL}/search`, {params: {itemType,title,minPrice,maxPrice,page,pageSize,sortBy,sortDir}})
+    getItemBySearch: async (itemType, title, minPrice, maxPrice, page, pageSize, sortBy, sortDir) => {
+        const response = await axios.get(`${baseURL}/search`, { params: { itemType, title, minPrice, maxPrice, page, pageSize, sortBy, sortDir } })
         return response.data;
     },
     getItemById: async (id) => {
         const response = await axios.get(baseURL + "/" + id);
         return response.data;
     },
-    postItem: async (data) => {
-        const response = await axios.post(baseURL, data);
+    getItemDetail: async () => {
+        const response = await axios.get(baseURL + "/detail");
+        return response.data;
+    },
+    postItemEV: async (data) => {
+        const response = await axios.post(baseURL + "/detail", data);
+        return response.data;
+    },
+    postItemBattery: async (data) => {
+        const response = await axios.post(baseURL + "/detail/battery", data);
         return response.data;
     }
+
 };
 export default itemApi;

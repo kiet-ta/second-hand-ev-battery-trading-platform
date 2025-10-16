@@ -13,27 +13,45 @@ namespace Infrastructure.Data.Configurations
     {
         public void Configure(EntityTypeBuilder<Item> entity)
         {
+            entity.HasKey(e => e.ItemId).HasName("PK__items__52020FDDC6EF3406");
+
             entity.ToTable("items");
 
-            entity.HasKey(e => e.ItemId);
-
             entity.Property(e => e.ItemId).HasColumnName("item_id");
-            entity.Property(e => e.ItemType).HasColumnName("item_type").HasMaxLength(20);//.IsRequired();
             entity.Property(e => e.CategoryId).HasColumnName("category_id");
-            entity.Property(e => e.Title).HasColumnName("title").HasMaxLength(200);//.IsRequired();
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnName("created_at");
             entity.Property(e => e.Description).HasColumnName("description");
-            entity.Property(e => e.Price).HasColumnName("price").HasColumnType("decimal(18,2)");
-            entity.Property(e => e.Quantity).HasColumnName("quantity").HasDefaultValue(1);
-            entity.Property(e => e.Status).HasColumnName("status").HasMaxLength(20);
-            entity.Property(e => e.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("GETDATE()");
-            entity.Property(e => e.UpdatedAt).HasColumnName("updated_at").HasDefaultValueSql("GETDATE()");
+            entity.Property(e => e.IsDeleted)
+                .HasDefaultValue(false)
+                .HasColumnName("is_deleted");
+            entity.Property(e => e.ItemType)
+                .HasMaxLength(20)
+                .HasColumnName("item_type");
+            entity.Property(e => e.Price)
+                .HasColumnType("decimal(18, 2)")
+                .HasColumnName("price");
+            entity.Property(e => e.Quantity)
+                .HasDefaultValue(1)
+                .HasColumnName("quantity");
+            entity.Property(e => e.Status)
+                .HasMaxLength(20)
+                .HasColumnName("status");
+            entity.Property(e => e.Title)
+                .HasMaxLength(200)
+                .HasColumnName("title");
+            entity.Property(e => e.UpdatedAt)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnName("updated_at");
             entity.Property(e => e.UpdatedBy).HasColumnName("updated_by");
-            entity.Property(e => e.IsDeleted).HasColumnName("is_deleted");
+            entity.Property(e => e.IsVerified)
+                .HasDefaultValue(false)
+                .HasColumnName("is_verified");
 
-            entity.HasOne<Category>()              //Relationship: Item -> Category (many items belong to one category)
-                   .WithMany()
-                   .HasForeignKey(i => i.CategoryId)
-                   .OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne<Category>().WithMany()
+                .HasForeignKey(d => d.CategoryId)
+                .HasConstraintName("FK__items__category___3F466844");
 
             entity.HasOne<User>()                  // UpdatedBy → User, Relationship: Item updated_by -> Users (many items can be updated by one user)
                    .WithMany()
@@ -50,8 +68,8 @@ namespace Infrastructure.Data.Configurations
                    .HasForeignKey<BatteryDetail>(b => b.ItemId)
                    .OnDelete(DeleteBehavior.Cascade);
 
-            entity.HasMany(i => i.Reviews)
-                  .WithOne(r => r.Item)
+            entity.HasMany<Review>()
+                  .WithOne()
                   .HasForeignKey(r => r.ItemId)
                   .OnDelete(DeleteBehavior.Cascade);
 

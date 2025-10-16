@@ -89,4 +89,4 @@ Currently, the project uses **Docker and Docker Compose** for deployment.
 * Quynh Chi
 * Tecookie
 * CoCoIT
-* TUNAPI
+* TuCore

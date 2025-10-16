@@ -10,6 +10,8 @@ function CardCart({
   variant,
   onQuantityChange,
   onRemove,
+  isSelected,
+  onSelect
 }) {
   const increaseQuantity = () => {
     onQuantityChange(id, Math.min(quantity + 1, stock));
@@ -34,6 +36,9 @@ function CardCart({
         <input
           type="checkbox"
           className="h-4 w-4 text-maincolor border-gray-300 rounded focus:ring-maincolor mr-4"
+          checked={isSelected} 
+          onChange={onSelect}
+
         />
         <img
           src={image}

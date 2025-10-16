@@ -11,5 +11,6 @@ public class Favorite
 
     public int ItemId { get; set; }
 
-    public DateOnly? CreatedAt { get; set; }
+    public DateTime? CreatedAt { get; set; }
+
 }

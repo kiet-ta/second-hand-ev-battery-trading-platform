@@ -9,9 +9,7 @@ namespace Application.IServices
     public interface IHistorySoldService
     {
         Task<List<object>> GetAllSellerItemsAsync(int sellerId);
-        Task<List<object>> GetProcessingItemsAsync(int sellerId);
-        Task<List<object>> GetPendingPaymentItemsAsync(int sellerId);
-        Task<List<object>> GetSoldPaymentItemsAsync(int sellerId);
+
     }
 
 }

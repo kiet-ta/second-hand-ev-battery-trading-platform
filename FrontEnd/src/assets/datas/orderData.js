@@ -5,10 +5,10 @@ const mockOrders = [
     price: 59.99,
     discount: 10, // in percent
     quantity: 1,
-    category: "Electronics",
+    category: "VinFast - VF 8 - SUV ",
     shopName: "TechWorld Store",
     rating: null,
-    status: "Shipping",
+    status: "In Stock",
     image: "https://i.pinimg.com/736x/61/8a/54/618a54211d1d15d5b456fb671026de78.jpg",
   },
   {
@@ -20,7 +20,7 @@ const mockOrders = [
     category: "Fashion",
     shopName: "UrbanStyle",
     rating: 4,
-    status: "Completed",
+    status: "In Stock",
     image: "https://i.pinimg.com/736x/c3/3b/70/c33b70ff460ec44b2898d39fcc1848d5.jpg",
   },
   {
@@ -32,7 +32,7 @@ const mockOrders = [
     category: "Home & Kitchen",
     shopName: "CozyHome",
     rating: null,
-    status: "Pending",
+    status: "Out of Stock",
     image: "https://i.pinimg.com/736x/34/7d/1f/347d1ffccaad32bcd24f262a36e8e4cc.jpg",
   },
   {

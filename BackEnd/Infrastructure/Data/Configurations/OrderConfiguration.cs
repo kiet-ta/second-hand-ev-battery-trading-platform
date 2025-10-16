@@ -13,16 +13,32 @@ namespace Infrastructure.Data.Configurations
     {
         public void Configure(EntityTypeBuilder<Order> entity)
         {
-            entity.ToTable("Orders");
+            entity.HasKey(e => e.OrderId).HasName("PK__orders__46596229631910A8");
 
-            entity.HasKey(e => e.OrderId);
+            entity.ToTable("orders");
 
             entity.Property(e => e.OrderId).HasColumnName("order_id");
-            entity.Property(e => e.BuyerId).HasColumnName("buyer_id");
             entity.Property(e => e.AddressId).HasColumnName("address_id");
-            entity.Property(e => e.Status).HasColumnName("status");
-            entity.Property(e => e.CreatedAt).HasColumnName("created_at");
-            entity.Property(e => e.UpdatedAt).HasColumnName("updated_at");
+            entity.Property(e => e.BuyerId).HasColumnName("buyer_id");
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("getdate()")
+                .HasColumnName("created_at");
+            entity.Property(e => e.Status)
+                .HasMaxLength(20)
+                .HasColumnName("status");
+            entity.Property(e => e.UpdatedAt)
+                .HasDefaultValueSql("getdate()")
+                .HasColumnName("updated_at");
+
+            entity.HasOne<Address>().WithMany()
+                .HasForeignKey(d => d.AddressId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK__orders__address___59FA5E80");
+
+            //entity.HasOne<Buyer>().WithMany()
+            //    .HasForeignKey(d => d.BuyerId)
+            //    .OnDelete(DeleteBehavior.ClientSetNull)
+            //    .HasConstraintName("FK__orders__buyer_id__59063A47");
 
         }
     }

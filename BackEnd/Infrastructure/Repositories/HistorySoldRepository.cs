@@ -1,5 +1,7 @@
 ﻿using Application.DTOs;
+using Application.DTOs.ItemDtos;
 using Application.IRepositories;
+using Domain.DTOs;
 using Domain.Entities;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -24,63 +26,128 @@ namespace Infrastructure.Repositories
                 .Where(u =>
                     u.UserId == id &&
                     u.Role == "seller" &&
-                    !u.IsDeleted &&
+                    !(u.IsDeleted == true) &&
                     u.KycStatus == "approved" &&
                     u.AccountStatus != "ban"
                 )
                 .FirstOrDefaultAsync();
         }
 
+
         public async Task<List<Item>> GetAllSellerItemsAsync(int sellerId)
         {
             return await _context.Items
-                .Where(i => i.UpdatedBy == sellerId && !(i.IsDeleted == false))
+                .Where(i => i.UpdatedBy == sellerId && !(i.IsDeleted == true))
                 .ToListAsync();
         }
 
         public async Task<List<Item>> GetProcessingItemsAsync(int sellerId)
         {
-            return await _context.Items
+            var items = await _context.Items
                 .Where(item =>
                     item.UpdatedBy == sellerId &&
-                    item.Status == "sold" &&
-                    !item.IsDeleted &&
+                    !(item.IsDeleted == true) &&
                     _context.OrderItems
                         .Join(_context.Orders, oi => oi.OrderId, o => o.OrderId, (oi, o) => new { oi, o })
-                        .Any(joined => joined.oi.ItemId == item.ItemId && (joined.o.Status == "paid" || joined.o.Status == "shipped"))
+                        .Any(joined =>
+                            joined.oi.ItemId == item.ItemId &&
+                            (joined.o.Status == "paid" || joined.o.Status == "shipped"))
                 )
                 .ToListAsync();
+
+            foreach (var item in items)
+            {
+                item.Status = "processing";
+            }
+
+            return items;
         }
 
         public async Task<List<Item>> GetPendingPaymentItemsAsync(int sellerId)
         {
-            return await _context.Items
+            var items = await _context.Items
                 .Where(item =>
                     item.UpdatedBy == sellerId &&
-                    item.Status == "active" &&
-                    !item.IsDeleted &&
+                    !(item.IsDeleted == true) &&
                     _context.PaymentDetails
                         .Join(_context.Payments, pd => pd.PaymentId, p => p.PaymentId, (pd, p) => new { pd, p })
-                        .Join(_context.OrderItems, pp => pp.pd.ItemId, oi => oi.ItemId, (pp, oi) => pp)
-                        .Any(joined => joined.p.Status == "pending")
+                        .Any(joined =>
+                            joined.pd.ItemId == item.ItemId &&
+                            joined.p.Status == "pending")
                 )
                 .ToListAsync();
+
+            foreach (var item in items)
+            {
+                item.Status = "pending_approval";
+            }
+
+            return items;
         }
+        public async Task<List<Item>> GetCanceledItemsAsync(int sellerId)
+        {
+            var items = await _context.Items
+                .Where(item =>
+                    item.UpdatedBy == sellerId &&
+                    !(item.IsDeleted == true) &&
+                    (
+                        _context.PaymentDetails
+                            .Join(_context.Payments,
+                                  pd => pd.PaymentId,
+                                  p => p.PaymentId,
+                                  (pd, p) => new { pd, p })
+                            .Any(joined =>
+                                joined.pd.ItemId == item.ItemId &&
+                                (joined.p.Status == "failed" ||
+                                 joined.p.Status == "refunded" ||
+                                 joined.p.Status == "expired"))
+                        ||
+                        _context.OrderItems
+                            .Join(_context.Orders,
+                                  oi => oi.OrderId,
+                                  o => o.OrderId,
+                                  (oi, o) => new { oi, o })
+                            .Any(joined =>
+                                joined.oi.ItemId == item.ItemId &&
+                                joined.o.Status == "canceled")
+                    )
+                )
+                .ToListAsync();
+
+            foreach (var item in items)
+            {
+                item.Status = "canceled";
+
+            }
+
+            return items;
+        }
+
+
 
         public async Task<List<Item>> GetSoldItemsAsync(int sellerId)
         {
-            return await _context.Items
+            var items = await _context.Items
                 .Where(item =>
                     item.UpdatedBy == sellerId &&
-                    item.Status == "sold" &&
-                    !item.IsDeleted &&
+                    !(item.IsDeleted == true) &&
                     _context.PaymentDetails
                         .Join(_context.Payments, pd => pd.PaymentId, p => p.PaymentId, (pd, p) => new { pd, p })
-                        .Any(joined => joined.p.Status == "completed")
+                        .Any(joined =>
+                            joined.pd.ItemId == item.ItemId &&
+                            joined.p.Status == "completed")
                 )
                 .ToListAsync();
+
+            foreach (var item in items)
+            {
+                item.Status = "sold";
+            }
+
+            return items;
         }
-#pragma warning disable CS8601#pragma warning disable CS8601
+
+#pragma warning disable CS8601
         public async Task<List<BatteryItemDto>> MapToBatteryItemsAsync(List<Item> batteryItems)
         {
             var itemIds = batteryItems.Select(i => i.ItemId).ToList();
@@ -105,6 +172,7 @@ namespace Infrastructure.Repositories
                         select new BatteryItemDto
                         {
                             ItemId = item.ItemId,
+
                             Brand = battery.Brand,
                             Capacity = battery.Capacity,
                             Voltage = battery.Voltage,
@@ -112,7 +180,8 @@ namespace Infrastructure.Repositories
                             ListedPrice = item.Price,
                             ActualPrice = pd != null ? pd.Amount : (decimal?)null,
                             PaymentMethod = p != null ? p.Method : null,
-                            Status = item.Status,
+
+
                             CreatedAt = item.CreatedAt,
                             SoldAt = item.UpdatedAt,
                             ImageUrl = img != null ? img.ImageUrl : null,
@@ -160,7 +229,8 @@ namespace Infrastructure.Repositories
                             ListedPrice = item.Price,
                             ActualPrice = pd != null ? pd.Amount : (decimal?)null,
                             PaymentMethod = p != null ? p.Method : null,
-                            Status = item.Status,
+
+
                             CreatedAt = item.CreatedAt,
                             SoldAt = item.UpdatedAt,
                             ImageUrl = img != null ? img.ImageUrl : null,
