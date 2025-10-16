@@ -3,10 +3,12 @@ using Infrastructure.Data.Configurations;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
+using System.Reflection.Metadata;
+using System.Security.Cryptography;
 
 namespace Infrastructure.Data;
 
-public partial class EvBatteryTradingContext : DbContext
+public class EvBatteryTradingContext : DbContext
 {
     public EvBatteryTradingContext()
     {
@@ -19,13 +21,15 @@ public partial class EvBatteryTradingContext : DbContext
 
     public DbSet<Address> Addresses { get; set; }
 
+    public DbSet<Auction> Auctions { get; set; }
+
     public DbSet<BatteryDetail> BatteryDetails { get; set; }
 
     public DbSet<Bid> Bids { get; set; }
 
-    public DbSet<Blog> Blogs { get; set; }
-
     public DbSet<Category> Categories { get; set; }
+
+    public DbSet<CommissionFeeRule> CommissionFeeRules { get; set; }
 
     public DbSet<EVDetail> EvDetails { get; set; }
 
@@ -33,11 +37,11 @@ public partial class EvBatteryTradingContext : DbContext
 
     public DbSet<Item> Items { get; set; }
 
-    public DbSet<ItemBidding> ItemBiddings { get; set; }
-
     public DbSet<ItemImage> ItemImages { get; set; }
 
     public DbSet<KycDocument> KycDocuments { get; set; }
+
+    public DbSet<News> News { get; set; }
 
     public DbSet<Order> Orders { get; set; }
 
@@ -51,6 +55,8 @@ public partial class EvBatteryTradingContext : DbContext
 
     public DbSet<ReviewImage> ReviewImages { get; set; }
 
+    public DbSet<TransactionCommission> TransactionCommissions { get; set; }
+
     public DbSet<User> Users { get; set; }
 
     public DbSet<UserLog> UserLogs { get; set; }
@@ -58,6 +64,17 @@ public partial class EvBatteryTradingContext : DbContext
     public DbSet<Wallet> Wallets { get; set; }
 
     public DbSet<WalletTransaction> WalletTransactions { get; set; }
+
+    //public DbSet<Permission> Permissions { get; set; }
+    //public DbSet<StaffPermission> StaffPermissions { get; set; }
+
+    public DbSet<Notification> Notifications { get; set; }
+
+    public DbSet<Permission> Permissions { get; set; }
+
+    public DbSet<StaffPermission> StaffPermissions { get; set; }
+
+    public DbSet<Complaint> Complaints { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

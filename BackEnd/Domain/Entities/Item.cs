@@ -7,7 +7,7 @@ public class Item
 {
     public int ItemId { get; set; }
 
-    public string? ItemType { get; set; }
+    public string ItemType { get; set; } = string.Empty;
 
     public int? CategoryId { get; set; }
 
@@ -21,12 +21,14 @@ public class Item
 
     public string? Status { get; set; }
 
-    public DateOnly CreatedAt { get; set; }
+    public DateTime CreatedAt { get; set; }
 
-    public DateOnly UpdatedAt { get; set; }
     public virtual ICollection<Review> Reviews { get; set; } = new List<Review>();
+    public DateTime UpdatedAt { get; set; }
+
     public int? UpdatedBy { get; set; }
 
-    public bool IsDeleted { get; set; }
+    public bool? IsVerified { get; set; }
 
+    public bool IsDeleted { get; set; }
 }

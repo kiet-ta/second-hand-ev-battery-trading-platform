@@ -7,11 +7,11 @@ public class User
 {
     public int UserId { get; set; }
 
-    public string FullName { get; set; } = string.Empty;
+    public string FullName { get; set; } = null!;
 
-    public string Email { get; set; } = string.Empty;
+    public string Email { get; set; } = null!;
 
-    public string PasswordHash { get; set; } = string.Empty;
+    public string PasswordHash { get; set; } = null!;
 
     public string? Gender { get; set; }
 
@@ -21,15 +21,24 @@ public class User
 
     public string? AvatarProfile { get; set; }
 
-    public string? Role { get; set; }
+    public string Role { get; set; } = null!;
+
+    public string Bio { get; set; } = null!;
 
     public string? KycStatus { get; set; }
 
     public string? AccountStatus { get; set; }
 
-    public DateTime? CreatedAt { get; set; }
+    public DateTime CreatedAt { get; set; }
 
     public DateTime? UpdatedAt { get; set; }
 
-    public bool IsDeleted { get; set; } = false;
+    public bool? Paid { get; set; }
+
+    public bool IsDeleted { get; set; }
+
+    //// Tuan add 2 field for account lockout
+    //public int FailedLoginAttempts { get; set; }
+    //public DateTime? LockoutEnd { get; set; }
+
 }

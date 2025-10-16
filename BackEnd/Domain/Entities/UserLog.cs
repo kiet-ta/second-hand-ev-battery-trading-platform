@@ -13,5 +13,6 @@ public class UserLog
 
     public string? Details { get; set; }
 
-    public DateOnly? CreatedAt { get; set; }
+    public DateTime? CreatedAt { get; set; }
+
 }

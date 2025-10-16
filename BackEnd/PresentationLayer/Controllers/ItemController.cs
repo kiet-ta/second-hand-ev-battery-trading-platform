@@ -2,6 +2,7 @@
 using Application.DTOs.ItemDtos.BatteryDto;
 using Application.IServices;
 using Application.Services;
+using Infrastructure.Helpers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -73,6 +74,7 @@ namespace PresentationLayer.Controllers
         /// Query params: itemType, sellerName, minPrice, maxPrice, page, pageSize, sortBy, sortDir
         /// </summary>
         [HttpGet("search")]
+        //[CacheResult(600)]
         public async Task<IActionResult> SearchItem(
             [FromQuery] string itemType,
             [FromQuery] string title,
@@ -173,8 +175,19 @@ namespace PresentationLayer.Controllers
         [HttpPost("detail/battery")]
         public async Task<IActionResult> CreateBattery(CreateBatteryDetailDto dto)
         {
-            await _batteryService.CreateAsync(dto);
-            return Ok();
+            try
+            {
+                var created = await _batteryService.CreateAsync(dto);
+                return CreatedAtAction(nameof(GetItem), new { id = created.ItemId }, created);
+            }
+            catch (ArgumentException aex)
+            {
+                return BadRequest(aex.Message);
+            }
+            catch (InvalidOperationException dbEx)
+            {
+                return Conflict(dbEx.Message);
+            }
         }
 
         [HttpPut("detail/battery/{itemId}")]

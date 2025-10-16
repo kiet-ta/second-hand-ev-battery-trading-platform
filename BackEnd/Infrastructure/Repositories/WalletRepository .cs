@@ -25,4 +25,10 @@ public class WalletRepository : IWalletRepository
         await _context.SaveChangesAsync();
         return true;
     }
+
+    public async Task AddWalletTransactionAsync(WalletTransaction transaction)
+    {
+        await _context.WalletTransactions.AddAsync(transaction);
+        await _context.SaveChangesAsync();
+    }
 }

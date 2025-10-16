@@ -8,7 +8,14 @@ namespace Application.DTOs.ItemDtos.BatteryDto
 {
     public class CreateBatteryDetailDto
     {
-        public int ItemId { get; set; }
+        public int? CategoryId { get; set; }
+        public string Title { get; set; } = null!;
+        public string? Description { get; set; }
+        public decimal? Price { get; set; }
+        public int Quantity { get; set; } = 1;
+        public string Status { get; set; } = "active";
+        public int? UpdatedBy { get; set; }
+
         public string? Brand { get; set; }
         public int? Capacity { get; set; }
         public decimal? Voltage { get; set; }

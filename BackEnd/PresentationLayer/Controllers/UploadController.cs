@@ -1,59 +1,97 @@
-﻿using CloudinaryDotNet;
+﻿using Application.DTOs;
+using Application.DTOs.ItemDtos;
+using Application.IRepositories;
+using Application.IServices;
+using Application.Services;
+using CloudinaryDotNet;
 using CloudinaryDotNet.Actions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace PresentationLayer.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/upload")]
     [ApiController]
-    [Authorize]
     public class UploadController : ControllerBase
     {
-        private readonly Cloudinary _cloudinary;
+        private readonly IUploadService _uploadService;
+        private readonly IUserService _userService;
+        private readonly IItemImageService _itemImageService;
 
-        public UploadController(Cloudinary cloudinary)
+        public UploadController(IUploadService uploadService, IItemImageService itemImageService, IUserService userService)
         {
-            _cloudinary = cloudinary;
+            _uploadService = uploadService;
+            _itemImageService = itemImageService;
+            _userService = userService;
         }
 
-        [HttpPost("image")]
-        public async Task<IActionResult> UploadImage(IFormFile[] files)
+        [HttpGet("avatar/user/{userId}")]
+        public async Task<IActionResult> GetAvatar(int userId)
         {
-            if (files == null || files.Length == 0)
-                return BadRequest("No files uploaded");
-
-            var results = new List<object>();
-
-            foreach (var file in files)
+            try
             {
-                await using var stream = file.OpenReadStream();
+                var avatarUrl = await _userService.GetAvatarAsync(userId);
 
-                var uploadParams = new ImageUploadParams
+                if (string.IsNullOrEmpty(avatarUrl))
+                    return NotFound(new { message = "Avatar not found" });
+
+                return Ok(new
                 {
-                    File = new FileDescription(file.FileName, stream),
-                    Folder = "EV_BATTERY_TRADING/Electric_Verhicle"
-                };
-
-                var uploadResult = await _cloudinary.UploadAsync(uploadParams);
-
-                // Check error Cloudinary
-                if (uploadResult.Error != null)
-                    return BadRequest($"Cloudinary error: {uploadResult.Error.Message}");
-
-                results.Add(new
-                {
-                    Url = uploadResult.SecureUrl.ToString(),
-                    PublicId = uploadResult.PublicId,
-                    Thumbnail = _cloudinary.Api.UrlImgUp
-                                        .Transform(new Transformation().Width(200).Height(200).Crop("fill"))
-                                        .BuildUrl(uploadResult.PublicId)
+                    userId,
+                    avatarUrl
                 });
             }
-
-            return Ok(results);
+            catch (Exception ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
         }
 
+        [HttpPost("avatar/user")]
+        public async Task<IActionResult> UploadAvatar([FromForm] UploadAvatarRequest request)
+        {
+            if (request.File == null)
+                return BadRequest("No file uploaded");
+
+            var idClaim = User.FindFirst("id") ?? User.FindFirst(ClaimTypes.NameIdentifier);
+
+            if (idClaim == null)
+                return Unauthorized("Invalid token: user ID not found in claims");
+
+            if (!int.TryParse(idClaim.Value, out var userId))
+                return BadRequest("Invalid user ID format in token");
+
+            var avatarUrl = await _uploadService.UploadAvatarAsync(userId, request.File);
+
+            return Ok(new
+            {
+                Message = "Upload success",
+                AvatarUrl = avatarUrl
+            });
+        }
+
+        [HttpPost("upload/item")]
+        [Consumes("multipart/form-data")]
+        public async Task<IActionResult> Upload([FromForm] UploadItemImageRequest request)
+        {
+            try
+            {
+                var urls = await _itemImageService.UploadItemImagesAsync(request.ItemId, request.Files);
+                return Ok(new { Message = "Upload success", ImageUrls = urls });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { Error = ex.Message });
+            }
+        }
+
+        [HttpGet("item/{itemId}")]
+        public async Task<IActionResult> GetItemImages([FromServices] IItemImageRepository repo, int itemId)
+        {
+            var images = await repo.GetByItemIdAsync(itemId);
+            return Ok(images);
+        }
     }
 }

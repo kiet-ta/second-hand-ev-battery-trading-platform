@@ -16,9 +16,11 @@ public class Review
 
     public string? Comment { get; set; }
 
-    public DateOnly? CreatedAt { get; set; }
+    public DateTime? CreatedAt { get; set; }
 
-    public DateOnly? UpdatedAt { get; set; }
+    public DateTime? UpdatedAt { get; set; }
+
+    // public DateOnly? UpdatedAt { get; set; }
     public virtual Item Item { get; set; }
     public virtual ICollection<ReviewImage> ReviewImages { get; set; } = new List<ReviewImage>();
 }
