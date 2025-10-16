@@ -33,7 +33,7 @@ public class User
 
     public DateTime? UpdatedAt { get; set; }
 
-    public bool? Paid { get; set; }
+    public string? Paid { get; set; }
 
     public bool IsDeleted { get; set; }
 }

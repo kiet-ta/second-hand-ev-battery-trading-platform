@@ -55,7 +55,7 @@ namespace Infrastructure.Repositories
             {
                 if (fav.ItemType == "ev")
                 {
-                    var detail = await _context.EvDetails
+                    var detail = await _context.EVDetails
                         .Where(d => d.ItemId == fav.ItemId)
                         .Select(d => new EVDetailDto
                         {

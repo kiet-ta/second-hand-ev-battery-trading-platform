@@ -48,5 +48,11 @@ namespace PresentationLayer.Controllers
             return Ok(result);
         }
 
+        [HttpGet("latest")]
+        public async Task<IActionResult> GetLatestTransactions()
+        {
+            var transactions = await _dashboardService.GetLatestTransactionsAsync(10);
+            return Ok(transactions);
+        }
     }
 }

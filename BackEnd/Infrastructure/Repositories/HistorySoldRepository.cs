@@ -203,7 +203,7 @@ namespace Infrastructure.Repositories
 
             var query = from item in _context.Items
                         where itemIds.Contains(item.ItemId)
-                        join ev in _context.EvDetails on item.ItemId equals ev.ItemId
+                        join ev in _context.EVDetails on item.ItemId equals ev.ItemId
                         join img in _context.ItemImages on item.ItemId equals img.ItemId into images
                         from img in images.DefaultIfEmpty()
                         join oi in _context.OrderItems on item.ItemId equals oi.ItemId into orderItems

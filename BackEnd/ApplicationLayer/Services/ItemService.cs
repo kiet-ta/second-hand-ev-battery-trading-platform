@@ -40,7 +40,7 @@ namespace Application.Services
                 Title = item.Title,
                 Description = item.Description,
                 Price = item.Price,
-                Quantity = item.Quantity ?? 0,
+                Quantity = item.Quantity,
                 //Status = item.Status,
                 CreatedAt = item.CreatedAt,
                 UpdatedAt = item.UpdatedAt,
@@ -72,7 +72,7 @@ namespace Application.Services
                     Title = item.Title,
                     Description = item.Description,
                     Price = item.Price,
-                    Quantity = item.Quantity ?? 0,
+                    Quantity = item.Quantity,
                     //Status = item.Status,
                     CreatedAt = item.CreatedAt,
                     UpdatedAt = item.UpdatedAt,
@@ -174,7 +174,7 @@ namespace Application.Services
                     Title = item.Title,
                     Description = item.Description,
                     Price = item.Price,
-                    Quantity = item.Quantity ?? 0,
+                    Quantity = item.Quantity,
                     //Status = item.Status,
                     CreatedAt = item.CreatedAt,
                     UpdatedAt = item.UpdatedAt,
@@ -209,7 +209,7 @@ namespace Application.Services
                     Title = item.Title,
                     Description = item.Description,
                     Price = item.Price,
-                    Quantity = item.Quantity ?? 0,
+                    Quantity = item.Quantity,
                     //Status = item.Status,
                     CreatedAt = item.CreatedAt,
                     UpdatedAt = item.UpdatedAt,
@@ -303,6 +303,13 @@ namespace Application.Services
         public async Task<IEnumerable<ItemSellerDto>> GetSellerItemsAsync(int sellerId)
         {
             return await _itemRepository.GetItemsBySellerIdAsync(sellerId);
+        }
+
+        public async Task<UserItemDetailDto?> GetItemDetailByIdAsync(int itemId)
+        {
+            // có thể thêm logic xử lý domain hoặc business rules tại đây
+            var result = await _itemRepository.GetItemWithSellerByItemIdAsync(itemId);
+            return result;
         }
     }
 }
