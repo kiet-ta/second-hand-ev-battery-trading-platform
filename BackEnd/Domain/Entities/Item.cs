@@ -23,6 +23,7 @@ public class Item
 
     public DateTime CreatedAt { get; set; }
 
+    public virtual ICollection<Review> Reviews { get; set; } = new List<Review>();
     public DateTime UpdatedAt { get; set; }
 
     public int? UpdatedBy { get; set; }

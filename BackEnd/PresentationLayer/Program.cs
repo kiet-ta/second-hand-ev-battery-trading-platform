@@ -62,7 +62,7 @@ namespace PresentationLayer
             builder.Services.AddScoped<IItemImageService, ItemImageService>();
             builder.Services.AddScoped<ISellerService, SellerService>();
             builder.Services.AddScoped<IManagerDashboardService, ManagerDashboardService>();
-
+            builder.Services.AddScoped<IReviewService, ReviewService>();
 
             //---Repositories
             builder.Services.AddScoped<IAuctionRepository, AuctionRepository>();
@@ -73,6 +73,7 @@ namespace PresentationLayer
             builder.Services.AddScoped<IEVDetailRepository, EVDetailRepository>();
             builder.Services.AddScoped<IBatteryDetailRepository, BatteryDetailRepository>();
             builder.Services.AddScoped<IHistorySoldRepository, HistorySoldRepository>();
+            //builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
             builder.Services.AddScoped<IBidRepository, BidRepository>();
             builder.Services.AddScoped<IWalletRepository, WalletRepository>();
             builder.Services.AddScoped<IWalletTransactionRepository, WalletTransactionRepository>();

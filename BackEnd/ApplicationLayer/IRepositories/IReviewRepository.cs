@@ -1,3 +1,4 @@
+﻿using Domain.DTOs.ReviewDtos;
 ﻿using Application.DTOs.UserDtos;
 using Domain.Entities;
 using System;
@@ -10,6 +11,9 @@ namespace Application.IRepositories
 {
     public interface IReviewRepository
     {
+        Task<ReviewResponseDto> CreateReviewAsync(CreateReviewDto dto);
+        Task<List<ReviewResponseDto>> GetReviewsByTargetUserIdAsync(int targetUserId);
+    
         Task<IEnumerable<Review>> GetByTargetUserIdAsync(int targetUserId);
 
         Task<double> GetAverageRatingAsync(int targetUserId);
