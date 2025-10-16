@@ -14,11 +14,13 @@ namespace Application.Services
     {
         private readonly IChatRepository _repo;
         private readonly IUserContextService _userContext;
+        private readonly IProfanityFilterService _filterService;
 
-        public ChatService(IChatRepository repo, IUserContextService userContext)
+        public ChatService(IChatRepository repo, IUserContextService userContext, IProfanityFilterService filterService)
         {
             _repo = repo;
             _userContext = userContext;
+            _filterService = filterService;
         }
 
         public async Task<ChatRoomDto> EnsureRoomAsync(long[] members)
@@ -30,13 +32,13 @@ namespace Application.Services
             if (members[0] == members[1])
                 throw new ArgumentException("Cannot create room with same user twice.");
 
-            // Tạo Cid deterministic
+            // Create Cid deterministic
             var sorted = members.OrderBy(x => x).ToArray();
             long cid = GenerateCid(sorted);
 
             Console.WriteLine($"Creating/Getting room with Cid: {cid} for members [{sorted[0]}, {sorted[1]}]");
 
-            // Check room tồn tại
+            // Check room exist 
             var room = await _repo.GetRoomRawAsync(cid);
 
             if (room == null)
@@ -59,12 +61,12 @@ namespace Application.Services
 
         public async Task<Message> SendMessageAsync(SendMessageDto dto)
         {
-            // Authorization: current user phải là sender
+            // Authorization: current user must be sender
             var current = _userContext.GetCurrentUserId();
             if (current != dto.From)
                 throw new UnauthorizedAccessException("You can only send messages as yourself");
 
-            // Validate room exists và user là member
+            // Validate room exists and user are member
             var room = await _repo.GetRoomRawAsync(dto.Cid);
             if (room == null)
                 throw new ArgumentException($"Room {dto.Cid} does not exist");
@@ -72,20 +74,22 @@ namespace Application.Services
             if (!room.Members.Contains(dto.From) || !room.Members.Contains(dto.To))
                 throw new UnauthorizedAccessException("Users must be members of the room");
 
-            // Tạo message
+            var cleanedMessage = _filterService.CleanMessage(dto.Text);
+
+            // Create message
             var msg = new Message
             {
                 Id = Guid.NewGuid().ToString("N"),
                 From = dto.From,
                 To = dto.To,
-                Text = dto.Text,
+                Text = cleanedMessage,
                 CreatedAt = DateTimeOffset.UtcNow
             };
 
             await _repo.AppendMessageAsync(dto.Cid, msg);
             Console.WriteLine($"Message sent: {msg.Id} from {msg.From} to {msg.To}");
 
-            return msg; // Trả về message để ChatHub có thể broadcast
+            return msg; // return message to ChatHub able to broadcast
         }
 
         public async Task<ChatRoomDto?> GetRoomAsync(long cid)
@@ -93,7 +97,7 @@ namespace Application.Services
             var room = await _repo.GetRoomRawAsync(cid);
             if (room == null) return null;
 
-            // ✅ Load messages từ Firebase
+            // Load messages from Firebase
             var messages = await _repo.GetMessagesAsync(cid, limit: 100);
             var messageDtos = messages.Select(m => new MessageDto(
                 m.Id,
