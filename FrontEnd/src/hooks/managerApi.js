@@ -74,10 +74,15 @@ export const managerAPI = {
         return res.json();
     },
 
-    // 📦 Products (API thật)
     getProducts: async () => {
         const res = await fetch(`${BASE}/Item`);
-        if (!res.ok) throw new Error("Failed to fetch products");
+        if (!res.ok) throw new Error("Failed to fetch item list");
+        return res.json();
+    },
+
+    getItemWithSeller: async (itemId) => {
+        const res = await fetch(`${BASE}/Item/${itemId}/Seller`);
+        if (!res.ok) throw new Error(`Failed to fetch item ${itemId} with seller`);
         return res.json();
     },
 };

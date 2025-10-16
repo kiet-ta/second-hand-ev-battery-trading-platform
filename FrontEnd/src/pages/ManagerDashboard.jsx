@@ -137,24 +137,23 @@ export default function ManagerDashboard() {
         const fetchAll = async () => {
             setLoading(true);
             try {
-                const [userData, productData] = await Promise.all([
-                    managerAPI.getUsers(),
-                    managerAPI.getProducts(),
-                ]);
+                const userData = await managerAPI.getUsers();
 
-                // 🧩 Ghép tên seller vào từng product
-                const productsWithSeller = productData.map((p) => {
-                    const seller = userData.find((u) => u.user_id === p.seller_id);
-                    return {
-                        ...p,
-                        sellerName: seller ? seller.full_name : `ID ${p.seller_id}`,
-                    };
-                });
+                // Lấy danh sách itemId trước
+                const itemList = await managerAPI.getProducts();
+
+                // Gọi API /Item/{itemId}/Seller cho từng item
+                const productData = await Promise.all(
+                    itemList.map(async (item) => {
+                        const fullData = await managerAPI.getItemWithSeller(item.itemId);
+                        return fullData;
+                    })
+                );
 
                 setUsers(userData);
-                setProducts(productsWithSeller);
+                setProducts(productData);
             } catch (err) {
-                console.error(err);
+                console.error("❌ Lỗi khi tải dữ liệu:", err);
             } finally {
                 setLoading(false);
             }
@@ -162,6 +161,9 @@ export default function ManagerDashboard() {
 
         fetchAll();
     }, []);
+
+
+
 
 
     const revenueTotal = useMemo(
@@ -475,12 +477,21 @@ export default function ManagerDashboard() {
                                     <CardHeader title="Product Management" icon={<PackageSearch size={18} />} />
                                     <div className="p-4 grid md:grid-cols-2 lg:grid-cols-3 gap-4">
                                         {products.map((p) => (
-                                            <div key={p.id} className="border border-slate-200 rounded-xl p-4 flex flex-col hover:shadow-md transition">
-                                                <img src={p.image} alt={p.title} className="w-full h-36 object-cover rounded-lg mb-3" />
-                                                <h4 className="font-semibold text-slate-800">{p.title}</h4>
-                                                <p className="text-sm text-slate-500 mb-1">{p.type}</p>
-                                                <p className="text-slate-700 font-medium">{currencyVND(p.price)}</p>
-                                                <p className="text-xs text-slate-500 mt-1">Seller: {p.sellerName}</p>
+                                            <div
+                                                key={p.item.itemId}
+                                                className="border border-slate-200 rounded-xl p-4 flex flex-col hover:shadow-md transition"
+                                            >
+                                                <img
+                                                    src={p.item.images?.[0]?.imageUrl || "https://placehold.co/300x200?text=No+Image"}
+                                                    alt={p.item.title}
+                                                    className="w-full h-36 object-cover rounded-lg mb-3"
+                                                />
+                                                <h4 className="font-semibold text-slate-800">{p.item.title}</h4>
+                                                <p className="text-sm text-slate-500 mb-1">{p.item.itemType?.toUpperCase()}</p>
+                                                <p className="text-slate-700 font-medium">{currencyVND(p.item.price)}</p>
+                                                <p className="text-xs text-slate-500 mt-1">
+                                                    Seller: {p.seller?.fullName || "Không xác định"}
+                                                </p>
                                             </div>
                                         ))}
                                     </div>
