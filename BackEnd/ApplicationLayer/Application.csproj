@@ -10,8 +10,11 @@
 
   <ItemGroup>
     <Compile Remove="Mappings\**" />
+    <Compile Remove="Resources\**" />
     <EmbeddedResource Remove="Mappings\**" />
+    <EmbeddedResource Remove="Resources\**" />
     <None Remove="Mappings\**" />
+    <None Remove="Resources\**" />
   </ItemGroup>
 
   <ItemGroup>

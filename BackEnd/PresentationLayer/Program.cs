@@ -64,6 +64,7 @@ namespace PresentationLayer
             builder.Services.AddScoped<IManagerDashboardService, ManagerDashboardService>();
             builder.Services.AddScoped<IReviewService, ReviewService>();
             builder.Services.AddScoped<ICommissionService, CommissionService>();
+            builder.Services.AddScoped<IProfanityFilterService, ProfanityFilterService>();
 
             //---Repositories
             builder.Services.AddScoped<IAuctionRepository, AuctionRepository>();
