@@ -20,6 +20,7 @@ namespace Application.Services
         private readonly IComplaintRepository _complaintRepo;
         private readonly IPaymentRepository _paymentRepo;
         private readonly ITransactionRepository _transactionRepository;
+        private readonly IKYC_DocumentRepository _kycRepo;
 
         public ManagerDashboardService(
             IUserRepository userRepo,
@@ -27,7 +28,8 @@ namespace Application.Services
             IOrderRepository orderRepo,
             IComplaintRepository complaintRepo, 
             IPaymentRepository paymentRepo,
-            ITransactionRepository transactionRepository)
+            ITransactionRepository transactionRepository,
+            IKYC_DocumentRepository kycRepo)
         {
             _userRepo = userRepo;
             _itemRepo = itemRepo;
@@ -35,6 +37,7 @@ namespace Application.Services
             _complaintRepo = complaintRepo;
             _paymentRepo = paymentRepo;
             _transactionRepository = transactionRepository;
+            _kycRepo = kycRepo;
         }
 
         public async Task<ManagerDashboardMetricsDto> GetMetricsAsync()
@@ -135,6 +138,11 @@ namespace Application.Services
         public async Task<List<LatestTransactionDto>> GetLatestTransactionsAsync(int limit)
         {
             return await _transactionRepository.GetLatestTransactionsAsync(limit);
+        }
+
+        public Task<List<SellerPendingApprovalDto>> GetPendingApprovalsAsync()
+        {
+            return _kycRepo.GetPendingApprovalsAsync();
         }
     }
 }

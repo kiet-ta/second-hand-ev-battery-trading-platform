@@ -54,5 +54,12 @@ namespace PresentationLayer.Controllers
             var transactions = await _dashboardService.GetLatestTransactionsAsync(10);
             return Ok(transactions);
         }
+
+        [HttpGet("pending")]
+        public async Task<IActionResult> GetPending()
+        {
+            var result = await _dashboardService.GetPendingApprovalsAsync();
+            return Ok(result);
+        }
     }
 }

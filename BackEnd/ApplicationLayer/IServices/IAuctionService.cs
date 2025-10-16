@@ -19,5 +19,5 @@ public interface IAuctionService
 
     Task<AuctionListResponse> GetAllAuctionsAsync(int page, int pageSize);
 
-    Task<IEnumerable<AuctionDto>> GetActionByUserId(int userId);
+    Task<IEnumerable<AuctionDto>> GetAuctionsByUserId(int userId);
 }

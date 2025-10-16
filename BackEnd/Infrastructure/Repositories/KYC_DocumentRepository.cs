@@ -1,4 +1,5 @@
-﻿using Application.IRepositories;
+﻿using Application.DTOs.ManagerDto;
+using Application.IRepositories;
 using Domain.Entities;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -81,6 +82,43 @@ namespace Infrastructure.Repositories
         public async Task<IEnumerable<KycDocument>> GetAllKYC_DocumentsAsync()
         {
             return await _context.KycDocuments.ToListAsync();
+        }
+
+        public async Task<List<SellerPendingApprovalDto>> GetPendingApprovalsAsync()
+        {
+            // AsNoTracking cho read-only, tránh N+1 bằng subquery FirstOrDefault cho address
+            var query = _context.KycDocuments
+                .AsNoTracking()
+                .Where(k => k.Status == "pending")
+                .Join(
+                    _context.Users.AsNoTracking(),
+                    k => k.UserId,
+                    u => u.UserId,
+                    (k, u) => new { Kyc = k, User = u }
+                )
+                .Select(x => new
+                {
+                    x.Kyc,
+                    x.User,
+                    PreferredAddress = _context.Addresses
+                        .AsNoTracking()
+                        .Where(a => a.UserId == x.User.UserId && !a.IsDeleted)
+                        // ưu tiên: is_shop_address -> is_default -> fallback smallest id
+                        .OrderByDescending(a => a.IsShopAddress)
+                        .ThenByDescending(a => a.IsDefault)
+                        .ThenBy(a => a.AddressId)
+                        .FirstOrDefault()
+                })
+                .OrderByDescending(x => x.Kyc.SubmittedAt)
+                .Select(x => new SellerPendingApprovalDto
+                {
+                    Id = x.Kyc.DocId,
+                    Seller = x.User.FullName,
+                    Region = x.PreferredAddress != null ? (x.PreferredAddress.Province ?? string.Empty) : string.Empty,
+                    SubmittedAt = x.Kyc.SubmittedAt
+                });
+
+            return await query.ToListAsync();
         }
     }
 }

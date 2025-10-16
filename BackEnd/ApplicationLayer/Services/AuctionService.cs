@@ -292,7 +292,7 @@ public class AuctionService : IAuctionService
         };
     }
 
-    public async Task<IEnumerable<AuctionDto>> GetActionByUserId(int userId)
+    public async Task<IEnumerable<AuctionDto>> GetAuctionsByUserId(int userId)
     {
         var auctions = await _auctionRepository.GetAuctionsByUserIdAsync(userId);
         var auctionDtos = new List<AuctionDto>();
