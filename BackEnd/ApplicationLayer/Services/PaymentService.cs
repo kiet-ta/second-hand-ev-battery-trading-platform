@@ -17,13 +17,20 @@ public class PaymentService : IPaymentService
     private readonly IPaymentRepository _paymentRepository;
     private readonly IWalletRepository _walletRepository;
     private readonly IConfiguration _config;
+    private readonly ICommissionFeeRuleRepository _commissionRuleRepo;
+    private readonly IUserRepository _userRepository;
+    private readonly IItemRepository _itemRepository;
 
-    public PaymentService(PayOS payOS, IPaymentRepository paymentRepository, IWalletRepository walletRepository, IConfiguration config)
+    public PaymentService(PayOS payOS, IPaymentRepository paymentRepository, IWalletRepository walletRepository, IConfiguration config, ICommissionFeeRuleRepository commissionRuleRepo,
+    IUserRepository userRepository, IItemRepository itemRepository)
     {
         _payOS = payOS;
         _paymentRepository = paymentRepository;
         _config = config;
         _walletRepository = walletRepository;
+        _commissionRuleRepo = commissionRuleRepo;
+        _userRepository = userRepository;
+        _itemRepository = itemRepository;
     }
 
     public async Task<PaymentResponseDto> CreatePaymentAsync(PaymentRequestDto request)
@@ -136,34 +143,110 @@ public class PaymentService : IPaymentService
         var data = _payOS.verifyPaymentWebhookData(body);
         if (data.code != "00" || data.desc != "success")
             return;
-        var info = await _paymentRepository.GetPaymentInfoByOrderCodeAsync(data.orderCode);
 
-        // Check if payment exists and hasn't been processed yet to avoid duplicates
-        if (info != null && info.Status != "completed")
+        var info = await _paymentRepository.GetPaymentInfoByOrderCodeAsync(data.orderCode);
+        if (info == null || info.Status == "completed")
+            return;
+
+        await _paymentRepository.UpdatePaymentStatusAsync(info.PaymentId, "completed");
+
+        // check in db have registration payment
+        bool isRegistrationPayment = info.Details.Count == 1 &&
+                                     info.Details.First().ItemId == null &&
+                                     info.Details.First().OrderId == null;
+
+        if (isRegistrationPayment)
         {
-            // Update internal payment status
-            await _paymentRepository.UpdatePaymentStatusAsync(info.PaymentId, "completed");
+            var user = await _userRepository.GetByIdAsync(info.UserId);
+            if (user != null)
+            {
+                user.Paid = "registing";
+                await _userRepository.UpdateAsync(user);
+            }
+        }
+        else
+        {
             await _paymentRepository.UpdateRelatedEntitiesAsync(info.Details);
 
-            // Find the user's wallet
-            var wallet = await _walletRepository.GetWalletByUserIdAsync(info.UserId);
-            if (wallet != null)
-            {
-                // Add the money to wallet
-                await _walletRepository.UpdateBalanceAsync(wallet.WalletId, info.TotalAmount);
+            // Find seller for sent money
+            var firstDetail = info.Details.FirstOrDefault(d => d.ItemId.HasValue);
+            if (firstDetail?.ItemId == null) return;
 
-                // Create a transaction record for the history
+            var item = await _itemRepository.GetByIdAsync(firstDetail.ItemId.Value);
+            if (item?.UpdatedBy == null) return;
+
+            int sellerId = item.UpdatedBy.Value;
+            var sellerWallet = await _walletRepository.GetWalletByUserIdAsync(sellerId);
+
+            if (sellerWallet != null)
+            {
+                await _walletRepository.UpdateBalanceAsync(sellerWallet.WalletId, info.TotalAmount);
+
                 var transaction = new WalletTransaction
                 {
-                    WalletId = wallet.WalletId,
+                    WalletId = sellerWallet.WalletId,
                     Amount = info.TotalAmount,
                     Type = "deposit",
                     RefId = info.PaymentId,
                     CreatedAt = DateTime.UtcNow
                 };
-
                 await _walletRepository.AddWalletTransactionAsync(transaction);
             }
         }
+    }
+
+    public async Task<PaymentResponseDto> CreateSellerRegistrationPaymentAsync(SellerRegistrationPaymentRequestDto request)
+    {
+        var rules = await _commissionRuleRepo.GetAllAsync();
+        var registrationFeeRule = rules.FirstOrDefault(r => r.FeeCode == "SELLER_REG_FEE" && r.IsActive);
+
+        if (registrationFeeRule == null)
+            throw new Exception("Registration fee for Seller not configured yet.");
+
+        var feeAmount = registrationFeeRule.FeeValue;
+
+        // record payment
+        long orderCode = long.Parse(DateTimeOffset.UtcNow.ToString("ffffff"));
+        var payment = new Payment
+        {
+            UserId = request.UserId,
+            OrderCode = orderCode,
+            TotalAmount = feeAmount,
+            Method = "payos", // can add option that implement for debute from wallet
+            Status = "pending",
+            CreatedAt = DateTime.UtcNow
+        };
+        payment = await _paymentRepository.AddPaymentAsync(payment);
+
+        var paymentDetail = new PaymentDetail
+        {
+            PaymentId = payment.PaymentId,
+            Amount = feeAmount,
+            ItemId = null,
+            OrderId = null
+        };
+        await _paymentRepository.AddPaymentDetailsAsync(new List<PaymentDetail> { paymentDetail });
+
+        var itemData = new ItemData("Seller registration fee", 1, (int)feeAmount);
+        var domain = _config["AppSettings:Domain"] ?? "http://localhost:5173/";
+
+        var paymentData = new PaymentData(
+            orderCode,
+            (int)feeAmount,
+            $"Pay Seller registration fee for User ID: {request.UserId}",
+            new List<ItemData> { itemData },
+            $"{domain}payment/fail?paymentId={payment.PaymentId}",
+            $"{domain}payment/success?paymentId={payment.PaymentId}"
+        );
+
+        var result = await _payOS.createPaymentLink(paymentData);
+
+        return new PaymentResponseDto
+        {
+            PaymentId = payment.PaymentId,
+            OrderCode = result.orderCode,
+            CheckoutUrl = result.checkoutUrl,
+            Status = "pending"
+        };
     }
 }
