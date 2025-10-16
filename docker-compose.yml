@@ -11,9 +11,13 @@ services:
       - ConnectionStrings__DefaultConnection=Server=db;Database=EvBatteryTradingDB;User Id=sa;Password=${DB_PASSWORD};TrustServerCertificate=True
       - ASPNETCORE_ENVIRONMENT=Production
       - Jwt__Key=${JWT_KEY}
+      - PredictionServiceUrl=http://ai-service:5000
     depends_on:
       db:
         condition: service_healthy
+      - ai-service
+    networks:
+      - e-battery-net
 
   db:
     image: mcr.microsoft.com/mssql/server:2022-latest
@@ -30,6 +34,20 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - e-battery-net
+      
+  ai-service:
+    build:
+      context: ./AIIntegration
+      dockerfile: Dockerfile
+    restart: always
+    networks:
+      - e-battery-net
 
 volumes:
   sqlserver_data:
+  
+networks:
+  e-battery-net:
+    driver: bridge
