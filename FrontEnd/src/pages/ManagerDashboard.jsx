@@ -100,6 +100,14 @@ export default function ManagerDashboard() {
     const [active, setActive] = useState("dashboard");
     const [users, setUsers] = useState([]);
     const [products, setProducts] = useState([]);
+    const [showAddStaffModal, setShowAddStaffModal] = useState(false);
+    const [newStaff, setNewStaff] = useState({
+        fullName: "",
+        email: "",
+        role: "staff",
+        tasks: [],
+    });
+
 
     const menu = [
         { key: "dashboard", label: "Dashboard", icon: <LayoutDashboard size={18} /> },
@@ -239,9 +247,13 @@ export default function ManagerDashboard() {
                             icon={<Settings size={18} className="text-slate-700" />}
                         />
                         <div className="p-4 grid grid-cols-1 gap-2">
-                            <button className="px-3 py-2 rounded-xl border border-slate-200 text-sm text-slate-700 hover:bg-slate-50 text-left">
+                            <button
+                                onClick={() => setShowAddStaffModal(true)}
+                                className="px-3 py-2 rounded-xl border border-slate-200 text-sm text-slate-700 hover:bg-slate-50 text-left"
+                            >
                                 + Add Staff Account
                             </button>
+
                             <button className="px-3 py-2 rounded-xl border border-slate-200 text-sm text-slate-700 hover:bg-slate-50 text-left">
                                 Review Seller Approvals
                             </button>
@@ -476,6 +488,136 @@ export default function ManagerDashboard() {
                     </div>
                 </main>
             </div>
+            {/* 🧑‍💼 Add Staff Modal */}
+            {showAddStaffModal && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+                    <div className="bg-white rounded-2xl shadow-lg w-full max-w-md p-6 animate-fadeIn">
+                        <h2 className="text-lg font-semibold text-slate-800 mb-4">
+                            Create New Staff Account
+                        </h2>
+
+                        <form
+                            onSubmit={(e) => {
+                                e.preventDefault();
+                                console.log("🆕 New staff created:", newStaff);
+                                alert(
+                                    `✅ Staff account created!\nName: ${newStaff.fullName}\nEmail: ${newStaff.email}\nTasks: ${newStaff.tasks.join(
+                                        ", "
+                                    )}`
+                                );
+                                setShowAddStaffModal(false);
+                                setNewStaff({ fullName: "", email: "", role: "staff", tasks: [] });
+                            }}
+
+                            className="space-y-4"
+                        >
+                            {/* Full Name */}
+                            <div>
+                                <label className="block text-sm font-medium text-slate-600 mb-1">
+                                    Full Name
+                                </label>
+                                <input
+                                    type="text"
+                                    value={newStaff.fullName}
+                                    onChange={(e) =>
+                                        setNewStaff({ ...newStaff, fullName: e.target.value })
+                                    }
+                                    placeholder="Enter staff full name"
+                                    className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                                    required
+                                />
+                            </div>
+
+                            {/* Email */}
+                            <div>
+                                <label className="block text-sm font-medium text-slate-600 mb-1">
+                                    Email
+                                </label>
+                                <input
+                                    type="email"
+                                    value={newStaff.email}
+                                    onChange={(e) =>
+                                        setNewStaff({ ...newStaff, email: e.target.value })
+                                    }
+                                    placeholder="Enter staff email"
+                                    className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                                    required
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-slate-600 mb-2">
+                                    Assigned Tasks
+                                </label>
+
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                    {[
+                                        "Verify Sellers",
+                                        "Monitor Auctions",
+                                        "Handle Disputes",
+                                        "Approve Listings",
+                                        "Manage Reports",
+                                        "Customer Support",
+                                        "Payment Verification",
+                                    ].map((task) => (
+                                        <label
+                                            key={task}
+                                            className="flex items-center gap-2 border border-slate-200 rounded-lg px-3 py-2 cursor-pointer hover:bg-slate-50"
+                                        >
+                                            <input
+                                                type="checkbox"
+                                                checked={
+                                                    Array.isArray(newStaff.tasks) &&
+                                                    newStaff.tasks.includes(task)
+                                                }
+                                                onChange={(e) => {
+                                                    if (e.target.checked) {
+                                                        setNewStaff({
+                                                            ...newStaff,
+                                                            tasks: [...newStaff.tasks, task],
+                                                        });
+                                                    } else {
+                                                        setNewStaff({
+                                                            ...newStaff,
+                                                            tasks: newStaff.tasks.filter((t) => t !== task),
+                                                        });
+                                                    }
+                                                }}
+                                                className="accent-blue-600 w-4 h-4"
+                                            />
+                                            <span className="text-sm text-slate-700">{task}</span>
+                                        </label>
+                                    ))}
+                                </div>
+
+                                {newStaff.tasks.length > 0 && (
+                                    <p className="text-xs text-slate-500 mt-1">
+                                        Selected: {newStaff.tasks.join(", ")}
+                                    </p>
+                                )}
+                            </div>
+
+
+
+                            {/* Actions */}
+                            <div className="flex justify-end gap-3 pt-2">
+                                <button
+                                    type="button"
+                                    onClick={() => setShowAddStaffModal(false)}
+                                    className="px-4 py-2 rounded-lg border border-slate-300 text-slate-600 hover:bg-slate-100"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700"
+                                >
+                                    Create
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
