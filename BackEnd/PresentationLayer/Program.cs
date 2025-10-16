@@ -1,6 +1,5 @@
-using Application.DTOs;
+﻿using Application.DTOs;
 using Application.DTOs.PaymentDtos;
-
 using Application.IHelpers;
 using Application.IRepositories;
 using Application.IRepositories.IBiddingRepositories;
@@ -11,6 +10,7 @@ using Application.IServices;
 using Application.Services;
 using Application.Validations;
 using CloudinaryDotNet;
+using Domain.Entities;
 using Domain.Mappings;
 using FluentValidation;
 using Infrastructure.Data;
@@ -46,6 +46,7 @@ namespace PresentationLayer
             //---Services
             builder.Services.AddScoped<IAuthService, AuthService>();
             builder.Services.AddScoped<IItemService, ItemService>();
+            builder.Services.AddScoped<IAddressService, AddressService>();
             builder.Services.AddScoped<IOrderService, OrderService>();
             builder.Services.AddScoped<IUserService, UserService>();
             builder.Services.AddScoped<IEVDetailService, EVDetailService>();
@@ -57,9 +58,15 @@ namespace PresentationLayer
             builder.Services.AddScoped<IOrderItemService, OrderItemService>();
             builder.Services.AddScoped<IFavoriteService, FavoriteService>();
             builder.Services.AddScoped<IChatService, ChatService>();
+            builder.Services.AddScoped<IUploadService, UploadService>();
+            builder.Services.AddScoped<IItemImageService, ItemImageService>();
+            builder.Services.AddScoped<ISellerService, SellerService>();
+            builder.Services.AddScoped<IManagerDashboardService, ManagerDashboardService>();
+
 
             //---Repositories
             builder.Services.AddScoped<IAuctionRepository, AuctionRepository>();
+            builder.Services.AddScoped<IAddressRepository, AddressRepository>();
             builder.Services.AddScoped<IUserRepository, UserRepository>();
             builder.Services.AddScoped<IItemRepository, ItemRepository>();
             builder.Services.AddScoped<IOrderRepository, OrderRepository>();
@@ -73,6 +80,9 @@ namespace PresentationLayer
             builder.Services.AddScoped<IPaymentDetailRepository, PaymentDetailRepository>();
             builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
             builder.Services.AddScoped<IOrderItemRepository, OrderItemRepository>();
+            builder.Services.AddScoped<IItemImageRepository, ItemImageRepository>();
+            builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
+            builder.Services.AddScoped<IComplaintRepository, ComplaintRepository>();   
 
             // AddHttp
             builder.Services.AddHttpClient<IChatRepository, FirebaseChatRepository>();
@@ -161,8 +171,8 @@ namespace PresentationLayer
 
             builder.Services.AddSingleton(sp =>
             {
-                var clientId = payosConfig["ClientId"];
-                var apiKey = payosConfig["ApiKey"];
+                var clientId = payosConfig["Client_Id"];
+                var apiKey = payosConfig["Api_Key"];
                 var checksumKey = payosConfig["ChecksumKey"];
                 return new PayOS(clientId, apiKey, checksumKey);
             });
@@ -190,6 +200,7 @@ namespace PresentationLayer
             builder.Services.AddScoped<IStaffPermissionRepository, StaffPermissionRepository>();
             builder.Services.AddScoped<IStaffManagementService, StaffManagementService>();
             builder.Services.AddAutoMapper(typeof(KYC_DocumentProfile).Assembly);
+            builder.Services.AddScoped<IWalletService, WalletService>();
             //builder.Services.AddSwaggerGen();
 
             builder.Services.AddSwaggerGen(c =>

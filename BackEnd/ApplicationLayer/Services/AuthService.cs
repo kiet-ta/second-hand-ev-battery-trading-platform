@@ -1,12 +1,16 @@
-﻿using Application.IRepositories;
+﻿using Application.DTOs.AuthenticationDtos;
+using Application.DTOs.UserDtos;
+using Application.IRepositories;
 using Application.IServices;
+using Application.Validations;
 using Domain.Entities;
+using FluentValidation;
+using Google.Apis.Auth;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using Application.DTOs.AuthenticationDtos;
 
 namespace Application.Services
 {
@@ -41,22 +45,36 @@ namespace Application.Services
 
         public async Task<AuthResponseDto> RegisterAsync(RegisterDto dto)
         {
-            var existing = await _userRepository.GetByEmailAsync(dto.Email);
-            if (existing != null)
-                throw new Exception("Email already registered");
-            //int userID = DateTime.Now.Date.GetHashCode();
+            // 1️⃣ Validate input
+            var validator = new RegisterValidator();
+            var result = validator.Validate(dto);
+            if (!result.IsValid)
+                throw new ValidationException(string.Join("; ", result.Errors.Select(e => e.ErrorMessage)));
+
+            // 2️⃣ Business validate
+            if (await _userRepository.GetByEmailAsync(dto.Email) != null)
+                throw new ValidationException("Email already registered");
+
+            // Optional: check phone unique
+            var existingUsers = await _userRepository.GetAllAsync();
+            if (existingUsers.Any(u => u.Phone == dto.Phone))
+                throw new ValidationException("Phone number already used");
+
+            // 3️⃣ Hash password + Save
             var user = new User
             {
                 UserId = GenerateUserId(),
-                FullName = dto.FullName,
-                Email = dto.Email,
+                FullName = dto.FullName.Trim(),
+                Email = dto.Email.ToLower(),
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
                 Phone = dto.Phone,
-                Role = "Buyer",
-                //CreatedAt = DateTime.UtcNow
+                Role = "Buyer"
             };
 
             await _userRepository.AddAsync(user);
+
+            // 4️⃣ Optionally: send verification email (todo: EmailService)
+            // await _emailService.SendVerificationAsync(user.Email, token);
 
             return GenerateToken(user);
         }
@@ -73,12 +91,36 @@ namespace Application.Services
             return GenerateToken(user);
         }
 
-        private AuthResponseDto GenerateToken(User user)
+        public async Task<AuthResponseDto> LoginWithGoogleAsync(string idToken)
+        {
+            var payload = await GoogleJsonWebSignature.ValidateAsync(idToken);
+
+            var user = await _userRepository.GetByEmailAsync(payload.Email);
+
+            if (user == null)
+            {
+                user = new User
+                {
+                    UserId = GenerateUserId(),
+                    FullName = payload.Name,
+                    Email = payload.Email,
+                    PasswordHash = "", // Google user haven't password local
+                    Role = "Buyer"
+                };
+                await _userRepository.AddAsync(user);
+            }
+
+            return GenerateToken(user);
+        }
+
+        private AuthResponseDto GenerateToken(User user, string provider = "local")
         {
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.UTF8.GetBytes(_jwtSecret);
             var issuer = _config["Jwt:Issuer"];
             var audience = _config["Jwt:Audience"];
+
+            var expires = DateTime.UtcNow.AddHours(2);
 
             var tokenDescriptor = new SecurityTokenDescriptor
             {
@@ -89,7 +131,7 @@ namespace Application.Services
                     new Claim(ClaimTypes.Email, user.Email),
                     new Claim(ClaimTypes.Role, user.Role ?? "Buyer")
                 }),
-                Expires = DateTime.UtcNow.AddHours(2),
+                Expires = expires,
                 Issuer = issuer,
                 Audience = audience,
                 SigningCredentials = new SigningCredentials(
@@ -101,9 +143,39 @@ namespace Application.Services
             return new AuthResponseDto
             {
                 UserId = user.UserId,
+                FullName = user.FullName,
                 Email = user.Email,
-                Token = tokenHandler.WriteToken(token)
+                Role = user.Role ?? "Buyer",
+                Token = tokenHandler.WriteToken(token),
+                ExpiresAt = expires,
+                AuthProvider = provider
             };
+        }
+
+        public async Task<bool> ChangePasswordAsync(int userId, ChangePasswordRequestDto request)
+        {
+            // 1. Check new password and confirm
+            if (request.NewPassword != request.ConfirmPassword)
+                throw new ArgumentException("Confirmation password does not match.");
+
+            // 2. Get user from database
+            var user = await _userRepository.GetByIdAsync(userId);
+            if (user == null || user.IsDeleted)
+                throw new KeyNotFoundException("User not found.");
+
+            // 3. Confirm current password
+            bool isPasswordValid = BCrypt.Net.BCrypt.Verify(request.CurrentPassword, user.PasswordHash);
+            if (!isPasswordValid)
+                throw new UnauthorizedAccessException("The current password is incorrect.");
+
+            // 4. Hash new password
+            string newHashedPassword = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
+
+            // 5. Update
+            user.PasswordHash = newHashedPassword;
+            await _userRepository.UpdateAsync(user);
+
+            return true;
         }
     }
 }

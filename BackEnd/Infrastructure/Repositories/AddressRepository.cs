@@ -56,5 +56,9 @@ namespace Infrastructure.Repositories
             _context.Addresses.Update(address);
             await _context.SaveChangesAsync();
         }
+
+        public async Task<Address?> GetShopAddressAsync(int userId)
+        => await _context.Addresses
+            .FirstOrDefaultAsync(a => a.UserId == userId && a.IsShopAddress && !a.IsDeleted);
     }
 }

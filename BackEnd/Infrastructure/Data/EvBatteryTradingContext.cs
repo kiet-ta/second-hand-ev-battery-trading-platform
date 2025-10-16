@@ -28,8 +28,6 @@ public class EvBatteryTradingContext : DbContext
 
     public DbSet<Bid> Bids { get; set; }
 
-    public DbSet<Blog> Blogs { get; set; }
-
     public DbSet<Category> Categories { get; set; }
 
     public DbSet<CommissionFeeRule> CommissionFeeRules { get; set; }
@@ -40,11 +38,11 @@ public class EvBatteryTradingContext : DbContext
 
     public DbSet<Item> Items { get; set; }
 
-    public DbSet<ItemBidding> ItemBiddings { get; set; }
-
     public DbSet<ItemImage> ItemImages { get; set; }
 
     public DbSet<KycDocument> KycDocuments { get; set; }
+
+    public DbSet<News> News { get; set; }
 
     public DbSet<Order> Orders { get; set; }
 
@@ -69,6 +67,14 @@ public class EvBatteryTradingContext : DbContext
     public DbSet<WalletTransaction> WalletTransactions { get; set; }
     public DbSet<Permission> Permissions { get; set; }
     public DbSet<StaffPermission> StaffPermissions { get; set; }
+
+    public DbSet<Notification> Notifications { get; set; }
+
+    public DbSet<Permission> Permissions { get; set; }
+
+    public DbSet<StaffPermission> StaffPermissions { get; set; }
+
+    public DbSet<Complaint> Complaints { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

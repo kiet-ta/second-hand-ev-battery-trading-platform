@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { FaRegHeart } from "react-icons/fa";
 
 export default function Carousel({ images }) {
   const [current, setCurrent] = useState(0);
-
+  const [color,setColor] = useState("black")
   const prevSlide = () => {
     setCurrent((prev) => (prev === 0 ? images.length - 1 : prev - 1));
   };
@@ -21,7 +22,9 @@ export default function Carousel({ images }) {
           alt={`slide-${current}`}
           className="w-full h-96 object-contain rounded-xl shadow-lg"
         />
-
+        <div className="absolute top-5 right-5">
+            <FaRegHeart size="2rem" color={color} onMouseOver={() => setColor("Red")} onMouseLeave={() => setColor("Black")}/>
+        </div>
         {/* Prev button */}
         <button
           onClick={prevSlide}

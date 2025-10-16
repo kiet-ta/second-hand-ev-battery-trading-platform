@@ -31,7 +31,7 @@ namespace Application.Services
 
             var item = new Item
             {
-                ItemType = "EV",
+                ItemType = "ev",
                 CategoryId = dto.CategoryId,
                 Title = dto.Title,
                 Description = dto.Description,

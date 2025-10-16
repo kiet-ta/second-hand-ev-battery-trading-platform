@@ -4,6 +4,7 @@ using Application.IHelpers;
 using Application.IRepositories;
 using Application.IServices;
 using Domain.Entities;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System;
@@ -23,19 +24,14 @@ namespace Application.Services
         private readonly string _jwtIssuer;
         private readonly string _jwtAudience;
         private readonly IConfiguration _config;
-        private readonly IPasswordHelper _password;
 
-        public UserService()
+        public UserService(IUserRepository userRepository, IConfiguration config)
         {
-        }
-        public UserService(IUserRepository repo, IConfiguration config, IPasswordHelper password)
-        {
-            _userRepository = repo;
+            _userRepository = userRepository;
             _config = config;
             _jwtSecret = config["Jwt:Key"]!;
             _jwtIssuer = config["Jwt:Issuer"]!;
             _jwtAudience = config["Jwt:Audience"]!;
-            _password = password;
         }
 
         public async Task<List<UserRoleCountDto>> GetUsersByRoleAsync()
@@ -144,8 +140,34 @@ namespace Application.Services
 
         public Task DeleteUserAsync(int id) => _userRepository.DeleteAsync(id);
 
+        public async Task<string?> GetAvatarAsync(int userId)
+        {
+            if (_userRepository == null)
+                throw new Exception("_userRepository is NULL");
+            var user = await _userRepository.GetByIdAsync(userId);
+            if (user == null)
+                throw new Exception("User not found");
 
+            return user.AvatarProfile;
+        }
 
+        public async Task<bool> ChangePasswordAsync(int userId, ChangePasswordRequestDto request)
+        {
+            if (request.NewPassword != request.ConfirmPassword)
+                throw new ArgumentException("Confirmation password does not match.");
 
+            var user = await _userRepository.GetByIdAsync(userId);
+            if (user == null || user.IsDeleted)
+                throw new KeyNotFoundException("User not found.");
+
+            bool isPasswordValid = BCrypt.Net.BCrypt.Verify(request.CurrentPassword, user.PasswordHash);
+            if (!isPasswordValid)
+                throw new UnauthorizedAccessException("The current password is incorrect.");
+
+            user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
+            await _userRepository.UpdateAsync(user);
+
+            return true;
+        }
     }
 }

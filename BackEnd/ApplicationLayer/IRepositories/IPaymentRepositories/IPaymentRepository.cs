@@ -19,5 +19,7 @@ public interface IPaymentRepository
 
     Task UpdateRelatedEntitiesAsync(List<PaymentDetailDto> details);
 
+    Task<IEnumerable<(int Year, int Month, decimal Total)>> GetRevenueByMonthAsync(int monthsRange);
+
     Task SaveChangesAsync();
 }

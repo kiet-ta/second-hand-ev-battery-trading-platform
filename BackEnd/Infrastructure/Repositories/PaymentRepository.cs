@@ -112,7 +112,7 @@ public class PaymentRepository : IPaymentRepository
                 if (order != null)
                 {
                     order.Status = "paid";
-                    order.UpdatedAt = DateOnly.FromDateTime(DateTime.UtcNow);
+                    order.UpdatedAt = DateTime.UtcNow;
                 }
             }
             if (detail.ItemId.HasValue)
@@ -121,13 +121,32 @@ public class PaymentRepository : IPaymentRepository
                 if (item != null)
                 {
                     item.Status = "sold";
-                    item.UpdatedAt = DateOnly.FromDateTime(DateTime.UtcNow);
+                    item.UpdatedAt = DateTime.UtcNow;
                 }
             }
         }
         await _context.SaveChangesAsync();
     }
 
+    public async Task<IEnumerable<(int Year, int Month, decimal Total)>> GetRevenueByMonthAsync(int monthsRange)
+    {
+        var startDate = DateTime.UtcNow.AddMonths(-monthsRange + 1);
+
+        var query = await _context.Payments
+            .Where(o => o.Status == "completed" && o.CreatedAt >= startDate)
+            .GroupBy(o => new { o.CreatedAt.Year, o.CreatedAt.Month })
+            .Select(g => new
+            {
+                g.Key.Year,
+                g.Key.Month,
+                Total = g.Sum(x => x.TotalAmount)
+            })
+            .OrderBy(g => g.Year)
+            .ThenBy(g => g.Month)
+            .ToListAsync();
+
+        return query.Select(q => (q.Year, q.Month, q.Total));
+    }
     public async Task SaveChangesAsync()
     {
         await _context.SaveChangesAsync();

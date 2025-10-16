@@ -4,12 +4,8 @@ import RatingModal from "../components/RatingModal";
 
 const tabs = [
   "All",
-  "Pending",
-  "Shipping",
-  "To Receive",
-  "Completed",
-  "Cancelled",
-  "Returns/Refunds",
+  "Instock",
+  "Out of Stock"
 ];
 
 export default function PurchasePage() {
@@ -84,14 +80,6 @@ export default function PurchasePage() {
                     <h3 className="font-medium">{order.title}</h3>
                     <p className="text-sm text-gray-500">
                       {order.shopName} • {order.category}
-                    </p>
-                    <p className="text-sm text-gray-600">
-                      Qty: {order.quantity} • ${order.price.toFixed(2)}{" "}
-                      {order.discount > 0 && (
-                        <span className="text-red-500 ml-2">
-                          -{order.discount}%
-                        </span>
-                      )}
                     </p>
                     {/* Status */}
                     <p className="text-xs mt-1 font-medium text-[var(--color-maincolor-darker)]">

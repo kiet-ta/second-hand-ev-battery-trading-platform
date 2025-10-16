@@ -29,6 +29,6 @@ public class EVDetail
 
     public int? Mileage { get; set; }
 
-    public DateOnly? UpdatedAt { get; set; }
+    public DateTime? UpdatedAt { get; set; }
 
 }

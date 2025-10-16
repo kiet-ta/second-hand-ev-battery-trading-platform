@@ -70,7 +70,7 @@ export default function HistoryBought() {
     const filteredOrders = filter === "all" ? orders : orders.filter((o) => o.status === filter);
 
     return (
-        <div className="min-h-screen bg-gray-50 p-6">
+        <div className="min-h-screen bg-gray-50 p-6 ">
             <div className="max-w-7xl mx-auto">
                 <h1 className="text-3xl font-bold mb-6">Lịch sử mua hàng</h1>
 
@@ -81,8 +81,8 @@ export default function HistoryBought() {
                             key={type}
                             onClick={() => setFilter(type)}
                             className={`px-4 py-2 rounded-lg font-medium transition-colors ${filter === type
-                                    ? "bg-blue-600 text-white"
-                                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                                ? "bg-blue-600 text-white"
+                                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                                 }`}
                         >
                             {type === "all"

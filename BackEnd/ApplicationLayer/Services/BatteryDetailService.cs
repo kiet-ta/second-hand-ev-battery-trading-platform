@@ -1,4 +1,5 @@
-﻿using Application.DTOs.ItemDtos.BatteryDto;
+﻿using Application.DTOs.ItemDtos;
+using Application.DTOs.ItemDtos.BatteryDto;
 using Application.IRepositories;
 using Application.IServices;
 using Domain.Entities;
@@ -13,10 +14,12 @@ namespace Application.Services
     public class BatteryDetailService : IBatteryDetailService
     {
         private readonly IBatteryDetailRepository _repository;
+        private readonly IItemRepository _itemRepository;
 
-        public BatteryDetailService(IBatteryDetailRepository repository)
+        public BatteryDetailService(IBatteryDetailRepository repository, IItemRepository itemRepository)
         {
             _repository = repository;
+            _itemRepository = itemRepository;
         }
 
         public async Task<IEnumerable<BatteryDetailDto>> GetAllAsync()
@@ -48,21 +51,51 @@ namespace Application.Services
                 UpdatedAt = b.UpdatedAt
             };
         }
+        private static BatteryDetailDto MapToDto(BatteryDetail e, Item? item)
+    => new BatteryDetailDto
+    {
+        ItemId = e.ItemId,
+        Brand = e.Brand,
+        Capacity = e.Capacity,
+        Voltage = e.Voltage,
+        ChargeCycles = e.ChargeCycles,
+        Title = item?.Title,
+        Price = item?.Price,
+        Status = item?.Status
+    };
 
-        public async Task CreateAsync(CreateBatteryDetailDto dto)
+
+        public async Task<BatteryDetailDto> CreateAsync(CreateBatteryDetailDto dto)
         {
+            var item = new Item
+            {
+                ItemType = "battery",
+                CategoryId = dto.CategoryId,
+                Title = dto.Title,
+                Description = dto.Description,
+                Price = dto.Price,
+                Quantity = dto.Quantity,
+                Status = dto.Status,
+                UpdatedBy = dto.UpdatedBy,
+                //CreatedAt = DateTime.UtcNow,
+                //UpdatedAt = DateTime.UtcNow
+            };
+
             var entity = new BatteryDetail
             {
-                ItemId = dto.ItemId,
+                ItemId = item.ItemId,
                 Brand = dto.Brand,
                 Capacity = dto.Capacity,
                 Voltage = dto.Voltage,
                 ChargeCycles = dto.ChargeCycles,
-                //UpdatedAt = DateTime.Now
             };
+            await _itemRepository.AddAsync(item);
+            await _itemRepository.SaveChangesAsync(); // Save to get ItemId if DB generates it
+            entity.ItemId = item.ItemId;
 
             await _repository.AddAsync(entity);
             await _repository.SaveChangesAsync();
+            return MapToDto(entity, item);
         }
 
         public async Task UpdateAsync(int itemId, UpdateBatteryDetailDto dto)

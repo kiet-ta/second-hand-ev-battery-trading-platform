@@ -37,7 +37,7 @@ namespace BackEnd.Application.Tests
                 BuyerId = 2,
                 AddressId = 3,
                 Status = "pending",
-                CreatedAt = DateOnly.FromDateTime(DateTime.UtcNow)
+                CreatedAt = DateTime.UtcNow
             };
 
             _orderRepoMock.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(order);
@@ -62,7 +62,7 @@ namespace BackEnd.Application.Tests
         [Fact]
         public async Task GetOrderByIdAsync_ShouldMapFieldsCorrectly()
         {
-            var date = DateOnly.FromDateTime(DateTime.UtcNow);
+            var date = DateTime.UtcNow;
             var order = new Order { OrderId = 99, BuyerId = 5, AddressId = 1, Status = "done", CreatedAt = date };
             _orderRepoMock.Setup(r => r.GetByIdAsync(99)).ReturnsAsync(order);
 
@@ -89,8 +89,8 @@ namespace BackEnd.Application.Tests
         {
             var orders = new List<Order>
             {
-                new() { OrderId = 1, BuyerId = 1, AddressId = 11, Status = "done", CreatedAt = DateOnly.FromDateTime(DateTime.UtcNow) },
-                new() { OrderId = 2, BuyerId = 2, AddressId = 22, Status = "pending", CreatedAt = DateOnly.FromDateTime(DateTime.UtcNow) }
+                new() { OrderId = 1, BuyerId = 1, AddressId = 11, Status = "done", CreatedAt = DateTime.UtcNow },
+                new() { OrderId = 2, BuyerId = 2, AddressId = 22, Status = "pending", CreatedAt = DateTime.UtcNow }
             };
             _orderRepoMock.Setup(r => r.GetAllAsync()).ReturnsAsync(orders);
 
@@ -104,7 +104,7 @@ namespace BackEnd.Application.Tests
         public async Task GetAllOrdersAsync_ShouldHandleManyRecords()
         {
             var orders = Enumerable.Range(1, 100)
-                .Select(i => new Order { OrderId = i, BuyerId = i, AddressId = i, Status = "pending", CreatedAt = DateOnly.FromDateTime(DateTime.UtcNow) })
+                .Select(i => new Order { OrderId = i, BuyerId = i, AddressId = i, Status = "pending", CreatedAt = DateTime.UtcNow })
                 .ToList();
 
             _orderRepoMock.Setup(r => r.GetAllAsync()).ReturnsAsync(orders);
@@ -123,8 +123,8 @@ namespace BackEnd.Application.Tests
             {
                 BuyerId = 5,
                 AddressId = 99,
-                CreatedAt = DateOnly.FromDateTime(DateTime.UtcNow),
-                UpdatedAt = DateOnly.FromDateTime(DateTime.UtcNow)
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
             };
 
             Order? capturedOrder = null;
@@ -143,7 +143,7 @@ namespace BackEnd.Application.Tests
         [Fact]
         public async Task CreateOrderAsync_ShouldSetCreatedAtToToday()
         {
-            var today = DateOnly.FromDateTime(DateTime.UtcNow);
+            var today = DateTime.UtcNow;
 
             _orderRepoMock.Setup(r => r.AddAsync(It.IsAny<Order>()))
                 .Callback<Order>(o => Assert.Equal(today, o.CreatedAt))
@@ -161,7 +161,7 @@ namespace BackEnd.Application.Tests
         [Fact]
         public async Task CreateOrderAsync_ShouldReturnGeneratedId()
         {
-            var dto = new OrderDto { BuyerId = 1, AddressId = 2, CreatedAt = DateOnly.FromDateTime(DateTime.UtcNow) };
+            var dto = new OrderDto { BuyerId = 1, AddressId = 2, CreatedAt = DateTime.UtcNow };
             _orderRepoMock.Setup(r => r.AddAsync(It.IsAny<Order>()))
                 .Callback<Order>(o => o.OrderId = 500)
                 .Returns(Task.CompletedTask);
@@ -201,7 +201,7 @@ namespace BackEnd.Application.Tests
         [Fact]
         public async Task UpdateOrderAsync_ShouldSetUpdatedAtToNull()
         {
-            var order = new Order { OrderId = 2, Status = "pending", UpdatedAt = DateOnly.FromDateTime(DateTime.UtcNow) };
+            var order = new Order { OrderId = 2, Status = "pending", UpdatedAt = DateTime.UtcNow };
             _orderRepoMock.Setup(r => r.GetByIdAsync(2)).ReturnsAsync(order);
 
             var dto = new OrderDto { OrderId = 2, Status = "done" };
@@ -289,8 +289,8 @@ namespace BackEnd.Application.Tests
                 BuyerId = 1,
                 AddressId = 2,
                 OrderItemIds = new List<int> { 10, 20 },
-                CreatedAt = DateOnly.FromDateTime(DateTime.UtcNow),
-                UpdatedAt = DateOnly.FromDateTime(DateTime.UtcNow)
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
             };
 
             var items = new List<OrderItem>

@@ -10,7 +10,6 @@ namespace PresentationLayer.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize(Roles = "Manager")]
 
     public class UserController : ControllerBase
     {
@@ -43,12 +42,10 @@ namespace PresentationLayer.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "Manager")]
+        //[Authorize(Roles = "Manager")]
         public async Task<IActionResult> Get() => Ok(await _userService.GetAllUsersAsync());
 
         [HttpGet("{id}")]
-        [Authorize]
-        [CacheResult(600)]
         public async Task<IActionResult> Get(int id)
         {
             var user = await _userService.GetUserByIdAsync(id);
@@ -76,6 +73,32 @@ namespace PresentationLayer.Controllers
         {
             await _userService.DeleteUserAsync(id);
             return NoContent();
+        }
+
+        [HttpPut("{userId}/change-password")]
+        public async Task<IActionResult> ChangePassword(int userId, [FromBody] ChangePasswordRequestDto request)
+        {
+            try
+            {
+                await _userService.ChangePasswordAsync(userId, request);
+                return Ok(new { message = "Password changed successfully." });
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Unauthorized(new { message = ex.Message });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, new { message = "Đã xảy ra lỗi hệ thống." });
+            }
         }
 
     }

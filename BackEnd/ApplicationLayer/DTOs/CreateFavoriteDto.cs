@@ -10,6 +10,6 @@ namespace Application.DTOs
     {
         public int UserId { get; set; }
         public int ItemId { get; set; }
-        public DateOnly CreatedAt { get; set; }
+        public DateTime CreatedAt { get; set; }
     }
 }
