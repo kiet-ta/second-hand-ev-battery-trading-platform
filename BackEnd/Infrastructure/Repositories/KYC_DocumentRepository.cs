@@ -120,5 +120,25 @@ namespace Infrastructure.Repositories
 
             return await query.ToListAsync();
         }
+
+        public async Task<List<KycDocument>> GetPendingDocumentsAsync()
+        {
+            return await _context.KycDocuments
+                .AsNoTracking()
+                .Where(k => k.Status == "pending")
+                .ToListAsync();
+        }
+
+        public async Task<KycDocument?> GetKycByIdAsync(int id)
+        {
+            return await _context.KycDocuments
+                .FirstOrDefaultAsync(k => k.DocId == id);
+        }
+
+        public async Task UpdateAsync(KycDocument doc)
+        {
+            _context.KycDocuments.Update(doc);
+            await _context.SaveChangesAsync();
+        }
     }
 }
