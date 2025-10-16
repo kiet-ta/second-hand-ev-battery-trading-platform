@@ -4,6 +4,7 @@ using Application.IHelpers;
 using Application.IRepositories;
 using Application.IRepositories.IBiddingRepositories;
 using Application.IRepositories.IChatRepositories;
+using Application.IRepositories.IManageStaffRepositories;
 using Application.IRepositories.IPaymentRepositories;
 using Application.IServices;
 using Application.Services;
@@ -16,13 +17,16 @@ using Infrastructure.Data;
 using Infrastructure.Helpers;
 using Infrastructure.Repositories;
 using Infrastructure.Repositories.ChatRepositories;
+using Infrastructure.Repositories.ManageStaffRepositories;
 using Infrastructure.Ulties;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Net.payOS;
+using PresentationLayer.Authorization;
 using PresentationLayer.Hubs;
 using System.Text;
 
@@ -138,6 +142,8 @@ namespace PresentationLayer
                 return new Cloudinary(new Account(config.CloudName, config.ApiKey, config.ApiSecret));
             });
             builder.Services.AddSingleton<IUserContextService, UserContextService>();
+            builder.Services.AddScoped<IAuthorizationHandler, PermissionAuthorizationHandler>();
+            builder.Services.AddSingleton<IAuthorizationPolicyProvider, PermissionPolicyProvider>();
 
             builder.Services.AddAuthorization();
 
@@ -190,6 +196,9 @@ namespace PresentationLayer
             builder.Services.AddScoped<IRedisCacheHelper, RedisCacheHelper>();
             builder.Services.AddScoped<IFavoriteRepository, FavoriteRepository>();
             builder.Services.AddScoped<IKYC_DocumentRepository, KYC_DocumentRepository>();
+            builder.Services.AddScoped<IPermissionRepository, PermissionRepository>();
+            builder.Services.AddScoped<IStaffPermissionRepository, StaffPermissionRepository>();
+            builder.Services.AddScoped<IStaffManagementService, StaffManagementService>();
             builder.Services.AddAutoMapper(typeof(KYC_DocumentProfile).Assembly);
             builder.Services.AddScoped<IWalletService, WalletService>();
             //builder.Services.AddSwaggerGen();

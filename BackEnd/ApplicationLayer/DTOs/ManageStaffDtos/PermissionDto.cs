@@ -1,6 +1,6 @@
-﻿namespace Domain.Entities;
+﻿namespace Application.DTOs.ManageStaffDtos;
 
-public class Permission
+public class PermissionDto
 {
     public int PermissionId { get; set; }
     public string PermissionName { get; set; }
