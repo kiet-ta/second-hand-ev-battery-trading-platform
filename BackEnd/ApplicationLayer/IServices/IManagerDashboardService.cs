@@ -14,5 +14,6 @@ namespace Application.IServices
         Task<IEnumerable<OrdersByMonthDto>> GetOrdersByMonthAsync(int monthsRange);
         Task<IEnumerable<ProductDistributionDto>> GetProductDistributionAsync();
         Task<List<LatestTransactionDto>> GetLatestTransactionsAsync(int limit);
+        Task<List<SellerPendingApprovalDto>> GetPendingApprovalsAsync();
     }
 }
