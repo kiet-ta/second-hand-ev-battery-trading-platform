@@ -25,10 +25,12 @@ namespace Application.Services
             return await _reviewRepository.CreateReviewAsync(dto);
         }
 
-        // Lấy review theo target user id
+        
         public async Task<List<ReviewResponseDto>> GetReviewsByTargetUserIdAsync(int targetUserId)
         {
-            return await _reviewRepository.GetReviewsByTargetUserIdAsync(targetUserId);
+            var reviews = await _reviewRepository.GetReviewsByTargetUserIdAsync(targetUserId);
+            return reviews ?? new List<ReviewResponseDto>();
         }
+
     }
 }
