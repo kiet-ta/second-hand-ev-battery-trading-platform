@@ -65,9 +65,6 @@ public class EvBatteryTradingContext : DbContext
 
     public DbSet<WalletTransaction> WalletTransactions { get; set; }
 
-    //public DbSet<Permission> Permissions { get; set; }
-    //public DbSet<StaffPermission> StaffPermissions { get; set; }
-
     public DbSet<Notification> Notifications { get; set; }
 
     public DbSet<Permission> Permissions { get; set; }

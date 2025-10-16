@@ -21,42 +21,28 @@ namespace Infrastructure.Data.Configurations
             entity.Property(e => e.Comment)
                 .HasColumnType("nvarchar(max)")
                 .HasColumnName("comment");
-//             entity.Property(e => e.CreatedAt)
-//                 .HasDefaultValueSql("(getdate())")
-//                 .HasColumnName("created_at");
-//             entity.Property(e => e.ItemId).HasColumnName("item_id");
-//             entity.Property(e => e.Rating).HasColumnName("rating");
-//             entity.Property(e => e.ReviewerId).HasColumnName("reviewer_id");
-//             entity.Property(e => e.TargetUserId).HasColumnName("target_user_id");
+            entity.Property(e => e.TargetUserId).HasColumnName("target_user_id");
+            entity.Property(e => e.ReviewerId).HasColumnName("reviewer_id");
             entity.Property(e => e.ItemId).HasColumnName("item_id");
             entity.Property(e => e.Rating).HasColumnName("rating");
-//             entity.Property(e => e.Comment).HasColumnName("comment");
             entity.Property(e => e.CreatedAt).HasColumnName("created_at");
             entity.Property(e => e.UpdatedAt).HasColumnName("updated_at");
 
-            entity.HasMany(e => e.ReviewImages)
-              .WithOne(img => img.Review)
-              .HasForeignKey(img => img.ReviewId)
-              .OnDelete(DeleteBehavior.Cascade);
-            entity.HasOne(e => e.Item)
-                .WithMany(i => i.Reviews)
+            entity.HasMany<ReviewImage>()
+                .WithOne()
+                .HasForeignKey(img => img.ReviewId)
+                .OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne<Item>()
+                .WithMany()
                 .HasForeignKey(e => e.ItemId)
                 .OnDelete(DeleteBehavior.Cascade);
             entity.Property(e => e.CreatedAt)
-      .HasColumnName("created_at")
-      .HasConversion(
-          v => v.HasValue ? v.Value.ToDateTime(TimeOnly.MinValue) : (DateTime?)null,
-          v => v.HasValue ? DateOnly.FromDateTime(v.Value) : null
-      )
-      .HasDefaultValueSql("CAST(GETDATE() AS DATE)");
+                .HasColumnName("created_at")
+                .HasDefaultValueSql("CAST(GETDATE() AS DATE)");
 
             entity.Property(e => e.UpdatedAt)
-                  .HasColumnName("updated_at")
-                  .HasConversion(
-                      v => v.HasValue ? v.Value.ToDateTime(TimeOnly.MinValue) : (DateTime?)null,
-                      v => v.HasValue ? DateOnly.FromDateTime(v.Value) : null
-                  )
-                  .HasDefaultValueSql("CAST(GETDATE() AS DATE)");
+                .HasColumnName("updated_at")
+                .HasDefaultValueSql("CAST(GETDATE() AS DATE)");
 
         }
     }

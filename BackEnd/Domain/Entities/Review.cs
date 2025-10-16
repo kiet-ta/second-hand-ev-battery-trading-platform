@@ -21,7 +21,7 @@ public class Review
     public DateTime? UpdatedAt { get; set; }
 
     // public DateOnly? UpdatedAt { get; set; }
-    public virtual Item Item { get; set; }
-    public virtual ICollection<ReviewImage> ReviewImages { get; set; } = new List<ReviewImage>();
+    //public virtual Item Item { get; set; }
+    //public virtual ICollection<ReviewImage> ReviewImages { get; set; } = new List<ReviewImage>();
 }
 

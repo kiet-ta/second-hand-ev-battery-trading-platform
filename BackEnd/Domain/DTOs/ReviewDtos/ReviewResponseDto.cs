@@ -13,8 +13,8 @@ namespace Domain.DTOs.ReviewDtos
         public int ItemId { get; set; }
         public int Rating { get; set; }
         public string? Comment { get; set; }
-        public DateOnly ReviewDate { get; set; }
-        public DateOnly UpdateAt { get; set; }
+        public DateTime ReviewDate { get; set; }
+        public DateTime UpdateAt { get; set; }
 
         public List<ReviewImageResponseDto>? ReviewImages { get; set; }
     }
