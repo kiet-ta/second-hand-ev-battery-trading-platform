@@ -23,8 +23,8 @@ namespace Infrastructure.Data.Configurations
                 .HasColumnName("image_url");
             entity.Property(e => e.ReviewId).HasColumnName("review_id");
 //             entity.Property(e => e.ImageUrl).HasColumnName("image_url");
-            entity.HasOne(img => img.Review)
-             .WithMany(r => r.ReviewImages)
+            entity.HasOne<ReviewImage>()
+             .WithMany()
              .HasForeignKey(img => img.ReviewId)
              .OnDelete(DeleteBehavior.Cascade);
 

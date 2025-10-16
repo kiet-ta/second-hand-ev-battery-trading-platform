@@ -8,7 +8,7 @@ public class Auction
 
     public decimal StartingPrice { get; set; }
 
-    public decimal CurrentPrice { get; set; }
+    public decimal? CurrentPrice { get; set; }
 
     public int TotalBids { get; set; } = 0;
 

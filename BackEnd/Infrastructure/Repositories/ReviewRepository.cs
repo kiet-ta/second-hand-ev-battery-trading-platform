@@ -52,7 +52,7 @@ namespace Infrastructure.Repositories
                 TargetUserId = dto.TargetUserId,
                 Rating = dto.Rating,
                 Comment = dto.Comment,
-                CreatedAt = DateOnly.FromDateTime(DateTime.Now),
+                CreatedAt = DateTime.Now,
                 UpdatedAt = null
             };
 
@@ -86,8 +86,8 @@ namespace Infrastructure.Repositories
                 ItemId = review.ItemId,
                 Rating = review.Rating,
                 Comment = review.Comment ?? "",
-                ReviewDate = review.CreatedAt ?? DateOnly.FromDateTime(DateTime.Now),
-                UpdateAt = review.UpdatedAt ?? review.CreatedAt ?? DateOnly.FromDateTime(DateTime.Now),
+                ReviewDate = review.CreatedAt ?? DateTime.Now,
+                UpdateAt = review.UpdatedAt ?? review.CreatedAt ?? DateTime.Now,
                 ReviewImages = imageDtos
             };
         }
@@ -96,10 +96,17 @@ namespace Infrastructure.Repositories
         {
             var reviews = await _context.Reviews
                 .Where(r => r.TargetUserId == targetUserId)
-                .Include(r => r.ReviewImages)
                 .ToListAsync();
+
             if (reviews == null || !reviews.Any())
                 return new List<ReviewResponseDto>();
+
+            var reviewIds = reviews.Select(r => r.ReviewId).ToList();
+
+            // get all images
+            var images = await _context.ReviewImages
+                .Where(img => reviewIds.Contains(img.ReviewId))
+                .ToListAsync();
 
             var result = reviews.Select(r => new ReviewResponseDto
             {
@@ -108,13 +115,12 @@ namespace Infrastructure.Repositories
                 ItemId = r.ItemId,
                 Rating = r.Rating,
                 Comment = r.Comment ?? "",
-                ReviewDate = r.CreatedAt.HasValue
-                             ? r.CreatedAt.Value
-                             : DateOnly.FromDateTime(DateTime.Now),
+                ReviewDate = r.CreatedAt.HasValue ? r.CreatedAt.Value : DateTime.Now,
                 UpdateAt = r.UpdatedAt.HasValue
                            ? r.UpdatedAt.Value
-                           : (r.CreatedAt.HasValue ? r.CreatedAt.Value : DateOnly.FromDateTime(DateTime.Now)),
-                ReviewImages = r.ReviewImages?
+                           : (r.CreatedAt.HasValue ? r.CreatedAt.Value : DateTime.Now),
+                ReviewImages = images
+                                .Where(img => img.ReviewId == r.ReviewId)
                                 .Select(img => new ReviewImageResponseDto
                                 {
                                     ReviewId = img.ReviewId,
@@ -126,8 +132,6 @@ namespace Infrastructure.Repositories
             return result;
         }
 
-    }
-}
 
         public async Task<IEnumerable<Review>> GetByTargetUserIdAsync(int targetUserId)
         {
