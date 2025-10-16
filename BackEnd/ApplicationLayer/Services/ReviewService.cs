@@ -1,6 +1,6 @@
-﻿using Application.DTOs.ReviewDtos;
-using Application.IRepositories;
+﻿using Application.IRepositories;
 using Application.IServices;
+using Domain.DTOs.ReviewDtos;
 using Domain.Entities;
 using System;
 using System.Collections.Generic;

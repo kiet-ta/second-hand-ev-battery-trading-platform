@@ -1,5 +1,5 @@
-﻿using Application.DTOs.ReviewDtos;
-using AutoMapper;
+﻿using AutoMapper;
+using Domain.DTOs.ReviewDtos;
 using Domain.Entities;
 using System;
 using System.Collections.Generic;

@@ -1,5 +1,5 @@
-﻿using Application.DTOs.ReviewDtos;
-using Application.IRepositories;
+﻿using Application.IRepositories;
+using Domain.DTOs.ReviewDtos;
 using Domain.Entities;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
