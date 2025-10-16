@@ -1,4 +1,5 @@
-﻿using Domain.Entities;
+﻿using Application.DTOs.ManagerDto;
+using Domain.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,5 +21,6 @@ namespace Application.IRepositories
        
         Task<IEnumerable<KycDocument>> GetKYC_DocumentsByStatusAsync(string status);
         Task<IEnumerable<KycDocument>> GetAllKYC_DocumentsAsync();
+        Task<List<SellerPendingApprovalDto>> GetPendingApprovalsAsync();
     }
 }
