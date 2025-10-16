@@ -39,5 +39,6 @@ namespace Application.IServices
         Task<IEnumerable<ItemWithDetailDto>> GetAllItemsWithDetailsAsync();
         Task<IEnumerable<ItemBoughtDto>> GetBoughtItemsWithDetailsAsync(int userId);
         Task<IEnumerable<ItemSellerDto>> GetSellerItemsAsync(int sellerId);
+        Task<UserItemDetailDto?> GetItemDetailByIdAsync(int itemId);
     }
 }

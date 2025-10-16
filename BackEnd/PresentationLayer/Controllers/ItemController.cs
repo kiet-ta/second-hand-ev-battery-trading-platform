@@ -203,5 +203,16 @@ namespace PresentationLayer.Controllers
             await _batteryService.DeleteAsync(itemId);
             return Ok();
         }
+
+        [HttpGet("{itemId:int}/Seller")]
+        public async Task<IActionResult> GetItemDetail(int itemId)
+        {
+            var item = await _service.GetItemDetailByIdAsync(itemId);
+
+            if (item == null)
+                return NotFound(new { message = "Item not found or has been deleted." });
+
+            return Ok(item);
+        }
     }
 }

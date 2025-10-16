@@ -31,7 +31,7 @@ public class EvBatteryTradingContext : DbContext
 
     public DbSet<CommissionFeeRule> CommissionFeeRules { get; set; }
 
-    public DbSet<EVDetail> EvDetails { get; set; }
+    public DbSet<EVDetail> EVDetails { get; set; }
 
     public DbSet<Favorite> Favorites { get; set; }
 

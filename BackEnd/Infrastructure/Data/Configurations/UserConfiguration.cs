@@ -62,7 +62,7 @@ namespace Infrastructure.Data.Configurations
             entity.Property(e => e.Bio)
                 .HasColumnName("bio");
             entity.Property(e => e.Paid)
-                .HasDefaultValue(false)
+                .HasDefaultValue("pending")
                 .HasColumnName("paid");
         }
     }
