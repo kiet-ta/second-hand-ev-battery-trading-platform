@@ -1,5 +1,4 @@
-﻿using Domain;
-using Domain.Entities;
+﻿using Domain.Entities;
 
 namespace Application.IRepositories.IManageStaffRepositories;
 
