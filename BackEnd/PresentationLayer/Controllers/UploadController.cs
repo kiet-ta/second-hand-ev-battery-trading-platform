@@ -14,7 +14,6 @@ namespace PresentationLayer.Controllers
 {
     [Route("api/upload")]
     [ApiController]
-    [Authorize]
     public class UploadController : ControllerBase
     {
         private readonly IUploadService _uploadService;

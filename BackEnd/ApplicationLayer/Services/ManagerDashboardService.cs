@@ -19,19 +19,22 @@ namespace Application.Services
         private readonly IOrderRepository _orderRepo;
         private readonly IComplaintRepository _complaintRepo;
         private readonly IPaymentRepository _paymentRepo;
+        private readonly ITransactionRepository _transactionRepository;
 
         public ManagerDashboardService(
             IUserRepository userRepo,
             IItemRepository itemRepo,
             IOrderRepository orderRepo,
             IComplaintRepository complaintRepo, 
-            IPaymentRepository paymentRepo)
+            IPaymentRepository paymentRepo,
+            ITransactionRepository transactionRepository)
         {
             _userRepo = userRepo;
             _itemRepo = itemRepo;
             _orderRepo = orderRepo;
             _complaintRepo = complaintRepo;
             _paymentRepo = paymentRepo;
+            _transactionRepository = transactionRepository;
         }
 
         public async Task<ManagerDashboardMetricsDto> GetMetricsAsync()
@@ -127,6 +130,11 @@ namespace Application.Services
                 Name = x.ItemType,
                 Value = Math.Round((double)x.Count / total * 100, 2)
             });
+        }
+
+        public async Task<List<LatestTransactionDto>> GetLatestTransactionsAsync(int limit)
+        {
+            return await _transactionRepository.GetLatestTransactionsAsync(limit);
         }
     }
 }

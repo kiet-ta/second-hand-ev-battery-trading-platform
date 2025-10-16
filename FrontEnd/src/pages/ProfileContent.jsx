@@ -14,6 +14,9 @@ import { IoCartOutline } from "react-icons/io5";
 import { MdLogout } from "react-icons/md";
 import Logo from "../components/Logo";
 import { useNavigate } from "react-router-dom";
+import NotificationDropdown from "../components/NotificationDropdown";
+import ChangePassword from "../components/ChangePassword";
+
 
 const ProfileContent = () => {
     const [activeSection, setActiveSection] = useState("profile");
@@ -141,15 +144,29 @@ const ProfileContent = () => {
                         <button className="search-button"><IoMdSearch /></button>
                     </div>
 
-                    <div className="header-actions">
-                        <button className="notification-btn"><IoMdNotificationsOutline /></button>
-                        <button className="cart-btn">
-                            <IoCartOutline /><span className="cart-badge">0</span>
-                        </button>
-                        <button className="logout-btn" onClick={() => setShowLogoutConfirm(true)}>
-                            <MdLogout />
+
+                    <div className="header-actions flex items-center gap-5">
+                        <div className="relative">
+                            <NotificationDropdown />
+                        </div>
+
+                        <div className="relative">
+                            <button className="relative text-gray-700 hover:text-blue-600 transition">
+                                <IoCartOutline size={24} />
+                                <span className="absolute -top-1.5 -right-2 bg-blue-500 text-white text-xs rounded-full px-1.5">
+                                    0
+                                </span>
+                            </button>
+                        </div>
+
+                        <button
+                            className="text-gray-700 hover:text-red-500 transition"
+                            onClick={() => setShowLogoutConfirm(true)}
+                        >
+                            <MdLogout size={22} />
                         </button>
                     </div>
+
                 </header>
 
                 {/* Profile Content */}
@@ -177,12 +194,7 @@ const ProfileContent = () => {
                                         <p>Coming soon...</p>
                                     </div>
                                 )}
-                                {activeCard === "security" && (
-                                    <div className="coming-soon">
-                                        <h2>Password & Security</h2>
-                                        <p>Coming soon...</p>
-                                    </div>
-                                )}
+                                {activeCard === "security" && <ChangePassword />}
                             </div>
                         </>
                     )}

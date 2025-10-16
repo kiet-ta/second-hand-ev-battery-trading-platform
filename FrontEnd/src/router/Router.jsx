@@ -62,13 +62,17 @@ export const router = createBrowserRouter([
         path: "/auctions",
         element: <AuctionMainPage />
       }
-      ,{
-        path:"/auction/:id",
-        element: <AuctionDetailPage/>
+      , {
+        path: "/auction/:id",
+        element: <AuctionDetailPage />
       },
       {
         path: "/compare",
-        element: <ComparePage/>
+        element: <ComparePage />
+      },
+      {
+        path: "/seller/:sellerId",
+        element: <BuyerViewSeller />
       }
     ],
   },
@@ -116,11 +120,9 @@ export const router = createBrowserRouter([
     path: "/blog/:id",
     element: <BlogDetail />
   },
-   {
+  {
     path: "/manage",
     element: <ManagerDashboard />
-  },   {
-        path: "/seller/:sellerId",
-        element: <BuyerViewSeller />
-    }
+  },
+
 ])

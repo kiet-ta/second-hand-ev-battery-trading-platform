@@ -1,36 +1,33 @@
 ﻿using Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace Infrastructure.Data.Configurations
+namespace Infrastructure.Data.Configurations;
+
+public class PermissionConfiguration : IEntityTypeConfiguration<Permission>
 {
-    public class PermissionConfiguration : IEntityTypeConfiguration<Permission>
+    public void Configure(EntityTypeBuilder<Permission> builder)
     {
-        public void Configure(EntityTypeBuilder<Permission> builder)
-        {
-            builder.ToTable("permissions");
+        builder.ToTable("permissions");
 
-            builder.HasKey(p => p.PermissionId);
+        // Set primary key
+        builder.HasKey(p => p.PermissionId);
 
-            builder.Property(p => p.PermissionId)
-                .HasColumnName("permission_id");
+        // Configure properties
+        builder.Property(p => p.PermissionId)
+            .HasColumnName("permission_id")
+            .IsRequired();
 
-            builder.Property(p => p.PermissionName)
-                .HasColumnName("permission_name")
-                .IsRequired()
-                .HasMaxLength(100);
+        builder.Property(p => p.PermissionName)
+            .HasColumnName("permission_name")
+            .HasMaxLength(100)
+            .IsRequired();
 
-            builder.Property(p => p.Description)
-                .HasColumnName("description")
-                .HasMaxLength(255);
+        builder.HasIndex(p => p.PermissionName)
+    .IsUnique();
 
-            builder.HasIndex(p => p.PermissionName)
-                .IsUnique();
-        }
+        builder.Property(p => p.Description)
+            .HasColumnName("description")
+            .HasMaxLength(255);
     }
 }
