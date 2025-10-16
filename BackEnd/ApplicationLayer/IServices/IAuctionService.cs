@@ -1,4 +1,5 @@
 using Application.DTOs.AuctionDtos;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Application.IServices;
 
@@ -17,4 +18,6 @@ public interface IAuctionService
     Task<AuctionStatusDto> GetAuctionStatusAsync(int auctionId);
 
     Task<AuctionListResponse> GetAllAuctionsAsync(int page, int pageSize);
+
+    Task<IEnumerable<AuctionDto>> GetActionByUserId(int userId);
 }
