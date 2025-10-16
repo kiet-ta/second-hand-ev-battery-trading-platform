@@ -33,12 +33,11 @@ public class User
 
     public DateTime? UpdatedAt { get; set; }
 
-    public bool? Paid { get; set; }
+    public string? Paid { get; set; }
 
     public bool IsDeleted { get; set; }
 
     //// Tuan add 2 field for account lockout
     //public int FailedLoginAttempts { get; set; }
     //public DateTime? LockoutEnd { get; set; }
-
 }

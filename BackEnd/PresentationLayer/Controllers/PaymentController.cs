@@ -1,7 +1,9 @@
 ﻿using Application.DTOs.PaymentDtos;
 using Application.IServices;
+using Application.Services;
 using CloudinaryDotNet.Core;
 using FluentValidation;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Net.payOS;
 using Net.payOS.Types;
@@ -15,12 +17,14 @@ public class PaymentController : ControllerBase
 {
     private readonly IPaymentService _paymentService;
     private readonly IValidator<PaymentRequestDto> _validator;
+    private readonly IUserService _userService;
     public record Response(int error, string message, object? data);
 
-    public PaymentController(IPaymentService paymentService, IValidator<PaymentRequestDto> validator)
+    public PaymentController(IPaymentService paymentService, IValidator<PaymentRequestDto> validator, IUserService userService)
     {
         _paymentService = paymentService;
         _validator = validator;
+        _userService = userService;
     }
 
     [HttpPost("webhook")]
@@ -101,5 +105,27 @@ public class PaymentController : ControllerBase
     {
         await _paymentService.CancelPaymentAsync(orderCode, cancel.Reason);
         return Ok();
+    }
+
+    [HttpPost("register-seller")]
+    [Authorize]
+    public async Task<IActionResult> CreateSellerRegistrationPayment([FromBody] SellerRegistrationPaymentRequestDto request)
+    {
+        try
+        {
+            // Check if the user is already a seller and has paid the fee
+            var user = await _userService.GetUserByIdAsync(request.UserId);
+            if (user.Role != "seller" || user.Paid == "registering" || user.Paid == "account-maintenance-fee")
+            {
+                return BadRequest(new { message = "User is not a seller or has paid the fee." });
+            }
+
+            var response = await _paymentService.CreateSellerRegistrationPaymentAsync(request);
+            return Ok(response);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, "Server error: " + ex.Message);
+        }
     }
 }

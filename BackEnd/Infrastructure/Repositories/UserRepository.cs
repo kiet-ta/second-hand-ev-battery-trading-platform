@@ -40,6 +40,7 @@ public class UserRepository : IUserRepository
         await _context.Users.AddAsync(user);
         await _context.SaveChangesAsync();
     }
+
     public async Task<List<(string Role, int Count)>> GetUsersByRoleAsync()
     {
         var result = await _context.Users
@@ -57,6 +58,7 @@ public class UserRepository : IUserRepository
         _context.Users.Update(user);
         await _context.SaveChangesAsync();
     }
+
     public async Task UpdateAvatarAsync(int userId, string avatarUrl)
     {
         var user = await GetByIdAsync(userId);
@@ -80,6 +82,7 @@ public class UserRepository : IUserRepository
             await _context.SaveChangesAsync();
         }
     }
+
     public async Task SaveChangesAsync()
     {
         await _context.SaveChangesAsync();
@@ -89,6 +92,7 @@ public class UserRepository : IUserRepository
     {
         return await _context.Users.CountAsync(u => u.IsDeleted == false);
     }
+
     public async Task<double> GetMonthlyGrowthAsync()
     {
         var now = DateTime.UtcNow;
@@ -107,5 +111,4 @@ public class UserRepository : IUserRepository
 
         return ((double)(currentMonthUsers - previousMonthUsers) / previousMonthUsers) * 100;
     }
-
 }
