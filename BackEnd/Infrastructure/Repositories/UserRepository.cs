@@ -111,4 +111,20 @@ public class UserRepository : IUserRepository
 
         return ((double)(currentMonthUsers - previousMonthUsers) / previousMonthUsers) * 100;
     }
+
+    public async Task<(IEnumerable<User> Users, int TotalCount)> GetAllPagedAsync(int page, int pageSize)
+    {
+        var query = _context.Users
+            .Where(u => !u.IsDeleted);
+
+        var totalCount = await query.CountAsync();
+
+        var users = await query
+            .OrderBy(u => u.UserId)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+        return (users, totalCount);
+    }
 }
