@@ -42,10 +42,21 @@ export const managerAPI = {
 
     // ✅ Seller Approvals – duyệt seller
     approveSeller: async (id) => {
+        const token = localStorage.getItem("token"); // 🔐 Lấy token JWT đã lưu sau khi đăng nhập
+
         const res = await fetch(`${BASE}/ManagerDashboard/${id}/approve`, {
             method: "PATCH",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`, // ✅ Gửi kèm claim identity
+            },
         });
-        if (!res.ok) throw new Error("Không thể duyệt seller");
+
+        if (!res.ok) {
+            const errText = await res.text();
+            throw new Error(`Không thể duyệt seller: ${errText}`);
+        }
+
         return await res.json();
     },
 
@@ -75,5 +86,37 @@ export const managerAPI = {
         const res = await fetch(`${BASE}/Item/${itemId}/Seller`);
         if (!res.ok) throw new Error(`Không thể tải sản phẩm ${itemId} cùng seller`);
         return res.json();
+    },
+
+    //set status người dùng
+    updateUserStatus: async (userId, status) => {
+        const token = localStorage.getItem("token");
+        let url = "";
+
+        // ánh xạ trạng thái sang API backend thực tế
+        if (status === "ban") {
+            url = `https://localhost:7272/api/KYC_Document/users/${userId}/ban`;
+        } else if (status === "active") {
+            url = `https://localhost:7272/api/KYC_Document/users/${userId}/activate`;
+        } else if (status === "warning1" || status === "warning2") {
+            url = `https://localhost:7272/api/KYC_Document/users/${userId}/warn`;
+        } else {
+            throw new Error("Invalid status type");
+        }
+
+        const res = await fetch(url, {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+            },
+        });
+
+        if (!res.ok) {
+            const err = await res.text();
+            throw new Error(`Cập nhật thất bại: ${err}`);
+        }
+
+        return await res.json();
     },
 };

@@ -161,7 +161,8 @@ namespace PresentationLayer
                     {
                         policy.WithOrigins("http://localhost:5173")
                               .AllowAnyHeader()
-                              .AllowAnyMethod();
+                              .AllowAnyMethod()
+                              .AllowCredentials();
                     });
                 options.AddPolicy("AllowNgrok",
                     policy =>
@@ -176,7 +177,7 @@ namespace PresentationLayer
 
             builder.Services.AddSingleton(sp =>
             {
-                var clientId = payosConfig["Client_Id"];
+                var clientId = payosConfig["Client_ID"];
                 var apiKey = payosConfig["Api_Key"];
                 var checksumKey = payosConfig["ChecksumKey"];
                 return new PayOS(clientId, apiKey, checksumKey);
