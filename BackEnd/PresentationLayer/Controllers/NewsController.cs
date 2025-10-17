@@ -1,6 +1,8 @@
 ﻿using Application.DTOs;
 using Application.IServices;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace PresentationLayer.Controllers
 {
@@ -17,59 +19,63 @@ namespace PresentationLayer.Controllers
             _notificationService = notificationService;
         }
 
-        [HttpPost("approve/newsId")]
+        [HttpPost("approve/{newsId}")]
         public async Task<IActionResult> ApproveNews(int newsId, [FromBody] CreateNotificationDTO dto)
         {
-            var result = await _newsService.ApproveNewsAsync(newsId);
-            if (result)
-            {
-                var notificationAdded = await _notificationService.AddNewNotification(dto);
-                if (!notificationAdded)
-                {
-                    Console.WriteLine("Failed to add notification to the database.");
-                }
+            if (dto == null || string.IsNullOrWhiteSpace(dto.Message))
+                return BadRequest(new { message = "Notification content cannot be empty." });
 
-                await _notificationService.SendNotificationAsync(dto.Message);
+            var isApproved = await _newsService.ApproveNewsAsync(newsId);
+            if (!isApproved)
+                return NotFound(new { message = "News not found." });
 
-                return Ok(new { message = "News approved and notification sent." });
-            }
+            var notificationAdded = await _notificationService.AddNewNotification(dto);
+            Console.WriteLine(notificationAdded
+                ? $"Notification added to DB: {dto.Title} -> {dto.Message}"
+                : "Failed to add notification to the database.");
 
-            return NotFound(new { message = "News not found." });
+            await _notificationService.SendNotificationAsync(dto.Message);
+            Console.WriteLine("Notification sent successfully.");
+
+            return Ok(new { message = "News approved and notification sent successfully." });
         }
 
-
-
-
-        //[HttpPost("cancel/{newsId}")]
-        //public async Task<IActionResult> CancelNews(int newsId)
-        //{
-        //    var result = await _newsService.CancelNewsAsync(newsId);
-        //    if (result)
-        //    {
-        //        var notification = new CreateNotificationDTO
-        //        {
-        //            Title = "News Cancelled",
-        //            Message = $"News with ID {newsId} has been cancelled.",
-        //            NotiType = "Cancellation",
-        //            SenderRole = "Admin",
-        //            CreatedAt = DateTime.UtcNow
-        //        };
-
-        //        await _notificationService.AddNewNotification(notification);
-        //        await _notificationService.SendNotificationAsync(notification.Message);
-
-        //        return Ok(new { message = "News cancelled and notification sent." });
-        //    }
-
-        //    return NotFound(new { message = "News not found." });
-        //}
-
+        [Authorize]
         [HttpGet("subscribe")]
         public async Task Subscribe(CancellationToken ct)
         {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId))
+            {
+                Response.StatusCode = StatusCodes.Status401Unauthorized;
+                await Response.WriteAsync("Unauthorized: User ID not found in token.");
+                return;
+            }
 
-            await _notificationService.RegisterClientAsync(Response, ct);
-        }   
+            Response.Headers.Append("Cache-Control", "no-cache");
+            Response.Headers.Append("Content-Type", "text/event-stream");
+            Response.Headers.Append("Connection", "keep-alive");
 
+            await _notificationService.RegisterClientAsync(Response, ct, userId);
+            Console.WriteLine($"User {userId} subscribed for SSE.");
+
+            try
+            {
+                while (!ct.IsCancellationRequested)
+                {
+                    await Task.Delay(TimeSpan.FromSeconds(15), ct);
+                    await Response.WriteAsync(":\n\n"); 
+                    await Response.Body.FlushAsync();
+                }
+            }
+            catch (TaskCanceledException)
+            {
+            }
+            finally
+            {
+                await _notificationService.UnRegisterClientAsync(Response);
+                Console.WriteLine($"User {userId} unsubscribed.");
+            }
+        }
     }
 }

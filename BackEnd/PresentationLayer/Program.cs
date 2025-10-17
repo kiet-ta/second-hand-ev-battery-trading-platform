@@ -193,8 +193,11 @@ namespace PresentationLayer
             // News
             builder.Services.AddScoped<INewsRepository, NewsRepository>();
             builder.Services.AddScoped<INewsService, NewsService>();
-            builder.Services.AddScoped<INotificationService, NoticationService>();
+            builder.Services.AddSingleton<INotificationService, NotificationService>();
             builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
+
+
+
 
 
             builder.Services.AddSwaggerGen(c =>
@@ -234,6 +237,7 @@ namespace PresentationLayer
                 });
             });
 
+
             var app = builder.Build();
 
             if (app.Environment.IsDevelopment())
@@ -250,7 +254,11 @@ namespace PresentationLayer
 
             app.MapControllers();
             app.MapHub<ChatHub>("/chatHub");
+
+
             app.Run();
+
+
         }
     }
 }

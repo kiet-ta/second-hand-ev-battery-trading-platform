@@ -10,9 +10,9 @@ namespace Application.IServices
 {
     public interface INotificationService
     {
-        Task RegisterClientAsync(HttpResponse response, CancellationToken token);
+        Task RegisterClientAsync(HttpResponse response, CancellationToken token, string userId);
         Task UnRegisterClientAsync(HttpResponse response);
-        Task SendNotificationAsync(string message);
+        Task SendNotificationAsync(string message, string? targetUserId = null);
         Task<bool> AddNewNotification(CreateNotificationDTO noti);
     }
 }
