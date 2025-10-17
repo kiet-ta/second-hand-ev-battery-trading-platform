@@ -133,7 +133,13 @@ namespace Infrastructure.Repositories
                             CreatedAt = i.CreatedAt,
                             UpdatedAt = i.UpdatedAt,
                             UpdatedBy = i.UpdatedBy,
-                            ItemImage = itemImage,
+                            ItemImage = _context.ItemImages
+                            .Where(img => img.ItemId == i.ItemId)
+                            .Select(img => new ItemImageDto
+                            {
+                                ImageId = img.ImageId,
+                                ImageUrl = img.ImageUrl
+                            }).ToList(),
                             EVDetail = evDetail,
                             BatteryDetail = batDetail
                         };
@@ -166,7 +172,13 @@ namespace Infrastructure.Repositories
                             CreatedAt = i.CreatedAt,
                             UpdatedAt = i.UpdatedAt,
                             UpdatedBy = i.UpdatedBy,
-                            ItemImage = itemImage,
+                            ItemImage = _context.ItemImages
+                            .Where(img => img.ItemId == i.ItemId)
+                            .Select(img => new ItemImageDto
+                            {
+                                ImageId = img.ImageId,
+                                ImageUrl = img.ImageUrl
+                            }).ToList(),
                             EVDetail = evDetail,
                             BatteryDetail = batDetail
                         };
