@@ -21,7 +21,7 @@ namespace Application.DTOs.ItemDtos
         public int? UpdatedBy { get; set; }
 
         // Quan hệ phụ
-        public ItemImage? ItemImage { get; set; }
+        public List<ItemImageDto> ItemImage { get; set; }
         public EVDetail? EVDetail { get; set; }
         public BatteryDetail? BatteryDetail { get; set; }
     }
