@@ -227,7 +227,7 @@ namespace Application.Services
             return result;
         }
 
-        public async Task<PagedResult<ItemDto>> SearchItemsAsync(
+        public async Task<PagedResultItem<ItemDto>> SearchItemsAsync(
             string itemType,
             string title,
             decimal? minPrice = null,
@@ -276,7 +276,7 @@ namespace Application.Services
                     //Images = i.Images.ToList()
                 }).ToListAsync();
 
-            return new PagedResult<ItemDto>
+            return new PagedResultItem<ItemDto>
             {
                 Page = page,
                 PageSize = pageSize,

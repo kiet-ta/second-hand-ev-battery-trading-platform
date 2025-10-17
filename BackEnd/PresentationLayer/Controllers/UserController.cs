@@ -101,5 +101,15 @@ namespace PresentationLayer.Controllers
             }
         }
 
+        [HttpGet("all/user/pagination")]
+        public async Task<IActionResult> GetAllUsers([FromQuery] int page = 1, [FromQuery] int pageSize = 20)
+        {
+            if (page <= 0 || pageSize <= 0)
+                return BadRequest("Page and PageSize must be greater than 0");
+
+            var result = await _userService.GetAllUsersAsync(page, pageSize);
+            return Ok(result);
+        }
+
     }
 }
