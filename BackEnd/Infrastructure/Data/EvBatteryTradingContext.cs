@@ -27,7 +27,7 @@ public class EvBatteryTradingContext : DbContext
 
     public DbSet<Bid> Bids { get; set; }
 
-    public DbSet<Blog> Blogs { get; set; }
+    public DbSet<News> News { get; set; }
 
     public DbSet<Category> Categories { get; set; }
 
@@ -64,6 +64,7 @@ public class EvBatteryTradingContext : DbContext
     public DbSet<Wallet> Wallets { get; set; }
 
     public DbSet<WalletTransaction> WalletTransactions { get; set; }
+    public DbSet<Notification> Notifications { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

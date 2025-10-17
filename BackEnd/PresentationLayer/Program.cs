@@ -190,6 +190,13 @@ namespace PresentationLayer
             builder.Services.AddAutoMapper(typeof(KYC_DocumentProfile).Assembly);
             //builder.Services.AddSwaggerGen();
 
+            // News
+            builder.Services.AddScoped<INewsRepository, NewsRepository>();
+            builder.Services.AddScoped<INewsService, NewsService>();
+            builder.Services.AddScoped<INotificationService, NoticationService>();
+            builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
+
+
             builder.Services.AddSwaggerGen(c =>
             {
                 // Thông tin cơ bản

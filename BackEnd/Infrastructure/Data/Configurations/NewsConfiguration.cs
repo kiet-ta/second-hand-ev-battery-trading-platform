@@ -9,15 +9,15 @@ using System.Threading.Tasks;
 
 namespace Infrastructure.Data.Configurations
 {
-    public class BlogConfiguration : IEntityTypeConfiguration<Blog>
+    public class NewsConfiguration : IEntityTypeConfiguration<News>
     {
-        public void Configure(EntityTypeBuilder<Blog> entity)
+        public void Configure(EntityTypeBuilder<News> entity)
         {
-            entity.HasKey(e => e.BlogId).HasName("PK__blogs__2975AA280A34B096");
+            entity.HasKey(e => e.NewsId).HasName("PK__news__4C27CCD85801CE63");
 
-            entity.ToTable("blogs");
+            entity.ToTable("news");
 
-            entity.Property(e => e.BlogId).HasColumnName("blog_id");
+            entity.Property(e => e.NewsId).HasColumnName("news_id");
             entity.Property(e => e.AuthorId).HasColumnName("author_id");
             entity.Property(e => e.Category)
                 .HasMaxLength(100)
@@ -34,12 +34,11 @@ namespace Infrastructure.Data.Configurations
             entity.Property(e => e.Title)
                 .HasMaxLength(255)
                 .HasColumnName("title");
-            entity.Property(e => e.UserId).HasColumnName("user_id");
 
             entity.HasOne<User>().WithMany()
-                .HasForeignKey(d => d.UserId)
+                .HasForeignKey(d => d.AuthorId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__blogs__user_id__00200768");
+                .HasConstraintName("FK__news__author_id__17036CC0");
         }
     }
 }
