@@ -34,6 +34,7 @@ import {
 } from "recharts";
 import { motion, AnimatePresence } from "framer-motion";
 import { managerAPI } from "../hooks/managerApi";
+
 import "../assets/styles/SidebarAnimation.css"; // hiệu ứng sidebar (code ở dưới)
 
 function currencyVND(x) {
@@ -86,6 +87,7 @@ function StatTile({ icon, label, value, hint, trend }) {
 export default function ManagerDashboard() {
     const [active, setActive] = useState("dashboard");
     const [loading, setLoading] = useState(false);
+    const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
     // Dashboard data
     const [metrics, setMetrics] = useState(null);
@@ -164,7 +166,14 @@ export default function ManagerDashboard() {
 
 
 
+    const handleLogoutConfirm = () => {
+        localStorage.clear();
+        window.location.href = "/login";
+    };
 
+    const handleCancelLogout = () => {
+        setShowLogoutConfirm(false);
+    };
 
     const revenueTotal = useMemo(
         () => revenueByMonth.reduce((acc, x) => acc + (x.total || 0), 0),
@@ -228,7 +237,9 @@ export default function ManagerDashboard() {
                             ))}
 
                             <div className="pt-2 border-t mt-2">
-                                <button className="sidebar-button w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm border bg-white text-slate-700 border-slate-200 hover:bg-slate-50">
+                                <button className="sidebar-button w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm border bg-white text-slate-700 border-slate-200 hover:bg-slate-50"
+                                    onClick={() => setShowLogoutConfirm(true)}
+                                >
                                     <LogOut size={18} /> Logout
                                 </button>
                             </div>
@@ -772,6 +783,18 @@ export default function ManagerDashboard() {
                                 </button>
                             </div>
                         </form>
+                    </div>
+                </div>
+            )}
+            {showLogoutConfirm && (
+                <div className="logout-overlay">
+                    <div className="logout-popup">
+                        <h3>Đăng xuất</h3>
+                        <p>Bạn có chắc muốn đăng xuất không?</p>
+                        <div className="logout-actions">
+                            <button className="btn-cancel" onClick={handleCancelLogout}>Hủy</button>
+                            <button className="btn-confirm" onClick={handleLogoutConfirm}>Đăng xuất</button>
+                        </div>
                     </div>
                 </div>
             )}
