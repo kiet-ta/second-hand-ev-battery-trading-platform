@@ -18,7 +18,7 @@ namespace PresentationLayer.Controllers
             _reviewService = reviewService;
         }
 
-        // POST: api/reviews
+
         [HttpPost]
         public async Task<IActionResult> CreateReview([FromBody] CreateReviewDto dto)
         {
@@ -31,18 +31,16 @@ namespace PresentationLayer.Controllers
             try
             {
                 var review = await _reviewService.CreateReviewAsync(dto);
-                // Trả về 201 Created + location
+
                 return CreatedAtAction(nameof(GetReviewsByTargetUser),
                     new { targetUserId = review.TargetUserId }, review);
             }
             catch (Exception ex)
             {
-                // Có thể log ex.Message vào logger nếu có
                 return StatusCode(500, $"An error occurred while creating the review: {ex.Message}");
             }
         }
 
-        // GET: api/reviews/target/{targetUserId}
         [HttpGet("target/{targetUserId}")]
         public async Task<IActionResult> GetReviewsByTargetUser(int targetUserId)
         {
@@ -60,5 +58,20 @@ namespace PresentationLayer.Controllers
                 return StatusCode(500, $"An error occurred while fetching reviews: {ex.Message}");
             }
         }
+        [HttpGet("exists/item/{itemId}")]
+        public async Task<IActionResult> ReviewExists(int itemId)
+        {
+            try
+            {
+                var exists = await _reviewService.GetReviewAsync(itemId);
+
+                return Ok(new { ItemId = itemId, Exists = exists });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"An error occurred while checking review existence: {ex.Message}");
+            }
+        }
+
     }
 }
