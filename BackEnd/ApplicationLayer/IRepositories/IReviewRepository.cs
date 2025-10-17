@@ -11,6 +11,7 @@ namespace Application.IRepositories
 {
     public interface IReviewRepository
     {
+        Task<Review?> GetReviewAsync(int itemId);
         Task<ReviewResponseDto> CreateReviewAsync(CreateReviewDto dto);
         Task<List<ReviewResponseDto>> GetReviewsByTargetUserIdAsync(int targetUserId);
     

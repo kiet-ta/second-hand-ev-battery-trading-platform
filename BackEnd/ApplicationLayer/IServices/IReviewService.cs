@@ -10,6 +10,7 @@ namespace Application.IServices
 {
     public interface IReviewService
     {
+        Task<Review> GetReviewAsync(int itemId);
         Task<ReviewResponseDto> CreateReviewAsync(CreateReviewDto dto);
         Task<List<ReviewResponseDto>> GetReviewsByTargetUserIdAsync(int targetUserId);    }
 }
