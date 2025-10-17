@@ -48,9 +48,11 @@ function CartPage() {
         const itemDetails = await Promise.all(itemDetailPromises);
         const combinedCartData = uniqueOrderItems
           .map((orderItem) => {
+            console.log()
             const detail = itemDetails.find((d) => d.itemId === orderItem.itemId);
             if (!detail) return null;
             return {
+              orderItemId: orderItem.orderItemId,
               id: orderItem.itemId,
               store: "EV & Battery Store",
               name: detail.title,
@@ -84,7 +86,7 @@ function CartPage() {
     const preselectedItemId = location.state?.selectedItemId;
 
     if (preselectedItemId && cartItems.length > 0) {
-      const itemExistsInCart = cartItems.some(item => item.id === preselectedItemId);
+      const itemExistsInCart = cartItems.some(item => item.orderItemId === preselectedItemId);
 
       if (itemExistsInCart) {
         setSelectedItemIds(prev => 

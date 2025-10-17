@@ -144,5 +144,52 @@ namespace Application.Services
         {
             return _kycRepo.GetPendingApprovalsAsync();
         }
+
+        public async Task ApproveAsync(int docId, int staffId)
+        {
+            var doc = await _kycRepo.GetKycByIdAsync(docId);
+            if (doc == null)
+                throw new KeyNotFoundException("KYC document not found.");
+
+            if (doc.Status != "pending")
+                throw new InvalidOperationException("Document already processed.");
+
+            doc.Status = "approved";
+            doc.VerifiedBy = staffId;
+            doc.VerifiedAt = DateTime.UtcNow;
+
+            await _kycRepo.UpdateAsync(doc);
+
+            var user = await _userRepo.GetByIdAsync(doc.UserId);
+            if (user != null)
+            {
+                user.KycStatus = "approved";
+                await _userRepo.UpdateAsync(user);
+            }
+        }
+
+        public async Task RejectAsync(int docId, int staffId, string? note)
+        {
+            var doc = await _kycRepo.GetKycByIdAsync(docId);
+            if (doc == null)
+                throw new KeyNotFoundException("KYC document not found.");
+
+            if (doc.Status != "pending")
+                throw new InvalidOperationException("Document already processed.");
+
+            doc.Status = "rejected";
+            doc.VerifiedBy = staffId;
+            doc.VerifiedAt = DateTime.UtcNow;
+            doc.Note = note;
+
+            await _kycRepo.UpdateAsync(doc);
+
+            var user = await _userRepo.GetByIdAsync(doc.UserId);
+            if (user != null)
+            {
+                user.KycStatus = "rejected";
+                await _userRepo.UpdateAsync(user);
+            }
+        }
     }
 }

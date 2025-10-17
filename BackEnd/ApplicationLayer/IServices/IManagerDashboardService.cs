@@ -15,5 +15,7 @@ namespace Application.IServices
         Task<IEnumerable<ProductDistributionDto>> GetProductDistributionAsync();
         Task<List<LatestTransactionDto>> GetLatestTransactionsAsync(int limit);
         Task<List<SellerPendingApprovalDto>> GetPendingApprovalsAsync();
+        Task ApproveAsync(int docId, int staffId);
+        Task RejectAsync(int docId, int staffId, string? note);
     }
 }

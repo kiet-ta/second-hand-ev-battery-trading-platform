@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Infrastructure.Data.Configurations
 {
-    public class NewConfiguration : IEntityTypeConfiguration<News>
+    public class NewsConfiguration : IEntityTypeConfiguration<News>
     {
         public void Configure(EntityTypeBuilder<News> entity)
         {

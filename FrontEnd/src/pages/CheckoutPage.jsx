@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import paymentApi from "../api/paymentApi";
 // ✨ 1. Import your orderApi module
 import orderApi from "../api/orderApi";
+import orderItemApi from "../api/orderItemApi";
 
 function CheckoutPage() {
     const location = useLocation();
@@ -48,11 +49,14 @@ function CheckoutPage() {
             const info = await paymentApi.getPaymentInfoByOrderCode(orderCode);
             
             if (info.status === 'PAID') {
+                orderData.itemsToPurchase.map(item => orderItemApi.deleteOrderItem(item.orderItemId))
                 clearInterval(pollingIntervalRef.current);
                 paymentWindow.close();
                 navigate('/payment/success', { state: { paymentInfo: info } });
             
             } else if (info.status === 'CANCELLED' || info.status === 'FAILED') {
+                orderData.itemsToPurchase.map(item => console.log("ItemID",item.orderItemId))
+
                 clearInterval(pollingIntervalRef.current);
                 paymentWindow.close();
                 navigate('/payment/fail', { state: { reason: `Payment was ${info.status.toLowerCase()}.` } });
@@ -74,7 +78,7 @@ function CheckoutPage() {
             const orderPayload = {
                 buyerId: localStorage.getItem("userId"),
                 addressId: 1, // Using a static addressId as per your example
-                orderItemIds: orderData.itemsToPurchase.map(item => item.id),
+                orderItemIds: orderData.itemsToPurchase.map(item => item.orderItemId),
                 createdAt: new Date().toISOString().split("T")[0],
                 updatedAt: new Date().toISOString().split("T")[0]
             };
@@ -115,6 +119,8 @@ function CheckoutPage() {
 
                 pollingIntervalRef.current = setInterval(() => {
                     if (paymentWindow && paymentWindow.closed) {
+                                        orderData.itemsToPurchase.map(item => console.log("ItemID",item.orderItemId))
+
                         clearInterval(pollingIntervalRef.current);
                         setIsProcessing(false);
                         setStatusMessage('Payment cancelled by user.');
