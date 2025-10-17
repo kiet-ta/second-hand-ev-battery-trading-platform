@@ -4,6 +4,7 @@ using Application.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace PresentationLayer.Controllers
 {
@@ -68,7 +69,7 @@ namespace PresentationLayer.Controllers
         [HttpPatch("{id}/approve")]
         public async Task<IActionResult> Approve(int id)
         {
-            int staffId = int.Parse(User.FindFirst("user_id")!.Value);
+            int staffId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
             await _dashboardService.ApproveAsync(id, staffId);
             return Ok(new { message = "Seller approved successfully." });
         }
@@ -77,7 +78,7 @@ namespace PresentationLayer.Controllers
         [HttpPatch("{id}/reject")]
         public async Task<IActionResult> Reject(int id, [FromBody] SellerApprovalUpdateDto dto)
         {
-            int staffId = int.Parse(User.FindFirst("user_id")!.Value);
+            int staffId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
             await _dashboardService.RejectAsync(id, staffId, dto.Note);
             return Ok(new { message = "Seller rejected successfully." });
         }
