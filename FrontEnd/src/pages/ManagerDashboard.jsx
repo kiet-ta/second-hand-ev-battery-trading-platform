@@ -114,9 +114,9 @@ export default function ManagerDashboard() {
                     managerAPI.getOrdersByMonth(),
                     managerAPI.getProductDistribution(),
                     managerAPI.getTransactions(),
-                    // nếu backend chưa có, hàm trong managerApi đã trả về fake ổn định
-                    managerAPI.getSellerApprovals?.() ?? Promise.resolve([]),
+                    managerAPI.getPendingSellerApprovals(),
                 ]);
+
                 setMetrics(m);
                 setRevenueByMonth(rev);
                 setOrdersByMonth(ord);
@@ -245,7 +245,7 @@ export default function ManagerDashboard() {
                                 + Add Staff Account
                             </button>
                             <button
-                                onClick={() => setActive("dashboard")}
+                                onClick={() => setActive("approvals")}
                                 className="px-3 py-2 rounded-xl border border-slate-200 text-sm text-slate-700 hover:bg-slate-50 text-left"
                             >
                                 Review Seller Approvals
@@ -340,9 +340,18 @@ export default function ManagerDashboard() {
                                         <div className="p-4 h-72">
                                             <ResponsiveContainer width="100%" height="100%">
                                                 <PieChart>
-                                                    <Pie data={distribution} dataKey="value" nameKey="name" outerRadius={90}>
-                                                        {distribution.map((_, idx) => (
-                                                            <Cell key={idx} />
+                                                    <Pie
+                                                        data={distribution}
+                                                        dataKey="value"
+                                                        nameKey="name"
+                                                        outerRadius={90}
+                                                        label={({ name, value }) => `${name}: ${value}%`}
+                                                    >
+                                                        {distribution.map((item, idx) => (
+                                                            <Cell
+                                                                key={item?.name || `dist-${idx}`}
+                                                                fill={["#3b82f6", "#f59e0b", "#10b981", "#ef4444"][idx % 4]} // 🎨 màu sắc
+                                                            />
                                                         ))}
                                                     </Pie>
                                                     <Legend />
@@ -351,6 +360,7 @@ export default function ManagerDashboard() {
                                             </ResponsiveContainer>
                                         </div>
                                     </Card>
+
 
                                     <Card className="lg:col-span-3">
                                         <CardHeader title="Latest Transactions" icon={<ClipboardList size={18} />} />
@@ -367,14 +377,14 @@ export default function ManagerDashboard() {
                                                     </tr>
                                                 </thead>
                                                 <tbody>
-                                                    {transactions.map((t) => (
-                                                        <tr key={t.id} className="border-b last:border-0">
-                                                            <td className="py-2 font-medium text-slate-700">{t.id}</td>
-                                                            <td className="py-2">{t.item}</td>
-                                                            <td className="py-2">{t.buyer}</td>
-                                                            <td className="py-2">{t.seller}</td>
-                                                            <td className="py-2">{currencyVND(t.price)}</td>
-                                                            <td className="py-2">{t.status}</td>
+                                                    {transactions.map((t, idx) => (
+                                                        <tr key={t.paymentId || idx} className="border-b last:border-0">
+                                                            <td className="py-2 font-medium text-slate-700">#{t.paymentId}</td>
+                                                            <td className="py-2">{t.items?.[0]?.title || "—"}</td>
+                                                            <td className="py-2">{t.buyerName}</td>
+                                                            <td className="py-2">{t.sellerName}</td>
+                                                            <td className="py-2">{currencyVND(t.totalAmount)}</td>
+                                                            <td className="py-2 capitalize">{t.status}</td>
                                                         </tr>
                                                     ))}
                                                 </tbody>
@@ -398,18 +408,42 @@ export default function ManagerDashboard() {
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                {approvals.map((a) => (
-                                                    <tr key={a.id} className="border-b last:border-0">
+                                                {approvals.map((a, idx) => (
+                                                    <tr key={a.id || `appr-${idx}`} className="border-b last:border-0">
                                                         <td className="py-2 font-medium text-slate-700">{a.id}</td>
                                                         <td className="py-2">{a.seller}</td>
                                                         <td className="py-2">{a.region}</td>
-                                                        <td className="py-2">{a.submittedAt}</td>
+                                                        <td className="py-2">
+                                                            {new Date(a.submittedAt).toLocaleDateString("vi-VN")}
+                                                        </td>
                                                         <td className="py-2">
                                                             <div className="flex gap-2">
-                                                                <button className="px-2.5 py-1 rounded-lg text-xs border border-slate-200">
+                                                                <button
+                                                                    onClick={async () => {
+                                                                        try {
+                                                                            await managerAPI.approveSeller(a.id);
+                                                                            alert(`✅ Seller ${a.seller} đã được duyệt`);
+                                                                            setApprovals(approvals.filter((x) => x.id !== a.id));
+                                                                        } catch (e) {
+                                                                            alert("❌ Lỗi khi duyệt seller");
+                                                                        }
+                                                                    }}
+                                                                    className="px-2.5 py-1 rounded-lg text-xs border border-emerald-400 text-emerald-600 hover:bg-emerald-50"
+                                                                >
                                                                     Approve
                                                                 </button>
-                                                                <button className="px-2.5 py-1 rounded-lg text-xs border border-slate-200">
+                                                                <button
+                                                                    onClick={async () => {
+                                                                        try {
+                                                                            await managerAPI.rejectSeller(a.id);
+                                                                            alert(`🚫 Seller ${a.seller} đã bị từ chối`);
+                                                                            setApprovals(approvals.filter((x) => x.id !== a.id));
+                                                                        } catch (e) {
+                                                                            alert("❌ Lỗi khi từ chối seller");
+                                                                        }
+                                                                    }}
+                                                                    className="px-2.5 py-1 rounded-lg text-xs border border-rose-400 text-rose-600 hover:bg-rose-50"
+                                                                >
                                                                     Reject
                                                                 </button>
                                                             </div>
@@ -447,8 +481,8 @@ export default function ManagerDashboard() {
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                {users.map((u) => (
-                                                    <tr key={u.id} className="border-b last:border-0">
+                                                {users.map((u, idx) => (
+                                                    <tr key={u.userId || `user-${idx}`} className="border-b last:border-0">
                                                         <td className="py-2">{u.userId}</td>
                                                         <td className="py-2">{u.fullName}</td>
                                                         <td className="py-2">{u.email}</td>
@@ -476,9 +510,8 @@ export default function ManagerDashboard() {
                                 <Card>
                                     <CardHeader title="Product Management" icon={<PackageSearch size={18} />} />
                                     <div className="p-4 grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                        {products.map((p) => (
-                                            <div
-                                                key={p.item.itemId}
+                                        {products.map((p, idx) => (
+                                            <div key={p.item?.itemId || `prod-${idx}`}
                                                 className="border border-slate-200 rounded-xl p-4 flex flex-col hover:shadow-md transition"
                                             >
                                                 <img
@@ -523,14 +556,14 @@ export default function ManagerDashboard() {
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                {transactions.map((t) => (
-                                                    <tr key={t.id} className="border-b last:border-0">
-                                                        <td className="py-2">{t.id}</td>
-                                                        <td className="py-2">{t.item}</td>
-                                                        <td className="py-2">{t.buyer}</td>
-                                                        <td className="py-2">{t.seller}</td>
-                                                        <td className="py-2">{currencyVND(t.price)}</td>
-                                                        <td className="py-2">{t.status}</td>
+                                                {transactions.map((t, idx) => (
+                                                    <tr key={t.paymentId || idx} className="border-b last:border-0">
+                                                        <td className="py-2 font-medium text-slate-700">#{t.paymentId}</td>
+                                                        <td className="py-2">{t.items?.[0]?.title || "—"}</td>
+                                                        <td className="py-2">{t.buyerName}</td>
+                                                        <td className="py-2">{t.sellerName}</td>
+                                                        <td className="py-2">{currencyVND(t.totalAmount)}</td>
+                                                        <td className="py-2 capitalize">{t.status}</td>
                                                     </tr>
                                                 ))}
                                             </tbody>
@@ -553,6 +586,77 @@ export default function ManagerDashboard() {
                                     <CardHeader title="Reports & Analytics" icon={<BarChart3 size={18} />} />
                                     <div className="p-6 text-sm text-slate-600">
                                         Coming soon — export CSV/PDF, custom charts, cohort analysis...
+                                    </div>
+                                </Card>
+                            </motion.div>
+                        )}
+
+                        {active === "approvals" && (
+                            <motion.div
+                                key="approvals"
+                                initial={{ opacity: 0, y: 15 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -15 }}
+                                transition={{ duration: 0.3 }}
+                            >
+                                <Card>
+                                    <CardHeader title="New Seller Approvals" icon={<UserCog size={18} />} />
+                                    <div className="p-4 overflow-auto">
+                                        <table className="min-w-full text-sm">
+                                            <thead>
+                                                <tr className="text-left text-slate-500 border-b">
+                                                    <th className="py-2">ID</th>
+                                                    <th className="py-2">Seller</th>
+                                                    <th className="py-2">Region</th>
+                                                    <th className="py-2">Submitted</th>
+                                                    <th className="py-2">Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {approvals.map((a, idx) => (
+                                                    <tr key={a.id || `appr-${idx}`} className="border-b last:border-0">
+                                                        <td className="py-2 font-medium text-slate-700">{a.id}</td>
+                                                        <td className="py-2">{a.seller}</td>
+                                                        <td className="py-2">{a.region}</td>
+                                                        <td className="py-2">
+                                                            {new Date(a.submittedAt).toLocaleDateString("vi-VN")}
+                                                        </td>
+                                                        <td className="py-2">
+                                                            <div className="flex gap-2">
+                                                                <button
+                                                                    onClick={async () => {
+                                                                        try {
+                                                                            await managerAPI.approveSeller(a.id);
+                                                                            alert(`✅ Seller ${a.seller} đã được duyệt`);
+                                                                            setApprovals(approvals.filter((x) => x.id !== a.id));
+                                                                        } catch {
+                                                                            alert("❌ Lỗi khi duyệt seller");
+                                                                        }
+                                                                    }}
+                                                                    className="px-2.5 py-1 rounded-lg text-xs border border-emerald-400 text-emerald-600 hover:bg-emerald-50"
+                                                                >
+                                                                    Approve
+                                                                </button>
+                                                                <button
+                                                                    onClick={async () => {
+                                                                        try {
+                                                                            await managerAPI.rejectSeller(a.id);
+                                                                            alert(`🚫 Seller ${a.seller} đã bị từ chối`);
+                                                                            setApprovals(approvals.filter((x) => x.id !== a.id));
+                                                                        } catch {
+                                                                            alert("❌ Lỗi khi từ chối seller");
+                                                                        }
+                                                                    }}
+                                                                    className="px-2.5 py-1 rounded-lg text-xs border border-rose-400 text-rose-600 hover:bg-rose-50"
+                                                                >
+                                                                    Reject
+                                                                </button>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
                                     </div>
                                 </Card>
                             </motion.div>
