@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Application.DTOs.ItemDtos
 {
-    public class PagedResult<T> // where T : class
+    public class PagedResultItem<T> // where T : class
     {
         public int Page { get; init; }
         public int PageSize { get; init; }

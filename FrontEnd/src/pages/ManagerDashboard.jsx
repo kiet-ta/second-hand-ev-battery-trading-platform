@@ -35,6 +35,8 @@ import {
 import NewsPage from "../components/CreateNews"
 import { motion, AnimatePresence } from "framer-motion";
 import { managerAPI } from "../hooks/managerApi";
+import { MoreHorizontal, ShieldAlert, UserCheck, Ban } from "lucide-react";
+import { Menu } from "@headlessui/react";
 
 import "../assets/styles/SidebarAnimation.css"; // hiệu ứng sidebar (code ở dưới)
 
@@ -491,6 +493,7 @@ export default function ManagerDashboard() {
                                                     <th className="py-2">Phone</th>
                                                     <th className="py-2">Role</th>
                                                     <th className="py-2">Status</th>
+                                                    <th className="py-2 text-right">Actions</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -500,8 +503,65 @@ export default function ManagerDashboard() {
                                                         <td className="py-2">{u.fullName}</td>
                                                         <td className="py-2">{u.email}</td>
                                                         <td className="py-2">{u.phone}</td>
-                                                        <td className="py-2">{u.role}</td>
-                                                        <td className="py-2">{u.accountStatus}</td>
+                                                        <td className="py-2 capitalize">{u.role}</td>
+                                                        <td className="py-2">
+                                                            <span
+                                                                className={`px-2.5 py-1 rounded-lg text-xs font-medium ${u.accountStatus === "active"
+                                                                    ? "bg-emerald-50 text-emerald-600 border border-emerald-200"
+                                                                    : u.accountStatus === "warning1"
+                                                                        ? "bg-amber-50 text-amber-600 border border-amber-200"
+                                                                        : u.accountStatus === "warning2"
+                                                                            ? "bg-orange-50 text-orange-600 border border-orange-200"
+                                                                            : "bg-rose-50 text-rose-600 border border-rose-200"
+                                                                    }`}
+                                                            >
+                                                                {u.accountStatus}
+                                                            </span>
+                                                        </td>
+                                                        <td className="py-2 text-right">
+                                                            <Menu as="div" className="relative inline-block text-left">
+                                                                <Menu.Button className="px-2 py-1 border border-slate-200 rounded-lg hover:bg-slate-50 transition">
+                                                                    <MoreHorizontal size={16} />
+                                                                </Menu.Button>
+
+                                                                <Menu.Items
+                                                                    className={`absolute right-0 ${idx > users.length - 3 ? "bottom-full mb-2 origin-bottom-right" : "mt-1 origin-top-right"
+                                                                        } w-40 bg-white border border-slate-200 rounded-xl shadow-lg z-50`}
+                                                                >
+                                                                    {[
+                                                                        { label: "Set Active", value: "active", icon: <UserCheck size={14} className="text-emerald-600" /> },
+                                                                        { label: "Warn 1", value: "warning1", icon: <ShieldAlert size={14} className="text-amber-600" /> },
+                                                                        { label: "Warn 2", value: "warning2", icon: <ShieldAlert size={14} className="text-orange-600" /> },
+                                                                        { label: "Ban", value: "ban", icon: <Ban size={14} className="text-rose-600" /> },
+                                                                    ].map((action) => (
+                                                                        <Menu.Item key={action.value}>
+                                                                            {({ active }) => (
+                                                                                <button
+                                                                                    onClick={async () => {
+                                                                                        try {
+                                                                                            await managerAPI.updateUserStatus(u.userId, action.value);
+                                                                                            alert(`✅ ${u.fullName} status changed to ${action.value}`);
+                                                                                            setUsers(
+                                                                                                users.map((x) =>
+                                                                                                    x.userId === u.userId ? { ...x, accountStatus: action.value } : x
+                                                                                                )
+                                                                                            );
+                                                                                        } catch {
+                                                                                            alert("❌ Failed to update status");
+                                                                                        }
+                                                                                    }}
+                                                                                    className={`${active ? "bg-slate-50" : ""
+                                                                                        } flex items-center gap-2 w-full text-left px-3 py-2 text-sm`}
+                                                                                >
+                                                                                    {action.icon}
+                                                                                    <span>{action.label}</span>
+                                                                                </button>
+                                                                            )}
+                                                                        </Menu.Item>
+                                                                    ))}
+                                                                </Menu.Items>
+                                                            </Menu>
+                                                        </td>
                                                     </tr>
                                                 ))}
                                             </tbody>

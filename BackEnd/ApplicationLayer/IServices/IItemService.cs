@@ -25,7 +25,7 @@ namespace Application.IServices
 
         Task<IEnumerable<ItemDto>> GetLatestBatteriesAsync(int count);
 
-        Task<PagedResult<ItemDto>> SearchItemsAsync(
+        Task<PagedResultItem<ItemDto>> SearchItemsAsync(
         string itemType,
         string title,
         decimal? minPrice = null,

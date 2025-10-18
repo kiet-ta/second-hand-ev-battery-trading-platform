@@ -55,7 +55,7 @@ namespace PresentationLayer.Controllers
             if (request.File == null)
                 return BadRequest("No file uploaded");
 
-            var idClaim = User.FindFirst("id") ?? User.FindFirst(ClaimTypes.NameIdentifier);
+            var idClaim = User.FindFirst("user_id") ?? User.FindFirst(ClaimTypes.NameIdentifier);
 
             if (idClaim == null)
                 return Unauthorized("Invalid token: user ID not found in claims");

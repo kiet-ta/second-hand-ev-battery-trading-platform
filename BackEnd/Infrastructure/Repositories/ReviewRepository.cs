@@ -91,6 +91,11 @@ namespace Infrastructure.Repositories
                 ReviewImages = imageDtos
             };
         }
+        public async Task<Review?> GetReviewAsync(int itemId)
+        {
+            return await _context.Reviews
+                .FirstOrDefaultAsync(r => r.ItemId == itemId);
+        }
 
         public async Task<List<ReviewResponseDto>> GetReviewsByTargetUserIdAsync(int targetUserId)
         {
@@ -103,7 +108,6 @@ namespace Infrastructure.Repositories
 
             var reviewIds = reviews.Select(r => r.ReviewId).ToList();
 
-            // get all images
             var images = await _context.ReviewImages
                 .Where(img => reviewIds.Contains(img.ReviewId))
                 .ToListAsync();

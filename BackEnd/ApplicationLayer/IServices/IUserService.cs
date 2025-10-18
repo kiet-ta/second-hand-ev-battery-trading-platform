@@ -28,5 +28,7 @@ namespace Application.IServices
 
         Task<bool> ChangePasswordAsync(int userId, ChangePasswordRequestDto request);
 
+        Task<PagedResultUser<UserListResponseDto>> GetAllUsersAsync(int page, int pageSize);
+
     }
 }
