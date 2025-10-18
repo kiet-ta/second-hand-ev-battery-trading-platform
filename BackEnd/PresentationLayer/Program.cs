@@ -209,6 +209,16 @@ namespace PresentationLayer
             builder.Services.AddScoped<IWalletService, WalletService>();
             //builder.Services.AddSwaggerGen();
 
+            // News
+            builder.Services.AddScoped<INewsRepository, NewsRepository>();
+            builder.Services.AddScoped<INewsService, NewsService>();
+            builder.Services.AddSingleton<INotificationService, NotificationService>();
+            builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
+
+
+
+
+
             builder.Services.AddSwaggerGen(c =>
             {
                 // Thông tin cơ bản
@@ -246,6 +256,7 @@ namespace PresentationLayer
                 });
             });
 
+
             var app = builder.Build();
 
             if (app.Environment.IsDevelopment())
@@ -262,7 +273,11 @@ namespace PresentationLayer
 
             app.MapControllers();
             app.MapHub<ChatHub>("/chatHub");
+
+
             app.Run();
+
+
         }
     }
 }
