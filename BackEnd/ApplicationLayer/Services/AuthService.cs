@@ -83,10 +83,10 @@ namespace Application.Services
         {
             var user = await _userRepository.GetByEmailAsync(dto.Email);
             if (user == null)
-                throw new Exception("Invalid email");
+                throw new InvalidOperationException("Invalid email");
 
             if (!BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash))
-                throw new Exception("Invalid password");
+                throw new InvalidOperationException("Invalid password");
 
             return GenerateToken(user);
         }

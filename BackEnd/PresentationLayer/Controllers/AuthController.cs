@@ -23,30 +23,16 @@ namespace PresentationLayer.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> Register([FromBody] RegisterDto dto)
         {
-            try
-            {
-                var result = await _authService.RegisterAsync(dto);
-                return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
+            var result = await _authService.RegisterAsync(dto);
+            return Ok(result);
         }
 
         [HttpPost("login")]
         [AllowAnonymous]
         public async Task<IActionResult> Login([FromBody] LoginDto dto)
         {
-            try
-            {
-                var result = await _authService.LoginAsync(dto);
-                return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                return Unauthorized(new { message = ex.Message });
-            }
+            var result = await _authService.LoginAsync(dto);
+            return Ok(result);
         }
 
         [HttpPost("google")]
@@ -56,15 +42,8 @@ namespace PresentationLayer.Controllers
             if (string.IsNullOrWhiteSpace(dto.Credential))
                 return BadRequest("Missing Google ID Token");
 
-            try
-            {
-                var result = await _authService.LoginWithGoogleAsync(dto.Credential);
-                return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                return Unauthorized(new { message = ex.Message });
-            }
+            var result = await _authService.LoginWithGoogleAsync(dto.Credential);
+            return Ok(result);
         }
 
         [HttpGet("profile")]
@@ -84,25 +63,8 @@ namespace PresentationLayer.Controllers
         {
             // Get userId from JWT claim or session
             int userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
-
-            try
-            {
-                await _authService.ChangePasswordAsync(userId, request);
-                return Ok(new { message = "Password changed successfully." });
-            }
-            catch (ArgumentException ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
-            catch (UnauthorizedAccessException ex)
-            {
-                return Unauthorized(new { message = ex.Message });
-            }
-            catch (KeyNotFoundException ex)
-            {
-                return NotFound(new { message = ex.Message });
-            }
+            await _authService.ChangePasswordAsync(userId, request);
+            return Ok(new { message = "Password changed successfully." });
         }
-        
     }
 }

@@ -28,6 +28,7 @@ using Microsoft.OpenApi.Models;
 using Net.payOS;
 using PresentationLayer.Authorization;
 using PresentationLayer.Hubs;
+using PresentationLayer.Middleware;
 using System.Text;
 
 namespace PresentationLayer
@@ -41,7 +42,6 @@ namespace PresentationLayer
             //  Register DbContext (DB First)
             builder.Services.AddDbContext<EvBatteryTradingContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
             builder.Services.Configure<FirebaseOptions>(builder.Configuration.GetSection("Firebase"));
-
             // DI for Repository + Service
             //---Services
             builder.Services.AddScoped<IAuthService, AuthService>();
@@ -247,6 +247,7 @@ namespace PresentationLayer
             });
 
             var app = builder.Build();
+            app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
 
             if (app.Environment.IsDevelopment())
             {

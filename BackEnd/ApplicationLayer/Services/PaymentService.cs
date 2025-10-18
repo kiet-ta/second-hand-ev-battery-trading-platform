@@ -199,7 +199,12 @@ public class PaymentService : IPaymentService
     {
         var rules = await _commissionRuleRepo.GetAllAsync();
         var registrationFeeRule = rules.FirstOrDefault(r => r.FeeCode == "SELLER_REG_FEE" && r.IsActive);
-
+        var user = await _userRepository.GetByIdAsync(request.UserId);
+        if (user.Role != "seller" || user.Paid == "registering" || user.Paid == "account-maintenance-fee")
+        {
+            //400 (Bad Request)
+            throw new InvalidOperationException("User is not a seller or has paid the fee.");
+        }
         if (registrationFeeRule == null)
             throw new Exception("Registration fee for Seller not configured yet.");
 
