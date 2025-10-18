@@ -15,4 +15,6 @@ public interface IPaymentService
     Task HandleWebhookAsync(WebhookType body);
 
     Task<PaymentResponseDto> CreateSellerRegistrationPaymentAsync(SellerRegistrationPaymentRequestDto request);
+
+    Task<PaymentResponseDto> CreateDepositPaymentLinkAsync(int userId, decimal amount);
 }

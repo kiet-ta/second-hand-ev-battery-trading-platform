@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Net.payOS;
 using Net.payOS.Types;
+using System.Security.Claims;
 using System.Text.Json;
 
 namespace PresentationLayer.Controllers;
@@ -81,16 +82,8 @@ public class PaymentController : ControllerBase
         if (!validationResult.IsValid)
             return BadRequest(validationResult.Errors);
 
-        try
-        {
-            var response = await _paymentService.CreatePaymentAsync(request);
-            return Ok(response);
-        }
-        catch (Exception ex)
-        {
-            // Log ex
-            return StatusCode(500, "Server error: " + ex.Message);
-        }
+        var response = await _paymentService.CreatePaymentAsync(request);
+        return Ok(response);
     }
 
     [HttpGet("info/{orderCode:long}")]
@@ -128,4 +121,24 @@ public class PaymentController : ControllerBase
             return StatusCode(500, "Server error: " + ex.Message);
         }
     }
+
+    [HttpPost("initiate-deposit")]
+    [Authorize]
+    public async Task<IActionResult> InitiateWalletDeposit([FromBody] InitiateDepositRequestDto request)
+    {
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (!int.TryParse(userIdClaim, out var userId))
+        {
+            return Unauthorized("Invalid user token.");
+        }
+
+        if (request.Amount <= 0)
+        {
+            return BadRequest(new { message = "Deposit amount must be positive." });
+        }
+
+        var response = await _paymentService.CreateDepositPaymentLinkAsync(userId, request.Amount);
+        return Ok(response);
+    }
+}
 }
