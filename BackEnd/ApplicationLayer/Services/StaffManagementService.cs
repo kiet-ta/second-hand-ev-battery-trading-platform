@@ -4,6 +4,7 @@ using Application.IRepositories.IManageStaffRepositories;
 using Application.IServices;
 using AutoMapper;
 using Domain.Entities;
+using Microsoft.EntityFrameworkCore;
 
 namespace Application.Services;
 
@@ -31,7 +32,7 @@ public class StaffManagementService : IStaffManagementService
         var staff = await _userRepository.GetByIdAsync(staffId);
         if (staff == null || staff.Role != "staff")
         {
-            throw new Exception("Staff not found.");
+            throw new Exception("Staff not found or user is not a staff member.");
         }
         await _staffPermissionRepository.AssignPermissionsToStaffAsync(staffId, permissionIds);
     }
@@ -42,6 +43,10 @@ public class StaffManagementService : IStaffManagementService
         if (existingUser != null)
         {
             throw new Exception("Email already exists.");
+        }
+        if (string.IsNullOrWhiteSpace(request.Password) || request.Password.Length < 8)
+        {
+            throw new ArgumentException("Password must be at least 8 characters long.");
         }
         var newUser = new User
         {
@@ -56,6 +61,40 @@ public class StaffManagementService : IStaffManagementService
             IsDeleted = false
         };
         await _userRepository.AddAsync(newUser);
+
+        if (request.Permissions != null && request.Permissions.Any())
+        {
+            // get all permissions from Db
+            var allPermissions = await _permissionRepository.GetAllPermissionAsync();
+            var allPermissionsDict = allPermissions.ToDictionary(p => p.PermissionName, p => p.PermissionId, StringComparer.OrdinalIgnoreCase); // using Dic for faster
+
+            //validate permission classification is in Db and not in Db
+            var permissionIdsToAssign = new List<int>();
+            var invalidPermissions = new List<string>();
+
+            // Map permission name to ID
+            foreach (var permissionName in request.Permissions)
+            {
+                if (allPermissionsDict.TryGetValue(permissionName, out var permissionId))
+                {
+                    permissionIdsToAssign.Add(permissionId);
+                }
+                else
+                {
+                    invalidPermissions.Add(permissionName);
+                }
+            }
+            if (invalidPermissions.Any())
+            {
+                throw new ArgumentException($"Invalid permission names: {string.Join(", ", invalidPermissions)}");
+            }
+
+            // assign permission valid
+            if (permissionIdsToAssign.Any())
+            {
+                await _staffPermissionRepository.AssignPermissionsToStaffAsync(newUser.UserId, permissionIdsToAssign);
+            }
+        }
         return newUser;
     }
 
