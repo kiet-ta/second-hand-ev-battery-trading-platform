@@ -16,6 +16,7 @@
     "antd": "^5.27.4",
     "axios": "^1.12.2",
     "esbuild": "^0.25.9",
+    "jwt-decode": "^4.0.0",
     "lucide-react": "^0.544.0",
     "openai": "^6.3.0",
     "react": "^19.1.1",
