@@ -2,6 +2,7 @@
 using Application.DTOs.AuctionDtos;
 using Application.IServices;
 using Domain.Entities;
+using Google.Apis.Upload;
 using Microsoft.AspNetCore.Mvc;
 
 namespace PresentationLayer.Controllers;
@@ -22,6 +23,17 @@ public class AuctionController : ControllerBase
     {
         var response = await _auctionService.GetAllAuctionsAsync(page, pageSize);
         return Ok(response);
+    }
+
+    [HttpGet("item/{itemId}")]
+    public async Task<IActionResult> GetAuctionByItemId(int itemId)
+    {
+        var auctionDto = await _auctionService.GetAuctionByItemIdAsync(itemId);
+        if (auctionDto == null)
+        {
+            return NotFound(new { message = "No auction found for this item." });
+        }
+        return Ok(auctionDto);
     }
 
     [HttpPost("{auctionId}/bid")]

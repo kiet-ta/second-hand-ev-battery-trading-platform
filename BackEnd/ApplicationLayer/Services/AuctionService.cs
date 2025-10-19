@@ -2,6 +2,7 @@ using Application.DTOs.AuctionDtos;
 using Application.IRepositories;
 using Application.IRepositories.IBiddingRepositories;
 using Application.IServices;
+using AutoMapper.Configuration.Annotations;
 using Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
 
@@ -35,6 +36,16 @@ public class AuctionService : IAuctionService
         _itemRepository = itemRepository;
         _eVDetailRepository = eVDetailRepository;
         _batteryDetailRepository = batteryDetailRepository;
+    }
+
+    public async Task<AuctionDto?> GetAuctionByItemAsync(int itemId)
+    {
+        var auction = await _auctionRepository.GetByItemIdAsync(itemId);
+        if (auction == null)
+        {
+            return null;
+        }
+        return await MapToAuctionDto(auction);
     }
 
     public async Task<AuctionListResponse> GetAuctionsAsync(int page = 1, int pageSize = 10, string? status = null)
@@ -188,18 +199,8 @@ public class AuctionService : IAuctionService
     {
         var item = await _itemRepository.GetByIdAsync(auction.ItemId);
         if (item == null) return null;
+        var image = await _itemImageRepository.GetItemImageById(auction.ItemId);
 
-        Category? category = null;
-        if (item.CategoryId.HasValue)
-        {
-            category = await _categoryRepository.GetCategoryByIdAsync(item.CategoryId.Value);
-        }
-
-        ItemImage? image = null;
-        if (category != null && category.CategoryId == auction.ItemId)
-        {
-            image = await _itemImageRepository.GetItemImageById(auction.ItemId);
-        }
         var auctionDto = new AuctionDto
         {
             AuctionId = auction.AuctionId,
@@ -230,7 +231,7 @@ public class AuctionService : IAuctionService
                 var batteryDetail = await _batteryDetailRepository.GetByIdAsync(auction.ItemId);
                 if (batteryDetail != null)
                 {
-                    auctionDto.Title = $"{item.Title}"; // giữ nguyên tên item
+                    auctionDto.Title = $"{item.Title}";
                 }
                 break;
 
