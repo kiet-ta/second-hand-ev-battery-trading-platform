@@ -27,7 +27,7 @@ import HistorySold from "../components/HistorySold";
 import { useNavigate } from "react-router-dom";
 import { IoLogOutOutline } from "react-icons/io5";
 import SellerAuctionListPage from "../pages/SellerAuctionListPage";
-import MyProduct from "../components/AddProductForm"
+import MyProduct from "../components/ItemForm/AddProductForm"
 import NewsPage from "../components/CreateNews";
 
 export default function SellerDashboard() {

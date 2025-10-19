@@ -26,6 +26,5 @@ public class News
 
     public string? Tags { get; set; }
 
-    public string? Status { get; set; }
 
     }

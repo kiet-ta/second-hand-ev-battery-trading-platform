@@ -81,9 +81,10 @@ function CardComponent({
         speed: 500,       // Transition speed in ms
         slidesToShow: 1,    // Show one slide at a time
         slidesToScroll: 1, // Scroll one slide at a time
-        autoplay: false,    // Set to true if you want it to slide automatically
+        autoplay: true,    // Set to true if you want it to slide automatically
         arrows: false,      // We'll hide default arrows and show on hover
     };
+    console.log(itemImages)
     const displayImages = (itemImages && itemImages.length > 0) 
         ? itemImages 
         : [{ imageUrl: "https://placehold.co/600x400/e2e8f0/e2e8f0?text=." }];
@@ -154,18 +155,18 @@ function CardComponent({
 
     return (
         <Link to={detailPageUrl} state={id} className="block w-full group">
-            <div className="w-full bg-white rounded-lg shadow-md border border-gray-200 transition-all duration-300 group-hover:shadow-xl group-hover:border-indigo-500 group-hover:-translate-y-1">
+            <div className="w-80 h-110 bg-white rounded-lg shadow-md border border-gray-200 transition-all duration-300 group-hover:shadow-xl group-hover:border-indigo-500 group-hover:-translate-y-1">
 
                 {/* 1. IMAGE SECTION */}
                 <div className="relative">
                     {/* This container enforces a 16:9 widescreen aspect ratio.
                         This keeps the image wide but not too tall.
                     */}
-<Slider {...carouselSettings}>
+                    <Slider {...carouselSettings}>
                         {displayImages.map((img, index) => (
                             <div key={index} className="aspect-w-16 aspect-h-9">
                                 <img
-                                    className="w-full h-full object-cover" // Removed rounded-t-lg as the parent div handles it
+                                    className="w-full p-2 rounded-2xl h-60 object-cover" // Removed rounded-t-lg as the parent div handles it
                                     src={img.imageUrl}
                                     alt={`${title} - view ${index + 1}`}
                                 />
@@ -181,7 +182,8 @@ function CardComponent({
                         >
                             <FiHeart className="w-5 h-5" />
                         </button>
-                        <div className='flex flex-col space-y-2'>
+                        {type == `battery` && (                        
+                            <div className='flex flex-col space-y-2'>
                             <button
                                 onClick={handleBuyNowClick}
                                 className="flex items-center justify-center px-4 py-2 rounded-md font-semibold text-xs bg-maincolor text-white hover:bg-maincolor-darker transition-all duration-300 shadow-lg"
@@ -197,6 +199,7 @@ function CardComponent({
                                 Add to Cart
                             </button>
                         </div>
+)}
                         </div>
                 </div>
 
