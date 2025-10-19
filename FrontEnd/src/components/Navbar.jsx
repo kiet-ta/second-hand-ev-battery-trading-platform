@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom';
 import { IoMdHome } from "react-icons/io";
 import { RiAuctionFill } from "react-icons/ri";
@@ -9,11 +9,19 @@ import { FaShoppingCart } from "react-icons/fa";
 import { FaSuitcase } from "react-icons/fa6";
 import { LuShoppingBag } from "react-icons/lu";
 import { jwtDecode } from 'jwt-decode';
+import walletApi from '../api/walletApi';
 
 
 function Navbar(data) {
   const navigate = useNavigate()
-
+  const [walletBalance,setWalletBalance] = useState(null)
+  useEffect(() => {
+    const fetchData = async () => {
+        const walletBalance = await walletApi.getWalletByUser(localStorage.getItem("userId"))
+  setWalletBalance(walletBalance.balance)
+    }
+    fetchData()
+  },[])
   const handleSellerClick = (e) =>{
     e.preventDefault();
     e.stopPropagation();
@@ -68,7 +76,7 @@ function Navbar(data) {
             ))}
             {data.data ? (
               <div className="ml-5">
-                <ProfileDropDown users={data.data} />
+                <ProfileDropDown users={data.data} walletBalance={walletBalance} />
               </div>
             )
               : (
