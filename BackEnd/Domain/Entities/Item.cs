@@ -27,7 +27,7 @@ public class Item
 
     public int? UpdatedBy { get; set; }
 
-    public bool? IsVerified { get; set; }
+    public string? Moderation { get; set; }
 
     public bool IsDeleted { get; set; }
 }

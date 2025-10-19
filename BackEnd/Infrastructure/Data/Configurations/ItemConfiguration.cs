@@ -45,9 +45,9 @@ namespace Infrastructure.Data.Configurations
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnName("updated_at");
             entity.Property(e => e.UpdatedBy).HasColumnName("updated_by");
-            entity.Property(e => e.IsVerified)
-                .HasDefaultValue(false)
-                .HasColumnName("is_verified");
+            entity.Property(e => e.Moderation)
+                .HasDefaultValue("reject_tag")
+                .HasColumnName("moderation");
 
             entity.HasOne<Category>().WithMany()
                 .HasForeignKey(d => d.CategoryId)
