@@ -23,6 +23,9 @@ import AuctionDetailPage from "../pages/Auctions/AuctionDetailPage";
 import ComparePage from "../pages/ComparePage";
 import BuyerViewSeller from '../pages/BuyerViewSeller';
 import FavouritePage from "../pages/FavouritePage";
+import SellerOnBoard from "../pages/SellerOnBoard";
+import SellerForm from "../pages/SellerRegistration";
+import SuccessPage from "../pages/SellerSuccess";
 
 export const router = createBrowserRouter([
   {
@@ -73,6 +76,18 @@ export const router = createBrowserRouter([
       {
         path: "favourite",
         element: <FavouritePage/>
+      },
+      {
+        path: "/seller-registration",
+        element: <SellerOnBoard/>
+      },
+      {
+        path: "/seller-form",
+        element: <SellerForm/>
+      },
+      {
+        path: "/success",
+        element: <SuccessPage/>
       }
     ],
   },

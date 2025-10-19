@@ -1,5 +1,5 @@
 import React from 'react'
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { IoMdHome } from "react-icons/io";
 import { RiAuctionFill } from "react-icons/ri";
 import { MdOutlineAttachMoney } from "react-icons/md";
@@ -8,9 +8,24 @@ import ProfileDropDown from './ProfileDropDown';
 import { FaShoppingCart } from "react-icons/fa";
 import { FaSuitcase } from "react-icons/fa6";
 import { LuShoppingBag } from "react-icons/lu";
+import { jwtDecode } from 'jwt-decode';
 
 
 function Navbar(data) {
+  const navigate = useNavigate()
+
+  const handleSellerClick = (e) =>{
+    e.preventDefault();
+    e.stopPropagation();
+    const jwt = localStorage.getItem("token")
+    const decodeJWT = jwtDecode(jwt)
+    if(decodeJWT.role == "buyer") {
+      navigate('/seller-registration')
+    }
+    else {
+      navigate('/seller')
+    }
+  }
   const leftmenu = [
     { name: 'Home', link: '/', icon: <IoMdHome /> },
     { name: 'Auction', link: '/auctions', icon: <RiAuctionFill /> }
@@ -36,7 +51,7 @@ function Navbar(data) {
                 <span className="ml-2">Manager</span>
               </Link>
             ) : (
-              <Link to="/seller" className="mx-4 hover:text-green-300 flex items-center">
+              <Link onClick={handleSellerClick} className="mx-4 hover:text-green-300 flex items-center">
                 <FaSuitcase />
                 <span className="ml-2">Seller</span>
               </Link>
