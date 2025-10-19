@@ -1,6 +1,7 @@
 ﻿using Application.DTOs;
 using Application.IRepositories;
 using Application.IServices;
+using Domain.Entities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using System.Collections.Concurrent;
@@ -128,6 +129,46 @@ namespace Application.Services
                 Console.WriteLine($"Error saving notification to DB: {ex.Message}");
                 return false;
             }
+        }
+        public async Task<bool> DeleteNotificationAsync(int id)
+        {
+            using var scope = _scopeFactory.CreateScope();
+            var repo = scope.ServiceProvider.GetRequiredService<INotificationRepository>();
+            return await repo.DeleteNotificationAsync(id);
+        }
+        public async Task<List<Notification>> GetNotificationsByReceiverIdAsync(int receiverId)
+        {
+            using var scope = _scopeFactory.CreateScope();
+            var repo = scope.ServiceProvider.GetRequiredService<INotificationRepository>();
+            return await repo.GetNotificationsByUserIdAsync(receiverId);
+        }
+
+        public async Task<List<Notification>> GetNotificationByNotiTypeAsync(string notiType)
+        {
+            using var scope = _scopeFactory.CreateScope();
+            var repo = scope.ServiceProvider.GetRequiredService<INotificationRepository>();
+            return await repo.GetNotificationByNotiTypeAsync(notiType);
+        }
+
+        public async Task<List<Notification>> GetNotificationBySenderIdAsync(int senderId)
+        {
+            using var scope = _scopeFactory.CreateScope();
+            var repo = scope.ServiceProvider.GetRequiredService<INotificationRepository>();
+            return await repo.GetNotificationBySenderIdAsync(senderId);
+        }
+
+        public async Task<List<Notification>> GetNotificationByIdAsync(int id)
+        {
+            using var scope = _scopeFactory.CreateScope();
+            var repo = scope.ServiceProvider.GetRequiredService<INotificationRepository>();
+            return await repo.GetNotificationById(id);
+        }
+
+        public async Task<List<Notification>> GetAllNotificationsAsync()
+        {
+            using var scope = _scopeFactory.CreateScope();
+            var repo = scope.ServiceProvider.GetRequiredService<INotificationRepository>();
+            return await repo.GetAllNotificationsAsync();
         }
     }
 }
