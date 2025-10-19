@@ -311,5 +311,26 @@ namespace Application.Services
             var result = await _itemRepository.GetItemWithSellerByItemIdAsync(itemId);
             return result;
         }
+
+
+        public async Task<bool> SetApprovedItemTagAsync(int itemId)
+        {
+            var item = await _itemRepository.GetByIdAsync(itemId);
+            if (item == null || item.Moderation != "pending")
+                return false;
+
+            return await _itemRepository.SetItemTagAsync(itemId, "approved_tag");
+        }
+
+        public async Task<bool> SetRejectedItemTagAsync(int itemId)
+        {
+            var item = await _itemRepository.GetByIdAsync(itemId);
+            if (item == null || item.Moderation != "pending")
+                return false;
+
+            return await _itemRepository.SetItemTagAsync(itemId, "reject_tag");
+        }
+
+
     }
 }
