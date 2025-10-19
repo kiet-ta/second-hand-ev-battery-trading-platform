@@ -31,7 +31,7 @@ namespace Infrastructure.Repositories
             var notifications = allUserIds.Select(userId => new Notification
             {
                 ReceiverId = userId,
-                SenderId = noti.SenderId,  
+                SenderId = noti.SenderId,
                 SenderRole = noti.SenderRole,
                 NotiType = noti.NotiType,
                 Title = noti.Title,
@@ -44,5 +44,51 @@ namespace Infrastructure.Repositories
             await _context.SaveChangesAsync();
 
         }
+        public async Task<List<Notification>> GetNotificationsByUserIdAsync(int userId)
+        {
+            return await _context.Notifications
+                .Where(n => n.ReceiverId == userId)
+                .OrderByDescending(n => n.CreatedAt)
+                .ToListAsync();
+        }
+        public async Task<List<Notification>> GetNotificationByNotiTypeAsync(string notiType)
+        {
+            return await _context.Notifications
+                .Where(n => n.NotiType == notiType)
+                .OrderByDescending(n => n.CreatedAt)
+                .ToListAsync();
+        }
+        public async Task<List<Notification>> GetNotificationBySenderIdAsync(int senderId)
+        {
+            return await _context.Notifications
+                .Where(n => n.SenderId == senderId)
+                .OrderByDescending(n => n.CreatedAt)
+                .ToListAsync();
+        }
+        public async Task<List<Notification>> GetNotificationById(int id)
+        {
+            return await _context.Notifications
+                .Where(n => n.Id == id)
+                .OrderByDescending(n => n.CreatedAt)
+                .ToListAsync();
+        }
+        public async Task<List<Notification>> GetAllNotificationsAsync()
+        {
+            return await _context.Notifications
+                .OrderByDescending(n => n.CreatedAt)
+                .ToListAsync();
+        }
+        public async Task<bool> DeleteNotificationAsync(int id)
+        {
+            var notification = await _context.Notifications.FindAsync(id);
+            if (notification == null)
+                return false;
+
+            _context.Notifications.Remove(notification);
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
     }
+
 }
