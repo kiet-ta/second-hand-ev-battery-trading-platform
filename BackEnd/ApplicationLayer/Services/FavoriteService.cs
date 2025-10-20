@@ -21,6 +21,13 @@ namespace Application.Services
 
         public async Task<Favorite> CreateFavoriteAsync(CreateFavoriteDto dto)
         {
+            // Check for duplicate favorite
+            bool exists = await _favoriteRepository.ExistsAsync(dto.UserId, dto.ItemId);
+            if (exists)
+            {
+                throw new InvalidOperationException("This item is already in the user's favorites.");
+            }
+
             var favorite = new Favorite
             {
                 UserId = dto.UserId,
@@ -36,6 +43,9 @@ namespace Application.Services
             return await _favoriteRepository.GetFavoritesByUserIdAsync(userId);
         }
 
+        public async Task<bool> ExistsAsync(int userId, int itemId)
+        {
+            return await _favoriteRepository.ExistsAsync(userId, itemId);
         public async Task<bool> DeleteFavoriteAsync(int favId, int userId)
         {
             var favorite = await _favoriteRepository.GetByIdAsync(favId);

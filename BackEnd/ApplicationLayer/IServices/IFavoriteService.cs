@@ -12,6 +12,7 @@ namespace Application.IServices
     {
         Task<Favorite> CreateFavoriteAsync(CreateFavoriteDto dto);
         Task<List<FavoriteItemDto>> GetFavoritesByUserAsync(int userId);
+        Task<bool> ExistsAsync(int userId, int itemId);
         Task<bool> DeleteFavoriteAsync(int favId, int userId);
     }
 }
