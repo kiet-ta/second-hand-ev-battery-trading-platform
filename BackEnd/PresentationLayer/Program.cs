@@ -90,6 +90,10 @@ namespace PresentationLayer
             builder.Services.AddScoped<ICommissionFeeRuleRepository, CommissionFeeRuleRepository>();
             builder.Services.AddScoped<ITransactionRepository, TransactionRepository>();
 
+            builder.Services.Configure<MailSettings>(
+    builder.Configuration.GetSection("MailSettings"));
+
+
             // AddHttp
             builder.Services.AddHttpClient<IChatRepository, FirebaseChatRepository>();
             builder.Services.AddHttpContextAccessor();
