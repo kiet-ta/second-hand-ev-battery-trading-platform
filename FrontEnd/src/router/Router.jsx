@@ -8,8 +8,6 @@ import CartPage from "../pages/CartPage";
 import CheckoutPage from "../pages/CheckoutPage";
 import LoginPage from "../pages/LoginPage";
 import RegisterPage from "../pages/RegisterPage";
-import ProfileContent from "../pages/ProfileContent";
-import SellerDashboard from "../pages/DashboardSeller"; 
 import PaymentSuccessPage from "../pages/PaymentSuccessPage";
 import PaymentFailPage from "../pages/PaymentFailPage";
 import DetailedCheckoutPage from '../pages/DetailCheckout';
@@ -28,12 +26,7 @@ import SuccessPage from "../pages/SellerSuccess";
 
 // Components used in the sub-routes
 import PurchaseHistory from "../components/HistoryBought";
-import HistorySold from "../components/HistorySold";
-import PurchaseHistory from "../components/HistoryBought"; 
-import SellerAuctionListPage from "../pages/SellerAuctionListPage";
-import MyProduct from "../components/ItemForm/AddProductForm";
 import NewsPage from "../components/CreateNews";
-import ChatRoom from "../components/Chats/ChatRoom";
 
 // --- Profile (Router-Based SPA) ---
 import ProfileLayout from "../pages/Profile/ProfileLayout";
@@ -42,7 +35,6 @@ import AccountSetting from "../pages/Profile/AccountSetting";
 import AddressSetting from "../pages/Profile/AddressSetting";
 import NotificationSetting from "../pages/Profile/NotificationSetting";
 import SecuritySetting from "../pages/Profile/SecuritySetting";
-import ProfileSection from "../pages/Profile/ProfileSection";
 import PurchaseSection from "../pages/Profile/PurchaseSection";
 import SettingsSection from "../pages/Profile/SettingsSection";
 
@@ -64,9 +56,6 @@ import SettingsContent from "../components/Manager/SettingContent";
 import ProductModeration from "../components/ProductModeration";
 import NotificationCreator from "../components/Notifications/NotificationCreation";
 import ProtectedRoute from "../components/ProtectedRoute";
-import SellerDashboardContentView from "../components/SellerDashboardContent";
-import ChatRoomWrapper from "../components/Chats/ChatRoomWrapper";
-import KycManagementPage from "../pages/KYCManagementPage";
 
 // Placeholder component for Profile Index Route content (since complex state was removed)
 const ProfileNestedFormsPlaceholder = () => (
