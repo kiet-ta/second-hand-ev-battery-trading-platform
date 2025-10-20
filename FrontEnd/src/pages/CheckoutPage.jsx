@@ -56,6 +56,7 @@ function CheckoutPage() {
             
             } else if (info.status === 'CANCELLED' || info.status === 'FAILED') {
                 orderData.itemsToPurchase.map(item => console.log("ItemID",item.orderItemId))
+                                orderData.itemsToPurchase.map(item => orderItemApi.deleteOrderItem(item.orderItemId))
 
                 clearInterval(pollingIntervalRef.current);
                 paymentWindow.close();
