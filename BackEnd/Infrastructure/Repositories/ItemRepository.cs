@@ -342,6 +342,9 @@ namespace Infrastructure.Repositories
                                 join bat in _context.BatteryDetails
                                     on q.item.ItemId equals bat.ItemId into batJoin
                                 from bat in batJoin.DefaultIfEmpty()
+                                //join im in _context.ItemImages
+                                //    on q.item.ItemId equals im.ItemId into imJoin
+                                //from im in imJoin.DefaultIfEmpty()
                                 select new ItemBoughtDto
                                 {
                                     ItemId = q.item.ItemId,
@@ -371,7 +374,15 @@ namespace Infrastructure.Repositories
                                     ChargeCycles = bat.ChargeCycles,
 
                                     // Amount of item
-                                    ItemAmount = q.pd.Amount
+                                    ItemAmount = q.pd.Amount,
+
+                                    ItemImage = _context.ItemImages
+                                        .Where(img => img.ItemId == q.item.ItemId)
+                                        .Select(img => new ItemImage
+                                        {
+                                            ImageId = img.ImageId,
+                                            ImageUrl = img.ImageUrl
+                                        }).ToList()
                                 }).ToListAsync();
 
             return result;
