@@ -222,10 +222,12 @@ function CardComponent({
 
                 {/* 2. CONTENT SECTION */}
                 <div className="p-5">
-                    <div className="flex items-center"> {/* ✨ WRAPPER FOR TITLE AND VERIFIED CHECK */}
-                        <h3 className="text-xl font-bold text-gray-900 truncate" title={title}>
+                    <div className="flex items-center "> {/* ✨ WRAPPER FOR TITLE AND VERIFIED CHECK */}
+                        <h3 className="text-xl font-bold text-gray-900 truncate items-start" title={title}>
                             {title}
                         </h3>
+                        {/* ✨ DISPLAY VERIFIED CHECK */}
+                        {isVerified && <VerifiedCheck className="ml-2 flex-shrink-0 items-end" />} 
                     </div>
 
 
@@ -245,8 +247,8 @@ function CardComponent({
                                 <p className="text-2xl font-extrabold text-indigo-600">
                                     {price.toLocaleString('vi-VN')}
                                 </p>
-                                <p className="ml-1 text-base font-extrabold text-indigo-600">
-                                    VND
+                                <p className="text-base font-extrabold text-indigo-600">
+                                VND
                                 </p>
                             </div>
                         </div>

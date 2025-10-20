@@ -34,15 +34,17 @@ namespace Infrastructure.Data.Configurations
             entity.Property(e => e.Title)
                 .HasMaxLength(255)
                 .HasColumnName("title");
-            entity.Property(e => e.UserId).HasColumnName("user_id");
             entity.Property(e => e.Status)
                 .HasMaxLength(20)
                 .HasDefaultValue("pending")
                 .HasColumnName("status");
+            entity.Property(e => e.IsDeleted)
+            .HasColumnName("is_deleted")
+            .HasDefaultValue(false);
 
             entity.HasOne<User>().WithMany()
                 .HasForeignKey(d => d.AuthorId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
+               .OnDelete(DeleteBehavior.NoAction)
                 .HasConstraintName("FK__news__author_id__17036CC0");
         }
     }

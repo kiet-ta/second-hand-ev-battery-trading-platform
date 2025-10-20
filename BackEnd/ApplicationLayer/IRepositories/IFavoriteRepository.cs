@@ -12,5 +12,8 @@ namespace Application.IRepositories
     {
         Task<Favorite> AddAsync(Favorite favorite);
         Task<List<FavoriteItemDto>> GetFavoritesByUserIdAsync(int userId);
+        Task<bool> ExistsAsync(int userId, int itemId);
+        Task<Favorite?> GetByIdAsync(int favId);
+        Task DeleteAsync(Favorite favorite);
     }
 }

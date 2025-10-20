@@ -36,10 +36,11 @@ namespace Infrastructure.Repositories
             await _context.SaveChangesAsync();
         }
 
-        public async Task SetUserKYCStatusAsync(int id, string status)
+        public async Task SetUserKYCStatusAsync(int id, string status, string role)
         {
             var user = await _context.Users.FindAsync(id);
             if (user == null) throw new Exception($"User {id} not found");
+            user.Role = role;
             user.KycStatus = status;
             // not_submitted, pending, approved, rejected
 

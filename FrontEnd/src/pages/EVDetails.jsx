@@ -124,15 +124,21 @@ function EVDetails() {
  }, [itemId]);
 
  // --- Action Handlers ---
- const handleChatWithSeller = async () => {
-  const buyerId = parseInt(localStorage.getItem("userId"), 10);
+const checkLoginAndExecute = (callback) => {
+ const userId = parseInt(localStorage.getItem("userId"), 10);
+ if (isNaN(userId)) {
+  message.error("Please log in to perform this action.");
+  navigate('/login');
+  return false;
+ }
+ callback(userId);
+ return true;
+}
+
+const handleChatWithSeller = async () => {
+ checkLoginAndExecute(async (buyerId) => {
   const sellerId = item?.updatedBy;
 
-  if (isNaN(buyerId)) {
-   message.error("Please log in to start a chat.");
-   navigate('/login');
-   return;
-  }
   if (!sellerId || buyerId === sellerId) {
    message.error("Cannot chat with self.");
    return;
@@ -148,8 +154,18 @@ function EVDetails() {
    message.destroy();
    message.error("Failed to start chat. Check network.");
   }
- };
- 
+ });
+};
+
+// ********************************************************************
+// MODIFICATION 2: Add handleShowPhone for the phone button
+// ********************************************************************
+const handleShowPhone = () => {
+ checkLoginAndExecute(() => {
+  // If logged in, toggle phone visibility
+  setIsPhoneVisible(prev => !prev);
+ });
+}; 
  // --- Conditional Renders (Loading/Error) ---
  if (loading) {
   return (
@@ -265,7 +281,7 @@ function EVDetails() {
       {evDetail && (
        <div className="flex flex-wrap gap-x-4 gap-y-2 text-gray-600 items-center">
         <div className="flex items-center gap-2"><FiCalendar /><span>{evDetail.year}</span></div>
-        <div className="flex items-center gap-2"><FiTrendingUp /><span>{evDetail.mileage.toLocaleString()} km</span></div>
+        <div className="flex items-center gap-2"><FiTrendingUp /><span>{evDetail.mileage} km</span></div>
         <div className="flex items-center gap-2"><FiMapPin /><span>{evDetail.location || 'N/A'}</span></div>
        </div>
       )}
@@ -285,7 +301,7 @@ function EVDetails() {
         className="flex-1 bg-blue-500 text-white font-bold py-3 px-6 rounded-lg flex items-center justify-center gap-2 hover:bg-blue-600 transition-colors">
         <FiMessageSquare /> Chat with Seller
        </button>       <button
-        onClick={() => setIsPhoneVisible(!isPhoneVisible)}
+        onClick={handleShowPhone}
         className="flex-1 bg-green-500 text-white font-bold py-3 px-6 rounded-lg flex items-center justify-center gap-2 hover:bg-green-600 transition-colors"
        >
         <FiPhone/>

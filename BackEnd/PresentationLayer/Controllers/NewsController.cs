@@ -76,6 +76,35 @@ namespace PresentationLayer.Controllers
                 await _notificationService.UnRegisterClientAsync(Response);
                 Console.WriteLine($"User {userId} unsubscribed.");
             }
+            
+        }
+        [HttpPost]
+        public async Task<IActionResult> AddNews([FromBody] CreateNewsDto dto)
+        {
+            if (dto == null)
+                return BadRequest("News data cannot be null.");
+
+            var result = await _newsService.AddNewsAsync(dto);
+            if (result)
+                return Ok(new { message = "News created successfully." });
+
+            return StatusCode(500, "Failed to create news.");
+        }
+
+        [HttpDelete("{newsId:int}")]
+        public async Task<IActionResult> DeleteNews(int newsId)
+        {
+            await _newsService.DeleteNewsAsync(newsId);
+            return Ok(new { message = $"News with ID {newsId} has been deleted" });
+        }
+        [HttpPut("reject/{newsId:int}")]
+        public async Task<IActionResult> RejectNews(int newsId)
+        {
+            var result = await _newsService.RejectNewsAsync(newsId);
+            if (!result)
+                return NotFound(new { message = "News not found" });
+
+            return Ok(new { message = $"News ID {newsId} has been rejected." });
         }
     }
 }

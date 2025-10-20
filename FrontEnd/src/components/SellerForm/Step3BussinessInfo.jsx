@@ -1,3 +1,4 @@
+// Step3_StoreInfo.js
 import React from 'react';
 import ImageUploadField from './ImageUploadField';
 
@@ -13,7 +14,7 @@ const Step3_StoreInfo = ({ formData, setFormData, prevStep, handleSubmit }) => {
       }
     });
   };
-  console.log(formData)
+  
   return (
     <div>
       <h2 className="text-xl font-semibold text-gray-800 mb-4">Bước 3: Thông tin Cửa hàng và Giới thiệu</h2>
@@ -73,4 +74,3 @@ const Step3_StoreInfo = ({ formData, setFormData, prevStep, handleSubmit }) => {
 }
 
 export default Step3_StoreInfo;
-

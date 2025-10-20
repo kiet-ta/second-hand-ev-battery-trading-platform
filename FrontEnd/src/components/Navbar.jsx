@@ -63,10 +63,10 @@ function Navbar(data) {
             }
 
           </div>
-          <div className="right-header flex w-full justify-end" >
+          <div className="right-header flex w-full justify-end h-5" >
             {data.data ? (
               <div className="flex justify-center">
-              <div className="ml-5 mt-2">
+              <div className="ml-5">
                 <NotificationDropDown userId={localStorage.getItem("userId")} />
               </div>
               <div className="ml-5">
@@ -91,8 +91,8 @@ function Navbar(data) {
         <div className="w-full flex h-20 items-center align-middle content-center">
           <div className="w-1/4 h-full flex justify-start"><Logo></Logo></div>
           <div className="content-center align-middle w-2/4">
-            <form action='/search' method='GET' className="w-full p-2 rounded-lg text-black bg-white relative">
-                <input type="text" name="query" placeholder="Search..." className="w-5/6"/>
+            <form action='/search' method='GET' className="w-full rounded-lg text-black bg-white relative">
+                <input type="text" name="query" placeholder="Search..." className="w-5/6 text-2xl"/>
                 <select className="bg-maincolor-darker w-1/6 absolute right-0 top-0 h-full align-middle text-center font-bold border-1" name="itemType">
                 <option value="All">All</option>
                 <option value="EV">Vehicle</option>

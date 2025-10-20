@@ -29,26 +29,59 @@ namespace Application.Services
 
         public async Task RegisterClientAsync(HttpResponse response, CancellationToken token, string userId)
         {
+            // 🚨 Headers are now assumed to be set correctly in the Controller.
+
+            // 1. Client registration and initial message
             _clients[userId] = response;
+            Console.WriteLine($"[DEBUG-C#] User {userId} registered. Total clients: {_clients.Count}");
+
             await response.WriteAsync($": connected\n\n");
             await response.Body.FlushAsync();
+
+            // 2. Setup TaskCompletionSource (Robust persistence signal)
+            var completionSource = new TaskCompletionSource<bool>();
+
+            // 3. Register Cleanup logic on token cancellation (client disconnects)
             token.Register(() =>
             {
                 _clients.TryRemove(userId, out _);
+                Console.WriteLine($"[DEBUG-C#] Client {userId} removed by cancellation.");
+                // Signal the completion source that the connection is done
+                completionSource.TrySetResult(true);
             });
 
-            try
+            // 4. Handle HTTP context disposal cleanup (e.g., Kestrel closing pipe)
+            response.HttpContext.Response.RegisterForDispose(new DisposableAction(() =>
             {
-                await Task.Delay(Timeout.Infinite, token);
-            }
-            catch (OperationCanceledException)
+                if (_clients.TryRemove(userId, out _))
+                {
+                    Console.WriteLine($"[DEBUG-C#] Client {userId} removed by HTTP context disposal.");
+                }
+                completionSource.TrySetResult(true);
+            }));
+
+            // 5. Pending messages (processing logic remains the same)
+            while (_pendingMessages.TryDequeue(out var pending))
             {
-                Console.WriteLine($"[DEBUG-C#] 6. Task Delay cancelled for {userId}. Cleanup initiated.");
+                // (omitted pending message dispatch logic for brevity)
+                if (pending.userId == userId || string.IsNullOrEmpty(pending.userId))
+                {
+                    try
+                    {
+                        await response.WriteAsync($"data: {pending.message}\n\n");
+                        await response.Body.FlushAsync();
+                    }
+                    catch
+                    {
+                        _pendingMessages.Enqueue(pending);
+                    }
+                }
             }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"[DEBUG-C#] 6. UNEXPECTED ERROR in stream for {userId}: {ex.Message}");
-            }
+
+
+            // 6. Await the signal, effectively keeping the HTTP connection alive
+            // The Task will only complete when the TrySetResult is called via cancellation/disposal.
+            await completionSource.Task;
         }
         public async Task UnRegisterClientAsync(HttpResponse response)
         {
@@ -94,6 +127,10 @@ namespace Application.Services
 
             await Task.WhenAll(tasks);
         }
+
+        // ------------------------------------------------------------------
+        // Standard Service Methods (No changes needed)
+        // ------------------------------------------------------------------
         public async Task<bool> AddNewNotification(CreateNotificationDTO noti)
         {
             using var scope = _scopeFactory.CreateScope();

@@ -26,6 +26,15 @@ public class StaffManagementService : IStaffManagementService
         _staffPermissionRepository = staffPermissionRepository;
         _mapper = mapper;
     }
+    public static int GenerateUserId()
+    {
+        var now = DateTime.UtcNow;
+        string timestamp = now.ToString("yyyyMMddHHmmss");
+        int random = new Random().Next(100, 999);
+        string combined = timestamp + random.ToString();
+        int hash = combined.GetHashCode();
+        return Math.Abs(hash);
+    }
 
     public static int GenerateUserId()
     {

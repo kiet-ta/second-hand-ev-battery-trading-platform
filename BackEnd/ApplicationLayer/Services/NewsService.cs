@@ -1,4 +1,5 @@
-﻿using Application.IRepositories;
+﻿using Application.DTOs;
+using Application.IRepositories;
 using Application.IServices;
 using System;
 using System.Collections.Generic;
@@ -24,5 +25,21 @@ namespace Application.Services
         {
             return await _newsRepository.SetCanclledStatusAsync(newsId);
         }
+        public async Task<bool> AddNewsAsync(CreateNewsDto dto)
+        {
+            await _newsRepository.CreateNews(dto);
+            return true;
+        }
+        public async Task DeleteNewsAsync(int newsId)
+        {
+            await _newsRepository.DeleteNewsById(newsId);
+        }
+
+        public async Task<bool> RejectNewsAsync(int newsId)
+        {
+            return await _newsRepository.UpdateNewsStatusAsync(newsId, "cancelled");
+        }
+
+
     }
 }

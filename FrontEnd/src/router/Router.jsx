@@ -8,6 +8,8 @@ import CartPage from "../pages/CartPage";
 import CheckoutPage from "../pages/CheckoutPage";
 import LoginPage from "../pages/LoginPage";
 import RegisterPage from "../pages/RegisterPage";
+import ProfileContent from "../pages/ProfileContent";
+import SellerDashboard from "../pages/DashboardSeller"; 
 import PaymentSuccessPage from "../pages/PaymentSuccessPage";
 import PaymentFailPage from "../pages/PaymentFailPage";
 import DetailedCheckoutPage from '../pages/DetailCheckout';
@@ -26,6 +28,9 @@ import SuccessPage from "../pages/SellerSuccess";
 
 // Components used in the sub-routes
 import PurchaseHistory from "../components/HistoryBought";
+import HistorySold from "../components/HistorySold";
+import PurchaseHistory from "../components/HistoryBought"; 
+import SellerAuctionListPage from "../pages/SellerAuctionListPage";
 import MyProduct from "../components/ItemForm/AddProductForm";
 import NewsPage from "../components/CreateNews";
 import ChatRoom from "../components/Chats/ChatRoom";
@@ -59,12 +64,15 @@ import SettingsContent from "../components/Manager/SettingContent";
 import ProductModeration from "../components/ProductModeration";
 import NotificationCreator from "../components/Notifications/NotificationCreation";
 import ProtectedRoute from "../components/ProtectedRoute";
+import SellerDashboardContentView from "../components/SellerDashboardContent";
+import ChatRoomWrapper from "../components/Chats/ChatRoomWrapper";
+import KycManagementPage from "../pages/KYCManagementPage";
 
 // Placeholder component for Profile Index Route content (since complex state was removed)
 const ProfileNestedFormsPlaceholder = () => (
   <div className="profile-main">
     {/* ProfileContent handles which form is shown here */}
-    <div>Profile/Account Forms Placeholder</div>
+    <div>Profile/Account Forms Placeholder</div> 
   </div>
 );
 
@@ -93,7 +101,6 @@ export const router = createBrowserRouter([
       { path: "/blog/:id", element: <BlogDetail /> },
     ],
   },
-
   // --- AUTHENTICATION ROUTES ---
   { path: "/login", element: <LoginPage />, },
   { path: "/register", element: <RegisterPage />, },

@@ -26,9 +26,9 @@ const ProfileDropDown = ({users,walletBalance}) => (
             <Space>
                 <div>
                     <img
-                        src={users.avatarProfile}
+                        src={users.avatarProfile || "https://upload.wikimedia.org/wikipedia/commons/8/89/Portrait_Placeholder.png"}
                         alt={users.fullName}
-                        className="w-15 h-15 rounded-full object-contain shadow-md" />
+                        className="w-10 h-10 rounded-full object-contain shadow-md" />
                 </div>
     
                 <DownOutlined />

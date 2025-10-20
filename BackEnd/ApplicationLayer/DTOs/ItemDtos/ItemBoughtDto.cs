@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Domain.Entities;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -38,5 +39,7 @@ namespace Application.DTOs.ItemDtos
 
         // Amount of item
         public decimal ItemAmount { get; set; }
+
+        public List<ItemImage>? ItemImage { get; set; }
     }
 }
