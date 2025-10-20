@@ -103,6 +103,7 @@ namespace Infrastructure.Repositories
         {
             return await _context.Favorites
                 .AnyAsync(f => f.UserId == userId && f.ItemId == itemId);
+        }
         public async Task DeleteAsync(Favorite favorite)
         {
             _context.Favorites.Remove(favorite);

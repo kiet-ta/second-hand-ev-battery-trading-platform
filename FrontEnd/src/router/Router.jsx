@@ -45,6 +45,8 @@ import ProductModeration from "../components/ProductModeration";
 import NotificationCreator from "../components/Notifications/NotificationCreation";
 import ProtectedRoute from "../components/ProtectedRoute";
 import SellerDashboardContentView from "../components/SellerDashboardContent";
+import ChatRoomWrapper from "../components/Chats/ChatRoomWrapper";
+import KycManagementPage from "../pages/KYCManagementPage";
 
 // Placeholder component for Profile Index Route content (since complex state was removed)
 const ProfileNestedFormsPlaceholder = () => (
@@ -96,7 +98,7 @@ export const router = createBrowserRouter([
       { path: "purchase", element: <div className="profile-main"><PurchaseHistory /></div> },
       
       // Chat
-      { path: "chat", element: <div className="profile-main"><ChatRoom /></div> }, 
+      { path: "chat", element: <div className="profile-main"><ChatRoomWrapper /></div> }, 
       
       // Settings
       { path: "settings", element: <SettingsContent /> } 
@@ -120,7 +122,7 @@ export const router = createBrowserRouter([
                 { path: "products", element: <MyProduct /> },
                 { path: "history", element: <HistorySold /> },
                 { path: "settings", element: <div>Seller Settings Content</div> },
-                { path: "chat", element: <div className="profile-main"><ChatRoom /></div> },
+                { path: "chat", element: <div className="profile-main"><ChatRoomWrapper /></div> },
             ]},
         ]
     },
@@ -135,6 +137,7 @@ export const router = createBrowserRouter([
             { element: <ManagerDashboard />, children: [ 
                 { index: true, element: <DashboardContent /> }, 
                 { path: "approvals", element: <SellerApprovalsContent /> },
+                { path: "kyc_management", element: <KycManagementPage/>},
                 { path: "users", element: <UsersContent /> },
                 { path: "products", element: <ProductModeration /> },
                 { path: "complaints", element: <ComplaintsList /> },

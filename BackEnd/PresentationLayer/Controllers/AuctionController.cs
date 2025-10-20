@@ -70,7 +70,7 @@ public class AuctionController : ControllerBase
     [HttpGet("user/{userId}")]
     public async Task<IActionResult> GetActionByUserId(int userId)
     {
-        var auction = _auctionService.GetAuctionsByUserId(userId);
+        var auction = await _auctionService.GetAuctionsByUserId(userId);
         if (auction == null)
         {
             return NotFound(new { message = "No auctions found for this user." });

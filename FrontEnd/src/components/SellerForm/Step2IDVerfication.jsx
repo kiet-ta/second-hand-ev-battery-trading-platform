@@ -1,5 +1,6 @@
+// Step2_KYC.js
 import React from 'react';
-import ImageUploadField from './ImageUploadField'
+import ImageUploadField from './ImageUploadField';
 
 const Step2_KYC = ({ formData, setFormData, nextStep, prevStep }) => (
   <div>

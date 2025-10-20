@@ -13,8 +13,8 @@ import walletApi from '../../api/walletApi';
 
 // --- CONFIG CONSTANTS ---
 const PRICE_STEP = 100000;
-const LOGGED_IN_USER_ID = localStorage.getItem("userId") || 1; // Fallback to 1 if not in storage
-const DEFAULT_BID_HISTORY = []; // Use an empty array if the API doesn't provide it
+const LOGGED_IN_USER_ID = localStorage.getItem("userId") || 1; 
+const DEFAULT_BID_HISTORY = []; 
 
 // --- COUNTDOWN HOOK (UNMODIFIED) ---
 const useCountdown = (endTimeStr) => {
@@ -64,75 +64,109 @@ const useCountdown = (endTimeStr) => {
 
 function AuctionDetailPage() {
     const { id } = useParams();
-    const location = useLocation();
 
     const [auction, setAuction] = useState(null);
     const [itemDetails, setItemDetails] = useState(null);
     const [sellerProfile, setSellerProfile] = useState(null);
+    const [currentUserProfile, setCurrentUserProfile] = useState(null); 
+    // ✨ CHANGE 1: New state for bid history, separate from the main auction object
+    const [bidHistory, setBidHistory] = useState(DEFAULT_BID_HISTORY); 
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [selectedImage, setSelectedImage] = useState(0);
-    const [bidAmount, setBidAmount] = useState(null); // ✨ FIX 1: Initialize to null
+    const [bidAmount, setBidAmount] = useState(null); 
     const [isBidding, setIsBidding] = useState(false);
+    const [isHistoryLoading, setIsHistoryLoading] = useState(false); // New loading state for history
     const [isPhoneVisible, setIsPhoneVisible] = useState(false);
     const [walletBalance, setWalletBalance] = useState(0);
 
     const countdown = useCountdown(auction?.endTime);
 
     const getMinBid = useCallback(() => {
-        // Safe check for currentPrice
         const basePrice = auction?.currentPrice || auction?.startingPrice || 0;
         return basePrice + PRICE_STEP;
     }, [auction]);
 
+    // ✨ HELPER FUNCTION: To normalize the bid history data
+    const normalizeBidHistory = (history) => {
+        if (!history || !Array.isArray(history)) return DEFAULT_BID_HISTORY;
+        // Map the API response format { fullName, bidAmount, bidTime } 
+        // to the list format { bidder, bidAmount, timestamp }
+        return history.map(bid => ({
+            bidder: bid.fullName || 'Unknown User', 
+            bidAmount: bid.bidAmount,
+            timestamp: bid.bidTime 
+        })).sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)); // Sort by newest first
+    }
 
-    // --- API Fetch Effect: Handles Auction, Item, User, and Wallet details ---
+    // ✨ NEW FUNCTION: Dedicated function to fetch and set bid history
+    const fetchBiddingHistory = useCallback(async (auctionId) => {
+        if (!auctionId) return;
+        setIsHistoryLoading(true);
+        try {
+            const historyData = await auctionApi.getBiddingHistory(auctionId);
+            setBidHistory(normalizeBidHistory(historyData));
+        } catch (err) {
+            console.error("Failed to fetch bidding history:", err);
+            // Optionally, show a message. For now, we'll fail silently or use the previous history.
+        } finally {
+            setIsHistoryLoading(false);
+        }
+    }, []);
+
+
+    // --- Primary Data Fetch Effect: Auction, Item, User, Wallet ---
     useEffect(() => {
         if (!id) return;
 
-        const fetchAllData = async () => {
+        const fetchInitialData = async () => {
             try {
                 setLoading(true);
                 setError(null);
 
-                // 1. Fetch Auction Data
+                // 1. Fetch Auction Data (by Item ID)
                 const auctionData = await auctionApi.getAuctionByItemId(id);
+                const auctionId = auctionData.auctionId; // Get auctionId for history fetch
 
-                // 2. Fetch Item Details using the itemId from the auctionData
+                // 2. Fetch Item Details
                 const itemData = await itemApi.getItemDetailByID(auctionData.itemId);
 
-                // 3. Fetch Seller Profile using 'updatedBy' from Item Details
+                // 3. Fetch Seller Profile
                 const sellerId = itemData.updatedBy;
                 const userData = await userApi.getUserByID(sellerId);
                 
-                // 4. Fetch Wallet Balance
+                // 4. Fetch Current User Profile 
+                const userProfile = await userApi.getUserByID(LOGGED_IN_USER_ID); 
+                setCurrentUserProfile(userProfile);
+
+                // 5. Fetch Wallet Balance
                 const walletResponse = await walletApi.getWalletByUser(LOGGED_IN_USER_ID);
 
-                const fullAuctionData = {
-                    ...auctionData,
-                    priceStep: PRICE_STEP,
-                    bidHistory: auctionData.bidHistory || DEFAULT_BID_HISTORY
-                };
-                setAuction(fullAuctionData);
+                // 6. Set initial state
+                setAuction(auctionData);
                 setItemDetails(itemData);
                 setSellerProfile(userData);
                 setWalletBalance(walletResponse.balance || 0);
 
-                // 5. Set initial bid amount to the calculated minimum
+                // 7. Set initial bid amount
                 const basePrice = auctionData.currentPrice || auctionData.startingPrice;
                 const minBid = basePrice + PRICE_STEP; 
-                setBidAmount(minBid); // ✨ FIX 2: Correctly set state based on fetched data
+                setBidAmount(minBid); 
+                
+                // 8. Trigger Bid History Fetch
+                if (auctionId) {
+                    await fetchBiddingHistory(auctionId);
+                }
 
             } catch (err) {
                 console.error("API Fetch Error:", err);
-                setError(err.response?.data?.message || `Failed to load details for auction ID ${id}.`);
+                setError(err.response?.data?.message || `Failed to load details for item ID ${id}.`);
             } finally {
                 setLoading(false);
             }
         };
-        fetchAllData();
-    }, [id]);
-
+        fetchInitialData();
+    }, [id, fetchBiddingHistory]); // Include fetchBiddingHistory in dependency array
 
     // --- API Bid Handler ---
     const handlePlaceBid = async () => {
@@ -157,34 +191,32 @@ function AuctionDetailPage() {
         try {
             const userId = LOGGED_IN_USER_ID; 
             const payload = { userId, bidAmount };
-
-            const response = await auctionApi.bidAuction(auction.auctionId, payload);
-            console.log(response)
+            const auctionId = auction.auctionId;
+            console.log(auctionId)
+            const response = await auctionApi.bidAuction(auctionId, payload);
+            
             if (response && response.message === "Bid placed successfully.") {
                 message.success(response.message || `Bid of ${bidAmount.toLocaleString('vi-VN')} VND placed successfully!`);
 
-                const newBidEntry = { 
-                    bidder: sellerProfile?.fullName || 'Current User', 
-                    bidAmount: bidAmount, 
-                    timestamp: new Date().toISOString() 
-                };
-
+                // 1. Re-fetch minimal auction data to get the new currentPrice and totalBids
+                const updatedAuctionData = await auctionApi.getAuctionByItemId(id); 
                 setAuction(prev => ({
                     ...prev,
-                    currentPrice: bidAmount,
-                    totalBids: (prev.totalBids || 0) + 1,
-                    bidHistory: [newBidEntry, ...prev.bidHistory || []].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+                    currentPrice: updatedAuctionData.currentPrice,
+                    totalBids: updatedAuctionData.totalBids,
                 }));
-                // Set the input value to the *new* next minimum bid
-                setBidAmount(bidAmount + PRICE_STEP); 
-                try {
+                
+                // 2. Refresh Wallet Balance
                 const newWalletResponse = await walletApi.getWalletByUser(LOGGED_IN_USER_ID);
                 setWalletBalance(newWalletResponse.balance || 0);
                 message.info(`Wallet updated: New balance is ${newWalletResponse.balance.toLocaleString('vi-VN')} VND.`);
-            } catch (walletError) {
-                console.error("Failed to fetch new wallet balance:", walletError);
-                message.warning("Bid placed, but failed to update wallet balance in real-time.");
-            }
+
+                // 3. ✨ NEW: Refresh the dedicated Bid History
+                await fetchBiddingHistory(auctionId);
+
+                // 4. Set the input value to the new next minimum bid
+                setBidAmount(updatedAuctionData.currentPrice + PRICE_STEP); 
+
             } else {
                 message.error(response.message || "Failed to place bid. Server response invalid.");
             }
@@ -211,9 +243,7 @@ function AuctionDetailPage() {
         return <div className="p-8"><Alert message="Error" description={error || "Auction data is unavailable. Please check the URL."} type="error" showIcon /></div>;
     }
 
-    const isOngoing = auction.status === 'ONGOING' && !countdown.isFinished;
-    
-    // 💡 FIX 3: Correctly determine bidDisabled state (not just setting it to isOngoing)
+    const isOngoing = !countdown.isFinished;
     const bidDisabled = !isOngoing || isBidding; 
     
     // Data extraction and defaults
@@ -221,8 +251,6 @@ function AuctionDetailPage() {
     const imageUrls = auction.images?.map(img => img.imageUrl) || itemDetails.itemImage?.map(img => img.imageUrl) || [];
     const placeholderImage = `https://placehold.co/600x400/374151/d1d5db?text=${encodeURIComponent(auction.title || 'No Image')}`;
     const displayImage = imageUrls[selectedImage] || placeholderImage;
-
-    // Key Specifications for mapping
     const keySpecs = [
         { label: 'Type', value: itemDetails?.itemType?.toUpperCase() },
         { label: 'Brand', value: itemDetailSpec?.brand },
@@ -242,10 +270,9 @@ function AuctionDetailPage() {
         <div className="bg-gray-50 min-h-screen p-4 sm:p-8">
             <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-5 gap-8">
                 
-                {/* Left Column (lg:col-span-3): Image, Specs, Description */}
+                {/* Left Column (lg:col-span-3): Image, Specs, Description (Unmodified for brevity) */}
                 <div className="lg:col-span-3 flex flex-col gap-8">
-                    
-                    {/* --- Image Carousel Section --- */}
+                    {/* ... Image, Specs, Description Cards (same as before) ... */}
                     <Card className="shadow-lg p-0">
                         <div className="relative">
                             <img 
@@ -254,8 +281,6 @@ function AuctionDetailPage() {
                                 onError={(e) => { e.currentTarget.src = placeholderImage; }}
                                 className="w-full object-cover rounded-t-lg aspect-[3/2]" 
                             />
-                            
-                            {/* Carousel Navigation and Thumbnails (Unmodified) */}
                             {imageUrls.length > 1 && (
                                 <>
                                     <button
@@ -275,7 +300,6 @@ function AuctionDetailPage() {
                                 </>
                             )}
                         </div>
-                        {/* Thumbnails */}
                         <div className="flex gap-3 p-4 overflow-x-auto justify-start bg-gray-50 rounded-b-lg border-t">
                             {imageUrls.map((url, index) => (
                                 <img 
@@ -289,7 +313,6 @@ function AuctionDetailPage() {
                         </div>
                     </Card>
 
-                    {/* Key Specifications (Unmodified) */}
                     <Card className="shadow-md p-6">
                         <h2 className="text-2xl font-bold border-b pb-4 mb-4 text-gray-800">Key Specifications</h2>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
@@ -302,7 +325,6 @@ function AuctionDetailPage() {
                         </div>
                     </Card>
 
-                    {/* Description (Unmodified) */}
                     <Card className="shadow-md p-6">
                         <h2 className="text-2xl font-bold border-b pb-4 mb-4 text-gray-800">Detailed Description</h2>
                         <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
@@ -314,7 +336,7 @@ function AuctionDetailPage() {
                 {/* --- Right Column (lg:col-span-2): Bidding and Seller --- */}
                 <div className="lg:col-span-2 flex flex-col gap-6 sticky top-8 h-fit">
                     
-                    {/* Main Info Card (Price, Countdown, Bid Input) */}
+                    {/* Main Info Card (Price, Countdown, Bid Input) (Unmodified for brevity) */}
                     <Card className="shadow-lg p-6">
                         <h1 className="text-3xl font-bold text-gray-900 leading-tight mb-1">{auction.title}</h1>
                         <p className="text-md text-gray-500 mb-6">{itemDetailSpec?.brand || 'Item'} ({itemDetailSpec?.year || 'N/A'})</p>
@@ -328,7 +350,7 @@ function AuctionDetailPage() {
                             </div>
                         </div>
 
-                        {/* Current Bid Details (Unmodified) */}
+                        {/* Current Bid Details */}
                         <div className="mt-4 p-4 bg-gray-50 rounded-lg border">
                             <div className="flex justify-between items-end">
                                 <div>
@@ -346,7 +368,7 @@ function AuctionDetailPage() {
                             </div>
                         </div>
 
-                        {/* --- Bidding Input & Button --- */}
+                        {/* --- Bidding Input & Button (same as before) --- */}
                         <div className="mt-6">
                             <p className="font-semibold mb-2 flex justify-between items-center">
                                 Your Bid 
@@ -361,7 +383,6 @@ function AuctionDetailPage() {
                             <Space.Compact style={{ width: '100%' }}>
                                 <InputNumber
                                     size="large"
-                                    // 💡 FIX 4: Use value={bidAmount} - if bidAmount is null, InputNumber handles it gracefully
                                     value={bidAmount} 
                                     onChange={setBidAmount}
                                     min={getMinBid()}
@@ -390,7 +411,7 @@ function AuctionDetailPage() {
                         </div>
                     </Card>
 
-                    {/* Seller Profile and Bid History (Unmodified) */}
+                    {/* Seller Profile (Unmodified for brevity) */}
                     {sellerProfile && (
                         <Card className="shadow-md p-6">
                             <h2 className="text-xl font-bold mb-4 flex items-center gap-2 text-gray-800"><FiUser /> Seller Information</h2>
@@ -423,18 +444,19 @@ function AuctionDetailPage() {
                         </Card>
                     )}
 
+                    {/* Bid History (Now using dedicated state and loading) */}
                     <Card className="shadow-lg">
-                        <h3 className="text-xl font-bold border-b pb-2 mb-4 flex items-center gap-2 text-gray-800"><FiTrendingUp /> Bid History</h3>
+                        <h3 className="text-xl font-bold border-b pb-2 mb-4 flex items-center gap-2 text-gray-800"><FiTrendingUp /> Bid History {isHistoryLoading && <Spin size="small" />}</h3>
                         <List
                             itemLayout="horizontal"
                             size="small"
-                            dataSource={auction.bidHistory}
+                            dataSource={bidHistory} // ✨ CHANGE 2: Use the dedicated bidHistory state
                             locale={{ emptyText: "No bids placed yet." }}
                             renderItem={(bid, index) => (
                                 <List.Item>
                                     <List.Item.Meta
                                         avatar={<Avatar icon={<FiUser />} className="bg-gray-200 text-gray-600"/>}
-                                        title={<span className="font-semibold">{bid.bidder || 'Unknown User'}</span>}
+                                        title={<span className="font-semibold">{bid.bidder || 'Unknown User'}</span>} 
                                         description={<span className="text-xs text-gray-500">{new Date(bid.timestamp).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>}
                                     />
                                     <div className="text-right">

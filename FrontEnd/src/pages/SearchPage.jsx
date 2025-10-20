@@ -166,7 +166,7 @@ function SearchPage() {
                                 type={item.itemType}
                                 price={item.price}
                                 sales={0}
-                                image={`https://placehold.co/600x400/EEE/31343C?text=${item.title.replace(/\s/g,'+')}`}
+        itemImages={item.images}
                             />
                         ))
                     ) : (

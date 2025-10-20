@@ -46,6 +46,7 @@ namespace Application.Services
         public async Task<bool> ExistsAsync(int userId, int itemId)
         {
             return await _favoriteRepository.ExistsAsync(userId, itemId);
+        }
         public async Task<bool> DeleteFavoriteAsync(int favId, int userId)
         {
             var favorite = await _favoriteRepository.GetByIdAsync(favId);

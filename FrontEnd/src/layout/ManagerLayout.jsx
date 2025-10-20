@@ -31,6 +31,8 @@ function CardHeader({ title, icon, action }) {
 const menu = [
     { key: "dashboard", label: "Dashboard", icon: <LayoutDashboard size={18} />, path: "/manage" },
     { key: "users", label: "User Management", icon: <UserCog size={18} />, path: "users" },
+        { key: "kyc_management", label: "KYC Management", icon: <UserCog size={18} />, path: "kyc_management" },
+
     { key: "products", label: "Product Moderation", icon: <PackageSearch size={18} />, path: "products" },
     { key: "complaints", label: "User Complaints", icon: <ShieldAlert size={18} />, path: "complaints" },
     { key: "transactions", label: "Transaction Monitor", icon: <ClipboardList size={18} />, path: "transactions" },

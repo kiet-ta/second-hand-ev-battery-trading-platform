@@ -67,8 +67,8 @@ function CheckoutPage() {
     const pollingIntervalRef = useRef(null);
     
     // Using a base rate for example. Assuming VND uses these amounts.
-    const insurance = { name: "Product Damage Insurance", price: 60000 }; 
-    const shipping = { name: "Express Shipping", price: 100000 };
+    const insurance = { name: "Product Damage Insurance", price: 6000 }; 
+    const shipping = { name: "Express Shipping", price: 1000 };
 
     // Find the currently selected address object
     const selectedDeliveryAddress = addresses.find(addr => addr.addressId === selectedAddressId);
@@ -256,7 +256,7 @@ function CheckoutPage() {
                 {/* Insurance and Shipping */}
                 <div className="flex items-center justify-between py-4 border-t">
                     <div className="flex items-center space-x-2">
-                        <input type="checkbox" checked={true} disabled className="accent-maincolor" />
+                        <input type="checkbox" checked={true} className="accent-maincolor" />
                         <div>
                             <p className="font-medium">{insurance.name}</p>
                             <p className="text-xs text-gray-500">Covers unexpected accidents, spills, or damage during use.</p>

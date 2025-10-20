@@ -133,12 +133,14 @@ export default function LoginPage() {
 
         try {
             // 1. Call API login
-            const res = await authApi.login(trimmedEmail, trimmedPassword);
-            const newUser = {
+            const data = await authApi.login(trimmedEmail, trimmedPassword);
+            const res = data.data;
+                        const newUser = {
                 ...res.user,
                 userId: res.userId,
                 token: res.token,
             };
+
 
             localStorage.setItem("userId", res.userId);
             localStorage.setItem("token", res.token);
@@ -147,7 +149,6 @@ export default function LoginPage() {
             
             // 2. Decode the JWT to check the role and navigate
             const decodedToken = parseJwt(res.token);
-
             if (decodedToken && decodedToken.role) {
                 const role = decodedToken.role.toLowerCase();
                 
@@ -158,7 +159,7 @@ export default function LoginPage() {
                 } else {
                     // Default to buyer, check for seller registration status if possible (assuming res.isSellerRegistered exists)
                     // If not registered as a full seller, push them to the onboarding page first.
-                    navigate(res.isSellerRegistered ? '/' : '/seller-registration');
+                    navigate('/');
                 }
             } else {
                 navigate('/'); // Default to homepage if role is missing

@@ -45,7 +45,7 @@ namespace Application.Services
                 CreatedAt = item.CreatedAt,
                 UpdatedAt = item.UpdatedAt,
                 UpdatedBy = item.UpdatedBy,
-                //Moderation = item.Moderation,
+                Moderation = item.Moderation,
                 //IsVerified = item.IsVerified,
                 //IsDeleted = item.IsDeleted,
                 Images = images.Select(img => new ItemImageDto
@@ -74,7 +74,7 @@ namespace Application.Services
                     Description = item.Description,
                     Price = item.Price,
                     Quantity = item.Quantity,
-                    //Moderation = item.Moderation,
+                    Moderation = item.Moderation,
 
                     //Status = item.Status,
                     CreatedAt = item.CreatedAt,
@@ -178,7 +178,7 @@ namespace Application.Services
                     Title = item.Title,
                     Description = item.Description,
                     Price = item.Price,
-                    //Moderation = item.Moderation,
+                    Moderation = item.Moderation,
                     Quantity = item.Quantity,
                     //Status = item.Status,
                     CreatedAt = item.CreatedAt,
@@ -214,7 +214,7 @@ namespace Application.Services
                     Title = item.Title,
                     Description = item.Description,
                     Price = item.Price,
-                    //Moderation = item.Moderation,
+                    Moderation = item.Moderation,
 
                     Quantity = item.Quantity,
                     //Status = item.Status,

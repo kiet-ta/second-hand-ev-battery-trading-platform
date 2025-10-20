@@ -20,7 +20,8 @@ const formatTime = (isoString) => {
 export function ChatRoom({ currentUserId, initialRoomId, initialReceiverId }) {
     // 🔑 FIX: Ensure currentUserId is an integer for comparisons
     const numericUserId = parseInt(currentUserId, 10);
-    const loggedInUserId = isNaN(numericUserId) ? 1 : numericUserId; // Default to 1 if NaN
+    console.log(currentUserId)
+    const loggedInUserId = isNaN(numericUserId) ? 1 : numericUserId;
 
     // State for REST data
     const [rooms, setRooms] = useState([]);

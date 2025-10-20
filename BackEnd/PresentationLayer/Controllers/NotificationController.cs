@@ -29,7 +29,7 @@ namespace PresentationLayer.Controllers
 
 
         [HttpGet("register")]
-        [AllowAnonymous] 
+        [AllowAnonymous]
         public async Task RegisterClient([FromQuery] string userId)
         {
             if (string.IsNullOrEmpty(userId))
@@ -76,7 +76,7 @@ namespace PresentationLayer.Controllers
                 SenderRole = request.SenderRole,
                 Title = request.Title,
                 Message = request.Message,
-                TargetUserId = request.TargetUserId 
+                TargetUserId = request.TargetUserId
             };
 
             var dbSuccess = await _notificationService.AddNewNotification(serviceDto);
@@ -113,6 +113,7 @@ namespace PresentationLayer.Controllers
 
             return Ok(notifications);
         }
+
 
 
         [HttpGet("type/{notiType}")]
@@ -153,24 +154,6 @@ namespace PresentationLayer.Controllers
                 return NotFound($"Notification with ID {id} not found.");
 
             return Ok($"Notification with ID {id} has been deleted successfully.");
-        }
-        [HttpPost("send/{receiverId}")]
-        public async Task<IActionResult> SendNotification([FromBody] CreateNotificationDTO noti, int receiverId)
-        {
-            if (noti == null)
-                return BadRequest("Notification data is required.");
-
-            var result = await _notificationService.SendNotificationAsync(noti, receiverId);
-
-            if (!result)
-                return BadRequest("Failed to send notification. Please check receiver ID or data.");
-
-            return Ok(new
-            {
-                message = "Notification sent successfully",
-                receiverId = receiverId,
-                title = noti.Title
-            });
         }
 
     }
