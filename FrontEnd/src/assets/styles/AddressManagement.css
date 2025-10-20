@@ -162,6 +162,98 @@
     animation: fadeIn 0.3s ease;
 }
 
+/* ===============================
+   🌙 DARK MODE - ADDRESS MANAGEMENT
+   =============================== */
+body.dark-mode .address-container {
+    background-color: #1e1e1e;
+    color: #f5f5f5;
+}
+
+body.dark-mode .address-card,
+body.dark-mode .form-card {
+    background-color: #242424;
+    color: #f5f5f5;
+    border: 1px solid #333;
+    box-shadow: 0 2px 8px rgba(255, 255, 255, 0.05);
+}
+
+body.dark-mode .address-title,
+body.dark-mode .form-title {
+    color: #e5e5e5;
+}
+
+body.dark-mode .form-label,
+body.dark-mode .address-name,
+body.dark-mode .address-text {
+    color: #d1d5db;
+}
+
+/* Buttons */
+body.dark-mode .btn-add,
+body.dark-mode .btn-save {
+    background-color: #2563eb;
+    color: white;
+    border: none;
+}
+
+body.dark-mode .btn-add:hover,
+body.dark-mode .btn-save:hover {
+    background-color: #1d4ed8;
+}
+
+body.dark-mode .btn-edit {
+    background: transparent;
+    color: #60a5fa;
+    border: 1px solid #60a5fa;
+}
+
+body.dark-mode .btn-edit:hover {
+    background-color: #60a5fa;
+    color: white;
+}
+
+body.dark-mode .btn-delete {
+    background: transparent;
+    color: #f87171;
+    border: 1px solid #f87171;
+}
+
+body.dark-mode .btn-delete:hover {
+    background-color: #f87171;
+    color: white;
+}
+
+/* Form inputs */
+body.dark-mode .form-input,
+body.dark-mode .form-select {
+    background-color: #2a2a2a;
+    border: 1px solid #3a3a3a;
+    color: #f5f5f5;
+}
+
+body.dark-mode .form-input::placeholder {
+    color: #9ca3af;
+}
+
+/* =========================================
+   💳 FIX DARK MODE TEXT COLOR - PAYMENT SECTION
+   ========================================= */
+
+
+body.dark-mode .payment-text,
+body.dark-mode .text-payment,
+body.dark-mode .text-vnpay {
+    color: #e5e7eb !important;
+}
+
+/* Nếu thẻ "Thanh toán:" không có class, dùng selector khái quát */
+body.dark-mode p,
+body.dark-mode span {
+    color: #e5e7eb;
+}
+
+
 @keyframes fadeIn {
     from {
         opacity: 0;
@@ -322,6 +414,34 @@
 .btn-save:active {
     transform: translateY(0);
 }
+
+/* Đảm bảo vùng chứa có thể cuộn khi danh sách dài */
+.address-list {
+    max-height: 70vh;
+    /* hoặc auto nếu bạn muốn full height */
+    overflow-y: auto;
+    padding-right: 8px;
+    /* tránh bị dính sát khi cuộn */
+    scrollbar-width: thin;
+    /* cho Firefox */
+    scrollbar-color: #c5d0db #f5f6fa;
+    /* tùy chọn màu scrollbar */
+}
+
+/* Tùy chọn scrollbar cho Chrome */
+.address-list::-webkit-scrollbar {
+    width: 8px;
+}
+
+.address-list::-webkit-scrollbar-thumb {
+    background-color: #b0c4de;
+    border-radius: 6px;
+}
+
+.address-list::-webkit-scrollbar-thumb:hover {
+    background-color: #7fa3c1;
+}
+
 
 /* Responsive Design */
 @media (max-width: 768px) {

@@ -1,16 +1,16 @@
 ﻿using Application.DTOs;
 using System.Threading.Tasks;
 
-namespace Application.Services
+namespace Application.IServices
 {
     public interface IMailService
     {
-        Task SendWelcomeMailAsync(WelcomeDTO request, string url);
+        Task SendWelcomeMailAsync(WelcomeDto request, string url);
 
-        Task SendBanMailAsync(BanDTO request, string reason, string url);
+        Task SendBanMailAsync(BanDto request, string reason, string url);
 
-        Task SendPurchaseSuccessMailAsync(PurchaseSuccessDTO request, string orderId, string url);
+        Task SendPurchaseSuccessMailAsync(PurchaseSuccessDto request, string orderId, string url);
 
-        Task SendPurchaseFailedMailAsync(PurchaseFailedDTO request, string orderId, string reason, string url);
+        Task SendPurchaseFailedMailAsync(PurchaseFailedDto request, string orderId, string reason, string url);
     }
 }

@@ -9,12 +9,20 @@ import CheckoutPage from "../pages/CheckoutPage";
 import LoginPage from "../pages/LoginPage";
 import RegisterPage from "../pages/RegisterPage";
 import ProfileContent from "../pages/ProfileContent";
-import UserManagementSystem from "../pages/UserManagementSystem";
 import SellerDashboard from "../pages/DashboardSeller";
 import PurchaseHistory from "../components/HistoryBought";
 import SellerHistory from "../components/HistorySold";
 import PaymentSuccessPage from "../pages/PaymentSuccessPage";
 import PaymentFailPage from "../pages/PaymentFailPage";
+import PurchasePage from "../pages/PurchasePage";
+import DetailedCheckoutPage from '../pages/DetailCheckout';
+import BlogList from "../pages/BlogList";
+import BlogDetail from "../pages/BlogDetail";
+import AuctionMainPage from "../pages/Auctions/AuctionMainPage";
+import ManagerDashboard from "../pages/ManagerDashboard";
+import AuctionDetailPage from "../pages/Auctions/AuctionDetailPage";
+import ComparePage from "../pages/ComparePage";
+import BuyerViewSeller from '../pages/BuyerViewSeller';
 
 export const router = createBrowserRouter([
   {
@@ -46,6 +54,26 @@ export const router = createBrowserRouter([
         path: "/checkout",
         element: <CheckoutPage />,
       },
+      {
+        path: "/purchase",
+        element: <PurchasePage />
+      },
+      {
+        path: "/auctions",
+        element: <AuctionMainPage />
+      }
+      , {
+        path: "/auction/:id",
+        element: <AuctionDetailPage />
+      },
+      {
+        path: "/compare",
+        element: <ComparePage />
+      },
+      {
+        path: "/seller/:sellerId",
+        element: <BuyerViewSeller />
+      }
     ],
   },
   {
@@ -59,10 +87,6 @@ export const router = createBrowserRouter([
   {
     path: "/profile",
     element: <ProfileContent />,
-  },
-  {
-    path: "/manage",
-    element: <UserManagementSystem />,
   },
   {
     path: "/seller",
@@ -84,4 +108,21 @@ export const router = createBrowserRouter([
     path: "/payment/fail",
     element: <PaymentFailPage />,
   },
+  {
+    path: "/detailcheckout",
+    element: <DetailedCheckoutPage />
+  },
+  {
+    path: "/blog",
+    element: <BlogList />
+  },
+  {
+    path: "/blog/:id",
+    element: <BlogDetail />
+  },
+  {
+    path: "/manage",
+    element: <ManagerDashboard />
+  },
+
 ])

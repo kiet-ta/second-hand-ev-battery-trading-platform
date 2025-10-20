@@ -1,5 +1,7 @@
 ﻿using Application.DTOs;
+using Application.DTOs.AuctionDtos;
 using Application.IServices;
+using Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
 
 namespace PresentationLayer.Controllers;
@@ -13,6 +15,13 @@ public class AuctionController : ControllerBase
     public AuctionController(IAuctionService auctionService)
     {
         _auctionService = auctionService;
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GetAllAuction([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+    {
+        var response = await _auctionService.GetAllAuctionsAsync(page, pageSize);
+        return Ok(response);
     }
 
     [HttpPost("{auctionId}/bid")]
@@ -42,5 +51,16 @@ public class AuctionController : ControllerBase
     {
         var result = await _auctionService.CreateAuctionAsync(request);
         return Ok(result);
+    }
+
+    [HttpGet("user/{userId}")]
+    public async Task<IActionResult> GetActionByUserId(int userId)
+    {
+        var auction = _auctionService.GetAuctionsByUserId(userId);
+        if (auction == null)
+        {
+            return NotFound(new { message = "No auctions found for this user." });
+        }
+        return Ok(auction);
     }
 }

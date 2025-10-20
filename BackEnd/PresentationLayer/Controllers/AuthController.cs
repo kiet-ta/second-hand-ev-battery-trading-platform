@@ -1,7 +1,10 @@
 ﻿using Application.DTOs.AuthenticationDtos;
+using Application.DTOs.UserDtos;
 using Application.IServices;
+using Application.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace PresentationLayer.Controllers
 {
@@ -46,7 +49,24 @@ namespace PresentationLayer.Controllers
             }
         }
 
-        // Ví dụ endpoint yêu cầu phải có JWT token
+        [HttpPost("google")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GoogleLogin([FromBody] TokenRequestDto dto)
+        {
+            if (string.IsNullOrWhiteSpace(dto.Credential))
+                return BadRequest("Missing Google ID Token");
+
+            try
+            {
+                var result = await _authService.LoginWithGoogleAsync(dto.Credential);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return Unauthorized(new { message = ex.Message });
+            }
+        }
+
         [HttpGet("profile")]
         [Authorize]
         public IActionResult GetProfile()
@@ -58,5 +78,31 @@ namespace PresentationLayer.Controllers
                 Role = User.FindFirst("role")?.Value
             });
         }
+
+        [HttpPut("change-password")]
+        public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequestDto request)
+        {
+            // Get userId from JWT claim or session
+            int userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+
+            try
+            {
+                await _authService.ChangePasswordAsync(userId, request);
+                return Ok(new { message = "Password changed successfully." });
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Unauthorized(new { message = ex.Message });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+        }
+        
     }
 }

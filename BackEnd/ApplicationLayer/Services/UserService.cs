@@ -1,8 +1,10 @@
 using Application.DTOs.AuthenticationDtos;
 using Application.DTOs.UserDtos;
+using Application.IHelpers;
 using Application.IRepositories;
 using Application.IServices;
 using Domain.Entities;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System;
@@ -23,9 +25,9 @@ namespace Application.Services
         private readonly string _jwtAudience;
         private readonly IConfiguration _config;
 
-        public UserService(IUserRepository repo, IConfiguration config)
+        public UserService(IUserRepository userRepository, IConfiguration config)
         {
-            _userRepository = repo;
+            _userRepository = userRepository;
             _config = config;
             _jwtSecret = config["Jwt:Key"]!;
             _jwtIssuer = config["Jwt:Issuer"]!;
@@ -98,7 +100,11 @@ namespace Application.Services
 
         public Task<IEnumerable<User>> GetAllUsersAsync() => _userRepository.GetAllAsync();
 
-        public Task<User?> GetUserByIdAsync(int id) => _userRepository.GetByIdAsync(id);
+        public async Task<User?> GetUserByIdAsync(int id)
+        {
+            return await _userRepository.GetByIdAsync(id);
+        }
+
 
         public Task<User?> GetUserByEmailAsync(string email) => _userRepository.GetByEmailAsync(email);
 
@@ -120,7 +126,6 @@ namespace Application.Services
             if (existing == null)
                 throw new KeyNotFoundException("User không tồn tại!");
 
-            // cập nhật các field cần thiết
             existing.FullName = user.FullName;
             existing.Phone = user.Phone;
             existing.Gender = user.Gender;
@@ -134,5 +139,58 @@ namespace Application.Services
         }
 
         public Task DeleteUserAsync(int id) => _userRepository.DeleteAsync(id);
+
+        public async Task<string?> GetAvatarAsync(int userId)
+        {
+            if (_userRepository == null)
+                throw new Exception("_userRepository is NULL");
+            var user = await _userRepository.GetByIdAsync(userId);
+            if (user == null)
+                throw new Exception("User not found");
+
+            return user.AvatarProfile;
+        }
+
+        public async Task<bool> ChangePasswordAsync(int userId, ChangePasswordRequestDto request)
+        {
+            if (request.NewPassword != request.ConfirmPassword)
+                throw new ArgumentException("Confirmation password does not match.");
+
+            var user = await _userRepository.GetByIdAsync(userId);
+            if (user == null || user.IsDeleted)
+                throw new KeyNotFoundException("User not found.");
+
+            bool isPasswordValid = BCrypt.Net.BCrypt.Verify(request.CurrentPassword, user.PasswordHash);
+            if (!isPasswordValid)
+                throw new UnauthorizedAccessException("The current password is incorrect.");
+
+            user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
+            await _userRepository.UpdateAsync(user);
+
+            return true;
+        }
+        public async Task<PagedResultUser<UserListResponseDto>> GetAllUsersAsync(int page, int pageSize)
+        {
+            var (users, totalCount) = await _userRepository.GetAllPagedAsync(page, pageSize);
+
+            var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+
+            var mapped = users.Select(u => new UserListResponseDto
+            {
+                UserId = u.UserId,
+                FullName = u.FullName,
+                Email = u.Email,
+                Phone = u.Phone,
+                Role = u.Role,
+                AccountStatus = u.AccountStatus
+            });
+
+            return new PagedResultUser<UserListResponseDto>
+            {
+                Items = mapped,
+                TotalItems = totalCount,
+                TotalPages = totalPages
+            };
+        }
     }
 }

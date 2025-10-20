@@ -1,4 +1,6 @@
 ﻿using Application.DTOs.ItemDtos;
+using Application.DTOs.UserDtos;
+using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -23,7 +25,7 @@ namespace Application.IServices
 
         Task<IEnumerable<ItemDto>> GetLatestBatteriesAsync(int count);
 
-        Task<PagedResult<ItemDto>> SearchItemsAsync(
+        Task<PagedResultItem<ItemDto>> SearchItemsAsync(
         string itemType,
         string title,
         decimal? minPrice = null,
@@ -36,5 +38,7 @@ namespace Application.IServices
         Task<ItemWithDetailDto?> GetItemWithDetailsAsync(int id);
         Task<IEnumerable<ItemWithDetailDto>> GetAllItemsWithDetailsAsync();
         Task<IEnumerable<ItemBoughtDto>> GetBoughtItemsWithDetailsAsync(int userId);
+        Task<IEnumerable<ItemSellerDto>> GetSellerItemsAsync(int sellerId);
+        Task<UserItemDetailDto?> GetItemDetailByIdAsync(int itemId);
     }
 }

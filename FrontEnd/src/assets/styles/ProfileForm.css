@@ -193,6 +193,146 @@
     box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
 }
 
+/* ===============================
+   🌙 DARK MODE - PROFILE FORM
+   =============================== */
+body.dark-mode .profile-main,
+body.dark-mode .profile-form-container {
+    background-color: #1e1e1e;
+    color: #f5f5f5;
+    border-color: #2d2d2d;
+}
+
+/* Input & select */
+body.dark-mode .form-group input,
+body.dark-mode .form-group select {
+    background-color: #2a2a2a;
+    color: #e5e5e5;
+    border: 1.5px solid #3a3a3a;
+}
+
+body.dark-mode .form-group input::placeholder {
+    color: #9ca3af;
+}
+
+body.dark-mode .form-group label {
+    color: #d1d5db;
+}
+
+/* Button */
+body.dark-mode .submit-btn {
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+}
+
+body.dark-mode .submit-btn:hover {
+    box-shadow: 0 6px 18px rgba(59, 130, 246, 0.5);
+    transform: translateY(-2px);
+}
+
+/* Avatar */
+body.dark-mode .profile-photo {
+    border-color: #3a3a3a;
+}
+
+/* =========================================
+   🌙 DARK MODE FIX — PROFILE FORM TEXT
+   ========================================= */
+
+/* Tên người dùng hiển thị dưới avatar */
+body.dark-mode .profile-header h2,
+body.dark-mode .user-name,
+body.dark-mode .profile-name {
+    color: #ffffff !important;
+}
+
+/* Label của form (Full Name, Email, v.v.) */
+body.dark-mode label {
+    color: #e5e5e5 !important;
+}
+
+/* Input và select text */
+body.dark-mode input,
+body.dark-mode select,
+body.dark-mode textarea {
+    background-color: #1e1e1e !important;
+    color: #f5f5f5 !important;
+    border-color: #2d2d2d !important;
+}
+
+/* Placeholder trong input */
+body.dark-mode input::placeholder {
+    color: #9ca3af !important;
+}
+
+/* Nút Update sáng hơn */
+body.dark-mode .update-btn,
+body.dark-mode button[type="submit"] {
+    background-color: #2563eb !important;
+    color: #fff !important;
+    border: none;
+}
+
+body.dark-mode .update-btn:hover {
+    background-color: #1d4ed8 !important;
+}
+
+/* =========================================
+   🌙 DARK MODE FIX — USERNAME & ICONS
+   ========================================= */
+
+/* 1️⃣ Tên người dùng dưới avatar */
+body.dark-mode .upload-info h3,
+body.dark-mode .profile-name {
+    color: #ffffff !important;
+}
+
+/* =========================================
+   🌙 FIX CHUẨN CHO ICON LỊCH (YEAR OF BIRTH)
+   ========================================= */
+
+/* Ẩn icon lịch mặc định */
+body.dark-mode input[type="date"]::-webkit-calendar-picker-indicator {
+    opacity: 0;
+    cursor: pointer;
+}
+
+/* Thêm icon custom bằng pseudo-element */
+body.dark-mode input[type="date"] {
+    position: relative;
+    background-image: url("data:image/svg+xml,%3Csvg fill='%23ffffff' viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M7 10h5v5H7z'/><path d='M19 4h-1V2h-2v2H8V2H6v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 20px 20px;
+    color-scheme: dark;
+}
+
+/* Hover sáng hơn một chút */
+body.dark-mode input[type="date"]:hover {
+    background-image: url("data:image/svg+xml,%3Csvg fill='%2360a5fa' viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M7 10h5v5H7z'/><path d='M19 4h-1V2h-2v2H8V2H6v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11z'/%3E%3C/svg%3E");
+}
+
+
+/* 3️⃣ Icon con mắt trong ô Phone */
+body.dark-mode .toggle-phone-btn {
+    color: #e5e5e5 !important;
+    transition: color 0.2s ease;
+}
+
+body.dark-mode .toggle-phone-btn:hover {
+    color: #60a5fa !important;
+    /* xanh dương nhẹ khi hover */
+}
+
+/* Giúp icon không bị đè bóng hoặc tối */
+body.dark-mode .form-group input[type="date"],
+body.dark-mode .phone-wrapper input {
+    color-scheme: dark;
+    /* đảm bảo hệ thống dùng icon sáng */
+}
+
+
+
 /* ==== RESPONSIVE ==== */
 @media (max-width: 768px) {
     .profile-form-container {

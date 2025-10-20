@@ -2,6 +2,7 @@
 using Application.DTOs.ItemDtos.BatteryDto;
 using Application.IServices;
 using Application.Services;
+using Infrastructure.Helpers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -10,14 +11,13 @@ namespace PresentationLayer.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
     public class ItemController : ControllerBase
     {
         private readonly IItemService _service;
-        private readonly IEvDetailService _evService;
+        private readonly IEVDetailService _evService;
         private readonly IBatteryDetailService _batteryService;
 
-        public ItemController(IItemService service, IEvDetailService evService, IBatteryDetailService batteryService)
+        public ItemController(IItemService service, IEVDetailService evService, IBatteryDetailService batteryService)
         {
             _service = service;
             _evService = evService;
@@ -74,6 +74,7 @@ namespace PresentationLayer.Controllers
         /// Query params: itemType, sellerName, minPrice, maxPrice, page, pageSize, sortBy, sortDir
         /// </summary>
         [HttpGet("search")]
+        //[CacheResult(600)]
         public async Task<IActionResult> SearchItem(
             [FromQuery] string itemType,
             [FromQuery] string title,
@@ -174,8 +175,19 @@ namespace PresentationLayer.Controllers
         [HttpPost("detail/battery")]
         public async Task<IActionResult> CreateBattery(CreateBatteryDetailDto dto)
         {
-            await _batteryService.CreateAsync(dto);
-            return Ok();
+            try
+            {
+                var created = await _batteryService.CreateAsync(dto);
+                return CreatedAtAction(nameof(GetItem), new { id = created.ItemId }, created);
+            }
+            catch (ArgumentException aex)
+            {
+                return BadRequest(aex.Message);
+            }
+            catch (InvalidOperationException dbEx)
+            {
+                return Conflict(dbEx.Message);
+            }
         }
 
         [HttpPut("detail/battery/{itemId}")]
@@ -190,6 +202,17 @@ namespace PresentationLayer.Controllers
         {
             await _batteryService.DeleteAsync(itemId);
             return Ok();
+        }
+
+        [HttpGet("{itemId:int}/Seller")]
+        public async Task<IActionResult> GetItemDetail(int itemId)
+        {
+            var item = await _service.GetItemDetailByIdAsync(itemId);
+
+            if (item == null)
+                return NotFound(new { message = "Item not found or has been deleted." });
+
+            return Ok(item);
         }
     }
 }

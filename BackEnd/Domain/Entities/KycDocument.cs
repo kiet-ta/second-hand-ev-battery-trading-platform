@@ -9,11 +9,15 @@ public class KycDocument
 
     public int UserId { get; set; }
 
-    public string? DocType { get; set; }
+    public string? IdCardUrl { get; set; }
+
+    public string? VehicleRegistrationUrl { get; set; }
+
+    public string? SelfieUrl { get; set; }
 
     public string? DocUrl { get; set; }
 
-    public DateTime? SubmittedAt { get; set; }
+    public DateTime SubmittedAt { get; set; }
 
     public int? VerifiedBy { get; set; }
 
@@ -23,7 +27,4 @@ public class KycDocument
 
     public string? Note { get; set; }
 
-    //public virtual User User { get; set; } = null!;
-
-    //public virtual User? VerifiedByNavigation { get; set; }
 }

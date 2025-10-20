@@ -1,7 +1,7 @@
 @import "tailwindcss";
-
-@theme {
+@theme{
   --color-maincolor: #77E4C8;
+  --color-maincolor-darker: #65c2aa; 
 }
 
 :root {
@@ -18,28 +18,23 @@
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
-
-html,
-body,
-#root {
+body{
   margin: 0;
   padding: 0;
-  overflow-x: hidden;
+  overflow-y: hidden;
 }
-
 a {
   font-weight: 500;
   color: white;
   text-decoration: inherit;
 }
-
 a:hover {
   color: gray;
 }
 
 body {
   margin: 0;
-  background-color: #ffffff;
+  background-color: lightgray;
 }
 
 h1 {
@@ -52,12 +47,44 @@ button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
 }
 
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  to {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.25s ease-out forwards;
+}
+
+.animate-fadeOut {
+  animation: fadeOut 0.25s ease-in forwards;
+}
+
+
 @media (prefers-color-scheme: light) {
   :root {
     color: #213547;
     background-color: #ffffff;
   }
-
   a:hover {
     color: gray;
   }
