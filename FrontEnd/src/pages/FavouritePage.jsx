@@ -44,14 +44,14 @@ function FavouritePage() {
                 </h1>
 
                 {favorites.length > 0 ? (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                    <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-5">
                         {favorites.map((fav) => (
                             <CardComponent
                                 key={fav.favId}
                                 id={fav.itemId}
                                 title={fav.title}
                                 price={fav.price}
-                                image={fav.imageUrls && fav.imageUrls.length > 0 ? fav.imageUrls[0] : null}
+                                itemImages={fav.imageUrls}
                                 type={fav.itemType}
                                 year={fav.itemDetail?.year}
                                 mileage={fav.itemDetail?.mileage}

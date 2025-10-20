@@ -8,11 +8,11 @@ using Application.IRepositories.IChatRepositories;
 using Application.IRepositories.IManageStaffRepositories;
 using Application.IRepositories.IPaymentRepositories;
 using Application.IServices;
+using Application.Mappings;
 using Application.Services;
 using Application.Validations;
 using CloudinaryDotNet;
 using Domain.Entities;
-using Domain.Mappings;
 using FluentValidation;
 using Infrastructure.Data;
 using Infrastructure.Helpers;
@@ -91,6 +91,10 @@ namespace PresentationLayer
             builder.Services.AddScoped<ICommissionFeeRuleRepository, CommissionFeeRuleRepository>();
             builder.Services.AddScoped<ITransactionRepository, TransactionRepository>();
 
+            builder.Services.Configure<MailSettings>(
+    builder.Configuration.GetSection("MailSettings"));
+
+
             // AddHttp
             builder.Services.AddHttpClient<IChatRepository, FirebaseChatRepository>();
             builder.Services.AddHttpContextAccessor();
@@ -161,7 +165,7 @@ namespace PresentationLayer
                 options.AddPolicy("AllowReactApp",
                     policy =>
                     {
-                        policy.WithOrigins("http://localhost:5173", "http://localhost:3000")
+                        policy.WithOrigins("http://localhost:5173", "http://localhost:5174")
                               .AllowAnyHeader()
                               .AllowAnyMethod()
                               .AllowCredentials();
@@ -207,7 +211,12 @@ namespace PresentationLayer
             builder.Services.AddScoped<IPermissionRepository, PermissionRepository>();
             builder.Services.AddScoped<IStaffPermissionRepository, StaffPermissionRepository>();
             builder.Services.AddScoped<IStaffManagementService, StaffManagementService>();
-            builder.Services.AddAutoMapper(typeof(KYC_DocumentProfile).Assembly);
+            builder.Services.AddAutoMapper(
+                typeof(KYC_DocumentProfile).Assembly,
+                typeof(AddressProfile).Assembly,
+                typeof(ReviewProfile).Assembly,
+                typeof(PermissionProfille).Assembly
+                );
             builder.Services.AddScoped<IWalletService, WalletService>();
             //builder.Services.AddSwaggerGen();
 
@@ -216,10 +225,6 @@ namespace PresentationLayer
             builder.Services.AddScoped<INewsService, NewsService>();
             builder.Services.AddSingleton<INotificationService, NotificationService>();
             builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
-
-
-
-
 
             builder.Services.AddSwaggerGen(c =>
             {
@@ -258,7 +263,6 @@ namespace PresentationLayer
                 });
             });
 
-
             var app = builder.Build();
             app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
 
@@ -277,10 +281,7 @@ namespace PresentationLayer
             app.MapControllers();
             app.MapHub<ChatHub>("/chatHub");
 
-
             app.Run();
-
-
         }
     }
 }

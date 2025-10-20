@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Application.DTOs.ManagerDto
+namespace Application.DTOs.ManageCompanyDto
 {
     public class SellerApprovalUpdateDto
     {

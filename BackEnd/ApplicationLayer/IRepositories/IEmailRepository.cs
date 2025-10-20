@@ -5,7 +5,7 @@ namespace Application.IRepositories
 {
     public interface IEmailRepository
     {
-        
+        Task<string> GetNewStaffTemplateAsync(string email, string password, string actionUrl, string logoUrl);
         Task<string> GetWelcomeTemplate(string email, string url);      
         Task<string> GetBanTemplate(string userName, string reason, string url);
        

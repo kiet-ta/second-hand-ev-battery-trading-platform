@@ -1,48 +1,34 @@
 import React, { useState, useEffect } from "react";
 import {
-    LayoutDashboard,
-    Hammer,
-    ShoppingBag,
-    MessageSquare,
-    Settings,
-    Car,
-    Clock,
-    Star,
-    XCircle,
-    CheckCircle,
-    User,
+    LayoutDashboard, Hammer, ShoppingBag, MessageSquare,
+    Settings, Clock, User,
 } from "lucide-react";
-import {
-    LineChart,
-    Line,
-    BarChart,
-    Bar,
-    XAxis,
-    YAxis,
-    CartesianGrid,
-    Tooltip,
-    ResponsiveContainer,
-} from "recharts";
-import HistorySold from "../components/HistorySold";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation, Outlet } from "react-router-dom";
 import { IoLogOutOutline } from "react-icons/io5";
-import SellerAuctionListPage from "../pages/SellerAuctionListPage";
-import MyProduct from "../components/ItemForm/AddProductForm"
-import NewsPage from "../components/CreateNews";
+import Logo from "../components/Logo"
+
+// ✨ ASSUMED CHANGE: Import the Dashboard content from its new file
 
 export default function SellerDashboard() {
-    const [activeMenu, setActiveMenu] = useState("dashboard");
+    const location = useLocation();
+    const navigate = useNavigate();
+    
     const [dashboardData, setDashboardData] = useState(null);
     const [loading, setLoading] = useState(true);
-    const navigate = useNavigate();
     const [error, setError] = useState(null);
 
-    const sellerId = localStorage.getItem("userId") || 2;
+    const sellerId = localStorage.getItem("userId");
     const token = localStorage.getItem("token");
 
+    // Fetch dashboard data
     useEffect(() => {
+        if (!token || !sellerId) return; 
+
         const fetchDashboard = async () => {
+            setLoading(true);
             try {
+                // NOTE: This fetch runs whenever the component mounts, ensuring data is ready
+                // for the index route and potentially for the other sub-components if needed.
                 const res = await fetch(
                     `https://localhost:7272/api/SellerDashboard/${sellerId}`,
                     {
@@ -71,15 +57,23 @@ export default function SellerDashboard() {
         navigate("/login");
     };
 
-
+    // Menu items define the navigation paths relative to the /seller route
     const menuItems = [
-        { id: "dashboard", icon: LayoutDashboard, label: "Dashboard" },
-        { id: "bidding", icon: Hammer, label: "Bidding" },
-        { id: "orders", icon: ShoppingBag, label: "Orders" },
-        { id: "history", icon: Clock, label: "History Sold" },
-        { id: "messages", icon: MessageSquare, label: "Messages" },
-        { id: "settings", icon: Settings, label: "Settings" },
+        { id: "dashboard", icon: LayoutDashboard, label: "Dashboard", path: "" }, 
+        { id: "bidding", icon: Hammer, label: "Bidding", path: "bidding" },
+        { id: "products", icon: ShoppingBag, label: "My Products", path: "products" },
+        { id: "history", icon: Clock, label: "History Sold", path: "history" },
+        { id: "chat", icon: MessageSquare, label: "Chat with Buyer", path: "chat" },
+        { id: "settings", icon: Settings, label: "Settings", path: "settings" },
     ];
+
+    // Function to check if a menu item is active
+    const isActive = (path) => {
+        if (path === "") {
+            return location.pathname === "/seller" || location.pathname === "/seller/";
+        }
+        return location.pathname.startsWith(`/seller/${path}`);
+    };
 
     if (loading) {
         return <div className="p-8 text-gray-500">Đang tải dữ liệu dashboard...</div>;
@@ -91,20 +85,23 @@ export default function SellerDashboard() {
 
     return (
         <div className="flex h-screen bg-gray-50">
-            {/* Sidebar */}
+            {/* Sidebar (Navigation) */}
             <div className="w-64 bg-white border-r border-gray-200 flex flex-col">
                 <div className="p-6 border-b border-gray-200">
+                    <Logo/>
                     <h1 className="text-sm font-bold text-gray-900">Seller Dashboard</h1>
                 </div>
 
                 <nav className="flex-1 p-4">
                     {menuItems.map((item) => {
                         const Icon = item.icon;
+                        const active = isActive(item.path);
+                        
                         return (
                             <button
                                 key={item.id}
-                                onClick={() => setActiveMenu(item.id)}
-                                className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg mb-2 transition ${activeMenu === item.id
+                                onClick={() => navigate(item.path)}
+                                className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg mb-2 transition ${active
                                     ? "bg-gray-100 text-gray-900"
                                     : "text-gray-600 hover:bg-gray-50"
                                     }`}
@@ -127,247 +124,12 @@ export default function SellerDashboard() {
                 </div>
             </div>
 
-            {/* Main Content */}
+            {/* Main Content: Renders the nested route content */}
             <div className="flex-1 overflow-auto">
-                {activeMenu === "history" ? (
-                    <HistorySold />
-                ) : activeMenu == "orders" ? (
-                    <MyProduct/>
-                ): activeMenu == "messages" ?
-                (
-                    <NewsPage/>
-                ) : activeMenu === "bidding" ? (
-                    <SellerAuctionListPage />
-                ) : (
-                    <div className="p-8">
-                        {/* Header with Avatar */}
-                        <div className="flex justify-end mb-8">
-                            <div className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center">
-                                <User size={20} className="text-gray-600" />
-                            </div>
-                        </div>
-
-                        {/* Top Stats Cards */}
-                        <div className="grid grid-cols-4 gap-6 mb-8">
-                            {/* Listings */}
-                            <div className="bg-white rounded-xl p-6 border border-gray-200">
-                                <div className="flex items-center gap-4">
-                                    <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
-                                        <LayoutDashboard size={24} className="text-gray-600" />
-                                    </div>
-                                    <div>
-                                        <div className="text-3xl font-bold text-gray-900">
-                                            {dashboardData?.listings ?? 0}
-                                        </div>
-                                        <div className="text-sm text-gray-500">Listings</div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Orders */}
-                            <div className="bg-white rounded-xl p-6 border border-gray-200">
-                                <div className="flex items-center gap-4">
-                                    <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
-                                        <ShoppingBag size={24} className="text-gray-600" />
-                                    </div>
-                                    <div>
-                                        <div className="text-3xl font-bold text-gray-900">
-                                            {dashboardData?.orders ?? 0}
-                                        </div>
-                                        <div className="text-sm text-gray-500">Orders</div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Sold */}
-                            <div className="bg-white rounded-xl p-6 border border-gray-200">
-                                <div className="flex items-center gap-4">
-                                    <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
-                                        <CheckCircle size={24} className="text-gray-600" />
-                                    </div>
-                                    <div>
-                                        <div className="text-3xl font-bold text-gray-900">
-                                            {dashboardData?.sold ?? 0}
-                                        </div>
-                                        <div className="text-sm text-gray-500">Sold</div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Revenue */}
-                            <div className="bg-white rounded-xl p-6 border border-gray-200">
-                                <div className="flex items-center gap-4">
-                                    <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
-                                        <span className="text-xl">₫</span>
-                                    </div>
-                                    <div>
-                                        <div className="text-3xl font-bold text-gray-900">
-                                            {dashboardData?.revenue?.toLocaleString("vi-VN") ?? 0}
-                                        </div>
-                                        <div className="text-sm text-gray-500">Revenue</div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Statistics Grid */}
-                        <div className="grid grid-cols-2 gap-6 mb-8">
-                            {/* Product Statistics */}
-                            <div className="bg-white rounded-xl p-6 border border-gray-200">
-                                <h2 className="text-lg font-semibold text-gray-900 mb-6">
-                                    Product Statistics
-                                </h2>
-
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="flex items-center gap-3">
-                                        <Car size={20} className="text-gray-600" />
-                                        <div>
-                                            <div className="text-2xl font-bold text-gray-900">
-                                                {dashboardData?.productStatistics?.active ?? 0}
-                                            </div>
-                                            <div className="text-sm text-gray-500">Active</div>
-                                        </div>
-                                    </div>
-
-                                    <div className="flex items-center gap-3">
-                                        <Clock size={20} className="text-gray-600" />
-                                        <div>
-                                            <div className="text-2xl font-bold text-gray-900">
-                                                {dashboardData?.productStatistics?.pending ?? 0}
-                                            </div>
-                                            <div className="text-sm text-gray-500">Pending</div>
-                                        </div>
-                                    </div>
-
-                                    <div className="flex items-center gap-3">
-                                        <XCircle size={20} className="text-gray-600" />
-                                        <div>
-                                            <div className="text-2xl font-bold text-gray-900">
-                                                {dashboardData?.productStatistics?.inactive ?? 0}
-                                            </div>
-                                            <div className="text-sm text-gray-500">Inactive</div>
-                                        </div>
-                                    </div>
-
-                                    <div className="flex items-center gap-3">
-                                        <Star size={20} className="text-gray-600" />
-                                        <div>
-                                            <div className="text-2xl font-bold text-gray-900">
-                                                {dashboardData?.productStatistics?.featured ?? 0}
-                                            </div>
-                                            <div className="text-sm text-gray-500">Featured</div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Order Statistics */}
-                            <div className="bg-white rounded-xl p-6 border border-gray-200">
-                                <h2 className="text-lg font-semibold text-gray-900 mb-6">
-                                    Order Statistics
-                                </h2>
-
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="flex items-center gap-3">
-                                        <ShoppingBag size={20} className="text-gray-600" />
-                                        <div>
-                                            <div className="text-2xl font-bold text-gray-900">
-                                                {dashboardData?.orderStatistics?.new ?? 0}
-                                            </div>
-                                            <div className="text-sm text-gray-500">New</div>
-                                        </div>
-                                    </div>
-
-                                    <div className="flex items-center gap-3">
-                                        <Clock size={20} className="text-gray-600" />
-                                        <div>
-                                            <div className="text-2xl font-bold text-gray-900">
-                                                {dashboardData?.orderStatistics?.processing ?? 0}
-                                            </div>
-                                            <div className="text-sm text-gray-500">Processing</div>
-                                        </div>
-                                    </div>
-
-                                    <div className="flex items-center gap-3">
-                                        <CheckCircle size={20} className="text-gray-600" />
-                                        <div>
-                                            <div className="text-2xl font-bold text-gray-900">
-                                                {dashboardData?.orderStatistics?.completed ?? 0}
-                                            </div>
-                                            <div className="text-sm text-gray-500">Completed</div>
-                                        </div>
-                                    </div>
-
-                                    <div className="flex items-center gap-3">
-                                        <XCircle size={20} className="text-gray-600" />
-                                        <div>
-                                            <div className="text-2xl font-bold text-gray-900">
-                                                {dashboardData?.orderStatistics?.cancelled ?? 0}
-                                            </div>
-                                            <div className="text-sm text-gray-500">Cancelled</div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Charts */}
-                        <div className="grid grid-cols-2 gap-6">
-                            {/* Revenue Chart */}
-                            <div className="bg-white rounded-xl p-6 border border-gray-200">
-                                <h2 className="text-lg font-semibold text-gray-900 mb-6">
-                                    Revenue
-                                </h2>
-                                <ResponsiveContainer width="100%" height={250}>
-                                    <BarChart data={dashboardData?.revenueByMonth || []}>
-                                        <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                                        <XAxis dataKey="month" tick={{ fontSize: 12 }} />
-                                        <YAxis tick={{ fontSize: 12 }} />
-                                        <Tooltip
-                                            formatter={(v) => [
-                                                `₫${v.toLocaleString("vi-VN")}`,
-                                                "Doanh thu",
-                                            ]}
-                                            contentStyle={{
-                                                borderRadius: "8px",
-                                                border: "1px solid #e5e7eb",
-                                            }}
-                                        />
-                                        <Bar dataKey="total" fill="#3b82f6" radius={[8, 8, 0, 0]} />
-                                    </BarChart>
-                                </ResponsiveContainer>
-                            </div>
-
-                            {/* Orders Chart */}
-                            <div className="bg-white rounded-xl p-6 border border-gray-200">
-                                <h2 className="text-lg font-semibold text-gray-900 mb-6">
-                                    Orders by Month
-                                </h2>
-                                <ResponsiveContainer width="100%" height={250}>
-                                    <LineChart data={dashboardData?.ordersByMonth || []}>
-                                        <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                                        <XAxis dataKey="month" tick={{ fontSize: 12 }} />
-                                        <YAxis tick={{ fontSize: 12 }} />
-                                        <Tooltip
-                                            formatter={(v) => [v, "Orders"]}
-                                            contentStyle={{
-                                                borderRadius: "8px",
-                                                border: "1px solid #e5e7eb",
-                                            }}
-                                        />
-                                        <Line
-                                            type="monotone"
-                                            dataKey="totalOrders"
-                                            stroke="#3b82f6"
-                                            strokeWidth={3}
-                                            dot={false}
-                                        />
-                                    </LineChart>
-                                </ResponsiveContainer>
-                            </div>
-                        </div>
-                    </div>
-                )}
+                {/* The Outlet is critical: it renders the child element defined in the router.
+                  For the path /seller, it will render the index element (DashboardContentView).
+                */}
+                <Outlet context={{ dashboardData, loading, error }} />
             </div>
         </div>
     );

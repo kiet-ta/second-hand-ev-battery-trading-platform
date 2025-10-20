@@ -88,5 +88,23 @@ namespace PresentationLayer.Controllers
                 });
             }
         }
+        [HttpPost("new-staff")]
+        public async Task<IActionResult> SendNewStaff([FromBody] NewStaffTemplateDto request)
+        {
+            if (string.IsNullOrWhiteSpace(request.To) || string.IsNullOrWhiteSpace(request.Password))
+                return BadRequest(new { status = "error", message = "Missing required fields: To, Password." });
+
+            try
+            {
+                string logoUrl = request.LogoUrl ?? "https://cocmuaxe.com/logo.png";
+
+                await _mailService.SendNewStaffMailAsync(request, logoUrl);
+                return Ok(new { status = "success", message = "New staff onboarding email sent successfully." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { status = "error", message = ex.Message });
+            }
+        }
     }
 }

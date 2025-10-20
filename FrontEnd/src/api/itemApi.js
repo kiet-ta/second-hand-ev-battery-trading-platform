@@ -38,10 +38,10 @@ const itemApi = {
         return response.data;
     },
     putItem: async (itemId, itemData) => {
-        console.log(itemData)
-        const response = await axios.put(baseURL + `/${itemId}`,{itemData})
+        console.log(itemId,itemData)
+        const response = await axios.put(baseURL + `/${itemId}`,itemData)
         return response.data
-    }
+    },
 
 };
 export default itemApi;
