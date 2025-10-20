@@ -170,5 +170,13 @@ namespace Application.Services
             var repo = scope.ServiceProvider.GetRequiredService<INotificationRepository>();
             return await repo.GetAllNotificationsAsync();
         }
+        public async Task<bool> SendNotificationAsync(CreateNotificationDTO noti, int receiverId)
+        {
+            if (receiverId <= 0) return false;
+            using var scope = _scopeFactory.CreateScope();
+            var repo = scope.ServiceProvider.GetRequiredService<INotificationRepository>();
+            await repo.AddNotificationById(noti, receiverId);
+            return true;
+        }
     }
 }
