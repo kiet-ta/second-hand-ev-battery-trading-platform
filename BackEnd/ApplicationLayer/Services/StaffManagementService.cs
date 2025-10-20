@@ -100,13 +100,8 @@ public class StaffManagementService : IStaffManagementService
 
     public async Task<List<PermissionDto>> GetAllPermissionsAsync()
     {
-
-            var permissions = await _permissionRepository.GetAllPermissionAsync();
-            if (permissions == null)
-                return new List<PermissionDto>();
-
+        var permissions = await _permissionRepository.GetAllPermissionAsync();
         return _mapper.Map<List<PermissionDto>>(permissions);
-        
     }
 
     public async Task<List<PermissionDto>> GetPermissionsByStaffIdAsync(int staffId)

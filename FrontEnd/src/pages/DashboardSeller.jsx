@@ -16,20 +16,11 @@ export default function SellerDashboard() {
     const [dashboardData, setDashboardData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
     const sellerId = localStorage.getItem("userId");
     const token = localStorage.getItem("token");
 
-    const handleLogoutConfirm = () => {
-        localStorage.clear();
-        window.location.href = "/login";
-    };
-
-    const handleCancelLogout = () => {
-        setShowLogoutConfirm(false);
-    };
-
+    // Fetch dashboard data
     useEffect(() => {
         if (!token || !sellerId) return; 
 
@@ -61,7 +52,10 @@ export default function SellerDashboard() {
         fetchDashboard();
     }, [sellerId, token]);
 
-
+    const handleLogout = () => {
+        localStorage.clear();
+        navigate("/login");
+    };
 
     // Menu items define the navigation paths relative to the /seller route
     const menuItems = [
@@ -121,7 +115,7 @@ export default function SellerDashboard() {
 
                 <div className="p-4 border-t border-gray-200">
                     <button
-                        onClick={() => setShowLogoutConfirm(true)}
+                        onClick={handleLogout}
                         className="w-full flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-red-50 transition"
                     >
                         <IoLogOutOutline size={20} />

@@ -442,19 +442,6 @@ body.dark-mode span {
     background-color: #7fa3c1;
 }
 
-.address-card {
-    transition: all 0.3s ease;
-}
-
-.default-badge {
-    background-color: #16a34a;
-    color: white;
-    border-radius: 6px;
-    padding: 2px 8px;
-    font-size: 12px;
-    margin-left: 8px;
-}
-
 
 /* Responsive Design */
 @media (max-width: 768px) {

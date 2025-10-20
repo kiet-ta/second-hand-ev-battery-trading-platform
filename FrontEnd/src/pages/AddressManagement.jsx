@@ -1,8 +1,6 @@
 import { useEffect, useState } from "react";
 import "../assets/styles/AddressManagement.css";
 import addressApi from "../hooks/services/addressApi";
-import { motion, AnimatePresence } from "framer-motion";
-
 
 const AddressManagement = () => {
     const [provinces, setProvinces] = useState([]);
@@ -237,43 +235,14 @@ const AddressManagement = () => {
         }
     };
 
-    const handleSetDefault = async (id) => {
-        try {
-            const userId = localStorage.getItem("userId");
-            if (!userId) return;
-
-            // 🟢 1. Cập nhật local UI ngay lập tức
-            setSavedAddresses(prev => {
-                // Tạo mảng mới đã cập nhật
-                const updated = prev.map(addr => ({
-                    ...addr,
-                    isDefault: addr.id === id
-                }));
-
-                // Sort lại để đưa mặc định lên đầu
-                const sorted = [...updated].sort(
-                    (a, b) => (a.isDefault === b.isDefault ? 0 : a.isDefault ? -1 : 1)
-                );
-
-                return sorted;
-            });
-
-            // 🟢 2. Đồng bộ DB (không chặn giao diện)
-            const allAddresses = await addressApi.getUserAddresses(userId);
-            for (const addr of allAddresses) {
-                const updated = { ...addr, isDefault: addr.addressId === id };
-                await addressApi.updateAddress(addr.addressId, updated);
-            }
-
-            console.log("✅ Đã cập nhật mặc định thành công");
-        } catch (err) {
-            console.error("❌ Lỗi đặt mặc định:", err);
-        }
+    const handleSetDefault = (id) => {
+        setSavedAddresses((prev) =>
+            prev.map((addr) => ({
+                ...addr,
+                isDefault: addr.id === id,
+            }))
+        );
     };
-
-
-
-
 
     // ----------------------
     // Render
@@ -293,60 +262,48 @@ const AddressManagement = () => {
             {/* LIST */}
             {!showForm && (
                 <div className="address-list">
-                    <AnimatePresence>
-                        {savedAddresses.map((address, index) => (
-                            <motion.div
-                                key={`${address.id}-${address.isDefault ? 'default' : 'normal'}`}
-                                layout
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, scale: 0.9 }}
-                                transition={{ type: "spring", stiffness: 120, damping: 14 }}
-                                className={`address-card ${address.isDefault ? "highlight" : ""}`}
-                            >
-                                <div className="address-card-header">
-                                    <div>
-                                        <strong className="address-name">Địa chỉ giao hàng</strong>
-                                        {address.isDefault && (
-                                            <span className="default-badge">Mặc định</span>
-                                        )}
-                                    </div>
-                                    <div className="address-actions">
-                                        <button
-                                            className="btn-edit"
-                                            onClick={() => handleEdit(address)}
-                                        >
-                                            Chỉnh sửa
-                                        </button>
-                                        {savedAddresses.length > 1 && (
-                                            <button
-                                                className="btn-delete"
-                                                onClick={() => handleDelete(address.id)}
-                                            >
-                                                Xóa
-                                            </button>
-                                        )}
-                                    </div>
+                    {savedAddresses.map((address) => (
+                        <div key={address.id} className="address-card">
+                            <div className="address-card-header">
+                                <div>
+                                    <strong className="address-name">Địa chỉ giao hàng</strong>
+                                    {address.isDefault && (
+                                        <span className="default-badge">Mặc định</span>
+                                    )}
                                 </div>
-
-                                <div className="address-detail">
-                                    <p className="address-text">
-                                        {address.ward}, {address.district}, {address.province}
-                                    </p>
-                                    <p className="address-text">{address.street}</p>
-                                </div>
-
-                                {!address.isDefault && (
+                                <div className="address-actions">
                                     <button
-                                        className="btn-set-default"
-                                        onClick={() => handleSetDefault(address.id)}
+                                        className="btn-edit"
+                                        onClick={() => handleEdit(address)}
                                     >
-                                        Đặt làm mặc định
+                                        Chỉnh sửa
                                     </button>
-                                )}
-                            </motion.div>
-                        ))}
-                    </AnimatePresence>
+                                    {savedAddresses.length > 1 && (
+                                        <button
+                                            className="btn-delete"
+                                            onClick={() => handleDelete(address.id)}
+                                        >
+                                            Xóa
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+                            <div className="address-detail">
+                                <p className="address-text">
+                                    {address.ward}, {address.district}, {address.province}
+                                </p>
+                                <p className="address-text">{address.street}</p>
+                            </div>
+                            {!address.isDefault && (
+                                <button
+                                    className="btn-set-default"
+                                    onClick={() => handleSetDefault(address.id)}
+                                >
+                                    Đặt làm mặc định
+                                </button>
+                            )}
+                        </div>
+                    ))}
                 </div>
             )}
 
