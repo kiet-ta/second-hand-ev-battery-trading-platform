@@ -254,4 +254,71 @@ public class PaymentService : IPaymentService
             Status = "pending"
         };
     }
+
+    public async Task<PaymentResponseDto> CreateDepositPaymentLinkAsync(int userId, decimal amount)
+    {
+        //unique id deposit order
+        long depositOrderCode = long.Parse(DateTimeOffset.UtcNow.ToString("yyyyMMddHHmmssfff") + userId.ToString().PadLeft(4, '0')); // Ensures higher uniqueness
+
+        // Create Payment record in DB to track deposit transaction
+        var paymentRecord = new Payment
+        {
+            UserId = userId,
+            OrderCode = depositOrderCode,
+            TotalAmount = amount,
+            Method = "payos",
+            Status = "pending",
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow,
+        };
+        paymentRecord = await _paymentRepository.AddPaymentAsync(paymentRecord);
+
+        // ! Create a PaymentDetail record to mark this as a deposit transaction
+        // By not setting OrderId and ItemId
+        var depositDetail = new PaymentDetail
+        {
+            PaymentId = paymentRecord.PaymentId,
+            OrderId = null,
+            ItemId = null,
+            Amount = amount
+        };
+        await _paymentRepository.AddPaymentDetailsAsync(new List<PaymentDetail> { depositDetail });
+
+        var description = $"Deposit money into the account User ID: {userId}";
+        var payOSItem = new ItemData(
+            name: "Wallet Deposit",
+            quantity: 1,
+            price: (int)amount
+        );
+
+        var domain = _config["AppSettings:Domain"] ?? "http://localhost:5173/";
+        var paymentData = new PaymentData(
+            orderCode: depositOrderCode,
+            amount: (int)amount,
+            description: description,
+            items: new List<ItemData> { payOSItem },
+            cancelUrl: $"{domain}wallet/deposit/cancel?paymentId={paymentRecord.PaymentId}",
+            returnUrl: $"{domain}wallet/deposit/success?paymentId={paymentRecord.PaymentId}"
+        );
+
+        //using payos to create link
+        try
+        {
+            CreatePaymentResult payOSResult = await _payOS.createPaymentLink(paymentData);
+
+            return new PaymentResponseDto
+            {
+                PaymentId = paymentRecord.PaymentId,
+                OrderCode = payOSResult.orderCode,
+                CheckoutUrl = payOSResult.checkoutUrl,
+                Status = "pending"
+            };
+        }
+        catch (Exception ex)
+        {
+            await _paymentRepository.UpdatePaymentStatusAsync(paymentRecord.PaymentId, "failed");
+            Console.WriteLine($"Error creating PayOS link for deposit: {ex.Message}");
+            throw new Exception("Failed to create payment link. Please try again later.", ex);
+        }
+    }
 }

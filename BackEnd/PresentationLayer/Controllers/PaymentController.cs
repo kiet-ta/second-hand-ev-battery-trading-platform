@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Net.payOS;
 using Net.payOS.Types;
+using System.Security.Claims;
 using System.Text.Json;
 
 namespace PresentationLayer.Controllers;
@@ -104,4 +105,24 @@ public class PaymentController : ControllerBase
         var response = await _paymentService.CreateSellerRegistrationPaymentAsync(request);
         return Ok(response);
     }
+
+    [HttpPost("initiate-deposit")]
+    [Authorize]
+    public async Task<IActionResult> InitiateWalletDeposit([FromBody] InitiateDepositRequestDto request)
+    {
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (!int.TryParse(userIdClaim, out var userId))
+        {
+            return Unauthorized("Invalid user token.");
+        }
+
+        if (request.Amount <= 0)
+        {
+            return BadRequest(new { message = "Deposit amount must be positive." });
+        }
+
+        var response = await _paymentService.CreateDepositPaymentLinkAsync(userId, request.Amount);
+        return Ok(response);
+    }
+}
 }
