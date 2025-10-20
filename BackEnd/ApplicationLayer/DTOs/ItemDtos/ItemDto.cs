@@ -28,7 +28,7 @@ namespace Application.DTOs.ItemDtos
 
         public int? UpdatedBy { get; set; }
 
-        //public string? Moderation { get; set; }
+        public string? Moderation { get; set; }
 
 
         public List<ItemImageDto>? Images { get; set; } = new();

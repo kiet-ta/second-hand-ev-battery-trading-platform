@@ -241,7 +241,7 @@ function CardComponent({
                         <div>
                             <p className="text-xs text-gray-500">Price</p>
                             {/* Combined price and currency into a single block for better alignment */}
-                            <div className="flex items-end leading-none">
+                            <div className=" items-end leading-none">
                                 <p className="text-2xl font-extrabold text-indigo-600">
                                     {price.toLocaleString('vi-VN')}
                                 </p>
