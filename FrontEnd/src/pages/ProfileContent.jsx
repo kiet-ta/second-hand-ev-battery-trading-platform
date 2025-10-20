@@ -1,43 +1,43 @@
 import { useState, useEffect } from "react";
-import SettingsCard from "../components/SettingCard";
-import ProfileForm from "../components/ProfileForm";
-import AddressManagement from "../pages/AddressManagement";
 import HistoryBought from "../components/HistoryBought";
 import ChatRoom from "../components/Chats/ChatRoom"
 import "../assets/styles/ProfileContent.css";
 import anhtao from "../assets/images/Logo.png";
 import { FaRegUser } from "react-icons/fa";
-import { LuClipboardList } from "react-icons/lu";
+import { FaRegClipboard } from "react-icons/fa";
 import { IoSettingsOutline, IoChatboxOutline } from "react-icons/io5";
 import { IoMdSearch } from "react-icons/io";
-import { IoMdNotificationsOutline } from "react-icons/io";
 import { IoCartOutline } from "react-icons/io5";
 import { MdLogout } from "react-icons/md";
 import Logo from "../components/Logo";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, Outlet } from "react-router-dom";
 import NotificationDropdown from "../components/NotificationDropdown";
-import ChangePassword from "../components/ChangePassword";
-
 
 const ProfileContent = () => {
-        const navigate = useNavigate();
+    const navigate = useNavigate();
     const location = useLocation();
 
-    const initialSection = location.state?.activeSection || "profile";
-    const initialChatRoomId = location.state?.chatRoomId || null;
-    const initialReceiverId = location.state?.receiverId || null;
-
-
-    const [activeSection, setActiveSection] = useState(initialSection);
-    const [activeCard, setActiveCard] = useState("account");
+    // State cleanup
+    // const [activeCard, setActiveCard] = useState("account"); // ✨ REMOVED
     const [searchQuery, setSearchQuery] = useState("");
     const [isDarkMode, setIsDarkMode] = useState(false);
     const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
-    const userId = localStorage.getItem("userId")
+    const userId = localStorage.getItem("userId");
+    const outletContextValue = {
+        handleDeleteAccount, 
+        isDarkMode, 
+        setIsDarkMode, 
+        userId
+    };
+
+
+    
+    // ... (currentUser state and fetchUser useEffects remain the same)
     const [currentUser, setCurrentUser] = useState({
         fullName: localStorage.getItem("userName") || "Guest",
         avatarProfile: localStorage.getItem("userAvatar") || anhtao
     });
+    
     useEffect(() => {
         const fetchUser = async () => {
             try {
@@ -53,7 +53,7 @@ const ProfileContent = () => {
         fetchUser();
     }, []);
 
-    // 🌙 Dark Mode toggle + hiệu ứng mượt
+    // 🌙 Dark Mode toggle + smooth effect
     useEffect(() => {
         document.body.classList.add("theme-transition");
         document.body.classList.toggle("dark-mode", isDarkMode);
@@ -75,14 +75,14 @@ const ProfileContent = () => {
 
     // ✅ Xóa tài khoản
     const handleDeleteAccount = async () => {
-        const userId = localStorage.getItem("userId");
-        if (!userId) return alert("User not found.");
+        const currentUserId = localStorage.getItem("userId");
+        if (!currentUserId) return alert("User not found.");
 
         if (!window.confirm("⚠️ Bạn có chắc muốn xóa tài khoản này? Hành động này không thể hoàn tác!"))
             return;
 
         try {
-            const res = await fetch(`https://localhost:7272/api/User/${userId}`, {
+            const res = await fetch(`https://localhost:7272/api/User/${currentUserId}`, {
                 method: "DELETE",
                 headers: { "Content-Type": "application/json" },
             });
@@ -98,46 +98,60 @@ const ProfileContent = () => {
         }
     };
 
+    // Navigation functions
+    const handleMenuClick = (path) => {
+        navigate(path);
+    };
 
-    useEffect(() => {
-        if (location.state?.activeSection === 'chat') {
-            // Replace history state to prevent immediately jumping back to chat on refresh
-            window.history.replaceState({}, document.title, window.location.pathname);
+    const handleSearch = (e) => {
+        e.preventDefault();
+        if (searchQuery.trim()) {
+            navigate(`/search?query=${encodeURIComponent(searchQuery.trim())}`);
         }
-    }, [location.state]);
+    };
+
+    const handleGoToCart = () => {
+        navigate("/cart");
+    };
+
+    // ✨ Logic to determine the active section based on the current URL path
+    const getActiveBaseSection = () => {
+        const pathSegments = location.pathname.split('/').filter(segment => segment);
+        if (pathSegments.length < 2) return 'account'; // Default to /profile (which maps to account)
+        
+        // Check for specific sub-routes: purchase, chat, settings
+        if (pathSegments[1] === 'purchase') return 'purchase';
+        if (pathSegments[1] === 'chat') return 'chat';
+        if (pathSegments[1] === 'settings') return 'settings';
+        
+        // For /profile/account, /profile/address, /profile/security etc., 
+        // they should all highlight the "Profile" link (which we'll call 'account' here).
+        return 'account';
+    };
+
+    const activeSection = getActiveBaseSection();
 
     const menuItems = [
-        { id: "profile", label: "Profile", icon: <FaRegUser /> },
-        { id: "purchase", label: "My Purchase", icon: <LuClipboardList /> },
-        { id: "settings", label: "Settings", icon: <IoSettingsOutline /> },
-        { id: "chat", label: "Chat", icon: <IoChatboxOutline /> }
+        { id: "account", label: "Profile", icon: <FaRegUser />, path: "/profile" }, // Maps to account, address, security
+        { id: "purchase", label: "My Purchase", icon: <FaRegClipboard />, path: "/profile/purchase" },
+        { id: "chat", label: "Chat", icon: <IoChatboxOutline />, path: "/profile/chat" },
+        { id: "settings", label: "Global Settings", icon: <IoSettingsOutline />, path: "/profile/settings" },
     ];
-
-    const settingsCards = [
-        { id: "account", title: "Account Setting", description: "Details about your Personal information" },
-        { id: "notification", title: "Notification", description: "Manage alerts & updates" },
-        { id: "address", title: "Address", description: "Manage your delivery address" },
-        { id: "security", title: "Password & Security", description: "Change password or delete your account" },
-    ];
-
+    
+    // Pass necessary props/functions via Outlet context
     return (
         <div className="profile-layout">
             {/* Sidebar */}
             <div className="sidebar">
-                <div
-                    className="sidebar-header cursor-pointer flex items-center gap-2"
-                    onClick={() => navigate("/")}
-                >
-                    <img src={Logo} alt="Logo" className="logo" />
-                    <h1 className="logo">Cóc Mua Xe</h1>
-                </div>
+                <Logo/>
 
                 <nav className="sidebar-nav">
                     {menuItems.map((item) => (
                         <button
                             key={item.id}
+                            // ✨ Use item.id for active check
                             className={`nav-item ${activeSection === item.id ? "active" : ""}`}
-                            onClick={() => setActiveSection(item.id)}
+                            onClick={() => handleMenuClick(item.path)}
                         >
                             <span className="nav-icon">{item.icon}</span>
                             <span className="nav-label">{item.label}</span>
@@ -150,7 +164,7 @@ const ProfileContent = () => {
             <div className="main-content h-screen overflow-y-auto">
                 {/* Header */}
                 <header className="header">
-                    <div className="search-container">
+                    <form onSubmit={handleSearch} className="search-container">
                         <input
                             type="text"
                             placeholder="Search Anything"
@@ -158,9 +172,10 @@ const ProfileContent = () => {
                             onChange={(e) => setSearchQuery(e.target.value)}
                             className="search-input"
                         />
-                        <button className="search-button"><IoMdSearch /></button>
-                    </div>
-
+                        <button type="submit" className="search-button">
+                            <IoMdSearch />
+                        </button>
+                    </form>
 
                     <div className="header-actions flex items-center gap-5">
                         <div className="relative">
@@ -168,7 +183,10 @@ const ProfileContent = () => {
                         </div>
 
                         <div className="relative">
-                            <button className="relative text-gray-700 hover:text-blue-600 transition">
+                            <button 
+                                className="relative text-gray-700 hover:text-blue-600 transition"
+                                onClick={handleGoToCart}
+                            >
                                 <IoCartOutline size={24} />
                                 <span className="absolute -top-1.5 -right-2 bg-blue-500 text-white text-xs rounded-full px-1.5">
                                     0
@@ -183,86 +201,12 @@ const ProfileContent = () => {
                             <MdLogout size={22} />
                         </button>
                     </div>
-
                 </header>
 
-                {/* Profile Content */}
+                {/* ✨ Profile Content - Renders the child route content */}
                 <div className="profile-content">
-                    {/* ---- Profile ---- */}
-                    {activeSection === "profile" && (
-                        <>
-                            <div className="settings-sidebar">
-                                {settingsCards.map((card) => (
-                                    <SettingsCard
-                                        key={card.id}
-                                        {...card}
-                                        isActive={activeCard === card.id}
-                                        onClick={() => setActiveCard(card.id)}
-                                    />
-                                ))}
-                            </div>
-
-                            <div className="profile-main">
-                                {activeCard === "account" && <ProfileForm />}
-                                {activeCard === "address" && <AddressManagement />}
-                                {activeCard === "notification" && (
-                                    <div className="coming-soon">
-                                        <h2>Notification Settings</h2>
-                                        <p>Coming soon...</p>
-                                    </div>
-                                )}
-                                {activeCard === "security" && <ChangePassword />}
-                            </div>
-                        </>
-                    )}
-
-                    {/* ---- Purchase ---- */}
-                    {activeSection === "purchase" && (
-                        <div className="profile-main">
-                            <HistoryBought />
-                        </div>
-                    )}
-
-                    {activeSection == "chat" && (
-                        <div className="profile-main">
-                            <ChatRoom
-                                currentUserId={userId}
-                                initialRoomId={initialChatRoomId}
-                                initialReceiverId={initialReceiverId}
-                            />
-                        </div>
-                    )}
-
-                    {/* ---- Settings ---- */}
-                    {activeSection === "settings" && (
-                        <div className="settings-page">
-                            <h2>⚙️ Settings</h2>
-
-                            <div className="setting-item">
-                                <span>🌙 Dark Mode</span>
-                                <label className="switch">
-                                    <input
-                                        type="checkbox"
-                                        checked={isDarkMode}
-                                        onChange={() => setIsDarkMode(!isDarkMode)}
-                                    />
-                                    <span className="slider round"></span>
-                                </label>
-                            </div>
-
-                            <hr style={{ margin: "20px 0", opacity: 0.3 }} />
-
-                            <div className="setting-item">
-                                <span>❌ Delete Account</span>
-                                <button
-                                    className="delete-account-btn"
-                                    onClick={handleDeleteAccount}
-                                >
-                                    Delete
-                                </button>
-                            </div>
-                        </div>
-                    )}
+                    {/* The Outlet renders the component associated with the current sub-route */}
+                    <Outlet context={outletContextValue} />
                 </div>
             </div>
 

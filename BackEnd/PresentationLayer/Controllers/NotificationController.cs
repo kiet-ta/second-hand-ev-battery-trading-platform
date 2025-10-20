@@ -154,22 +154,6 @@ namespace PresentationLayer.Controllers
 
             return Ok($"Notification with ID {id} has been deleted successfully.");
         }
-        [HttpPost]
-        public async Task<IActionResult> AddNotification([FromBody] CreateNotificationDTO dto)
-        {
-            try
-            {
-                var notifications = await _notificationService.AddNewNotification(dto);
-                if (notifications == false)
-                    return NotFound(new { message = "Error creating new Notification" });
-
-                return Ok(new { message = "Notification created successfully." });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { error = "An error occurred while creating the notification", details = ex.Message });
-            }
-        }
         [HttpPost("send/{receiverId}")]
         public async Task<IActionResult> SendNotification([FromBody] CreateNotificationDTO noti, int receiverId)
         {
