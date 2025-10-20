@@ -1,28 +1,65 @@
 // src/pages/ManagerDashboard.jsx
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { DollarSign, Users, PackageSearch, TrendingUp, UserCheck, ShieldAlert, Ban } from "lucide-react";
 import { managerAPI } from "../hooks/managerApi";
 import { AnimatePresence } from "framer-motion";
-import { Outlet, useNavigate, useLocation } from "react-router-dom"; // Import Outlet, useNavigate, useLocation
+import { Outlet, useNavigate, useLocation } from "react-router-dom"; 
 import ManagerLayout from "../layout/ManagerLayout"; 
 
-// Helper functions (kept outside for cleanliness)
+// Helper function (assuming it's defined elsewhere or in the same file)
 function currencyVND(x) {
     try {
-        return x.toLocaleString("vi-VN", { style: "currency", currency: "VND" });
+        // Assuming x is a number or can be converted to one
+        if (typeof x === 'number') {
+             return x.toLocaleString("vi-VN", { style: "currency", currency: "VND" });
+        }
+        return `${x}`;
     } catch {
         return `${x}`;
     }
 }
 
+// NOTE: You must define LogoutConfirmationModal and AddStaffModal elsewhere and import them.
+// Example placeholders for clarity:
+function LogoutConfirmationModal({ onCancel, onConfirm }) {
+    return (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white p-6 rounded-lg shadow-xl">
+                <p>Are you sure you want to log out?</p>
+                <div className="mt-4 flex justify-end gap-3">
+                    <button onClick={onCancel} className="px-4 py-2 border rounded">Cancel</button>
+                    <button onClick={onConfirm} className="px-4 py-2 bg-red-500 text-white rounded">Logout</button>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+function AddStaffModal({ onClose }) {
+    return (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white p-6 rounded-lg shadow-xl">
+                <h3 className="text-lg font-bold">Add New Staff</h3>
+                <p className="mt-2">Staff form goes here...</p>
+                <div className="mt-4 flex justify-end">
+                    <button onClick={onClose} className="px-4 py-2 bg-blue-500 text-white rounded">Close</button>
+                </div>
+            </div>
+        </div>
+    );
+}
+// END PLACEHOLDERS
+
 
 export default function ManagerDashboard() {
     const navigate = useNavigate();
+    const location = useLocation(); // Keep for potential route-based data fetching logic if needed
+    
     const [loading, setLoading] = useState(false);
     const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
     
-    // User Management State (for UsersContent component)
+    // User Management State 
     const [users, setUsers] = useState([]);
     const [userPage, setUserPage] = useState(1);
     const [pageSize] = useState(20);
@@ -37,7 +74,7 @@ export default function ManagerDashboard() {
     const [approvals, setApprovals] = useState([]);
 
     // Other Tabs State
-    const [products, setProducts] = useState([]); // Used by ProductModeration
+    const [products, setProducts] = useState([]); 
     
     // Modal state
     const [showAddStaffModal, setShowAddStaffModal] = useState(false);
@@ -73,7 +110,6 @@ export default function ManagerDashboard() {
             }
 
             if (scope === 'products' || scope === 'all') {
-                 // Simplified the complex fetch logic here for brevity; assume managerAPI.getProductsWithSeller() exists
                  const productData = await managerAPI.getProducts(); 
                  setProducts(productData);
             }
@@ -92,8 +128,11 @@ export default function ManagerDashboard() {
 
     // Re-fetch users on page change
     useEffect(() => {
-        fetchData('users', userPage);
-    }, [userPage]);
+        // Ensure we don't refetch on initial load if fetchData('all') already ran
+        if (location.pathname.includes('/users') || userPage > 1) {
+            fetchData('users', userPage);
+        }
+    }, [userPage, location.pathname]);
 
 
     const handleLogoutConfirm = () => {
@@ -127,7 +166,6 @@ export default function ManagerDashboard() {
                 alert(`🚫 Seller ${id} rejected.`);
             }
             setApprovals(prev => prev.filter(a => a.id !== id));
-            // Re-fetch metrics if needed
             fetchData('dashboard'); 
         } catch (e) {
             alert(`❌ Lỗi khi ${action} seller.`);
@@ -149,18 +187,35 @@ export default function ManagerDashboard() {
     };
 
 
-   // In ManagerDashboard.jsx:
-// ...
-const handleRefresh = () => fetchData('all');
-const handleLogout = () => setShowLogoutConfirm(true);
-const handleAddStaff = () => setShowAddStaffModal(true);
+    const handleRefresh = () => fetchData('all');
+    const handleLogout = () => setShowLogoutConfirm(true);
+    const handleAddStaff = () => setShowAddStaffModal(true);
 
-return (
-    <ManagerLayout 
-        onRefresh={handleRefresh} 
-        onLogout={handleLogout} 
-        onAddStaff={handleAddStaff}
-    >
-    </ManagerLayout>
-);
+    return (
+        <ManagerLayout 
+            onRefresh={handleRefresh} 
+            onLogout={handleLogout} 
+            onAddStaff={handleAddStaff}
+            loading={loading} // Pass loading state to layout if it handles a global spinner
+        >
+            {/* CRITICAL FIX: The Outlet is rendered here and passed the context */}
+            <Outlet context={contextValue} /> 
+
+            {/* Modals are rendered here so they overlay the entire layout/content */}
+            <AnimatePresence>
+                {showLogoutConfirm && (
+                    <LogoutConfirmationModal
+                        onCancel={() => setShowLogoutConfirm(false)}
+                        onConfirm={handleLogoutConfirm}
+                    />
+                )}
+                {showAddStaffModal && (
+                    <AddStaffModal
+                        onClose={() => setShowAddStaffModal(false)}
+                        // Include props for handling form data (newStaff, setNewStaff)
+                    />
+                )}
+            </AnimatePresence>
+        </ManagerLayout>
+    );
 }

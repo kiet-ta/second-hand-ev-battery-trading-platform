@@ -235,6 +235,7 @@ function CartPage() {
 
 
     const handleSelectItem = (itemId) => {
+        // Corrected setter call
         setSelectedItemIds((prev) => {
             const newState = prev.includes(itemId) 
                 ? prev.filter((id) => id !== itemId)
@@ -258,6 +259,8 @@ function CartPage() {
             itemsToPurchase: cartItems.filter(item => selectedItemIds.includes(item.id)),
             totalAmount: totalPrice,
             deliveryAddress: selectedAddress || null,
+            allAddresses: addresses, // Pass all addresses for modal on checkout page
+            selectedAddressId: selectedAddressId // Pass selected ID for initial state
         };
     }, [selectedItemIds, cartItems, totalPrice, addresses, selectedAddressId]);
 
@@ -319,6 +322,7 @@ function CartPage() {
                 <div className="bg-white mt-4 p-4 shadow-sm rounded-lg">
                     <div className="flex justify-between items-center border-b pb-3 mb-3">
                         <h2 className="text-lg font-semibold flex items-center gap-2"><FiMapPin /> Delivery Address</h2>
+                        {/* Note: The 'Manage Addresses' button currently does nothing. */}
                         <button className="text-maincolor font-medium">Manage Addresses</button>
                     </div>
                     {addresses.length > 0 ? (
@@ -371,6 +375,7 @@ function CartPage() {
                     <div className="flex items-center space-x-6">
                         <div>
                             <span className="mr-2">Total ({selectedItemIds.length} items):</span>
+                            {/* Price formatted to VND */}
                             <span className="text-maincolor text-xl font-bold">
                                 {totalPrice.toLocaleString('vi-VN')} VND
                             </span>

@@ -101,8 +101,6 @@ function SellerForm() {
     console.log("Store Address Payload to be sent:", storeAddressPayload);
     console.log("User Update Payload to be sent:", userUpdatePayload);
     console.log("----------------------------");
-
-    alert('Đăng ký thành công! Vui lòng chờ xét duyệt.');
     navigate('/success'); 
   };
   

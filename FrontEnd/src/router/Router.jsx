@@ -43,6 +43,8 @@ import ReportsContent from "../components/Manager/ReportContent";
 import SettingsContent from "../components/Manager/SettingContent";
 import ProductModeration from "../components/ProductModeration";
 import NotificationCreator from "../components/Notifications/NotificationCreation";
+import ProtectedRoute from "../components/ProtectedRoute";
+import SellerDashboardContentView from "../components/SellerDashboardContent";
 
 // Placeholder component for Profile Index Route content (since complex state was removed)
 const ProfileNestedFormsPlaceholder = () => (
@@ -102,35 +104,48 @@ export const router = createBrowserRouter([
   },
 
   // --- SELLER DASHBOARD NESTED ROUTING (Cleaned) ---
-  {
-    path: "/seller",
-    element: <SellerDashboard />, // Layout component
-    children: [
-      { path: "bidding", element: <SellerAuctionListPage /> },
-      { path: "products", element: <MyProduct /> },
-      { path: "history", element: <HistorySold /> },
-      { path: "news", element: <NewsPage /> },
-      { path: "settings", element: <div>Seller Settings Content</div> }
-    ]
-  },
+{
+        path: "/seller",
+        // Use ProtectedRoute as the parent element for protection
+        element: <ProtectedRoute allowedRoles={['seller']} />, 
+        children: [
+            // The SellerDashboard component becomes the layout for these children
+            { element: <SellerDashboard />, children: [ 
+              { 
+                    index: true, 
+                    element: <SellerDashboardContentView />, 
+                    // NOTE: You'll need to define and import DashboardContentView separately
+                },
+                { path: "bidding", element: <SellerAuctionListPage /> },
+                { path: "products", element: <MyProduct /> },
+                { path: "history", element: <HistorySold /> },
+                { path: "settings", element: <div>Seller Settings Content</div> },
+                { path: "chat", element: <div className="profile-main"><ChatRoom /></div> },
+            ]},
+        ]
+    },
 
   // --- MANAGER DASHBOARD NESTED ROUTING (Cleaned) ---
-  {
-    path: "/manage",
-    element: <ManagerDashboard />, // Layout/Data component
-    children: [
-      { index: true, element: <DashboardContent /> }, 
-      { path: "approvals", element: <SellerApprovalsContent /> },
-      { path: "users", element: <UsersContent /> },
-      { path: "products", element: <ProductModeration /> },
-      { path: "complaints", element: <ComplaintsList /> },
-      { path: "transactions", element: <TransactionsContent /> },
-      { path: "notifications", element: <NotificationCreator /> },
-      { path: "news", element: <NewsPage /> },
-      { path: "reports", element: <ReportsContent /> },
-      { path: "settings", element: <SettingsContent /> }, 
-    ]
-  },
+ {
+        path: "/manage",
+        // Use ProtectedRoute to allow both manager and staff
+        element: <ProtectedRoute allowedRoles={['manager', 'staff']} />, 
+        children: [
+            // ManagerDashboard component becomes the layout/data provider
+            { element: <ManagerDashboard />, children: [ 
+                { index: true, element: <DashboardContent /> }, 
+                { path: "approvals", element: <SellerApprovalsContent /> },
+                { path: "users", element: <UsersContent /> },
+                { path: "products", element: <ProductModeration /> },
+                { path: "complaints", element: <ComplaintsList /> },
+                { path: "transactions", element: <TransactionsContent /> },
+                { path: "notifications", element: <NotificationCreator /> },
+                { path: "news", element: <NewsPage /> },
+                { path: "reports", element: <ReportsContent /> },
+                { path: "settings", element: <SettingsContent /> }, 
+            ]},
+        ]
+    },
 
   // --- STANDALONE ROUTES (Outside Main Layout) ---
   { path: "/bought", element: <PurchaseHistory /> },

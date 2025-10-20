@@ -8,6 +8,6 @@ namespace Application.DTOs.AuthenticationDtos
 {
     public class TokenRequestDto
     {
-        public string Credential { get; set; } = null!;
+        public string Credential { get; set; } = string.Empty;
     }
 }

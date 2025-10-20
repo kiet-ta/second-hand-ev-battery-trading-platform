@@ -1,13 +1,13 @@
 import React, { useState } from "react";
-import ImageUploader from './ImageUploader'; // Assuming ImageUploader.js is in the same folder
+import ImageUploader from './ImageUploader'; 
+import TextEditor from "./Editor/TextEditor"; 
 import {
     Pencil,
     ClipboardList,
     Image as ImageIcon,
 } from "lucide-react";
-import TextEditor from "./Editor/TextEditor";
 
-// Reusable Card Components
+// --- Reusable Card Components (omitted for brevity) ---
 function Card({ children, className = "" }) {
     return (<div className={`rounded-2xl shadow-sm border border-slate-200 bg-white ${className}`}>{children}</div>);
 }
@@ -20,8 +20,8 @@ function CardHeader({ title, icon }) {
         </div>
     );
 }
+// --------------------------------------------------------
 
-// The NewsPage Component
 export default function NewsPage() {
     const [newsList, setNewsList] = useState([
         { 
@@ -31,8 +31,8 @@ export default function NewsPage() {
             thumbnailUrl: 'https://placehold.co/600x400/31343C/FFFFFF?text=Example',
         },
     ]);
-    const [newPost, setNewPost] = useState({ title: ''});
-    // This state will hold the final URL from the uploader
+    
+    const [newPost, setNewPost] = useState({ title: '', content: '' }); 
     const [thumbnailUrl, setThumbnailUrl] = useState(''); 
 
     const handleInputChange = (event) => {
@@ -40,26 +40,43 @@ export default function NewsPage() {
         setNewPost(prev => ({ ...prev, [name]: value }));
     };
 
-    const handleSubmit = (event) => {
+    const handleContentChange = (htmlContent) => {
+        setNewPost(prev => ({ ...prev, content: htmlContent }));
+    };
+
+    const handleSubmit = async (event) => {
         event.preventDefault();
+
         if (!newPost.title || !newPost.content) {
             alert('Please fill in the title and content fields.');
             return;
         }
 
+        const apiPayload = {
+            title: newPost.title,
+            category: "EV News", 
+            summary: newPost.content.substring(0, 200), 
+            author_id: 1, 
+            thumbnail_url: thumbnailUrl, 
+            content: newPost.content, 
+            tags: "ev, battery, trading", 
+        };
+
+        console.log("--- API Payload to Backend ---");
+        console.log(JSON.stringify(apiPayload, null, 2));
+
         const newPostData = {
             id: Date.now(),
             title: newPost.title,
             content: newPost.content,
-            thumbnailUrl: thumbnailUrl, // Use the URL from the uploader
+            thumbnailUrl: thumbnailUrl,
         };
 
         setNewsList(prev => [newPostData, ...prev]);
 
-        // Reset form
+        // Reset form fields, which triggers TextEditor's useEffect to clear content
         setNewPost({ title: '', content: '' });
         setThumbnailUrl('');
-        // We don't need to reset the uploader; it manages its own state
     };
 
     return (
@@ -67,24 +84,31 @@ export default function NewsPage() {
             <Card>
                 <CardHeader title="Create News Post" icon={<Pencil size={18} />} />
                 <form onSubmit={handleSubmit} className="p-5 grid grid-cols-1 md:grid-cols-3 gap-6">
-                    {/* Text Inputs */}
+                    
                     <div className="md:col-span-2 space-y-4">
                         <input
                             type="text" name="title" placeholder="News Title"
                             value={newPost.title} onChange={handleInputChange}
                             className="w-full p-2 border rounded-lg border-slate-300"
                         />
-                        <TextEditor/>
-                         <button type="submit" className="px-4 py-2 text-white bg-slate-900 rounded-lg hover:bg-slate-800">
-                            Post News
+                        
+                        {/* Only one TextEditor instance, using the Strict Mode fix */}
+                        <TextEditor 
+                            onContentChange={handleContentChange} 
+                            initialContent={newPost.content}
+                        />
+                        
+                        <button 
+                            type="submit" 
+                            className="px-4 py-2 text-white bg-slate-900 rounded-lg hover:bg-slate-800"
+                        >
+                             Post News
                         </button>
                     </div>
                     
-                    {/* The ImageUploader Component */}
                     <div>
                         <ImageUploader 
                             onUploadSuccess={(url) => {
-                                console.log("Cloudinary URL received by parent:", url);
                                 setThumbnailUrl(url);
                             }}
                         />
@@ -115,4 +139,3 @@ export default function NewsPage() {
         </div>
     );
 }
-
