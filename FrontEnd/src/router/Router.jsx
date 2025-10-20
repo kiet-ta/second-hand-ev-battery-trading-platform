@@ -22,6 +22,7 @@ import ManagerDashboard from "../pages/ManagerDashboard";
 import AuctionDetailPage from "../pages/Auctions/AuctionDetailPage";
 import ComparePage from "../pages/ComparePage";
 import BuyerViewSeller from '../pages/BuyerViewSeller';
+import ComplaintsList from "../components/ComplaintsList";
 import FavouritePage from "../pages/FavouritePage";
 import SellerOnBoard from "../pages/SellerOnBoard";
 import SellerForm from "../pages/SellerRegistration";
@@ -139,5 +140,4 @@ export const router = createBrowserRouter([
     path: "/manage",
     element: <ManagerDashboard />
   },
-
 ])

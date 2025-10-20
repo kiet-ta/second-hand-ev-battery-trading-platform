@@ -37,6 +37,7 @@ import NewsPage from "../components/CreateNews"
 import { motion, AnimatePresence } from "framer-motion";
 import { managerAPI } from "../hooks/managerApi";
 import { MoreHorizontal, ShieldAlert, UserCheck, Ban } from "lucide-react";
+import ComplaintsList from "../components/ComplaintsList";
 import { Menu } from "@headlessui/react";
 
 import "../assets/styles/SidebarAnimation.css"; // hiệu ứng sidebar (code ở dưới)
@@ -93,6 +94,11 @@ export default function ManagerDashboard() {
     const [active, setActive] = useState("dashboard");
     const [loading, setLoading] = useState(false);
     const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+    const [page, setPage] = useState(1);
+    const [pageSize] = useState(20);
+    const [totalPages, setTotalPages] = useState(1);
+    const currentUserId = localStorage.getItem("userId");
+
 
     // Dashboard data
     const [metrics, setMetrics] = useState(null);
@@ -138,6 +144,23 @@ export default function ManagerDashboard() {
         };
         fetchAll();
     }, []);
+
+    useEffect(() => {
+        const fetchPaginatedUsers = async () => {
+            setLoading(true);
+            try {
+                const data = await managerAPI.getUsersPaginated(page, pageSize);
+                setUsers(data.items || data);
+                setTotalPages(data.totalPages || 1);
+            } catch (err) {
+                console.error("❌ Lỗi khi tải user:", err);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchPaginatedUsers();
+    }, [page]);
+
 
     // fetch for other tabs
     useEffect(() => {
@@ -185,10 +208,26 @@ export default function ManagerDashboard() {
         [revenueByMonth]
     );
 
+    const handleStatusChange = async (userId, status) => {
+        try {
+            await managerAPI.updateUserStatus(userId, status);
+            alert(`✅ User status changed to ${status}`);
+            setUsers((prev) =>
+                prev.map((u) =>
+                    u.userId === userId ? { ...u, accountStatus: status } : u
+                )
+            );
+        } catch (err) {
+            alert("❌ Failed to update user status");
+        }
+    };
+
+
     const menu = [
         { key: "dashboard", label: "Dashboard", icon: <LayoutDashboard size={18} /> },
         { key: "users", label: "User Management", icon: <UserCog size={18} /> },
         { key: "products", label: "Product Management", icon: <PackageSearch size={18} /> },
+        { key: "complaints", label: "User Complaints", icon: <ShieldAlert size={18} /> },
         { key: "transactions", label: "Transaction Monitor", icon: <ClipboardList size={18} /> },
         { key: "notifications", label: "Notifications", icon: <Bell size={18} /> },
         { key: "news", label: "News", icon: <ClipboardList size={18} /> },
@@ -522,48 +561,40 @@ export default function ManagerDashboard() {
                                                             </span>
                                                         </td>
                                                         <td className="py-2 text-right">
-                                                            <Menu as="div" className="relative inline-block text-left">
-                                                                <Menu.Button className="px-2 py-1 border border-slate-200 rounded-lg hover:bg-slate-50 transition">
-                                                                    <MoreHorizontal size={16} />
-                                                                </Menu.Button>
-
-                                                                <Menu.Items
-                                                                    className={`absolute right-0 ${idx > users.length - 3 ? "bottom-full mb-2 origin-bottom-right" : "mt-1 origin-top-right"
-                                                                        } w-40 bg-white border border-slate-200 rounded-xl shadow-lg z-50`}
-                                                                >
-                                                                    {[
-                                                                        { label: "Set Active", value: "active", icon: <UserCheck size={14} className="text-emerald-600" /> },
-                                                                        { label: "Warn 1", value: "warning1", icon: <ShieldAlert size={14} className="text-amber-600" /> },
-                                                                        { label: "Warn 2", value: "warning2", icon: <ShieldAlert size={14} className="text-orange-600" /> },
-                                                                        { label: "Ban", value: "ban", icon: <Ban size={14} className="text-rose-600" /> },
-                                                                    ].map((action) => (
-                                                                        <Menu.Item key={action.value}>
-                                                                            {({ active }) => (
-                                                                                <button
-                                                                                    onClick={async () => {
-                                                                                        try {
-                                                                                            await managerAPI.updateUserStatus(u.userId, action.value);
-                                                                                            alert(`✅ ${u.fullName} status changed to ${action.value}`);
-                                                                                            setUsers(
-                                                                                                users.map((x) =>
-                                                                                                    x.userId === u.userId ? { ...x, accountStatus: action.value } : x
-                                                                                                )
-                                                                                            );
-                                                                                        } catch {
-                                                                                            alert("❌ Failed to update status");
-                                                                                        }
-                                                                                    }}
-                                                                                    className={`${active ? "bg-slate-50" : ""
-                                                                                        } flex items-center gap-2 w-full text-left px-3 py-2 text-sm`}
-                                                                                >
-                                                                                    {action.icon}
-                                                                                    <span>{action.label}</span>
-                                                                                </button>
-                                                                            )}
-                                                                        </Menu.Item>
-                                                                    ))}
-                                                                </Menu.Items>
-                                                            </Menu>
+                                                            {u.userId !== Number(currentUserId) ? (
+                                                                <Menu as="div" className="relative inline-block text-left">
+                                                                    <Menu.Button className="p-1.5 border border-slate-200 rounded-lg hover:bg-slate-100">
+                                                                        <MoreHorizontal size={16} />
+                                                                    </Menu.Button>
+                                                                    <Menu.Items
+                                                                        className={`absolute right-0 ${idx > users.length - 3
+                                                                            ? "bottom-full mb-2 origin-bottom-right"
+                                                                            : "mt-1 origin-top-right"
+                                                                            } w-40 bg-white border border-slate-200 rounded-xl shadow-lg z-50`}
+                                                                    >
+                                                                        {[
+                                                                            { label: "Set Active", value: "active", icon: <UserCheck size={14} className="text-emerald-600" /> },
+                                                                            { label: "Warn 1", value: "warning1", icon: <ShieldAlert size={14} className="text-amber-600" /> },
+                                                                            { label: "Warn 2", value: "warning2", icon: <ShieldAlert size={14} className="text-orange-600" /> },
+                                                                            { label: "Ban", value: "ban", icon: <Ban size={14} className="text-rose-600" /> },
+                                                                        ].map((action) => (
+                                                                            <Menu.Item key={action.value}>
+                                                                                {({ active }) => (
+                                                                                    <button
+                                                                                        onClick={() => handleStatusChange(u.userId, action.value)}
+                                                                                        className={`${active ? "bg-slate-50" : ""} flex items-center gap-2 w-full text-left px-3 py-2 text-sm`}
+                                                                                    >
+                                                                                        {action.icon}
+                                                                                        <span>{action.label}</span>
+                                                                                    </button>
+                                                                                )}
+                                                                            </Menu.Item>
+                                                                        ))}
+                                                                    </Menu.Items>
+                                                                </Menu>
+                                                            ) : (
+                                                                <span className="text-slate-400 text-xs italic">— self —</span>
+                                                            )}
                                                         </td>
                                                     </tr>
                                                 ))}
@@ -571,6 +602,27 @@ export default function ManagerDashboard() {
                                         </table>
                                     </div>
                                 </Card>
+                                <div className="flex justify-between items-center p-4 border-t">
+                                    <p className="text-sm text-slate-500">
+                                        Page {page} / {totalPages}
+                                    </p>
+                                    <div className="flex gap-2">
+                                        <button
+                                            onClick={() => setPage((p) => Math.max(1, p - 1))}
+                                            disabled={page === 1}
+                                            className="px-3 py-1 border rounded-lg text-sm hover:bg-slate-50 disabled:opacity-50"
+                                        >
+                                            ← Prev
+                                        </button>
+                                        <button
+                                            onClick={() => setPage((p) => p + 1)}
+                                            disabled={page === totalPages}
+                                            className="px-3 py-1 border rounded-lg text-sm hover:bg-slate-50 disabled:opacity-50"
+                                        >
+                                            Next →
+                                        </button>
+                                    </div>
+                                </div>
                             </motion.div>
                         )}
 
@@ -776,6 +828,8 @@ export default function ManagerDashboard() {
                                 </Card>
                             </motion.div>
                         )}
+
+                        {active === "complaints" && <ComplaintsList />}
                     </AnimatePresence>
 
                     <div className="text-xs text-slate-500 flex items-center gap-2 py-4">
