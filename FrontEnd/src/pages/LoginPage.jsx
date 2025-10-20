@@ -222,7 +222,7 @@ export default function LoginPage() {
                                     <p className='header-login'>Sign In</p>
                                     <input
                                         type="text"
-                                        placeholder="Phone number / Username / Email"
+                                        placeholder="Email"
                                         value={email}
                                         onChange={(e) => setEmail(e.target.value)}
                                         className="login-input"

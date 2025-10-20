@@ -100,6 +100,8 @@ public class GlobalExceptionHandlerMiddleware
         {
             errorResponse.Details = exception.StackTrace;
         }
+        errorResponse.Details = exception.StackTrace;
+
         await context.Response.WriteAsync(errorResponse.ToString());
     }
 }

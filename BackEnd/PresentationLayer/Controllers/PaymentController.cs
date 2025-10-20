@@ -76,9 +76,9 @@ public class PaymentController : ControllerBase
     [HttpPost("create-payment-link")]
     public async Task<IActionResult> CreatePayment([FromBody] PaymentRequestDto request)
     {
-        var validationResult = await _validator.ValidateAsync(request);
-        if (!validationResult.IsValid)
-            return BadRequest(validationResult.Errors);
+        //var validationResult = await _validator.ValidateAsync(request);
+        //if (!validationResult.IsValid)
+        //    return BadRequest(validationResult.Errors);
 
         var response = await _paymentService.CreatePaymentAsync(request);
         return Ok(response);
