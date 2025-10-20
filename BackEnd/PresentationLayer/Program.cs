@@ -1,4 +1,5 @@
 ﻿using Application.DTOs;
+using Application.DTOs.AuthenticationDtos;
 using Application.DTOs.PaymentDtos;
 using Application.IHelpers;
 using Application.IRepositories;
@@ -41,6 +42,7 @@ namespace PresentationLayer
 
             //  Register DbContext (DB First)
             builder.Services.AddDbContext<EvBatteryTradingContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+            builder.Services.Configure<AppSetting>(builder.Configuration.GetSection("Google"));
             builder.Services.Configure<FirebaseOptions>(builder.Configuration.GetSection("Firebase"));
             // DI for Repository + Service
             //---Services
@@ -159,7 +161,7 @@ namespace PresentationLayer
                 options.AddPolicy("AllowReactApp",
                     policy =>
                     {
-                        policy.WithOrigins("http://localhost:5173")
+                        policy.WithOrigins("http://localhost:5173", "http://localhost:3000")
                               .AllowAnyHeader()
                               .AllowAnyMethod()
                               .AllowCredentials();
