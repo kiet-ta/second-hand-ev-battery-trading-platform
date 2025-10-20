@@ -2,6 +2,7 @@
 using Application.IServices;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace PresentationLayer.Controllers
 {
@@ -34,6 +35,24 @@ namespace PresentationLayer.Controllers
                 return NotFound(new { message = "No favorites found for this user." });
 
             return Ok(result);
+        }
+
+        [HttpDelete("{favId}")]
+        public async Task<IActionResult> DeleteFavorite(int favId)
+        {
+            if (favId <= 0)
+                return BadRequest("Invalid favorite ID.");
+
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!int.TryParse(userIdClaim, out int userId))
+                return Unauthorized(new { message = "Invalid user token." });
+
+            var success = await _favoriteService.DeleteFavoriteAsync(favId, userId);
+
+            if (!success)
+                return NotFound(new { message = "Favorite not found or not owned by user." });
+
+            return Ok(new { message = "Favorite deleted successfully." });
         }
     }
 }

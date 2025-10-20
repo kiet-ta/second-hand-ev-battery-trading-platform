@@ -6,6 +6,7 @@ using Application.Validations;
 using Domain.Entities;
 using FluentValidation;
 using Google.Apis.Auth;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -45,29 +46,28 @@ namespace Application.Services
 
         public async Task<AuthResponseDto> RegisterAsync(RegisterDto dto)
         {
-            // 1️⃣ Validate input
+            // Validate input
             var validator = new RegisterValidator();
             var result = validator.Validate(dto);
             if (!result.IsValid)
                 throw new ValidationException(string.Join("; ", result.Errors.Select(e => e.ErrorMessage)));
 
-            // 2️⃣ Business validate
+            // Business validate
             if (await _userRepository.GetByEmailAsync(dto.Email) != null)
                 throw new ValidationException("Email already registered");
 
             // Optional: check phone unique
-            var existingUsers = await _userRepository.GetAllAsync();
-            if (existingUsers.Any(u => u.Phone == dto.Phone))
-                throw new ValidationException("Phone number already used");
+            //var existingUsers = await _userRepository.GetAllAsync();
+            //if (existingUsers.Any(u => u.Phone == dto.Phone))
+            //    throw new ValidationException("Phone number already used");
 
-            // 3️⃣ Hash password + Save
+            //  Hash password + Save
             var user = new User
             {
                 UserId = GenerateUserId(),
                 FullName = dto.FullName.Trim(),
                 Email = dto.Email.ToLower(),
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
-                Phone = dto.Phone,
                 Role = "Buyer"
             };
 
