@@ -201,7 +201,6 @@ const ProfileForm = () => {
                                 onChange={handleInputChange}
                                 required
                             >
-                                <option value="">-- Select Gender --</option>
                                 <option value="Male">Male</option>
                                 <option value="Female">Female</option>
                             </select>

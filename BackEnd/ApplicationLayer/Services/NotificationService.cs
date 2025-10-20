@@ -83,7 +83,6 @@ namespace Application.Services
             // The Task will only complete when the TrySetResult is called via cancellation/disposal.
             await completionSource.Task;
         }
-
         public async Task UnRegisterClientAsync(HttpResponse response)
         {
             var client = _clients.FirstOrDefault(c => c.Value == response);
@@ -109,8 +108,6 @@ namespace Application.Services
                 ? _clients
                 : _clients.Where(c => c.Key == targetUserId);
 
-            // Debugging logs
-            Console.WriteLine($"[SSE DEBUG] Attempting dispatch. Target Key sought: '{targetUserId ?? "BROADCAST"}'. Found {targets.Count()} active connections.");
 
             var tasks = targets.Select(async client =>
             {
@@ -194,6 +191,13 @@ namespace Application.Services
             var repo = scope.ServiceProvider.GetRequiredService<INotificationRepository>();
             return await repo.GetAllNotificationsAsync();
         }
-
+        public async Task<bool> SendNotificationAsync(CreateNotificationDTO noti, int receiverId)
+        {
+            if (receiverId <= 0) return false;
+            using var scope = _scopeFactory.CreateScope();
+            var repo = scope.ServiceProvider.GetRequiredService<INotificationRepository>();
+            await repo.AddNotificationById(noti, receiverId);
+            return true;
+        }
     }
 }

@@ -36,6 +36,18 @@ public class StaffManagementService : IStaffManagementService
         return Math.Abs(hash);
     }
 
+    public static int GenerateUserId()
+    {
+        var now = DateTime.Now; // hoặc DateTime.UtcNow
+        string timestamp = now.ToString("yyyyMMdd"); // VD: 20251006194532123
+        int random = new Random().Next(1, 9); // thêm phần ngẫu nhiên 3 số
+        string combined = timestamp + random.ToString();
+
+        // vì int chỉ tối đa 2,147,483,647 nên ta rút gọn bớt
+        int hash = combined.GetHashCode();
+        return Math.Abs(hash); // luôn dương
+    }
+
     public async Task AssignPermissionsToStaffAsync(int staffId, List<int> permissionIds)
     {
         var staff = await _userRepository.GetByIdAsync(staffId);
@@ -110,8 +122,13 @@ public class StaffManagementService : IStaffManagementService
 
     public async Task<List<PermissionDto>> GetAllPermissionsAsync()
     {
-        var permissions = await _permissionRepository.GetAllPermissionAsync();
+
+            var permissions = await _permissionRepository.GetAllPermissionAsync();
+            if (permissions == null)
+                return new List<PermissionDto>();
+
         return _mapper.Map<List<PermissionDto>>(permissions);
+        
     }
 
     public async Task<List<PermissionDto>> GetPermissionsByStaffIdAsync(int staffId)

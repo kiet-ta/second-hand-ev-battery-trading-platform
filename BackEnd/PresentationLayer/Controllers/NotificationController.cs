@@ -115,7 +115,6 @@ namespace PresentationLayer.Controllers
         }
 
 
-
         [HttpGet("type/{notiType}")]
         public async Task<IActionResult> GetByNotiType(string notiType)
         {
@@ -154,6 +153,24 @@ namespace PresentationLayer.Controllers
                 return NotFound($"Notification with ID {id} not found.");
 
             return Ok($"Notification with ID {id} has been deleted successfully.");
+        }
+        [HttpPost("send/{receiverId}")]
+        public async Task<IActionResult> SendNotification([FromBody] CreateNotificationDTO noti, int receiverId)
+        {
+            if (noti == null)
+                return BadRequest("Notification data is required.");
+
+            var result = await _notificationService.SendNotificationAsync(noti, receiverId);
+
+            if (!result)
+                return BadRequest("Failed to send notification. Please check receiver ID or data.");
+
+            return Ok(new
+            {
+                message = "Notification sent successfully",
+                receiverId = receiverId,
+                title = noti.Title
+            });
         }
 
     }

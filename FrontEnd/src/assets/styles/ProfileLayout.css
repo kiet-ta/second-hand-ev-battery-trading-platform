@@ -586,6 +586,62 @@ body.dark-mode .hover\:bg-gray-200:hover {
     transform: translateY(-1px);
 }
 
+/* ===============================
+   🧩 FIX SETTINGS SIDEBAR CARDS
+   =============================== */
+
+.settings-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    min-width: 260px;
+    width: 280px;
+}
+
+/* Card từng mục (Account, Address, Notification, Security) */
+.settings-card {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    padding: 16px 20px;
+    text-decoration: none;
+    color: var(--color-text);
+    transition: all 0.25s ease;
+    cursor: pointer;
+    overflow: visible;
+    min-height: 80px;
+    /* 👈 đủ cao để chữ hiển thị đầy đủ */
+}
+
+.settings-card h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--color-text);
+    margin-bottom: 6px;
+}
+
+.settings-card p {
+    font-size: 0.875rem;
+    color: var(--color-text-muted);
+    line-height: 1.4;
+}
+
+/* Hover & Active */
+.settings-card:hover {
+    border-color: var(--color-accent);
+    background: var(--color-hover);
+    transform: translateY(-2px);
+}
+
+.settings-card.active {
+    border: 2px solid var(--color-accent);
+    background: var(--color-active);
+}
+
+
 /* ----- Animations ----- */
 @keyframes fadeIn {
     from {

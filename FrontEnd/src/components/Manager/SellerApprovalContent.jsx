@@ -1,14 +1,121 @@
-// src/components/Manager/SellerApprovalsContent.jsx
-
-import React from "react";
-import { useOutletContext } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { Table, Button, Dropdown, Menu, Spin, Tag, message } from "antd";
+import { MoreHorizontal, Check, XCircle } from "lucide-react";
 import { motion } from "framer-motion";
-import { UserCog } from "lucide-react";
-import Card from "./Card";
-import CardHeader from "./CardHeader";
+import { managerAPI } from "../../hooks/managerApi";
+import Card from "../../components/Manager/Card";
+import CardHeader from "../../components/Manager/CardHeader";
 
-export default function SellerApprovalsContent() {
-    const { approvals, handleApprovalAction } = useOutletContext();
+export default function SellerApprovalContent() {
+    const [approvals, setApprovals] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    const fetchApprovals = async () => {
+        try {
+            setLoading(true);
+            const data = await managerAPI.getPendingSellerApprovals();
+            setApprovals(data || []);
+        } catch (err) {
+            console.error("❌ Lỗi tải danh sách seller:", err);
+            message.error("Không thể tải danh sách chờ duyệt");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchApprovals();
+    }, []);
+
+    const handleAction = async (id, action) => {
+        try {
+            if (action === "approve") {
+                await managerAPI.approveSeller(id);
+                message.success("✅ Đã duyệt seller");
+            } else {
+                await managerAPI.rejectSeller(id);
+                message.info("🚫 Đã từ chối seller");
+            }
+            await fetchApprovals(); // 🔁 refresh danh sách
+        } catch (err) {
+            console.error(err);
+            message.error("❌ Xử lý thất bại");
+        }
+    };
+
+    const columns = [
+        {
+            title: "ID",
+            dataIndex: "id",
+            key: "id",
+            align: "center",
+            width: 80,
+        },
+        {
+            title: "Người bán",
+            dataIndex: "seller",
+            key: "seller",
+        },
+        {
+            title: "Khu vực",
+            dataIndex: "region",
+            key: "region",
+        },
+        {
+            title: "Ngày gửi",
+            dataIndex: "submittedAt",
+            key: "submittedAt",
+            render: (date) =>
+                new Date(date).toLocaleDateString("vi-VN", {
+                    day: "2-digit",
+                    month: "2-digit",
+                    year: "numeric",
+                }),
+        },
+        {
+            title: "Trạng thái",
+            key: "status",
+            align: "center",
+            render: () => <Tag color="orange">Đang chờ duyệt</Tag>,
+        },
+        {
+            title: "Hành động",
+            key: "actions",
+            align: "center",
+            render: (_, record) => {
+                const menu = (
+                    <Menu
+                        onClick={({ key }) => handleAction(record.id, key)}
+                        items={[
+                            {
+                                key: "approve",
+                                label: (
+                                    <div className="flex items-center gap-2 text-emerald-600">
+                                        <Check size={16} />
+                                        Duyệt
+                                    </div>
+                                ),
+                            },
+                            {
+                                key: "reject",
+                                label: (
+                                    <div className="flex items-center gap-2 text-rose-600">
+                                        <XCircle size={16} />
+                                        Từ chối
+                                    </div>
+                                ),
+                            },
+                        ]}
+                    />
+                );
+                return (
+                    <Dropdown overlay={menu} trigger={["click"]}>
+                        <Button type="text" icon={<MoreHorizontal size={18} />} />
+                    </Dropdown>
+                );
+            },
+        },
+    ];
 
     return (
         <motion.div
@@ -19,47 +126,24 @@ export default function SellerApprovalsContent() {
             transition={{ duration: 0.3 }}
         >
             <Card>
-                <CardHeader title="New Seller Approvals" icon={<UserCog size={18} />} />
-                <div className="p-4 overflow-auto">
-                    <table className="min-w-full text-sm">
-                        <thead>
-                            <tr className="text-left text-slate-500 border-b">
-                                <th className="py-2">ID</th>
-                                <th className="py-2">Seller</th>
-                                <th className="py-2">Region</th>
-                                <th className="py-2">Submitted</th>
-                                <th className="py-2">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {approvals.map((a, idx) => (
-                                <tr key={a.id || `appr-${idx}`} className="border-b last:border-0">
-                                    <td className="py-2 font-medium text-slate-700">{a.id}</td>
-                                    <td className="py-2">{a.seller}</td>
-                                    <td className="py-2">{a.region}</td>
-                                    <td className="py-2">
-                                        {new Date(a.submittedAt).toLocaleDateString("vi-VN")}
-                                    </td>
-                                    <td className="py-2">
-                                        <div className="flex gap-2">
-                                            <button
-                                                onClick={() => handleApprovalAction(a.id, 'approve')}
-                                                className="px-2.5 py-1 rounded-lg text-xs border border-emerald-400 text-emerald-600 hover:bg-emerald-50"
-                                            >
-                                                Approve
-                                            </button>
-                                            <button
-                                                onClick={() => handleApprovalAction(a.id, 'reject')}
-                                                className="px-2.5 py-1 rounded-lg text-xs border border-rose-400 text-rose-600 hover:bg-rose-50"
-                                            >
-                                                Reject
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                <CardHeader
+                    title="📋 Seller Approvals Pending"
+                    icon={<Check size={18} />}
+                />
+                <div className="p-4">
+                    {loading ? (
+                        <div className="flex justify-center items-center h-[50vh]">
+                            <Spin size="large" />
+                        </div>
+                    ) : (
+                        <Table
+                            rowKey="id"
+                            columns={columns}
+                            dataSource={approvals}
+                            bordered
+                            pagination={false}
+                        />
+                    )}
                 </div>
             </Card>
         </motion.div>

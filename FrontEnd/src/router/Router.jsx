@@ -27,12 +27,32 @@ import SellerForm from "../pages/SellerRegistration";
 import SuccessPage from "../pages/SellerSuccess";
 
 // Components used in the sub-routes
+import PurchaseHistory from "../components/HistoryBought";
 import HistorySold from "../components/HistorySold";
 import PurchaseHistory from "../components/HistoryBought"; 
 import SellerAuctionListPage from "../pages/SellerAuctionListPage";
 import MyProduct from "../components/ItemForm/AddProductForm";
 import NewsPage from "../components/CreateNews";
 import ChatRoom from "../components/Chats/ChatRoom";
+
+// --- Profile (Router-Based SPA) ---
+import ProfileLayout from "../pages/Profile/ProfileLayout";
+import ProfileMain from "../pages/Profile/ProfileMain";
+import AccountSetting from "../pages/Profile/AccountSetting";
+import AddressSetting from "../pages/Profile/AddressSetting";
+import NotificationSetting from "../pages/Profile/NotificationSetting";
+import SecuritySetting from "../pages/Profile/SecuritySetting";
+import ProfileSection from "../pages/Profile/ProfileSection";
+import PurchaseSection from "../pages/Profile/PurchaseSection";
+import SettingsSection from "../pages/Profile/SettingsSection";
+
+// --- Seller (Router-Based SPA) ---
+import SellerDashboardLayout from "../pages/Seller/SellerDashboardLayout";
+import SellerDashboardContent from "../pages/Seller/SellerDashboardContent";
+import SellerBiddingPage from "../pages/Seller/SellerBiddingPage";
+import SellerOrdersPage from "../pages/Seller/SellerOrdersPage";
+import SellerHistoryPage from "../pages/Seller/SellerHistoryPage";
+import SellerSettingsPage from "../pages/Seller/SellerSettingsPage";
 
 // Manager Components
 import DashboardContent from "../components/Manager/DashboardContent";
@@ -73,82 +93,84 @@ export const router = createBrowserRouter([
       { path: "/auction/:id", element: <AuctionDetailPage /> },
       { path: "/compare", element: <ComparePage /> },
       { path: "/seller/:sellerId", element: <BuyerViewSeller /> },
-      { path: "favourite", element: <FavouritePage/> },
-      { path: "/seller-registration", element: <SellerOnBoard/> },
-      { path: "/seller-form", element: <SellerForm/> },
-      { path: "/success", element: <SuccessPage/> },
+      { path: "favourite", element: <FavouritePage /> },
+      { path: "/seller-registration", element: <SellerOnBoard /> },
+      { path: "/seller-form", element: <SellerForm /> },
+      { path: "/success", element: <SuccessPage /> },
       { path: "/blog", element: <BlogList /> },
       { path: "/blog/:id", element: <BlogDetail /> },
     ],
   },
-  
   // --- AUTHENTICATION ROUTES ---
   { path: "/login", element: <LoginPage />, },
   { path: "/register", element: <RegisterPage />, },
 
-  // --- PROFILE DASHBOARD NESTED ROUTING (Cleaned) ---
+  // --- PROFILE DASHBOARD (SPA Router-based) ---
   {
     path: "/profile",
-    element: <ProfileContent />, // Layout component
+    element: <ProfileLayout />,
     children: [
-      // Default route for /profile
-      { index: true, element: <ProfileNestedFormsPlaceholder /> }, 
-      
-      // My Purchase 
-      { path: "purchase", element: <div className="profile-main"><PurchaseHistory /></div> },
-      
-      // Chat
-      { path: "chat", element: <div className="profile-main"><ChatRoomWrapper /></div> }, 
-      
-      // Settings
-      { path: "settings", element: <SettingsContent /> } 
-    ]
+      {
+        path: "",
+        element: <ProfileMain />, // layout con cho 4 card
+        children: [
+          { index: true, element: <AccountSetting /> },
+          { path: "account", element: <AccountSetting /> },
+          { path: "address", element: <AddressSetting /> },
+          { path: "notification", element: <NotificationSetting /> },
+          { path: "security", element: <SecuritySetting /> },
+        ],
+      },
+      { path: "purchase", element: <PurchaseSection /> },
+      { path: "settings", element: <SettingsSection /> },
+    ],
   },
 
+
   // --- SELLER DASHBOARD NESTED ROUTING (Cleaned) ---
-{
-        path: "/seller",
-        // Use ProtectedRoute as the parent element for protection
-        element: <ProtectedRoute allowedRoles={['seller']} />, 
+  {
+    path: "/seller",
+    element: <ProtectedRoute allowedRoles={["seller"]} />,
+    children: [
+      {
+        element: <SellerDashboardLayout />,
         children: [
-            // The SellerDashboard component becomes the layout for these children
-            { element: <SellerDashboard />, children: [ 
-              { 
-                    index: true, 
-                    element: <SellerDashboardContentView />, 
-                    // NOTE: You'll need to define and import DashboardContentView separately
-                },
-                { path: "bidding", element: <SellerAuctionListPage /> },
-                { path: "products", element: <MyProduct /> },
-                { path: "history", element: <HistorySold /> },
-                { path: "settings", element: <div>Seller Settings Content</div> },
-                { path: "chat", element: <div className="profile-main"><ChatRoomWrapper /></div> },
-            ]},
-        ]
-    },
+          { index: true, element: <SellerDashboardContent /> },
+          { path: "bidding", element: <SellerBiddingPage /> },
+          { path: "orders", element: <SellerOrdersPage /> },
+          { path: "history", element: <SellerHistoryPage /> },
+          { path: "settings", element: <SellerSettingsPage /> },
+        ],
+      },
+    ],
+  },
+
+
 
   // --- MANAGER DASHBOARD NESTED ROUTING (Cleaned) ---
- {
-        path: "/manage",
-        // Use ProtectedRoute to allow both manager and staff
-        element: <ProtectedRoute allowedRoles={['manager', 'staff']} />, 
+  {
+    path: "/manage",
+    // Cho phép cả manager và staff đăng nhập
+    element: <ProtectedRoute allowedRoles={['manager', 'staff']} />,
+    children: [
+      {
+        element: <ManagerDashboard />,
         children: [
-            // ManagerDashboard component becomes the layout/data provider
-            { element: <ManagerDashboard />, children: [ 
-                { index: true, element: <DashboardContent /> }, 
-                { path: "approvals", element: <SellerApprovalsContent /> },
-                { path: "kyc_management", element: <KycManagementPage/>},
-                { path: "users", element: <UsersContent /> },
-                { path: "products", element: <ProductModeration /> },
-                { path: "complaints", element: <ComplaintsList /> },
-                { path: "transactions", element: <TransactionsContent /> },
-                { path: "notifications", element: <NotificationCreator /> },
-                { path: "news", element: <NewsPage /> },
-                { path: "reports", element: <ReportsContent /> },
-                { path: "settings", element: <SettingsContent /> }, 
-            ]},
-        ]
-    },
+          { index: true, element: <DashboardContent /> },
+          { path: "approvals", element: <SellerApprovalsContent /> },
+          { path: "users", element: <UsersContent /> },
+          { path: "products", element: <ProductModeration /> },
+          { path: "complaints", element: <ComplaintsList /> },
+          { path: "transactions", element: <TransactionsContent /> },
+          { path: "notifications", element: <NotificationCreator /> },
+          { path: "news", element: <NewsPage /> },
+          { path: "reports", element: <ReportsContent /> },
+          { path: "settings", element: <SettingsContent /> },
+        ],
+      },
+    ],
+  },
+
 
   // --- STANDALONE ROUTES (Outside Main Layout) ---
   { path: "/bought", element: <PurchaseHistory /> },

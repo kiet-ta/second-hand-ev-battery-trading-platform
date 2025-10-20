@@ -75,7 +75,6 @@ const VerifiedCheck = ({ className = "" }) => (
     </div>
 );
 
-
 function CardComponent({
     id,
     title,
@@ -182,7 +181,13 @@ function CardComponent({
                                     src={img.imageUrl}
                                     alt={`${title} - view ${index + 1}`}
                                 />
+                                {isVerified && (
+                    <div className="absolute top-2 left-2 z-10"> {/* Adjust top/left for positioning */}
+                        <VerifiedCheck />
+                    </div>
+                )}
                             </div>
+                            
                         ))}
                     </Slider>
                     {/* ACTION BUTTONS - appear on hover */}
