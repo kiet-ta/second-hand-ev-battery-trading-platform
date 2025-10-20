@@ -16,7 +16,7 @@ using static System.Net.Mime.MediaTypeNames;
 
 namespace Application.Services
 {
-    public class ItemService : IItemService
+    public class ItemService : IItemService  
     {
         private readonly IItemRepository _itemRepository;
 
@@ -235,61 +235,26 @@ namespace Application.Services
         }
 
         public async Task<PagedResultItem<ItemDto>> SearchItemsAsync(
-            string itemType,
-            string title,
-            decimal? minPrice = null,
-            decimal? maxPrice = null,
-            int page = 1, int pageSize = 20,
-            string sortBy = "UpdatedAt", string sortDir = "desc")
+        string itemType,
+        string title,
+        decimal? minPrice,
+        decimal? maxPrice,
+        int page,
+        int pageSize,
+        string sortBy,
+        string sortDir)
         {
-            if (page <= 0) page = 1;
-            if (pageSize <= 0) pageSize = 20;
-
-            var query = _itemRepository.QueryItemsWithSeller();
-
-            if (!string.IsNullOrWhiteSpace(itemType))
-                query = query.Where(i => i.ItemType == itemType.Trim());
-
-            if (!string.IsNullOrWhiteSpace(title))
-                query = query.Where(i => i.Title.Contains(title.Trim()));
-
-            if (minPrice.HasValue)
-                query = query.Where(i => i.Price >= minPrice.Value);
-
-            if (maxPrice.HasValue)
-                query = query.Where(i => i.Price <= maxPrice.Value);
-
-            bool desc = sortDir.Equals("desc", StringComparison.OrdinalIgnoreCase);
-            query = sortBy switch
+            // Validate itemType
+            if (!string.IsNullOrWhiteSpace(itemType) &&
+                !itemType.ToLower().Equals("all") &&
+                !itemType.ToLower().Equals("ev") &&
+                !itemType.ToLower().Equals("battery"))
             {
-                "Price" => desc ? query.OrderByDescending(i => i.Price) : query.OrderBy(i => i.Price),
-                "Title" => desc ? query.OrderByDescending(i => i.Title) : query.OrderBy(i => i.Title),
-                _ => desc ? query.OrderByDescending(i => i.UpdatedAt) : query.OrderBy(i => i.UpdatedAt)
-            };
+                throw new ArgumentException("Invalid item type. Must be 'all', 'ev', or 'battery'.");
+            }
 
-            var total = await query.LongCountAsync();
-
-            var items = await query
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
-                .Select(i => new ItemDto
-                {
-                    ItemId = i.ItemId,
-                    ItemType = i.ItemType,
-                    Title = i.Title,
-                    Price = i.Price,
-                    UpdatedAt = i.UpdatedAt,
-                    //SellerName = i.UpdatedByUser.FullName,
-                    //Images = i.Images.ToList()
-                }).ToListAsync();
-
-            return new PagedResultItem<ItemDto>
-            {
-                Page = page,
-                PageSize = pageSize,
-                TotalCount = total,
-                Items = items
-            };
+            return await _itemRepository.SearchItemsAsync(
+                itemType, title, minPrice, maxPrice, page, pageSize, sortBy, sortDir);
         }
 
         public async Task<ItemWithDetailDto?> GetItemWithDetailsAsync(int id)
