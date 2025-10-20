@@ -97,6 +97,7 @@ function Navbar(data) {
             <form action='/search' method='GET' className="w-full p-2 rounded-lg text-black bg-white relative">
                 <input type="text" name="query" placeholder="Search..." className="w-5/6"/>
                 <select className="bg-maincolor-darker w-1/6 absolute right-0 top-0 h-full align-middle text-center font-bold border-1" name="itemType">
+                <option value="All">All</option>
                 <option value="EV">Vehicle</option>
                 <option value="Battery">Battery</option>
                 </select>

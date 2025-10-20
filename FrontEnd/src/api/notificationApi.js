@@ -6,7 +6,7 @@ const notificationApi = {
         return response.data;
     },
     createNotification: async (payload) => {
-        const response = await axios.get(`${baseURL}`,payload)
+        const response = await axios.post(`${baseURL}`,payload)
         return response.data;
     }
 };

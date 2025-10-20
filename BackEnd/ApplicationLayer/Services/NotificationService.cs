@@ -26,49 +26,30 @@ namespace Application.Services
             public void Dispose() => _action?.Invoke();
         }
 
+
         public async Task RegisterClientAsync(HttpResponse response, CancellationToken token, string userId)
         {
-            response.Headers.Append("Content-Type", "text/event-stream");
-            response.Headers.Append("Cache-Control", "no-cache");
-            response.Headers.Append("Connection", "keep-alive");
-
-            await response.WriteAsync(": connected\n\n");
-            await response.Body.FlushAsync();
-
             _clients[userId] = response;
-            Console.WriteLine($"User {userId} has successfully registered SSE ({_clients.Count} clients online)");
-
+            await response.WriteAsync($": connected\n\n");
+            await response.Body.FlushAsync();
             token.Register(() =>
             {
                 _clients.TryRemove(userId, out _);
-                Console.WriteLine($"User {userId} SSE disconnected (cancellation triggered)");
             });
 
-            response.HttpContext.Response.RegisterForDispose(new DisposableAction(() =>
+            try
             {
-                _clients.TryRemove(userId, out _);
-                Console.WriteLine($"User {userId} SSE connection disposed (closed)");
-            }));
-
-            while (_pendingMessages.TryDequeue(out var pending))
+                await Task.Delay(Timeout.Infinite, token);
+            }
+            catch (OperationCanceledException)
             {
-                if (pending.userId == userId || string.IsNullOrEmpty(pending.userId))
-                {
-                    try
-                    {
-                        await response.WriteAsync($"data: {pending.message}\n\n");
-                        await response.Body.FlushAsync();
-                        Console.WriteLine($"Sent pending message to {userId}: {pending.message}");
-                    }
-                    catch
-                    {
-                        Console.WriteLine($"Failed to send pending message for {userId}");
-                        _pendingMessages.Enqueue(pending);
-                    }
-                }
+                Console.WriteLine($"[DEBUG-C#] 6. Task Delay cancelled for {userId}. Cleanup initiated.");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[DEBUG-C#] 6. UNEXPECTED ERROR in stream for {userId}: {ex.Message}");
             }
         }
-
         public async Task UnRegisterClientAsync(HttpResponse response)
         {
             var client = _clients.FirstOrDefault(c => c.Value == response);
@@ -94,6 +75,7 @@ namespace Application.Services
                 ? _clients
                 : _clients.Where(c => c.Key == targetUserId);
 
+
             var tasks = targets.Select(async client =>
             {
                 try
@@ -112,7 +94,6 @@ namespace Application.Services
 
             await Task.WhenAll(tasks);
         }
-
         public async Task<bool> AddNewNotification(CreateNotificationDTO noti)
         {
             using var scope = _scopeFactory.CreateScope();
@@ -121,7 +102,10 @@ namespace Application.Services
             try
             {
                 await repo.AddNotificationAsync(noti);
+
                 Console.WriteLine($"Notification saved to DB: {noti.Title} - {noti.Message}");
+                Console.WriteLine($"Target ID used for persistence: {noti.TargetUserId ?? "BROADCAST"}");
+
                 return true;
             }
             catch (Exception ex)
