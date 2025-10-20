@@ -1,4 +1,3 @@
-﻿using Domain.DTOs.ReviewDtos;
 ﻿using Application.DTOs.UserDtos;
 using Domain.Entities;
 using System;
@@ -6,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Application.DTOs.ReviewDtos;
 
 namespace Application.IRepositories
 {

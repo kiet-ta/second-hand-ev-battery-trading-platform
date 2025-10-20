@@ -12,7 +12,6 @@ using Application.Services;
 using Application.Validations;
 using CloudinaryDotNet;
 using Domain.Entities;
-using Domain.Mappings;
 using FluentValidation;
 using Infrastructure.Data;
 using Infrastructure.Helpers;
@@ -212,6 +211,8 @@ namespace PresentationLayer
             builder.Services.AddScoped<IStaffManagementService, StaffManagementService>();
             builder.Services.AddAutoMapper(
                 typeof(KYC_DocumentProfile).Assembly,
+                typeof(AddressProfile).Assembly,
+                typeof(ReviewProfile).Assembly,
                 typeof(PermissionProfille).Assembly
                 );
             builder.Services.AddScoped<IWalletService, WalletService>();

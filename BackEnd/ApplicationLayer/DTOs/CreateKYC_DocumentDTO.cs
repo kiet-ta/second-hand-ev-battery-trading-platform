@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Domain.DTOs
+namespace Application.DTOs
 {
     public class CreateKYC_DocumentDTO
     {

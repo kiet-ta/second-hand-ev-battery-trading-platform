@@ -1,5 +1,4 @@
 ﻿using Application.IRepositories;
-using Domain.DTOs;
 using Domain.Entities;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -9,6 +8,7 @@ namespace Infrastructure.Repositories
     public class AddressRepository : IAddressRepository
     {
         private readonly EvBatteryTradingContext _context;
+
         public AddressRepository(EvBatteryTradingContext context)
         {
             _context = context;
@@ -23,7 +23,7 @@ namespace Infrastructure.Repositories
         public async Task<List<Address>> GetAddressesByUserIdAsync(int userId)
         {
             return await _context.Addresses
-                .Where(a => a.UserId == userId && !(a.IsDeleted==true))
+                .Where(a => a.UserId == userId && !(a.IsDeleted == true))
                 .ToListAsync();
         }
 

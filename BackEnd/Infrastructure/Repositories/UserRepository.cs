@@ -1,6 +1,4 @@
 using Application.IRepositories;
-using AutoMapper;
-using Domain.DTOs;
 using Domain.Entities;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
