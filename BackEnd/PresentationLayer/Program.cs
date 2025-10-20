@@ -65,7 +65,6 @@ namespace PresentationLayer
             builder.Services.AddScoped<IReviewService, ReviewService>();
             builder.Services.AddScoped<ICommissionService, CommissionService>();
             builder.Services.AddScoped<IProfanityFilterService, ProfanityFilterService>();
-
             //---Repositories
             builder.Services.AddScoped<IAuctionRepository, AuctionRepository>();
             builder.Services.AddScoped<IAddressRepository, AddressRepository>();
@@ -75,7 +74,8 @@ namespace PresentationLayer
             builder.Services.AddScoped<IEVDetailRepository, EVDetailRepository>();
             builder.Services.AddScoped<IBatteryDetailRepository, BatteryDetailRepository>();
             builder.Services.AddScoped<IHistorySoldRepository, HistorySoldRepository>();
-            //builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
+            builder.Services.AddScoped<IUserRepository, UserRepository>();
+
             builder.Services.AddScoped<IBidRepository, BidRepository>();
             builder.Services.AddScoped<IWalletRepository, WalletRepository>();
             builder.Services.AddScoped<IWalletTransactionRepository, WalletTransactionRepository>();

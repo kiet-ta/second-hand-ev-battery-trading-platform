@@ -24,6 +24,13 @@ public class AuctionController : ControllerBase
         return Ok(response);
     }
 
+    [HttpGet("{auctionId}/bidders")]
+    public async Task<IActionResult> GetBidderHistory(int auctionId)
+    {
+        var bidderHistory = await _auctionService.GetBidderHistoryAsync(auctionId);
+        return Ok(bidderHistory);
+    }
+
     [HttpPost("{auctionId}/bid")]
     public async Task<IActionResult> PlaceBid(int auctionId, [FromBody] PlaceBidRequestDto request)
     {

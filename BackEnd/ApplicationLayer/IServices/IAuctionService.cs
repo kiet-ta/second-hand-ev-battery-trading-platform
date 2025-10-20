@@ -5,6 +5,8 @@ namespace Application.IServices;
 
 public interface IAuctionService
 {
+    Task<IEnumerable<BidderHistoryDto>> GetBidderHistoryAsync(int auctionId);
+
     Task<AuctionListResponse> GetAuctionsAsync(int page = 1, int pageSize = 10, string? status = null);
 
     Task<AuctionDto?> GetAuctionByIdAsync(int auctionId);
