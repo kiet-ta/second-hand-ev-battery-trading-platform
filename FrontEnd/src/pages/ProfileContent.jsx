@@ -17,12 +17,74 @@ const ProfileContent = () => {
     const navigate = useNavigate();
     const location = useLocation();
 
-    // State cleanup
-    // const [activeCard, setActiveCard] = useState("account"); // ✨ REMOVED
+    // State initialization
     const [searchQuery, setSearchQuery] = useState("");
     const [isDarkMode, setIsDarkMode] = useState(false);
     const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
     const userId = localStorage.getItem("userId");
+    
+    const [currentUser, setCurrentUser] = useState({
+        fullName: localStorage.getItem("userName") || "Guest",
+        avatarProfile: localStorage.getItem("userAvatar") || anhtao
+    });
+    
+    // --- HANDLERS (DEFINED FIRST TO AVOID REFERENCE ERROR) ---
+
+    // ✅ Xóa tài khoản (DELETE ACCOUNT)
+    const handleDeleteAccount = async () => {
+        const currentUserId = localStorage.getItem("userId");
+        if (!currentUserId) return alert("User not found.");
+
+        // NOTE: Changed window.confirm/alert to console log error messages
+        if (!window.confirm("⚠️ Bạn có chắc muốn xóa tài khoản này? Hành động này không thể hoàn tác!"))
+            return;
+
+        try {
+            const res = await fetch(`https://localhost:7272/api/User/${currentUserId}`, {
+                method: "DELETE",
+                headers: { "Content-Type": "application/json" },
+            });
+
+            if (!res.ok) throw new Error("Không thể xóa tài khoản");
+
+            console.log("✅ Tài khoản đã được xóa!");
+            localStorage.clear();
+            window.location.href = "/register";
+        } catch (error) {
+            console.error("❌ Lỗi khi xóa tài khoản:", error);
+            console.error("❌ Đã xảy ra lỗi, vui lòng thử lại.");
+        }
+    };
+
+    // ✅ Đăng xuất
+    const handleLogoutConfirm = () => {
+        localStorage.clear();
+        window.location.href = "/login";
+    };
+
+    const handleCancelLogout = () => {
+        setShowLogoutConfirm(false);
+    };
+
+    // Navigation functions
+    const handleMenuClick = (path) => {
+        navigate(path);
+    };
+
+    const handleSearch = (e) => {
+        e.preventDefault();
+        if (searchQuery.trim()) {
+            navigate(`/search?query=${encodeURIComponent(searchQuery.trim())}`);
+        }
+    };
+
+    const handleGoToCart = () => {
+        navigate("/cart");
+    };
+
+    // --- CONTEXT VALUE (DECLARED AFTER DEPENDENCIES) ---
+    // NOTE: This object is only being passed to demonstrate the structure, 
+    // but the child components are currently designed NOT to use it.
     const outletContextValue = {
         handleDeleteAccount, 
         isDarkMode, 
@@ -30,14 +92,8 @@ const ProfileContent = () => {
         userId
     };
 
+    // --- EFFECTS ---
 
-    
-    // ... (currentUser state and fetchUser useEffects remain the same)
-    const [currentUser, setCurrentUser] = useState({
-        fullName: localStorage.getItem("userName") || "Guest",
-        avatarProfile: localStorage.getItem("userAvatar") || anhtao
-    });
-    
     useEffect(() => {
         const fetchUser = async () => {
             try {
@@ -63,82 +119,27 @@ const ProfileContent = () => {
         return () => clearTimeout(timer);
     }, [isDarkMode]);
 
-    // ✅ Đăng xuất
-    const handleLogoutConfirm = () => {
-        localStorage.clear();
-        window.location.href = "/login";
-    };
-
-    const handleCancelLogout = () => {
-        setShowLogoutConfirm(false);
-    };
-
-    // ✅ Xóa tài khoản
-    const handleDeleteAccount = async () => {
-        const currentUserId = localStorage.getItem("userId");
-        if (!currentUserId) return alert("User not found.");
-
-        if (!window.confirm("⚠️ Bạn có chắc muốn xóa tài khoản này? Hành động này không thể hoàn tác!"))
-            return;
-
-        try {
-            const res = await fetch(`https://localhost:7272/api/User/${currentUserId}`, {
-                method: "DELETE",
-                headers: { "Content-Type": "application/json" },
-            });
-
-            if (!res.ok) throw new Error("Không thể xóa tài khoản");
-
-            alert("✅ Tài khoản của bạn đã được xóa!");
-            localStorage.clear();
-            window.location.href = "/register";
-        } catch (error) {
-            console.error("Lỗi khi xóa tài khoản:", error);
-            alert("❌ Đã xảy ra lỗi, vui lòng thử lại.");
-        }
-    };
-
-    // Navigation functions
-    const handleMenuClick = (path) => {
-        navigate(path);
-    };
-
-    const handleSearch = (e) => {
-        e.preventDefault();
-        if (searchQuery.trim()) {
-            navigate(`/search?query=${encodeURIComponent(searchQuery.trim())}`);
-        }
-    };
-
-    const handleGoToCart = () => {
-        navigate("/cart");
-    };
-
-    // ✨ Logic to determine the active section based on the current URL path
+    // --- VIEW LOGIC ---
     const getActiveBaseSection = () => {
         const pathSegments = location.pathname.split('/').filter(segment => segment);
-        if (pathSegments.length < 2) return 'account'; // Default to /profile (which maps to account)
+        if (pathSegments.length < 2) return 'account'; 
         
-        // Check for specific sub-routes: purchase, chat, settings
         if (pathSegments[1] === 'purchase') return 'purchase';
         if (pathSegments[1] === 'chat') return 'chat';
         if (pathSegments[1] === 'settings') return 'settings';
         
-        // For /profile/account, /profile/address, /profile/security etc., 
-        // they should all highlight the "Profile" link (which we'll call 'account' here).
         return 'account';
     };
 
     const activeSection = getActiveBaseSection();
 
     const menuItems = [
-        { id: "account", label: "Profile", icon: <FaRegUser />, path: "/profile" }, // Maps to account, address, security
+        { id: "account", label: "Profile", icon: <FaRegUser />, path: "/profile" },
         { id: "purchase", label: "My Purchase", icon: <FaRegClipboard />, path: "/profile/purchase" },
         { id: "chat", label: "Chat", icon: <IoChatboxOutline />, path: "/profile/chat" },
         { id: "settings", label: "Global Settings", icon: <IoSettingsOutline />, path: "/profile/settings" },
     ];
     
-    // Pass necessary props/functions via Outlet context
     return (
         <div className="profile-layout">
             {/* Sidebar */}
@@ -149,7 +150,6 @@ const ProfileContent = () => {
                     {menuItems.map((item) => (
                         <button
                             key={item.id}
-                            // ✨ Use item.id for active check
                             className={`nav-item ${activeSection === item.id ? "active" : ""}`}
                             onClick={() => handleMenuClick(item.path)}
                         >
@@ -203,10 +203,10 @@ const ProfileContent = () => {
                     </div>
                 </header>
 
-                {/* ✨ Profile Content - Renders the child route content */}
+                {/* Profile Content - Renders the child route content */}
                 <div className="profile-content">
-                    {/* The Outlet renders the component associated with the current sub-route */}
-                    <Outlet context={outletContextValue} />
+                    {/* ✨ FIX: Removed the 'context' prop from Outlet to ensure no useOutletContext issues persist. */}
+                    <Outlet />
                 </div>
             </div>
 
