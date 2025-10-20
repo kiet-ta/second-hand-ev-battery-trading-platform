@@ -1,18 +1,18 @@
-// src/pages/NotificationCreator.jsx
+// src/pages/NotificationCreator.jsx (Final Code)
 import React, { useState } from "react";
-import notificationApi from "../../api/notificationApi"; // Import your API service
+import notificationApi from "../../api/notificationApi";
 import { Send, CheckCircle, AlertTriangle } from "lucide-react";
 
 export default function NotificationCreator() {
     const [formData, setFormData] = useState({
-        notiType: "activities", // Default to 'activities'
-        senderId: 1, // Default sender (e.g., System ID)
-        senderRole: "manager", // Default sender role
-        targetUserId: "", // ID of the user to notify (required for targeted noti)
-        title: "",
-        message: "",
+        notiType: "activities", // Maps to NotiType
+        senderId: 1, // Maps to SenderId
+        senderRole: "manager", // Maps to SenderRole
+        targetUserId: "user-123", // 🎯 Maps to TargetUserId (Required for targeting)
+        title: "", // Maps to Title
+        message: "", // Maps to Message
     });
-    const [status, setStatus] = useState({ message: null, type: null }); // { message: string, type: 'success' | 'error' }
+    const [status, setStatus] = useState({ message: null, type: null });
     const [isLoading, setIsLoading] = useState(false);
 
     const handleChange = (e) => {
@@ -39,42 +39,25 @@ export default function NotificationCreator() {
 
         setIsLoading(true);
 
-        // API payload structure matches your C# DTO
-        const payload = {
+        // 🚨 CRITICAL: Payload must match NotificationRequest DTO exactly
+        const apiPayload = {
             notiType: formData.notiType,
             senderId: parseInt(formData.senderId),
             senderRole: formData.senderRole,
-            // Assuming your C# API expects TargetUserId to be part of the message content 
-            // if it is not passed as a direct field, or you pass it via a custom field.
-            // Based on your C# backend logic, the FE only sends:
             title: formData.title,
             message: formData.message,
-            // Note: If your C# CreateNotification endpoint *needs* receiverId, you must
-            // update the C# endpoint to accept the 'TargetUserId' from the FE payload. 
-            // For now, we only send the fields the API expects based on your prompt:
-            receiverId: formData.targetUserId // Pass receiverId for database storage
-        };
-
-        // Remove receiverId field if the create API doesn't accept it, 
-        // but often an admin-style API needs it. We'll include it.
-        const apiPayload = {
-            notiType: formData.notiType,
-            senderId: payload.senderId,
-            senderRole: payload.senderRole,
-            title: payload.title,
-            message: payload.message,
-            receiverId: payload.receiverId // Assuming this is needed for a targeted noti
+            targetUserId: formData.targetUserId // 🎯 Send the required field
         };
 
         try {
-            await notificationApi.createNotification(apiPayload);
+            // The API call uses the POST method to hit /api/Notifications
+            await notificationApi.createNotification(apiPayload); 
 
             setStatus({ message: "Thông báo đã được tạo và gửi thành công!", type: "success" });
             setFormData(prev => ({ 
                 ...prev, 
                 title: "", 
                 message: "", 
-                // Keep sender/target info for quick repeated sends
             })); 
 
         } catch (error) {
@@ -129,7 +112,7 @@ export default function NotificationCreator() {
                     </select>
                 </div>
 
-                {/* Target User ID */}
+                {/* 🎯 TARGET USER ID INPUT FIELD */}
                 <div>
                     <label htmlFor="targetUserId" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                         ID Người Nhận (Target User ID)
@@ -146,7 +129,7 @@ export default function NotificationCreator() {
                     />
                 </div>
                 
-                {/* Sender Role (Locked) */}
+                {/* Sender Role (Read-only for manager example) */}
                 <div>
                     <label htmlFor="senderRole" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                         Vai Trò Người Gửi (Sender Role)
@@ -172,7 +155,7 @@ export default function NotificationCreator() {
                         name="title"
                         value={formData.title}
                         onChange={handleChange}
-                        placeholder="An item you bid about to end"
+                        placeholder="An important system alert"
                         required
                         className="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md p-2 dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-blue-500 focus:border-blue-500"
                     />
