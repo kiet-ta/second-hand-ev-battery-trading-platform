@@ -89,6 +89,25 @@ namespace Infrastructure.Repositories
             return true;
         }
 
+        public async Task AddNotificationById(CreateNotificationDTO noti, int receiverId)
+        {
+            var notification = new Notification
+            {
+                ReceiverId = receiverId,
+                SenderId = noti.SenderId,
+                SenderRole = noti.SenderRole,
+                NotiType = noti.NotiType,
+                Title = noti.Title,
+                Message = noti.Message,
+                IsRead = false,
+                CreatedAt = DateTime.UtcNow
+            };
+            await _context.Notifications.AddAsync(notification);
+            await _context.SaveChangesAsync();
+        }
+
+
+
     }
 
 }
