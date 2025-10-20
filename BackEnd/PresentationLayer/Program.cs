@@ -193,7 +193,7 @@ namespace PresentationLayer
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
             builder.Configuration.AddUserSecrets<Program>();
-
+            builder.Services.Configure<MailSettings>(builder.Configuration.GetSection("MailSettings"));
             builder.Services.AddScoped<IMailService, MailService>();
             builder.Services.AddScoped<IEmailRepository, EmailTemplateRepository>();
             builder.Services.AddScoped<IValidator<PaymentRequestDto>, PaymentRequestValidator>();
@@ -208,6 +208,16 @@ namespace PresentationLayer
             builder.Services.AddAutoMapper(typeof(KYC_DocumentProfile).Assembly);
             builder.Services.AddScoped<IWalletService, WalletService>();
             //builder.Services.AddSwaggerGen();
+
+            // News
+            builder.Services.AddScoped<INewsRepository, NewsRepository>();
+            builder.Services.AddScoped<INewsService, NewsService>();
+            builder.Services.AddSingleton<INotificationService, NotificationService>();
+            builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
+
+
+
+
 
             builder.Services.AddSwaggerGen(c =>
             {
@@ -246,6 +256,7 @@ namespace PresentationLayer
                 });
             });
 
+
             var app = builder.Build();
             app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
 
@@ -263,7 +274,11 @@ namespace PresentationLayer
 
             app.MapControllers();
             app.MapHub<ChatHub>("/chatHub");
+
+
             app.Run();
+
+
         }
     }
 }

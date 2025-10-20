@@ -91,10 +91,10 @@ namespace Infrastructure.Repositories
                 ReviewImages = imageDtos
             };
         }
-        public async Task<Review?> GetReviewAsync(int itemId)
+        public async Task<List<Review>> GetReviewAsync(int itemId)
         {
             return await _context.Reviews
-                .FirstOrDefaultAsync(r => r.ItemId == itemId);
+                .Where(r => r.ItemId == itemId).ToListAsync();
         }
 
         public async Task<List<ReviewResponseDto>> GetReviewsByTargetUserIdAsync(int targetUserId)

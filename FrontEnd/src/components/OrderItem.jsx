@@ -1,6 +1,4 @@
-import { PlusCircle } from "lucide-react";
 import React, { useEffect, useState } from 'react'
-import FormComponent from "./AddProductForm";
 import itemApi from "../api/itemApi";
 
 export default function MyProduct() {
@@ -18,7 +16,7 @@ export default function MyProduct() {
             {/* Header */}
             <div className="flex items-center justify-between mb-6 m-5">
                 <h1 className="text-2xl font-bold">My Shop</h1>
-                <FormComponent onSuccess={fetchItems}></FormComponent>
+                <ProductCreationModal onSuccess={fetchItems}></ProductCreationModal>
             </div>
 
             {/* Product List Table */}

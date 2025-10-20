@@ -1,9 +1,12 @@
 using Application.DTOs.AuctionDtos;
+using Application.DTOs.ItemDtos;
 using Application.IRepositories;
 using Application.IRepositories.IBiddingRepositories;
 using Application.IServices;
+using AutoMapper.Configuration.Annotations;
 using Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace Application.Services;
 
@@ -26,7 +29,8 @@ public class AuctionService : IAuctionService
         IWalletTransactionRepository walletTransactionRepository,
         IItemRepository itemRepository,
         IEVDetailRepository eVDetailRepository,
-        IBatteryDetailRepository batteryDetailRepository)
+        IBatteryDetailRepository batteryDetailRepository,
+        IItemImageRepository itemImageRepository)
     {
         _auctionRepository = auctionRepository;
         _bidRepository = bidRepository;
@@ -35,6 +39,17 @@ public class AuctionService : IAuctionService
         _itemRepository = itemRepository;
         _eVDetailRepository = eVDetailRepository;
         _batteryDetailRepository = batteryDetailRepository;
+        _itemImageRepository = itemImageRepository;
+    }
+
+    public async Task<AuctionDto?> GetAuctionByItemIdAsync(int itemId)
+    {
+        var auction = await _auctionRepository.GetByItemIdAsync(itemId);
+        if (auction == null)
+        {
+            return null;
+        }
+        return await MapToAuctionDto(auction);
     }
 
     public async Task<AuctionListResponse> GetAuctionsAsync(int page = 1, int pageSize = 10, string? status = null)
@@ -189,18 +204,8 @@ public class AuctionService : IAuctionService
     {
         var item = await _itemRepository.GetByIdAsync(auction.ItemId);
         if (item == null) return null;
+        var image = await _itemImageRepository.GetByItemIdAsync(item.ItemId);
 
-        Category? category = null;
-        if (item.CategoryId.HasValue)
-        {
-            category = await _categoryRepository.GetCategoryByIdAsync(item.CategoryId.Value);
-        }
-
-        ItemImage? image = null;
-        if (category != null && category.CategoryId == auction.ItemId)
-        {
-            image = await _itemImageRepository.GetItemImageById(auction.ItemId);
-        }
         var auctionDto = new AuctionDto
         {
             AuctionId = auction.AuctionId,
@@ -213,7 +218,11 @@ public class AuctionService : IAuctionService
             StartTime = auction.StartTime,
             EndTime = auction.EndTime,
             Status = auction.Status.ToUpper(),
-            ImageUrl = image?.ImageUrl
+            Images = image.Select(img => new ItemImageDto
+            {
+                ImageId = img.ImageId,
+                ImageUrl = img.ImageUrl
+            }).ToList()
         };
 
         // Get specific details based on item type
@@ -231,7 +240,7 @@ public class AuctionService : IAuctionService
                 var batteryDetail = await _batteryDetailRepository.GetByIdAsync(auction.ItemId);
                 if (batteryDetail != null)
                 {
-                    auctionDto.Title = $"{item.Title}"; // giữ nguyên tên item
+                    auctionDto.Title = $"{item.Title}";
                 }
                 break;
 

@@ -62,7 +62,7 @@ function AuctionMainPage() {
         brand={item.brand}
         category={item.category}
         // Use a fallback image in case item.imageUrl is null
-        imageUrls={[item.imageUrl , 'https://via.placeholder.com/400', "https://i.pinimg.com/736x/7e/25/87/7e25878ef1347c76ac7c91a7dbcd272e.jpg"]}
+        imageUrls={item.images}
         endTime={new Date(item.endTime).getTime()}
         startTime={new Date(item.startTime).getTime()}
         status={item.status} // Pass the status (e.g., "UPCOMING")        currentBid={item.currentPrice} // Pass price as a number for better formatting inside the card

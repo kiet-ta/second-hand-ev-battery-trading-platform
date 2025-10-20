@@ -14,7 +14,6 @@ import PurchaseHistory from "../components/HistoryBought";
 import SellerHistory from "../components/HistorySold";
 import PaymentSuccessPage from "../pages/PaymentSuccessPage";
 import PaymentFailPage from "../pages/PaymentFailPage";
-import PurchasePage from "../pages/PurchasePage";
 import DetailedCheckoutPage from '../pages/DetailCheckout';
 import BlogList from "../pages/BlogList";
 import BlogDetail from "../pages/BlogDetail";
@@ -23,6 +22,10 @@ import ManagerDashboard from "../pages/ManagerDashboard";
 import AuctionDetailPage from "../pages/Auctions/AuctionDetailPage";
 import ComparePage from "../pages/ComparePage";
 import BuyerViewSeller from '../pages/BuyerViewSeller';
+import FavouritePage from "../pages/FavouritePage";
+import SellerOnBoard from "../pages/SellerOnBoard";
+import SellerForm from "../pages/SellerRegistration";
+import SuccessPage from "../pages/SellerSuccess";
 
 export const router = createBrowserRouter([
   {
@@ -55,10 +58,6 @@ export const router = createBrowserRouter([
         element: <CheckoutPage />,
       },
       {
-        path: "/purchase",
-        element: <PurchasePage />
-      },
-      {
         path: "/auctions",
         element: <AuctionMainPage />
       }
@@ -73,6 +72,22 @@ export const router = createBrowserRouter([
       {
         path: "/seller/:sellerId",
         element: <BuyerViewSeller />
+      },
+      {
+        path: "favourite",
+        element: <FavouritePage/>
+      },
+      {
+        path: "/seller-registration",
+        element: <SellerOnBoard/>
+      },
+      {
+        path: "/seller-form",
+        element: <SellerForm/>
+      },
+      {
+        path: "/success",
+        element: <SuccessPage/>
       }
     ],
   },

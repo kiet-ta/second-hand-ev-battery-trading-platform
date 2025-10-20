@@ -1,55 +1,62 @@
 ﻿using Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Infrastructure.Data.Configurations
 {
     public class NotificationConfiguration : IEntityTypeConfiguration<Notification>
     {
-        public void Configure(EntityTypeBuilder<Notification> builder)
-        {
-            builder.ToTable("notifications");
+        public void Configure(EntityTypeBuilder<Notification> entity)
+        { 
+            entity.HasKey(e => e.Id).HasName("PK__notifications__3213E83F");
 
-            builder.HasKey(n => n.Id);
+            entity.ToTable("notifications");
 
-            builder.Property(n => n.NotiType)
-                .HasColumnName("noti_type")
+            entity.Property(e => e.Id).HasColumnName("id");
+
+            entity.Property(e => e.NotiType)
+                .HasMaxLength(10)
                 .IsRequired()
-                .HasMaxLength(10);
+                .HasColumnName("noti_type");
 
-            builder.Property(n => n.SenderRole)
-                .HasColumnName("sender_role")
-                .HasMaxLength(10);
+            entity.Property(e => e.SenderId)
+                .HasColumnName("sender_id");
 
-            builder.Property(n => n.Title)
-                .HasColumnName("title")
-                .HasMaxLength(255);
+            entity.Property(e => e.SenderRole)
+                .HasMaxLength(10)
+                .HasColumnName("sender_role");
 
-            builder.Property(n => n.Message)
+            entity.Property(e => e.ReceiverId)
+                .IsRequired()
+                .HasColumnName("receiver_id");
+
+            entity.Property(e => e.Title)
+                .HasMaxLength(255)
+                .HasColumnName("title");
+
+            entity.Property(e => e.Message)
                 .HasColumnName("message");
 
-            builder.Property(n => n.IsRead)
-                .HasColumnName("is_read")
-                .HasDefaultValue(false);
+            entity.Property(e => e.IsRead)
+                .HasDefaultValue(false)
+                .HasColumnName("is_read");
 
-            builder.Property(n => n.CreatedAt)
-                .HasColumnName("created_at")
-                .HasDefaultValueSql("GETDATE()");
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnName("created_at");
 
-            builder.HasOne<User>()
+          
+            entity.HasOne<User>() 
                 .WithMany()
-                .HasForeignKey(n => n.SenderId)
-                .OnDelete(DeleteBehavior.NoAction);
+                .HasForeignKey(e => e.SenderId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .HasConstraintName("FK__notifications__sender_id");
 
-            builder.HasOne<User>()
+            entity.HasOne<User>() 
                 .WithMany()
-                .HasForeignKey(n => n.ReceiverId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .HasForeignKey(e => e.ReceiverId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .HasConstraintName("FK__notifications__receiver_id");
         }
     }
 }

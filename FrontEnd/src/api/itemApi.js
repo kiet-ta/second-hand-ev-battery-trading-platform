@@ -36,6 +36,11 @@ const itemApi = {
     postItemBattery: async (data) => {
         const response = await axios.post(baseURL + "/detail/battery", data);
         return response.data;
+    },
+    putItem: async (itemId, itemData) => {
+        console.log(itemData)
+        const response = await axios.put(baseURL + `/${itemId}`,{itemData})
+        return response.data
     }
 
 };

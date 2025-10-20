@@ -32,6 +32,7 @@ function HomePage() {
           itemApi.getItemByLatestEV(),
           itemApi.getItemByLatestBattery()
         ]);
+        console.log(items)
         setData({
           firstSale: items.slice(0, 3), // Get first 3 items
           evList: evs,
@@ -81,7 +82,7 @@ function HomePage() {
                 type={item.itemType}
                 price={item.price}
                 sales={0}
-                image={"https://i.pinimg.com/1200x/55/53/06/55530643312e136a9fa2a576d6fcfbd0.jpg"}
+                itemImages={item.images}
               />
             ))}
         </div>
