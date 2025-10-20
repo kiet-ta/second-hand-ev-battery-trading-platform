@@ -23,18 +23,17 @@ public class User
 
     public string Role { get; set; } = null!;
 
+    public string? Bio { get; set; } = null!;
+
     public string? KycStatus { get; set; }
 
     public string? AccountStatus { get; set; }
 
-    public DateTime? CreatedAt { get; set; }
+    public DateTime CreatedAt { get; set; }
 
     public DateTime? UpdatedAt { get; set; }
 
-    public bool? IsDeleted { get; set; }
+    public string? Paid { get; set; }
 
-    //// Tuan add 2 field for account lockout
-    //public int FailedLoginAttempts { get; set; }
-    //public DateTime? LockoutEnd { get; set; }
-
+    public bool IsDeleted { get; set; }
 }

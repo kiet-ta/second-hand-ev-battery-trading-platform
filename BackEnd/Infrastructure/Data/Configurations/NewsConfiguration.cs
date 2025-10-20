@@ -34,6 +34,11 @@ namespace Infrastructure.Data.Configurations
             entity.Property(e => e.Title)
                 .HasMaxLength(255)
                 .HasColumnName("title");
+            entity.Property(e => e.UserId).HasColumnName("user_id");
+            entity.Property(e => e.Status)
+                .HasMaxLength(20)
+                .HasDefaultValue("pending")
+                .HasColumnName("status");
 
             entity.HasOne<User>().WithMany()
                 .HasForeignKey(d => d.AuthorId)

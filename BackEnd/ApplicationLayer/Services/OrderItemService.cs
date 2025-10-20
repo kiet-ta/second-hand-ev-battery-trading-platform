@@ -31,5 +31,28 @@ namespace Application.Services
                 Price = o.Price
             });
         }
+        public async Task<bool> UpdateOrderItemAsync(int id, UpdateOrderItemDto dto)
+        {
+            var orderItem = await _orderItemRepository.GetByIdAsync(id);
+            if (orderItem == null || orderItem.IsDeleted)
+                return false;
+
+            orderItem.Quantity = dto.Quantity;
+            orderItem.Price = dto.Price;
+
+            await _orderItemRepository.UpdateAsync(orderItem);
+            return true;
+        }
+
+        public async Task<bool> DeleteOrderItemAsync(int id)
+        {
+            var orderItem = await _orderItemRepository.GetByIdAsync(id);
+            if (orderItem == null || orderItem.IsDeleted)
+                return false;
+
+            orderItem.IsDeleted = true;
+            await _orderItemRepository.UpdateAsync(orderItem);
+            return true;
+        }
     }
 }

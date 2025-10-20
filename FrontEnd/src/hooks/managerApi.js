@@ -1,213 +1,138 @@
+const BASE = "https://localhost:7272/api";
 
-export const fakeManagerAPI = {
-    getMetrics: () =>
-        new Promise((resolve) => {
-            setTimeout(() => {
-                resolve({
-                    totalUsers: 4512,
-                    activeListings: 320,
-                    revenueThisMonth: 1250000000,
-                    complaintRate: 3.2,
-                    growth: 12,
-                });
-            }, 500);
-        }),
+export const managerAPI = {
+    // ✅ Dashboard Metrics
+    getMetrics: async () => {
+        const res = await fetch(`${BASE}/ManagerDashboard/metrics`);
+        if (!res.ok) throw new Error("Không thể tải metrics");
+        return await res.json();
+    },
 
-    getRevenueByMonth: () =>
-        new Promise((resolve) => {
-            setTimeout(() => {
-                resolve([
-                    { month: "01", total: 210000000 },
-                    { month: "02", total: 260000000 },
-                    { month: "03", total: 290000000 },
-                    { month: "04", total: 310000000 },
-                    { month: "05", total: 340000000 },
-                    { month: "06", total: 410000000 },
-                    { month: "07", total: 380000000 },
-                    { month: "08", total: 420000000 },
-                    { month: "09", total: 460000000 },
-                    { month: "10", total: 520000000 },
-                ]);
-            }, 600);
-        }),
+    getRevenueByMonth: async () => {
+        const res = await fetch(`${BASE}/ManagerDashboard/revenue-by-month`);
+        if (!res.ok) throw new Error("Không thể tải revenue");
+        return await res.json();
+    },
 
-    getUsers: () =>
-        new Promise((resolve) => {
-            setTimeout(() => {
-                resolve([
-                    { id: 1, name: "Nguyễn Minh T.", role: "Buyer", status: "active", email: "minht@example.com" },
-                    { id: 2, name: "Trần Lan A.", role: "Seller", status: "active", email: "lana@example.com" },
-                    { id: 3, name: "Lê Huy N.", role: "Seller", status: "inactive", email: "huy.nguyen@example.com" },
-                    { id: 4, name: "Phạm Thanh H.", role: "Staff", status: "active", email: "thanhh@example.com" },
-                ]);
-            }, 500);
-        }),
+    getOrdersByMonth: async () => {
+        const res = await fetch(`${BASE}/ManagerDashboard/orders-by-month`);
+        if (!res.ok) throw new Error("Không thể tải orders");
+        return await res.json();
+    },
 
-    getProducts: () =>
-        new Promise((resolve) => {
-            setTimeout(() => {
-                resolve([
-                    {
-                        id: 201,
-                        title: "YADEA G5 (2022)",
-                        type: "EV",
-                        price: 17500000,
-                        seller: "NV Motors",
-                        status: "active",
-                        image: "https://img.yadea.com.vn/uploads/g5.jpg",
-                    },
-                    {
-                        id: 202,
-                        title: "VinFast Ludo (2021)",
-                        type: "EV",
-                        price: 9500000,
-                        seller: "EcoWheels",
-                        status: "sold",
-                        image: "https://vinfastauto.com/sites/default/files/ludo.jpg",
-                    },
-                    {
-                        id: 203,
-                        title: "Lithium Battery 60V 20Ah",
-                        type: "Battery",
-                        price: 3200000,
-                        seller: "GreenRide",
-                        status: "active",
-                        image:
-                            "https://cdn.tgdd.vn/Files/2021/10/29/1397778/pin-xe-dien-60v20ah_800x450.jpg",
-                    },
-                    {
-                        id: 204,
-                        title: "YADEA Xmen (2019)",
-                        type: "EV",
-                        price: 6200000,
-                        seller: "NV Motors",
-                        status: "inactive",
-                        image:
-                            "https://cdn.tgdd.vn/Files/2020/12/24/1315801/yadea-xmen-1.jpg",
-                    },
-                ]);
-            }, 500);
-        }),
+    getProductDistribution: async () => {
+        const res = await fetch(`${BASE}/ManagerDashboard/product-distribution`);
+        if (!res.ok) throw new Error("Không thể tải distribution");
+        return await res.json();
+    },
 
+    // ✅ Transactions – giao dịch mới nhất
+    getTransactions: async () => {
+        const res = await fetch(`${BASE}/ManagerDashboard/latest`);
+        if (!res.ok) throw new Error("Không thể tải danh sách giao dịch mới nhất");
+        return await res.json();
+    },
 
-    getOrdersByMonth: () =>
-        new Promise((resolve) => {
-            setTimeout(() => {
-                resolve([
-                    { month: "01", totalOrders: 120 },
-                    { month: "02", totalOrders: 140 },
-                    { month: "03", totalOrders: 160 },
-                    { month: "04", totalOrders: 170 },
-                    { month: "05", totalOrders: 190 },
-                    { month: "06", totalOrders: 220 },
-                    { month: "07", totalOrders: 210 },
-                    { month: "08", totalOrders: 230 },
-                    { month: "09", totalOrders: 260 },
-                    { month: "10", totalOrders: 280 },
-                ]);
-            }, 600);
-        }),
+    // ✅ Seller Approvals – danh sách seller chờ duyệt
+    getPendingSellerApprovals: async () => {
+        const res = await fetch(`${BASE}/ManagerDashboard/pending`);
+        if (!res.ok) throw new Error("Không thể tải danh sách chờ duyệt");
+        return await res.json();
+    },
 
-    getProductDistribution: () =>
-        new Promise((resolve) => {
-            setTimeout(() => {
-                resolve([
-                    { name: "EV", value: 62 },
-                    { name: "Battery", value: 38 },
-                ]);
-            }, 400);
-        }),
+    // ✅ Seller Approvals – duyệt seller
+    approveSeller: async (id) => {
+        const token = localStorage.getItem("token"); // 🔐 Lấy token JWT đã lưu sau khi đăng nhập
 
-    getSellerApprovals: () =>
-        new Promise((resolve) => {
-            setTimeout(() => {
-                resolve([
-                    {
-                        id: 101,
-                        seller: "NV Motors",
-                        region: "Hà Nội",
-                        submittedAt: "2025-10-03",
-                    },
-                    {
-                        id: 102,
-                        seller: "GreenRide",
-                        region: "HCM",
-                        submittedAt: "2025-10-05",
-                    },
-                    {
-                        id: 103,
-                        seller: "EcoWheels",
-                        region: "Đà Nẵng",
-                        submittedAt: "2025-10-08",
-                    },
-                ]);
-            }, 500);
-        }),
+        const res = await fetch(`${BASE}/ManagerDashboard/${id}/approve`, {
+            method: "PATCH",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`, // ✅ Gửi kèm claim identity
+            },
+        });
 
-    getDisputes: () =>
-        new Promise((resolve) => {
-            setTimeout(() => {
-                resolve([
-                    {
-                        id: 901,
-                        orderCode: "ORD-2025-0001",
-                        type: "Refund",
-                        status: "pending",
-                    },
-                    {
-                        id: 902,
-                        orderCode: "ORD-2025-0021",
-                        type: "Quality",
-                        status: "pending",
-                    },
-                    {
-                        id: 903,
-                        orderCode: "ORD-2025-0035",
-                        type: "Late Delivery",
-                        status: "investigating",
-                    },
-                ]);
-            }, 500);
-        }),
+        if (!res.ok) {
+            const errText = await res.text();
+            throw new Error(`Không thể duyệt seller: ${errText}`);
+        }
 
-    getTransactions: () =>
-        new Promise((resolve) => {
-            setTimeout(() => {
-                resolve([
-                    {
-                        id: "T-1001",
-                        item: "YADEA G5 (2022)",
-                        buyer: "Minh T.",
-                        seller: "NV Motors",
-                        price: 17500000,
-                        status: "completed",
-                    },
-                    {
-                        id: "T-1002",
-                        item: "VinFast Ludo (2021)",
-                        buyer: "Lan A.",
-                        seller: "EcoWheels",
-                        price: 9500000,
-                        status: "processing",
-                    },
-                    {
-                        id: "T-1003",
-                        item: "Lithium 60V 20Ah",
-                        buyer: "Huy N.",
-                        seller: "GreenRide",
-                        price: 3200000,
-                        status: "completed",
-                    },
-                    {
-                        id: "T-1004",
-                        item: "YADEA Xmen (2019)",
-                        buyer: "Thảo P.",
-                        seller: "NV Motors",
-                        price: 6200000,
-                        status: "cancelled",
-                    },
-                ]);
-            }, 500);
-        }),
+        return await res.json();
+    },
+
+    // ✅ Seller Approvals – từ chối seller
+    rejectSeller: async (id) => {
+        const res = await fetch(`${BASE}/ManagerDashboard/${id}/reject`, {
+            method: "PATCH",
+        });
+        if (!res.ok) throw new Error("Không thể từ chối seller");
+        return await res.json();
+    },
+
+    // ✅ Users & Products (giữ nguyên)
+    getUsers: async () => {
+        const res = await fetch(`${BASE}/User`);
+        if (!res.ok) throw new Error("Không thể tải danh sách người dùng");
+        return res.json();
+    },
+
+    getProducts: async () => {
+        const res = await fetch(`${BASE}/Item`);
+        if (!res.ok) throw new Error("Không thể tải danh sách sản phẩm");
+        return res.json();
+    },
+
+    getItemWithSeller: async (itemId) => {
+        const res = await fetch(`${BASE}/Item/${itemId}/Seller`);
+        if (!res.ok) throw new Error(`Không thể tải sản phẩm ${itemId} cùng seller`);
+        return res.json();
+    },
+
+    //set status người dùng
+    updateUserStatus: async (userId, status) => {
+        const token = localStorage.getItem("token");
+        let url = "";
+
+        // ánh xạ trạng thái sang API backend thực tế
+        if (status === "ban") {
+            url = `https://localhost:7272/api/KYC_Document/users/${userId}/ban`;
+        } else if (status === "active") {
+            url = `https://localhost:7272/api/KYC_Document/users/${userId}/activate`;
+        } else if (status === "warning1" || status === "warning2") {
+            url = `https://localhost:7272/api/KYC_Document/users/${userId}/warn`;
+        } else {
+            throw new Error("Invalid status type");
+        }
+
+        const res = await fetch(url, {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+            },
+        });
+
+        if (!res.ok) {
+            const err = await res.text();
+            throw new Error(`Cập nhật thất bại: ${err}`);
+        }
+
+        return await res.json();
+    },
+    getUsersPaginated: async (page = 1, pageSize = 20) => {
+        const token = localStorage.getItem("token");
+        const res = await fetch(
+            `https://localhost:7272/api/User/all/user/pagination?page=${page}&pageSize=${pageSize}`,
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    "Content-Type": "application/json",
+                },
+            }
+        );
+
+        if (!res.ok) throw new Error("Không thể tải danh sách user");
+        return await res.json();
+    },
+
 };
-

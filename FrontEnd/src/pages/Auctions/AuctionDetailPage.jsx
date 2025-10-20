@@ -1,182 +1,455 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useParams, useLocation } from 'react-router-dom';
-// Step 1: Import 'Input' from Ant Design
-import { Spin, Alert, Input, InputNumber, Button, message } from 'antd';
-import { FiClock, FiTag, FiUser, FiTrendingUp } from 'react-icons/fi';
+import { Spin, Alert, InputNumber, Button, message, List, Avatar, Card, Tag, Space } from 'antd';
+import { FiClock, FiUser, FiTrendingUp, FiTag, FiCheckCircle, FiMessageSquare, FiPhone, FiMapPin } from 'react-icons/fi';
+import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
+import { GiGemChain } from "react-icons/gi";
 
-// --- MOCK DATA BASED ON YOUR JSON ---
-const getMockAuctionDetails = (auctionId) => {
-  console.log(`Fetching mock data for auction ID: ${auctionId}`);
-  return {
-    auctionId: parseInt(auctionId),
-    itemId: 9,
-    title: 'High-Capacity Battery 60kWh',
-    startingPrice: 200000000,
-    currentPrice: 215000000,
-    priceStep: 5000000,
-    totalBids: 3,
-    endTime: '2025-11-09T10:00:00',
-    status: 'ACTIVE',
-    imageUrls: [
-      "https://res.cloudinary.com/tucore/image/upload/v1759547479/EV_BATTERY_TRADING/Electric_Verhicle/oo6awv6ctkis3ummkarx.png",
-      "https://i.pinimg.com/originals/c8/e2/c3/c8e2c3a50dce39c40212f716bce39ce3.jpg",
-      "https://i.pinimg.com/originals/5a/a2/87/5aa2875f1b25914629910f22b724af54.jpg",
-    ],
-    itemDetail: {
-      brand: "Generic EV Parts",
-      model: "Lithium-Ion Pack",
-      year: 2024,
-      color: "N/A",
-      mileage: 0,
-      description: "A brand new, high-capacity 60kWh battery pack suitable for custom EV projects or as a replacement for compatible vehicles. Provides excellent range and performance with a long lifecycle. Includes all necessary connectors for a standard installation.",
-      hasAccessories: false,
-    },
-    bidHistory: [
-        { bidder: 'User***123', bidAmount: 215000000, timestamp: new Date(Date.now() - 2 * 60000).toISOString() },
-        { bidder: 'User***456', bidAmount: 210000000, timestamp: new Date(Date.now() - 5 * 60000).toISOString() },
-        { bidder: 'User***789', bidAmount: 205000000, timestamp: new Date(Date.now() - 10 * 60000).toISOString() },
-    ]
-  };
+// ACTUAL API IMPORTS (Assuming these paths are correct in your project)
+import auctionApi from '../../api/auctionApi';
+import itemApi from '../../api/itemApi';
+import userApi from '../../api/userApi';
+import walletApi from '../../api/walletApi';
+
+// --- CONFIG CONSTANTS ---
+const PRICE_STEP = 100000;
+const LOGGED_IN_USER_ID = localStorage.getItem("userId") || 1; // Fallback to 1 if not in storage
+const DEFAULT_BID_HISTORY = []; // Use an empty array if the API doesn't provide it
+
+// --- COUNTDOWN HOOK (UNMODIFIED) ---
+const useCountdown = (endTimeStr) => {
+    const calculateTimeRemaining = useCallback(() => {
+        if (!endTimeStr) return { time: "N/A", isFinished: true };
+
+        const now = new Date().getTime();
+        const endTime = new Date(endTimeStr).getTime();
+        const distance = endTime - now;
+
+        if (distance < 0) {
+            return { time: "00h 00m 00s", isFinished: true };
+        }
+
+        const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+        const pad = (num) => String(num).padStart(2, '0');
+
+        if (days > 0) {
+            return { time: `${days}d ${pad(hours)}h ${pad(minutes)}m`, isFinished: false };
+        }
+        return { time: `${pad(hours)}h ${pad(minutes)}m ${pad(seconds)}s`, isFinished: false };
+    }, [endTimeStr]);
+
+    const [countdown, setCountdown] = useState(calculateTimeRemaining);
+
+    useEffect(() => {
+        if (!endTimeStr) return;
+        const currentCountdown = calculateTimeRemaining();
+        setCountdown(currentCountdown);
+
+        if (currentCountdown.isFinished) return;
+
+        const intervalId = setInterval(() => {
+            setCountdown(calculateTimeRemaining());
+        }, 1000);
+
+        return () => clearInterval(intervalId);
+    }, [calculateTimeRemaining, endTimeStr]);
+
+    return countdown;
 };
 
+
 function AuctionDetailPage() {
-  const { auctionId } = useParams();
-  const location = useLocation();
+    const { id } = useParams();
+    const location = useLocation();
 
-  const [auction, setAuction] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [selectedImage, setSelectedImage] = useState(0);
-  const [bidAmount, setBidAmount] = useState(0);
+    const [auction, setAuction] = useState(null);
+    const [itemDetails, setItemDetails] = useState(null);
+    const [sellerProfile, setSellerProfile] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const [selectedImage, setSelectedImage] = useState(0);
+    const [bidAmount, setBidAmount] = useState(null); // ✨ FIX 1: Initialize to null
+    const [isBidding, setIsBidding] = useState(false);
+    const [isPhoneVisible, setIsPhoneVisible] = useState(false);
+    const [walletBalance, setWalletBalance] = useState(0);
 
-  useEffect(() => {
-    const fetchDetails = () => {
-      try {
-        setLoading(true);
-        setTimeout(() => {
-          const data = getMockAuctionDetails(auctionId);
-          setAuction(data);
-          setBidAmount(data.currentPrice + data.priceStep);
-          setLoading(false);
-        }, 1000);
-      } catch (error) {
-        setError("Failed to load auction details.",error);
-        setLoading(false);
-      }
-    };
-    fetchDetails();
-  }, [auctionId]);
-  
-  const handlePlaceBid = () => {
-    if (bidAmount <= auction.currentPrice) {
-      message.error(`Your bid must be higher than the current bid!`);
-      return;
-    }
-    console.log(`Submitting bid for auction ${auctionId} with amount ${bidAmount}`);
-    message.success(`Bid of ${bidAmount.toLocaleString('vi-VN')} VND placed successfully!`);
-  };
+    const countdown = useCountdown(auction?.endTime);
 
-  if (loading) {
-    return (
-        <div className="flex flex-col justify-center items-center h-screen">
-            <Spin size="large" />
-            <p className="mt-4 text-lg font-semibold">{location.state?.title || "Loading Auction..."}</p>
-        </div>
-    );
-  }
+    const getMinBid = useCallback(() => {
+        // Safe check for currentPrice
+        const basePrice = auction?.currentPrice || auction?.startingPrice || 0;
+        return basePrice + PRICE_STEP;
+    }, [auction]);
 
-  if (error) {
-    return <div className="p-8"><Alert message="Error" description={error} type="error" showIcon /></div>;
-  }
 
-  return (
-    <div className="bg-gray-50 min-h-screen p-4 sm:p-8">
-      <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8">
+    // --- API Fetch Effect: Handles Auction, Item, User, and Wallet details ---
+    useEffect(() => {
+        if (!id) return;
+
+        const fetchAllData = async () => {
+            try {
+                setLoading(true);
+                setError(null);
+
+                // 1. Fetch Auction Data
+                const auctionData = await auctionApi.getAuctionByItemId(id);
+
+                // 2. Fetch Item Details using the itemId from the auctionData
+                const itemData = await itemApi.getItemDetailByID(auctionData.itemId);
+
+                // 3. Fetch Seller Profile using 'updatedBy' from Item Details
+                const sellerId = itemData.updatedBy;
+                const userData = await userApi.getUserByID(sellerId);
+                
+                // 4. Fetch Wallet Balance
+                const walletResponse = await walletApi.getWalletByUser(LOGGED_IN_USER_ID);
+
+                const fullAuctionData = {
+                    ...auctionData,
+                    priceStep: PRICE_STEP,
+                    bidHistory: auctionData.bidHistory || DEFAULT_BID_HISTORY
+                };
+                setAuction(fullAuctionData);
+                setItemDetails(itemData);
+                setSellerProfile(userData);
+                setWalletBalance(walletResponse.balance || 0);
+
+                // 5. Set initial bid amount to the calculated minimum
+                const basePrice = auctionData.currentPrice || auctionData.startingPrice;
+                const minBid = basePrice + PRICE_STEP; 
+                setBidAmount(minBid); // ✨ FIX 2: Correctly set state based on fetched data
+
+            } catch (err) {
+                console.error("API Fetch Error:", err);
+                setError(err.response?.data?.message || `Failed to load details for auction ID ${id}.`);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchAllData();
+    }, [id]);
+
+
+    // --- API Bid Handler ---
+    const handlePlaceBid = async () => {
+        if (!auction || !auction.auctionId || bidAmount === null) {
+            message.error("Auction details not fully loaded or bid amount is invalid.");
+            return;
+        }
+
+        const minBid = getMinBid();
+        if (bidAmount < minBid) {
+            message.error(`Bid must be at least ${minBid.toLocaleString('vi-VN')} VND.`);
+            return;
+        }
         
-        {/* Left Side: Images and Description */}
-        <div className="flex flex-col gap-8">
-          <div className="bg-white rounded-lg shadow-md p-4">
-              <img src={auction.imageUrls[selectedImage]} alt={auction.title} className="w-full h-auto object-cover rounded-lg aspect-video"/>
-              <div className="flex gap-2 mt-3 overflow-x-auto">
-                  {auction.imageUrls.map((url, index) => (
-                      <img 
-                        key={index} 
-                        src={url} 
-                        alt={`Thumbnail ${index+1}`}
-                        onClick={() => setSelectedImage(index)}
-                        className={`w-24 h-24 object-cover rounded-md cursor-pointer border-2 ${selectedImage === index ? 'border-indigo-500' : 'border-transparent'}`}
-                      />
-                  ))}
-              </div>
-          </div>
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <h2 className="text-2xl font-bold border-b pb-4 mb-4">Description</h2>
-            <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">{auction.itemDetail.description}</p>
-          </div>
-        </div>
+        // Wallet Check
+        if (bidAmount > walletBalance) {
+            message.error(`Insufficient funds! Your current wallet balance is ${walletBalance.toLocaleString('vi-VN')} VND.`);
+            return;
+        }
+        
+        setIsBidding(true);
+        try {
+            const userId = LOGGED_IN_USER_ID; 
+            const payload = { userId, bidAmount };
 
-        {/* Right Side: Bidding and History */}
-        <div className="bg-white rounded-lg shadow-md p-6 h-fit sticky top-8">
-            <h1 className="text-3xl font-bold text-gray-900 leading-tight">{auction.title}</h1>
-            <p className="text-md text-gray-500">{auction.itemDetail.brand} {auction.itemDetail.model} ({auction.itemDetail.year})</p>
-            
-            <div className="mt-6 p-4 bg-gray-100 rounded-lg">
-                <p className="text-sm text-gray-600">Current Bid</p>
-                <p className="text-4xl font-extrabold text-indigo-700">{auction.currentPrice.toLocaleString('vi-VN')} VND</p>
-                <p className="text-sm mt-1 text-gray-500">{auction.totalBids} bids so far</p>
+            const response = await auctionApi.bidAuction(auction.auctionId, payload);
+            console.log(response)
+            if (response && response.message === "Bid placed successfully.") {
+                message.success(response.message || `Bid of ${bidAmount.toLocaleString('vi-VN')} VND placed successfully!`);
+
+                const newBidEntry = { 
+                    bidder: sellerProfile?.fullName || 'Current User', 
+                    bidAmount: bidAmount, 
+                    timestamp: new Date().toISOString() 
+                };
+
+                setAuction(prev => ({
+                    ...prev,
+                    currentPrice: bidAmount,
+                    totalBids: (prev.totalBids || 0) + 1,
+                    bidHistory: [newBidEntry, ...prev.bidHistory || []].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+                }));
+                // Set the input value to the *new* next minimum bid
+                setBidAmount(bidAmount + PRICE_STEP); 
+                try {
+                const newWalletResponse = await walletApi.getWalletByUser(LOGGED_IN_USER_ID);
+                setWalletBalance(newWalletResponse.balance || 0);
+                message.info(`Wallet updated: New balance is ${newWalletResponse.balance.toLocaleString('vi-VN')} VND.`);
+            } catch (walletError) {
+                console.error("Failed to fetch new wallet balance:", walletError);
+                message.warning("Bid placed, but failed to update wallet balance in real-time.");
+            }
+            } else {
+                message.error(response.message || "Failed to place bid. Server response invalid.");
+            }
+        } catch (error) {
+            console.error("Bid submission error:", error);
+            message.error(error.response?.data?.message || "An error occurred while submitting your bid.");
+        } finally {
+            setIsBidding(false);
+        }
+    };
+
+    // --------------------------------------------------------------------------------------------------
+
+    if (loading) {
+        return (
+            <div className="flex flex-col justify-center items-center h-screen">
+                <Spin size="large" />
+                <p className="mt-4 text-lg font-semibold">Loading Auction...</p>
             </div>
+        );
+    }
 
-            {/* --- MODIFIED BID INPUT SECTION --- */}
-            <div className="mt-6">
-                <p className="font-semibold mb-2">Place your bid</p>
-                {/* Step 2: Wrap the input and button in an Input.Group */}
-                <Input.Group compact>
-                    {/* Step 3: The InputNumber now takes up the remaining space */}
-                    <InputNumber
-                        style={{ width: 'calc(100% - 130px)' }}
-                        size="large"
-                        value={bidAmount}
-                        onChange={setBidAmount}
-                        min={auction.currentPrice + auction.priceStep}
-                        step={auction.priceStep}
-                        formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-                        parser={(value) => value.replace(/\D/g, '')}
-                        addonAfter="VND"
-                    />
-                    {/* Step 4: The Button sits right next to it with a fixed width */}
-                    <Button 
-                        type="primary" 
-                        size="large" 
-                        className="bg-indigo-600" 
-                        style={{ width: '130px' }}
-                        onClick={handlePlaceBid}
-                    >
-                        Place Bid
-                    </Button>
-                </Input.Group>
-                <div className="mt-4 text-center text-red-600 font-semibold flex items-center justify-center gap-2">
-                    <FiClock /> Auction ends on {new Date(auction.endTime).toLocaleDateString('vi-VN')}
+    if (error || !auction || !itemDetails) {
+        return <div className="p-8"><Alert message="Error" description={error || "Auction data is unavailable. Please check the URL."} type="error" showIcon /></div>;
+    }
+
+    const isOngoing = auction.status === 'ONGOING' && !countdown.isFinished;
+    
+    // 💡 FIX 3: Correctly determine bidDisabled state (not just setting it to isOngoing)
+    const bidDisabled = !isOngoing || isBidding; 
+    
+    // Data extraction and defaults
+    const itemDetailSpec = itemDetails.evDetail || itemDetails.batteryDetail; 
+    const imageUrls = auction.images?.map(img => img.imageUrl) || itemDetails.itemImage?.map(img => img.imageUrl) || [];
+    const placeholderImage = `https://placehold.co/600x400/374151/d1d5db?text=${encodeURIComponent(auction.title || 'No Image')}`;
+    const displayImage = imageUrls[selectedImage] || placeholderImage;
+
+    // Key Specifications for mapping
+    const keySpecs = [
+        { label: 'Type', value: itemDetails?.itemType?.toUpperCase() },
+        { label: 'Brand', value: itemDetailSpec?.brand },
+        { label: 'Model', value: itemDetailSpec?.model || itemDetailSpec?.capacity ? `${itemDetailSpec.capacity}kWh` : undefined },
+        { label: 'Year', value: itemDetailSpec?.year },
+        { label: 'Body Style', value: itemDetailSpec?.bodyStyle },
+        { label: 'Color', value: itemDetailSpec?.color },
+        { label: 'License Plate', value: itemDetailSpec?.licensePlate },
+        { label: 'Mileage', value: itemDetailSpec?.mileage !== null && itemDetailSpec?.mileage !== undefined ? `${itemDetailSpec.mileage.toLocaleString('vi-VN')} km` : undefined },
+        { label: 'Capacity', value: itemDetailSpec?.capacity ? `${itemDetailSpec.capacity} kWh` : undefined },
+        { label: 'Voltage', value: itemDetailSpec?.voltage ? `${itemDetailSpec.voltage} V` : undefined },
+    ];
+
+    const displayPrice = auction.currentPrice || auction.startingPrice || 0;
+
+    return (
+        <div className="bg-gray-50 min-h-screen p-4 sm:p-8">
+            <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-5 gap-8">
+                
+                {/* Left Column (lg:col-span-3): Image, Specs, Description */}
+                <div className="lg:col-span-3 flex flex-col gap-8">
+                    
+                    {/* --- Image Carousel Section --- */}
+                    <Card className="shadow-lg p-0">
+                        <div className="relative">
+                            <img 
+                                src={displayImage} 
+                                alt={`${auction.title} image`} 
+                                onError={(e) => { e.currentTarget.src = placeholderImage; }}
+                                className="w-full object-cover rounded-t-lg aspect-[3/2]" 
+                            />
+                            
+                            {/* Carousel Navigation and Thumbnails (Unmodified) */}
+                            {imageUrls.length > 1 && (
+                                <>
+                                    <button
+                                        onClick={() => setSelectedImage(prev => (prev - 1 + imageUrls.length) % imageUrls.length)}
+                                        className="absolute top-1/2 left-4 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 p-3 rounded-full text-white transition-all z-10"
+                                        aria-label="Previous image"
+                                    >
+                                        <FaChevronLeft />
+                                    </button>
+                                    <button
+                                        onClick={() => setSelectedImage(prev => (prev + 1) % imageUrls.length)}
+                                        className="absolute top-1/2 right-4 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 p-3 rounded-full text-white transition-all z-10"
+                                        aria-label="Next image"
+                                    >
+                                        <FaChevronRight />
+                                    </button>
+                                </>
+                            )}
+                        </div>
+                        {/* Thumbnails */}
+                        <div className="flex gap-3 p-4 overflow-x-auto justify-start bg-gray-50 rounded-b-lg border-t">
+                            {imageUrls.map((url, index) => (
+                                <img 
+                                    key={index} 
+                                    src={url} 
+                                    alt={`Thumbnail ${index+1}`}
+                                    onClick={() => setSelectedImage(index)}
+                                    className={`w-20 h-20 object-cover rounded-md cursor-pointer transition-shadow duration-200 ${selectedImage === index ? 'ring-4 ring-indigo-500 shadow-lg' : 'ring-2 ring-gray-200'}`}
+                                />
+                            ))}
+                        </div>
+                    </Card>
+
+                    {/* Key Specifications (Unmodified) */}
+                    <Card className="shadow-md p-6">
+                        <h2 className="text-2xl font-bold border-b pb-4 mb-4 text-gray-800">Key Specifications</h2>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
+                            {keySpecs.filter(spec => spec.value).map(spec => (
+                                <div key={spec.label}>
+                                    <p className="text-sm text-gray-500">{spec.label}</p>
+                                    <p className="font-semibold text-gray-800">{spec.value}</p>
+                                </div>
+                            ))}
+                        </div>
+                    </Card>
+
+                    {/* Description (Unmodified) */}
+                    <Card className="shadow-md p-6">
+                        <h2 className="text-2xl font-bold border-b pb-4 mb-4 text-gray-800">Detailed Description</h2>
+                        <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
+                            {itemDetails.description || 'No detailed description provided for this item.'}
+                        </p>
+                    </Card>
+                </div>
+
+                {/* --- Right Column (lg:col-span-2): Bidding and Seller --- */}
+                <div className="lg:col-span-2 flex flex-col gap-6 sticky top-8 h-fit">
+                    
+                    {/* Main Info Card (Price, Countdown, Bid Input) */}
+                    <Card className="shadow-lg p-6">
+                        <h1 className="text-3xl font-bold text-gray-900 leading-tight mb-1">{auction.title}</h1>
+                        <p className="text-md text-gray-500 mb-6">{itemDetailSpec?.brand || 'Item'} ({itemDetailSpec?.year || 'N/A'})</p>
+                            <div className={`p-3 text-center rounded-lg shadow-inner ${countdown.isFinished ? 'bg-red-100 border border-red-400' : 'bg-indigo-100 border border-indigo-400'}`}>
+                            <p className="text-sm font-medium text-gray-600">Time Remaining</p>
+                            <div className="flex items-center justify-center gap-2 mt-1">
+                                <FiClock className={`text-xl ${countdown.isFinished ? 'text-red-600' : 'text-indigo-600'}`} />
+                                <span className={`text-2xl font-extrabold ${countdown.isFinished ? 'text-red-600' : 'text-indigo-600'}`}>
+                                    {countdown.isFinished ? 'ENDED' : countdown.time}
+                                </span>
+                            </div>
+                        </div>
+
+                        {/* Current Bid Details (Unmodified) */}
+                        <div className="mt-4 p-4 bg-gray-50 rounded-lg border">
+                            <div className="flex justify-between items-end">
+                                <div>
+                                    <p className="text-sm text-gray-600">Current Bid</p>
+                                    <p className="text-3xl font-extrabold text-indigo-700">
+                                        {displayPrice.toLocaleString('vi-VN')} VND
+                                    </p>
+                                </div>
+                                <div className="text-right">
+                                    <p className="text-sm font-medium text-gray-500">{auction.totalBids || 0} Bids</p>
+                                    <Tag color="blue" className="mt-1">
+                                        Step: {PRICE_STEP.toLocaleString('vi-VN')} VND
+                                    </Tag>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* --- Bidding Input & Button --- */}
+                        <div className="mt-6">
+                            <p className="font-semibold mb-2 flex justify-between items-center">
+                                Your Bid 
+                                <span className="text-xs text-gray-500 font-normal">Min: {getMinBid().toLocaleString('vi-VN')} VND</span>
+                            </p>
+                            <p className="mt-2 text-sm text-gray-700 font-medium">
+                                Your Wallet Balance: 
+                                <span className="font-bold text-indigo-600 ml-1">
+                                    {walletBalance.toLocaleString('vi-VN')} VND
+                                </span>
+                            </p>
+                            <Space.Compact style={{ width: '100%' }}>
+                                <InputNumber
+                                    size="large"
+                                    // 💡 FIX 4: Use value={bidAmount} - if bidAmount is null, InputNumber handles it gracefully
+                                    value={bidAmount} 
+                                    onChange={setBidAmount}
+                                    min={getMinBid()}
+                                    step={PRICE_STEP}
+                                    formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                                    parser={(value) => value ? parseInt(value.replace(/\D/g, '')) : 0}
+                                    addonAfter="VND"
+                                    disabled={bidDisabled}
+                                    style={{ width: '100%' }}
+                                />
+                                <Button 
+                                    type="primary" 
+                                    size="large" 
+                                    className="bg-indigo-600 hover:bg-indigo-700" 
+                                    style={{ width: '120px', flexShrink: 0 }}
+                                    onClick={handlePlaceBid}
+                                    loading={isBidding}
+                                    disabled={bidDisabled}
+                                >
+                                    {isOngoing ? "Place Bid" : "Ended"}
+                                </Button>
+                            </Space.Compact>
+                            <p className="text-xs text-gray-500 mt-2">
+                                Next minimum bid: {getMinBid().toLocaleString('vi-VN')} VND
+                            </p>
+                        </div>
+                    </Card>
+
+                    {/* Seller Profile and Bid History (Unmodified) */}
+                    {sellerProfile && (
+                        <Card className="shadow-md p-6">
+                            <h2 className="text-xl font-bold mb-4 flex items-center gap-2 text-gray-800"><FiUser /> Seller Information</h2>
+                            <div className="flex items-center gap-4">
+                                <img 
+                                    className="w-16 h-16 rounded-full object-cover ring-2 ring-indigo-500 p-0.5" 
+                                    src={sellerProfile.avatar || 'https://i.pinimg.com/736x/b6/10/ae/b610ae5879e2916e1bb7c4c161754f4d.jpg'}
+                                    alt={sellerProfile.fullName}
+                                />
+                                <div className="flex-1">
+                                    <p className="font-bold text-lg">{sellerProfile.fullName}</p>
+                                    <p className="text-sm text-gray-500 flex items-center gap-1"><FiCheckCircle className='text-green-500'/> Verified Seller</p>
+                                </div>
+                                <button className="border border-indigo-600 text-indigo-600 font-semibold py-2 px-4 rounded-lg hover:bg-indigo-50 transition-colors flex-shrink-0">
+                                    View Profile
+                                </button>
+                            </div>
+                            <div className="flex flex-row gap-3 mt-4 pt-4 border-t border-gray-100">
+                                <button className="flex-1 bg-blue-500 text-white font-bold py-2 rounded-lg flex items-center justify-center gap-2 hover:bg-blue-600 transition-colors text-sm">
+                                    <FiMessageSquare /> Chat
+                                </button>
+                                <button
+                                    onClick={() => setIsPhoneVisible(!isPhoneVisible)}
+                                    className="flex-1 bg-green-500 text-white font-bold py-2 rounded-lg flex items-center justify-center gap-2 hover:bg-green-600 transition-colors text-sm"
+                                >
+                                    <FiPhone />
+                                    {isPhoneVisible ? (sellerProfile?.phone || 'N/A') : 'Show Phone'}
+                                </button>
+                            </div>
+                        </Card>
+                    )}
+
+                    <Card className="shadow-lg">
+                        <h3 className="text-xl font-bold border-b pb-2 mb-4 flex items-center gap-2 text-gray-800"><FiTrendingUp /> Bid History</h3>
+                        <List
+                            itemLayout="horizontal"
+                            size="small"
+                            dataSource={auction.bidHistory}
+                            locale={{ emptyText: "No bids placed yet." }}
+                            renderItem={(bid, index) => (
+                                <List.Item>
+                                    <List.Item.Meta
+                                        avatar={<Avatar icon={<FiUser />} className="bg-gray-200 text-gray-600"/>}
+                                        title={<span className="font-semibold">{bid.bidder || 'Unknown User'}</span>}
+                                        description={<span className="text-xs text-gray-500">{new Date(bid.timestamp).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>}
+                                    />
+                                    <div className="text-right">
+                                        <span className={`font-bold text-lg ${index === 0 ? 'text-indigo-600' : 'text-gray-800'}`}>
+                                            {bid.bidAmount.toLocaleString('vi-VN')} VND
+                                        </span>
+                                    </div>
+                                </List.Item>
+                            )}
+                        />
+                    </Card>
                 </div>
             </div>
-
-             <div className="mt-8">
-             <h3 className="text-xl font-bold border-b pb-2 mb-4 flex items-center gap-2"><FiTrendingUp /> Bid History</h3>
-             <ul className="space-y-3 max-h-48 overflow-y-auto">
-                 {auction.bidHistory.map((bid, index) => (
-                    <li key={index} className="flex justify-between items-center bg-gray-50 p-3 rounded-md">
-                        <div className="flex items-center gap-3">
-                           <FiUser className="text-gray-400"/>
-                           <p className="font-semibold">{bid.bidder}</p>
-                        </div>
-                        <p className="font-bold text-gray-800">{bid.bidAmount.toLocaleString('vi-VN')} VND</p>
-                    </li>
-                 ))}
-             </ul>
-          </div>
         </div>
-      </div>
-    </div>
-  );
+    );
 }
 
 export default AuctionDetailPage;

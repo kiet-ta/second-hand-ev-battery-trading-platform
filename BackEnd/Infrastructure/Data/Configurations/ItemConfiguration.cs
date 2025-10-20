@@ -45,14 +45,35 @@ namespace Infrastructure.Data.Configurations
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnName("updated_at");
             entity.Property(e => e.UpdatedBy).HasColumnName("updated_by");
+            entity.Property(e => e.Moderation)
+                .HasDefaultValue("reject_tag")
+                .HasColumnName("moderation");
 
             entity.HasOne<Category>().WithMany()
                 .HasForeignKey(d => d.CategoryId)
                 .HasConstraintName("FK__items__category___3F466844");
 
-            //entity.HasOne(d => d.UpdatedByNavigation).WithMany(p => p.Items)
-            //    .HasForeignKey(d => d.UpdatedBy)
-            //    .HasConstraintName("FK__items__updated_b__403A8C7D");
+            entity.HasOne<User>()                  // UpdatedBy → User, Relationship: Item updated_by -> Users (many items can be updated by one user)
+                   .WithMany()
+                   .HasForeignKey(i => i.UpdatedBy)
+                   .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne<EVDetail>()              // Item ↔ EVDetail (1-1)
+                   .WithOne()
+                   .HasForeignKey<EVDetail>(ev => ev.ItemId)
+                   .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne<BatteryDetail>()         // Item ↔ BatteryDetail (1-1)
+                   .WithOne()
+                   .HasForeignKey<BatteryDetail>(b => b.ItemId)
+                   .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasMany<Review>()
+                  .WithOne()
+                  .HasForeignKey(r => r.ItemId)
+                  .OnDelete(DeleteBehavior.Cascade);
+
+
         }
     }
 }

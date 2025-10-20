@@ -1,7 +1,10 @@
 ﻿using Application.DTOs.AuthenticationDtos;
+using Application.DTOs.UserDtos;
 using Application.IServices;
+using Application.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace PresentationLayer.Controllers
 {
@@ -20,30 +23,16 @@ namespace PresentationLayer.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> Register([FromBody] RegisterDto dto)
         {
-            try
-            {
-                var result = await _authService.RegisterAsync(dto);
-                return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
+            var result = await _authService.RegisterAsync(dto);
+            return Ok(result);
         }
 
         [HttpPost("login")]
         [AllowAnonymous]
         public async Task<IActionResult> Login([FromBody] LoginDto dto)
         {
-            try
-            {
-                var result = await _authService.LoginAsync(dto);
-                return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                return Unauthorized(new { message = ex.Message });
-            }
+            var result = await _authService.LoginAsync(dto);
+            return Ok(result);
         }
 
         [HttpPost("google")]
@@ -53,15 +42,8 @@ namespace PresentationLayer.Controllers
             if (string.IsNullOrWhiteSpace(dto.Credential))
                 return BadRequest("Missing Google ID Token");
 
-            try
-            {
-                var result = await _authService.LoginWithGoogleAsync(dto.Credential);
-                return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                return Unauthorized(new { message = ex.Message });
-            }
+            var result = await _authService.LoginWithGoogleAsync(dto.Credential);
+            return Ok(result);
         }
 
         [HttpGet("profile")]
@@ -74,6 +56,15 @@ namespace PresentationLayer.Controllers
                 Email = User.FindFirst("email")?.Value,
                 Role = User.FindFirst("role")?.Value
             });
+        }
+
+        [HttpPut("change-password")]
+        public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequestDto request)
+        {
+            // Get userId from JWT claim or session
+            int userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+            await _authService.ChangePasswordAsync(userId, request);
+            return Ok(new { message = "Password changed successfully." });
         }
     }
 }

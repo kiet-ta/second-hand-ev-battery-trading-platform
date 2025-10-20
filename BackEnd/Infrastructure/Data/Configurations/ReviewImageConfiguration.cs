@@ -22,6 +22,11 @@ namespace Infrastructure.Data.Configurations
                 .HasMaxLength(500)
                 .HasColumnName("image_url");
             entity.Property(e => e.ReviewId).HasColumnName("review_id");
+//             entity.Property(e => e.ImageUrl).HasColumnName("image_url");
+            entity.HasOne<ReviewImage>()
+             .WithMany()
+             .HasForeignKey(img => img.ReviewId)
+             .OnDelete(DeleteBehavior.Cascade);
 
             entity.HasOne<Review>().WithMany()
                 .HasForeignKey(d => d.ReviewId)

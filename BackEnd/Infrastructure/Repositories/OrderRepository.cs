@@ -144,5 +144,20 @@ namespace Infrastructure.Repositories
             await _context.SaveChangesAsync();
             return order;
         }
+
+        public async Task<decimal> GetRevenueThisMonthAsync(DateTime now)
+        {
+            return await _context.Payments
+                .Where(o => o.CreatedAt.Month == now.Month && o.CreatedAt.Year == now.Year && o.Status == "completed")
+                .SumAsync(o => (decimal?)o.TotalAmount) ?? 0;
+        }
+
+        public async Task<IEnumerable<Order>> GetOrdersWithinRangeAsync(DateTime startDate, DateTime endDate)
+        {
+            return await _context.Orders
+                .AsNoTracking()
+                .Where(o => o.Status == "completed" && o.CreatedAt >= startDate && o.CreatedAt <= endDate)
+                .ToListAsync();
+        }
     }
 }

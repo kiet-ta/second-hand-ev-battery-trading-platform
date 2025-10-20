@@ -8,7 +8,7 @@ public class Auction
 
     public decimal StartingPrice { get; set; }
 
-    public decimal CurrentPrice { get; set; }
+    public decimal? CurrentPrice { get; set; }
 
     public int TotalBids { get; set; } = 0;
 
@@ -16,7 +16,7 @@ public class Auction
 
     public DateTime EndTime { get; set; }
 
-    public string Status { get; set; } = "upcoming"; // upcoming, ongoing, ended, cancelled
+    public string Status { get; set; } = String.Empty; // upcoming, ongoing, ended, cancelled
 
     public DateTime CreatedAt { get; set; } = DateTime.Now;
 

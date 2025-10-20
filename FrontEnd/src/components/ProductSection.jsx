@@ -1,5 +1,5 @@
 import React from 'react';
-import CardComponent from './Cards/Card'; // Adjust path if needed
+import CardComponent from './Cards/Card'; // Assuming correct path
 
 // A simple skeleton loader to show while cards are loading
 const CardSkeleton = () => (
@@ -17,19 +17,20 @@ const ProductSection = ({ title, items = [], loading = false, itemsToLoad = 4 })
         {title}
       </h2>
       <div className="Products grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 p-4">
-        {loading 
+        {loading
           ? Array.from({ length: itemsToLoad }).map((_, index) => <CardSkeleton key={index} />)
-          : items.map((item) => (
-              <CardComponent
-                key={item.itemId}
-                id={item.itemId}
-                title={item.title}
-                type={item.itemType}
-                price={item.price}
-                sales={0} // Replace with actual sales data if available
-                image={item.image || "https://i.pinimg.com/1200x/555306/43312e136a9fa2a576d6fcfbd0.jpg"} // Use item's image with a fallback
-              />
-            ))
+          : items.map((item, index) => (
+            <CardComponent
+              key={index}
+              id={item.itemId}
+              title={item.title}
+              type={item.itemType}
+              price={item.price}
+              sales={0} // Replace with actual sales data if available
+
+              itemImages={item.images || "https://i.pinimg.com/1200x/555306/43312e136a9fa2a576d6fcfbd0.jpg"} // Use item's image with a fallback
+              isVerified={item.moderation === 'approved_tag'} />
+          ))
         }
       </div>
     </div>

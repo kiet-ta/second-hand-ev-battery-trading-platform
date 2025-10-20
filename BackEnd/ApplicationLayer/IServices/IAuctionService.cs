@@ -1,4 +1,5 @@
 using Application.DTOs.AuctionDtos;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Application.IServices;
 
@@ -10,11 +11,15 @@ public interface IAuctionService
 
     Task<CreateAuctionResponse> CreateAuctionAsync(CreateAuctionRequest request);
 
-    Task<bool> PlaceBidAsync(int auctionId, int userId, decimal bidAmount);
+    Task PlaceBidAsync(int auctionId, int userId, decimal bidAmount);
 
     Task UpdateAuctionStatusesAsync();
 
     Task<AuctionStatusDto> GetAuctionStatusAsync(int auctionId);
 
     Task<AuctionListResponse> GetAllAuctionsAsync(int page, int pageSize);
+
+    Task<IEnumerable<AuctionDto>> GetAuctionsByUserId(int userId);
+
+    Task<AuctionDto?> GetAuctionByItemIdAsync(int itemId);
 }

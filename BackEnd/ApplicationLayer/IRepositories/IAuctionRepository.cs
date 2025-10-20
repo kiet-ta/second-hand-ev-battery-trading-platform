@@ -26,4 +26,6 @@ public interface IAuctionRepository
     Task<List<AuctionDto>> GetAllAsync(int page, int pageSize);
 
     Task<int> GetTotalCountAsync();
+
+    Task<IEnumerable<Auction>> GetAuctionsByUserIdAsync(int userId);
 }

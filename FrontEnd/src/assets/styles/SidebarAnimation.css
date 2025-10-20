@@ -1,0 +1,57 @@
+.sidebar-button {
+    position: relative;
+    overflow: hidden;
+    transition: color 0.3s ease, border-color 0.3s ease;
+}
+
+.sidebar-button::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, #2563eb, #1e40af);
+    opacity: 0;
+    border-radius: 0.75rem;
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: all 0.35s ease;
+    z-index: 0;
+}
+
+.sidebar-button.active::before {
+    opacity: 1;
+    transform: scaleX(1);
+    animation: pulseBg 1.2s ease-in-out;
+}
+
+.sidebar-button span,
+.sidebar-button svg {
+    position: relative;
+    z-index: 1;
+    transition: color 0.35s ease;
+}
+
+.sidebar-button.active span,
+.sidebar-button.active svg {
+    color: white !important;
+}
+
+@keyframes pulseBg {
+    0% {
+        opacity: 0.85;
+        transform: scaleX(1);
+    }
+
+    50% {
+        opacity: 1;
+    }
+
+    100% {
+        opacity: 0.9;
+        transform: scaleX(1);
+    }
+}
+
+/* Optional: dark-mode hỗ trợ */
+body.dark-mode .sidebar-button::before {
+    background: linear-gradient(135deg, #7dd3fc, #3b82f6);
+}

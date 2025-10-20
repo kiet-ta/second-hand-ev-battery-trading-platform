@@ -25,5 +25,10 @@ namespace Application.IServices
         Task DeleteUserAsync(int id);
 
         Task<string?> GetAvatarAsync(int userId);
+
+        Task<bool> ChangePasswordAsync(int userId, ChangePasswordRequestDto request);
+
+        Task<PagedResultUser<UserListResponseDto>> GetAllUsersAsync(int page, int pageSize);
+
     }
 }

@@ -61,5 +61,17 @@ namespace Infrastructure.Repositories
             _context.OrderItems.UpdateRange(orderItems);
             await _context.SaveChangesAsync();
         }
+
+        public async Task<OrderItem?> GetByIdAsync(int id)
+        {
+            return await _context.OrderItems
+                .FirstOrDefaultAsync(o => o.OrderItemId == id && !o.IsDeleted);
+        }
+
+        public async Task UpdateAsync(OrderItem entity)
+        {
+            _context.OrderItems.Update(entity);
+            await _context.SaveChangesAsync();
+        }
     }
 }

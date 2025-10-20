@@ -32,7 +32,7 @@ namespace PresentationLayer.Controllers
                 District = dto.District,
                 Province = dto.Province,
                 IsDefault = dto.IsDefault,
-                CreatedAt = DateOnly.FromDateTime(DateTime.Now),
+                CreatedAt = DateTime.Now,
                 IsDeleted = false
             };
 

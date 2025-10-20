@@ -20,6 +20,10 @@ namespace Application.IRepositories
 
         Task UpdateAvatarAsync(int userId, string avatarUrl);
 
+        Task<int> CountAsync();
+        Task<double> GetMonthlyGrowthAsync();
+        Task<(IEnumerable<User> Users, int TotalCount)> GetAllPagedAsync(int page, int pageSize);
+
         Task SaveChangesAsync();
     }
 }

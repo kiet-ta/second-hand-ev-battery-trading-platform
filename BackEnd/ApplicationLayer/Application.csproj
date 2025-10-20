@@ -9,9 +9,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="Mappings\**" />
-    <EmbeddedResource Remove="Mappings\**" />
-    <None Remove="Mappings\**" />
+    <Compile Remove="Resources\**" />
+    <EmbeddedResource Remove="Resources\**" />
+    <None Remove="Resources\**" />
   </ItemGroup>
 
   <ItemGroup>

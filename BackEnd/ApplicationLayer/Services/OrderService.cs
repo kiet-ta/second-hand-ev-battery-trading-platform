@@ -83,7 +83,7 @@ namespace Application.Services
             if (order == null) return false;
 
             order.Status = dto.Status;
-            order.UpdatedAt = null; // DateTime.Now;
+            order.UpdatedAt = DateTime.Now;
             await _orderRepository.UpdateAsync(order);
             return true;
         }

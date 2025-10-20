@@ -42,6 +42,9 @@ namespace Infrastructure.Data.Configurations
             entity.Property(e => e.Ward)
                 .HasMaxLength(100)
                 .HasColumnName("ward");
+            entity.Property(e => e.IsShopAddress)
+                .HasDefaultValue(false)
+                .HasColumnName("is_shop_address");
 
             entity.HasOne<User>().WithMany()
                 .HasForeignKey(d => d.UserId)

@@ -17,7 +17,7 @@ public class Item
 
     public decimal? Price { get; set; }
 
-    public int? Quantity { get; set; }
+    public int Quantity { get; set; }
 
     public string? Status { get; set; }
 
@@ -26,6 +26,8 @@ public class Item
     public DateTime UpdatedAt { get; set; }
 
     public int? UpdatedBy { get; set; }
+
+    public string? Moderation { get; set; }
 
     public bool IsDeleted { get; set; }
 }

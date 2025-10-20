@@ -59,6 +59,11 @@ namespace Infrastructure.Data.Configurations
             entity.Property(e => e.YearOfBirth)
                 .HasDefaultValueSql("(NULL)")
                 .HasColumnName("year_of_birth");
+            entity.Property(e => e.Bio)
+                .HasColumnName("bio");
+            entity.Property(e => e.Paid)
+                .HasDefaultValue("pending")
+                .HasColumnName("paid");
         }
     }
 }

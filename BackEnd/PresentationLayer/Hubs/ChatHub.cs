@@ -65,7 +65,7 @@ namespace PresentationLayer.Hubs
                 // Persist message và nhận về message đã được tạo
                 var savedMessage = await _chatService.SendMessageAsync(dto);
 
-                // Tạo DTO để broadcast
+                // Create DTO to broadcast
                 var msgDto = new MessageDto(
                     savedMessage.Id,
                     savedMessage.From,
@@ -74,9 +74,9 @@ namespace PresentationLayer.Hubs
                     savedMessage.CreatedAt
                 );
 
-                // Broadcast đến cả 2 users
-                await Clients.Group($"u:{to}").SendAsync("ReceiveMessage", cid, msgDto);
-                await Clients.Group($"u:{from}").SendAsync("ReceiveMessage", cid, msgDto);
+                // Broadcast to 2 users
+                await Clients.Group($"u:{to}").SendAsync("receivemessage", cid, msgDto);
+                await Clients.Group($"u:{from}").SendAsync("receivemessage", cid, msgDto);
 
                 Console.WriteLine($"Message {savedMessage.Id} broadcasted successfully");
             }
@@ -112,7 +112,7 @@ namespace PresentationLayer.Hubs
                 if (room == null)
                     throw new HubException($"Room {cid} not found");
 
-                // Verify user là member của room
+                // Verify user is member of room
                 if (!room.Members.Contains(userId))
                     throw new HubException("You are not a member of this room");
 

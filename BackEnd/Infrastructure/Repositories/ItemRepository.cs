@@ -1,4 +1,6 @@
 ﻿using Application.DTOs.ItemDtos;
+using Application.DTOs.ItemDtos.BatteryDto;
+using Application.DTOs.UserDtos;
 using Application.IRepositories;
 using Domain.Entities;
 using Infrastructure.Data;
@@ -38,7 +40,7 @@ namespace Infrastructure.Repositories
                             Title = i.Title,
                             Description = i.Description,
                             Price = i.Price,
-                            Quantity = i.Quantity ?? 0,
+                            Quantity = i.Quantity,
                             CreatedAt = i.CreatedAt,
                             UpdatedAt = i.UpdatedAt,
                             //Images = imj.Select(im => new ItemImageDto
@@ -113,7 +115,7 @@ namespace Infrastructure.Repositories
                         join im in _context.ItemImages
                             on i.ItemId equals im.ItemId into imj
                         from itemImage in imj.DefaultIfEmpty()
-                        join ev in _context.EvDetails
+                        join ev in _context.EVDetails
                             on i.ItemId equals ev.ItemId into evj
                         from evDetail in evj.DefaultIfEmpty()
                         join bat in _context.BatteryDetails
@@ -127,11 +129,18 @@ namespace Infrastructure.Repositories
                             CategoryId = i.CategoryId,
                             Description = i.Description,
                             Price = i.Price,
+                    //Moderation = item.Moderation,
                             Quantity = i.Quantity,
                             CreatedAt = i.CreatedAt,
                             UpdatedAt = i.UpdatedAt,
                             UpdatedBy = i.UpdatedBy,
-                            ItemImage = itemImage,
+                            ItemImage = _context.ItemImages
+                            .Where(img => img.ItemId == i.ItemId)
+                            .Select(img => new ItemImageDto
+                            {
+                                ImageId = img.ImageId,
+                                ImageUrl = img.ImageUrl
+                            }).ToList(),
                             EVDetail = evDetail,
                             BatteryDetail = batDetail
                         };
@@ -146,7 +155,7 @@ namespace Infrastructure.Repositories
                         join im in _context.ItemImages
                             on i.ItemId equals im.ItemId into imj
                         from itemImage in imj.DefaultIfEmpty()
-                        join ev in _context.EvDetails
+                        join ev in _context.EVDetails
                             on i.ItemId equals ev.ItemId into evj
                         from evDetail in evj.DefaultIfEmpty()
                         join bat in _context.BatteryDetails
@@ -161,10 +170,17 @@ namespace Infrastructure.Repositories
                             Description = i.Description,
                             Price = i.Price,
                             Quantity = i.Quantity,
+                    //Moderation = item.Moderation,
                             CreatedAt = i.CreatedAt,
                             UpdatedAt = i.UpdatedAt,
                             UpdatedBy = i.UpdatedBy,
-                            ItemImage = itemImage,
+                            ItemImage = _context.ItemImages
+                            .Where(img => img.ItemId == i.ItemId)
+                            .Select(img => new ItemImageDto
+                            {
+                                ImageId = img.ImageId,
+                                ImageUrl = img.ImageUrl
+                            }).ToList(),
                             EVDetail = evDetail,
                             BatteryDetail = batDetail
                         };
@@ -189,7 +205,7 @@ namespace Infrastructure.Repositories
             // build result detail (join EV & Battery)
             var result = await (from q in query
                                     // left join EV_Detail
-                                join ev in _context.EvDetails
+                                join ev in _context.EVDetails
                                     on q.item.ItemId equals ev.ItemId into evJoin
                                 from ev in evJoin.DefaultIfEmpty()
                                     // left join Battery_Detail
@@ -258,6 +274,149 @@ namespace Infrastructure.Repositories
             return await _context.ItemImages
                 .Where(x => x.ItemId == itemId)
                 .ToListAsync();
+        }
+
+        public async Task<IEnumerable<Item>> GetBySellerIdAsync(int sellerId)
+        {
+            return await _context.Items
+                .Where(i => i.UpdatedBy == sellerId
+                            && !i.IsDeleted
+                            && i.Status == "active")
+                .AsNoTracking()
+                .ToListAsync();
+        }
+
+        public async Task<int> GetTotalProductsAsync(int sellerId)
+        {
+            return await _context.Items
+                .CountAsync(i => i.UpdatedBy == sellerId
+                                 && !i.IsDeleted
+                                 && i.Status == "active");
+        }
+
+        public async Task<IEnumerable<ItemSellerDto>> GetItemsBySellerIdAsync(int sellerId)
+        {
+            var query = from i in _context.Items
+                        join c in _context.Categories on i.CategoryId equals c.CategoryId
+                        join img in _context.ItemImages on i.ItemId equals img.ItemId into imgGroup
+                        where !i.IsDeleted
+                              && i.Status == "active"
+                              && i.UpdatedBy == sellerId
+                        select new ItemSellerDto
+                        {
+                            ItemId = i.ItemId,
+                            Title = i.Title,
+                            Description = i.Description,
+                            Price = i.Price,
+                            Quantity = i.Quantity,
+                            Status = i.Status,
+                            CreatedAt = i.CreatedAt,
+                            UpdatedAt = i.UpdatedAt,
+                            CategoryName = c.Name,
+                            Images = imgGroup.Select(img => new ItemImageDto
+                            {
+                                ImageId = img.ImageId,
+                                ImageUrl = img.ImageUrl
+                            }).ToList()
+                        };
+
+            return await query.ToListAsync();
+        }
+
+        public async Task<int> CountActiveAsync()
+        {
+            return await _context.Items
+                .CountAsync(i => i.Status == "active" && i.IsDeleted == false);
+        }
+
+        public async Task<IEnumerable<(string ItemType, int Count)>> GetItemTypeCountsAsync()
+        {
+            var result = await _context.Items
+                .Where(i => !i.IsDeleted)
+                .GroupBy(i => i.ItemType)
+                .Select(g => new { ItemType = g.Key, Count = g.Count() })
+                .ToListAsync();
+
+            return result.Select(r => (r.ItemType, r.Count));
+        }
+
+        public async Task<UserItemDetailDto?> GetItemWithSellerByItemIdAsync(int itemId)
+        {
+            var query =
+                from i in _context.Items
+                where i.ItemId == itemId && !i.IsDeleted
+                join u in _context.Users on i.UpdatedBy equals u.UserId
+                select new UserItemDetailDto
+                {
+                    Seller = new UserDto
+                    {
+                        UserId = u.UserId,
+                        FullName = u.FullName,
+                        Email = u.Email,
+                        Phone = u.Phone,
+                        AvatarProfile = u.AvatarProfile,
+                        Bio = u.Bio
+                    },
+
+                    Item = new ItemDto
+                    {
+                        ItemId = i.ItemId,
+                        ItemType = i.ItemType,
+                        CategoryId = i.CategoryId,
+                        Title = i.Title,
+                        Description = i.Description,
+                        Price = i.Price,
+                        Quantity = i.Quantity,
+                        CreatedAt = i.CreatedAt,
+                        UpdatedAt = i.UpdatedAt,
+                        UpdatedBy = i.UpdatedBy,
+                        Images = _context.ItemImages
+                            .Where(img => img.ItemId == i.ItemId)
+                            .Select(img => new ItemImageDto
+                            {
+                                ImageId = img.ImageId,
+                                ImageUrl = img.ImageUrl
+                            }).ToList()
+                    },
+
+                    EVDetail = (from ev in _context.EVDetails
+                                where ev.ItemId == i.ItemId
+                                select new EVDetailDto
+                                {
+                                    ItemId = ev.ItemId,
+                                    Brand = ev.Brand,
+                                    Model = ev.Model,
+                                    Version = ev.Version,
+                                    Year = ev.Year,
+                                    BodyStyle = ev.BodyStyle,
+                                    Color = ev.Color,
+                                    LicensePlate = ev.LicensePlate,
+                                    HasAccessories = ev.HasAccessories,
+                                    PreviousOwners = ev.PreviousOwners,
+                                    IsRegistrationValid = ev.IsRegistrationValid,
+                                    Mileage = ev.Mileage,
+                                    Title = i.Title,
+                                    Price = i.Price,
+                                    Status = i.Status
+                                }).FirstOrDefault(),
+
+                    BatteryDetail = (from b in _context.BatteryDetails
+                                     where b.ItemId == i.ItemId
+                                     select new BatteryDetailDto
+                                     {
+                                         ItemId = b.ItemId,
+                                         Brand = b.Brand,
+                                         Capacity = b.Capacity,
+                                         Voltage = b.Voltage,
+                                         ChargeCycles = b.ChargeCycles,
+                                         UpdatedAt = b.UpdatedAt,
+                                         Title = i.Title,
+                                         Price = i.Price,
+                                         Status = i.Status
+                                     }).FirstOrDefault()
+                };
+
+            return await query.AsNoTracking().FirstOrDefaultAsync();
         }
     }
 }

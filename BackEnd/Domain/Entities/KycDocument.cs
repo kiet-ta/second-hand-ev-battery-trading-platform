@@ -17,7 +17,7 @@ public class KycDocument
 
     public string? DocUrl { get; set; }
 
-    public DateTime? SubmittedAt { get; set; }
+    public DateTime SubmittedAt { get; set; }
 
     public int? VerifiedBy { get; set; }
 

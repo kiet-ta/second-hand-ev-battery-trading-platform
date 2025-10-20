@@ -33,7 +33,7 @@ public class EvBatteryTradingContext : DbContext
 
     public DbSet<CommissionFeeRule> CommissionFeeRules { get; set; }
 
-    public DbSet<EVDetail> EvDetails { get; set; }
+    public DbSet<EVDetail> EVDetails { get; set; }
 
     public DbSet<Favorite> Favorites { get; set; }
 
@@ -65,6 +65,12 @@ public class EvBatteryTradingContext : DbContext
 
     public DbSet<WalletTransaction> WalletTransactions { get; set; }
     public DbSet<Notification> Notifications { get; set; }
+
+    public DbSet<Permission> Permissions { get; set; }
+
+    public DbSet<StaffPermission> StaffPermissions { get; set; }
+
+    public DbSet<Complaint> Complaints { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

@@ -150,5 +150,47 @@ namespace Application.Services
 
             return user.AvatarProfile;
         }
+
+        public async Task<bool> ChangePasswordAsync(int userId, ChangePasswordRequestDto request)
+        {
+            if (request.NewPassword != request.ConfirmPassword)
+                throw new ArgumentException("Confirmation password does not match.");
+
+            var user = await _userRepository.GetByIdAsync(userId);
+            if (user == null || user.IsDeleted)
+                throw new KeyNotFoundException("User not found.");
+
+            bool isPasswordValid = BCrypt.Net.BCrypt.Verify(request.CurrentPassword, user.PasswordHash);
+            if (!isPasswordValid)
+                throw new UnauthorizedAccessException("The current password is incorrect.");
+
+            user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
+            await _userRepository.UpdateAsync(user);
+
+            return true;
+        }
+        public async Task<PagedResultUser<UserListResponseDto>> GetAllUsersAsync(int page, int pageSize)
+        {
+            var (users, totalCount) = await _userRepository.GetAllPagedAsync(page, pageSize);
+
+            var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+
+            var mapped = users.Select(u => new UserListResponseDto
+            {
+                UserId = u.UserId,
+                FullName = u.FullName,
+                Email = u.Email,
+                Phone = u.Phone,
+                Role = u.Role,
+                AccountStatus = u.AccountStatus
+            });
+
+            return new PagedResultUser<UserListResponseDto>
+            {
+                Items = mapped,
+                TotalItems = totalCount,
+                TotalPages = totalPages
+            };
+        }
     }
 }

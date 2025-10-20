@@ -3,30 +3,41 @@ import SettingsCard from "../components/SettingCard";
 import ProfileForm from "../components/ProfileForm";
 import AddressManagement from "../pages/AddressManagement";
 import HistoryBought from "../components/HistoryBought";
+import ChatRoom from "../components/Chats/ChatRoom"
 import "../assets/styles/ProfileContent.css";
 import anhtao from "../assets/images/Logo.png";
 import { FaRegUser } from "react-icons/fa";
 import { LuClipboardList } from "react-icons/lu";
-import { IoSettingsOutline } from "react-icons/io5";
+import { IoSettingsOutline, IoChatboxOutline } from "react-icons/io5";
 import { IoMdSearch } from "react-icons/io";
 import { IoMdNotificationsOutline } from "react-icons/io";
 import { IoCartOutline } from "react-icons/io5";
 import { MdLogout } from "react-icons/md";
 import Logo from "../components/Logo";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
+import NotificationDropdown from "../components/NotificationDropdown";
+import ChangePassword from "../components/ChangePassword";
+
 
 const ProfileContent = () => {
-    const [activeSection, setActiveSection] = useState("profile");
+        const navigate = useNavigate();
+    const location = useLocation();
+
+    const initialSection = location.state?.activeSection || "profile";
+    const initialChatRoomId = location.state?.chatRoomId || null;
+    const initialReceiverId = location.state?.receiverId || null;
+
+
+    const [activeSection, setActiveSection] = useState(initialSection);
     const [activeCard, setActiveCard] = useState("account");
     const [searchQuery, setSearchQuery] = useState("");
     const [isDarkMode, setIsDarkMode] = useState(false);
-    const navigate = useNavigate();
     const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+    const userId = localStorage.getItem("userId")
     const [currentUser, setCurrentUser] = useState({
         fullName: localStorage.getItem("userName") || "Guest",
         avatarProfile: localStorage.getItem("userAvatar") || anhtao
     });
-
     useEffect(() => {
         const fetchUser = async () => {
             try {
@@ -87,10 +98,19 @@ const ProfileContent = () => {
         }
     };
 
+
+    useEffect(() => {
+        if (location.state?.activeSection === 'chat') {
+            // Replace history state to prevent immediately jumping back to chat on refresh
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
+    }, [location.state]);
+
     const menuItems = [
         { id: "profile", label: "Profile", icon: <FaRegUser /> },
         { id: "purchase", label: "My Purchase", icon: <LuClipboardList /> },
         { id: "settings", label: "Settings", icon: <IoSettingsOutline /> },
+        { id: "chat", label: "Chat", icon: <IoChatboxOutline /> }
     ];
 
     const settingsCards = [
@@ -141,15 +161,29 @@ const ProfileContent = () => {
                         <button className="search-button"><IoMdSearch /></button>
                     </div>
 
-                    <div className="header-actions">
-                        <button className="notification-btn"><IoMdNotificationsOutline /></button>
-                        <button className="cart-btn">
-                            <IoCartOutline /><span className="cart-badge">0</span>
-                        </button>
-                        <button className="logout-btn" onClick={() => setShowLogoutConfirm(true)}>
-                            <MdLogout />
+
+                    <div className="header-actions flex items-center gap-5">
+                        <div className="relative">
+                            <NotificationDropdown userId={localStorage.getItem("userId")} />
+                        </div>
+
+                        <div className="relative">
+                            <button className="relative text-gray-700 hover:text-blue-600 transition">
+                                <IoCartOutline size={24} />
+                                <span className="absolute -top-1.5 -right-2 bg-blue-500 text-white text-xs rounded-full px-1.5">
+                                    0
+                                </span>
+                            </button>
+                        </div>
+
+                        <button
+                            className="text-gray-700 hover:text-red-500 transition"
+                            onClick={() => setShowLogoutConfirm(true)}
+                        >
+                            <MdLogout size={22} />
                         </button>
                     </div>
+
                 </header>
 
                 {/* Profile Content */}
@@ -177,12 +211,7 @@ const ProfileContent = () => {
                                         <p>Coming soon...</p>
                                     </div>
                                 )}
-                                {activeCard === "security" && (
-                                    <div className="coming-soon">
-                                        <h2>Password & Security</h2>
-                                        <p>Coming soon...</p>
-                                    </div>
-                                )}
+                                {activeCard === "security" && <ChangePassword />}
                             </div>
                         </>
                     )}
@@ -191,6 +220,16 @@ const ProfileContent = () => {
                     {activeSection === "purchase" && (
                         <div className="profile-main">
                             <HistoryBought />
+                        </div>
+                    )}
+
+                    {activeSection == "chat" && (
+                        <div className="profile-main">
+                            <ChatRoom
+                                currentUserId={userId}
+                                initialRoomId={initialChatRoomId}
+                                initialReceiverId={initialReceiverId}
+                            />
                         </div>
                     )}
 

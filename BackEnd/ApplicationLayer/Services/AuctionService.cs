@@ -1,8 +1,12 @@
 using Application.DTOs.AuctionDtos;
+using Application.DTOs.ItemDtos;
 using Application.IRepositories;
 using Application.IRepositories.IBiddingRepositories;
 using Application.IServices;
+using AutoMapper.Configuration.Annotations;
 using Domain.Entities;
+using Microsoft.AspNetCore.Mvc;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace Application.Services;
 
@@ -25,7 +29,8 @@ public class AuctionService : IAuctionService
         IWalletTransactionRepository walletTransactionRepository,
         IItemRepository itemRepository,
         IEVDetailRepository eVDetailRepository,
-        IBatteryDetailRepository batteryDetailRepository)
+        IBatteryDetailRepository batteryDetailRepository,
+        IItemImageRepository itemImageRepository)
     {
         _auctionRepository = auctionRepository;
         _bidRepository = bidRepository;
@@ -34,6 +39,17 @@ public class AuctionService : IAuctionService
         _itemRepository = itemRepository;
         _eVDetailRepository = eVDetailRepository;
         _batteryDetailRepository = batteryDetailRepository;
+        _itemImageRepository = itemImageRepository;
+    }
+
+    public async Task<AuctionDto?> GetAuctionByItemIdAsync(int itemId)
+    {
+        var auction = await _auctionRepository.GetByItemIdAsync(itemId);
+        if (auction == null)
+        {
+            return null;
+        }
+        return await MapToAuctionDto(auction);
     }
 
     public async Task<AuctionListResponse> GetAuctionsAsync(int page = 1, int pageSize = 10, string? status = null)
@@ -111,26 +127,29 @@ public class AuctionService : IAuctionService
         };
     }
 
-    public async Task<bool> PlaceBidAsync(int auctionId, int userId, decimal bidAmount)
+    public async Task PlaceBidAsync(int auctionId, int userId, decimal bidAmount)
     {
         var auction = await _auctionRepository.GetByIdAsync(auctionId);
 
         // Validate auction status and time
         if (auction == null || auction.Status != "ongoing" || DateTime.Now > auction.EndTime)
         {
-            return false;
+            //throw 400
+            throw new InvalidOperationException("Auction is not active or has ended.");
         }
 
         var currentPrice = auction.CurrentPrice;
         if (bidAmount <= currentPrice)
         {
-            return false;
+            //throw 400
+            throw new ArgumentException("Bid amount must be higher than the current price.");
         }
 
         var wallet = await _walletRepository.GetWalletByUserIdAsync(userId);
         if (wallet == null || wallet.Balance < bidAmount)
         {
-            return false;
+            //throw 400
+            throw new InvalidOperationException("User wallet not found or insufficient funds.");
         }
 
         // Deduct bid amount from user wallet
@@ -156,8 +175,6 @@ public class AuctionService : IAuctionService
         auction.CurrentPrice = bidAmount;
         await _auctionRepository.UpdateCurrentPriceAsync(auction);
         await _auctionRepository.UpdateTotalBidsAsync(auctionId);
-
-        return true;
     }
 
     public async Task UpdateAuctionStatusesAsync()
@@ -187,18 +204,8 @@ public class AuctionService : IAuctionService
     {
         var item = await _itemRepository.GetByIdAsync(auction.ItemId);
         if (item == null) return null;
+        var image = await _itemImageRepository.GetByItemIdAsync(item.ItemId);
 
-        Category? category = null;
-        if (item.CategoryId.HasValue)
-        {
-            category = await _categoryRepository.GetCategoryByIdAsync(item.CategoryId.Value);
-        }
-
-        ItemImage? image = null;
-        if (category != null && category.CategoryId == auction.ItemId)
-        {
-            image = await _itemImageRepository.GetItemImageById(auction.ItemId);
-        }
         var auctionDto = new AuctionDto
         {
             AuctionId = auction.AuctionId,
@@ -211,7 +218,11 @@ public class AuctionService : IAuctionService
             StartTime = auction.StartTime,
             EndTime = auction.EndTime,
             Status = auction.Status.ToUpper(),
-            ImageUrl = image?.ImageUrl
+            Images = image.Select(img => new ItemImageDto
+            {
+                ImageId = img.ImageId,
+                ImageUrl = img.ImageUrl
+            }).ToList()
         };
 
         // Get specific details based on item type
@@ -229,7 +240,7 @@ public class AuctionService : IAuctionService
                 var batteryDetail = await _batteryDetailRepository.GetByIdAsync(auction.ItemId);
                 if (batteryDetail != null)
                 {
-                    auctionDto.Title = $"{item.Title}"; // giữ nguyên tên item
+                    auctionDto.Title = $"{item.Title}";
                 }
                 break;
 
@@ -240,11 +251,11 @@ public class AuctionService : IAuctionService
         return auctionDto;
     }
 
-    public async Task<AuctionStatusDto?> GetAuctionStatusAsync(int auctionId)
+    public async Task<AuctionStatusDto> GetAuctionStatusAsync(int auctionId)
     {
         var auction = await _auctionRepository.GetByIdAsync(auctionId);
         if (auction == null)
-            return null;
+            throw new KeyNotFoundException("Auction not found."); //404
 
         var now = DateTime.Now;
         string status;
@@ -289,5 +300,20 @@ public class AuctionService : IAuctionService
                 PageSize = pageSize
             }
         };
+    }
+
+    public async Task<IEnumerable<AuctionDto>> GetAuctionsByUserId(int userId)
+    {
+        var auctions = await _auctionRepository.GetAuctionsByUserIdAsync(userId);
+        var auctionDtos = new List<AuctionDto>();
+        foreach (var auc in auctions)
+        {
+            var auctionDto = await MapToAuctionDto(auc);
+            if (auctionDto != null)
+            {
+                auctionDtos.Add(auctionDto);
+            }
+        }
+        return auctionDtos;
     }
 }
