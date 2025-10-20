@@ -178,7 +178,7 @@ export default function LoginPage() {
         <div className="login-container">
             {/* Header */}
             <header className="bg-maincolor">
-          <div className="w-1/4 h-full flex justify-start"><Logo></Logo></div>
+                <div className="w-1/4 h-full flex justify-start"><Logo></Logo></div>
             </header>
 
             {/* Nội dung chính: banner + form */}
@@ -206,7 +206,7 @@ export default function LoginPage() {
                                     <p className='header-login'>Sign In</p>
                                     <input
                                         type="text"
-                                        placeholder="Phone number / Username / Email"
+                                        placeholder="Email"
                                         value={email}
                                         onChange={(e) => setEmail(e.target.value)}
                                         className="login-input"

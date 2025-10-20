@@ -36,16 +36,16 @@ public class AuctionController : ControllerBase
         return Ok(auctionDto);
     }
 
-    [HttpPost("{auctionId}/bid")]
-    public async Task<IActionResult> PlaceBid(int auctionId, [FromBody] PlaceBidRequestDto request)
-    {
-        var result = await _auctionService.PlaceBidAsync(auctionId, request.UserId, request.BidAmount);
-        if (result)
-        {
-            return Ok(new { message = "Bid placed successfully." });
-        }
-        return BadRequest(new { message = "Failed to place bid. Check bidding status, amount, and wallet balance." });
-    }
+    //[HttpPost("{auctionId}/bid")]
+    //public async Task<IActionResult> PlaceBid(int auctionId, [FromBody] PlaceBidRequestDto request)
+    //{
+    //    var result = await _auctionService.PlaceBidAsync(auctionId, request.UserId, request.BidAmount);
+    //    if (result)
+    //    {
+    //        return Ok(new { message = "Bid placed successfully." });
+    //    }
+    //    return BadRequest(new { message = "Failed to place bid. Check bidding status, amount, and wallet balance." });
+    //}
 
     [HttpGet("{auctionId}/status")]
     public async Task<IActionResult> GetAuctionStatus(int auctionId)

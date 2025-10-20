@@ -3,7 +3,7 @@ using Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace API.Controllers
+namespace PresentationLayer.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]   

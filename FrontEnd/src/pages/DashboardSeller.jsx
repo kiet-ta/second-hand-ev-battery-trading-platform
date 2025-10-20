@@ -36,9 +36,19 @@ export default function SellerDashboard() {
     const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
     const [error, setError] = useState(null);
+    const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
     const sellerId = localStorage.getItem("userId") || 2;
     const token = localStorage.getItem("token");
+
+    const handleLogoutConfirm = () => {
+        localStorage.clear();
+        window.location.href = "/login";
+    };
+
+    const handleCancelLogout = () => {
+        setShowLogoutConfirm(false);
+    };
 
     useEffect(() => {
         const fetchDashboard = async () => {
@@ -66,10 +76,7 @@ export default function SellerDashboard() {
         fetchDashboard();
     }, [sellerId, token]);
 
-    const handleLogout = () => {
-        localStorage.clear();
-        navigate("/login");
-    };
+
 
 
     const menuItems = [
@@ -118,7 +125,7 @@ export default function SellerDashboard() {
 
                 <div className="p-4 border-t border-gray-200">
                     <button
-                        onClick={handleLogout}
+                        onClick={() => setShowLogoutConfirm(true)}
                         className="w-full flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-red-50 transition"
                     >
                         <IoLogOutOutline size={20} />
@@ -132,243 +139,250 @@ export default function SellerDashboard() {
                 {activeMenu === "history" ? (
                     <HistorySold />
                 ) : activeMenu == "orders" ? (
-                    <MyProduct/>
-                ): activeMenu == "messages" ?
-                (
-                    <NewsPage/>
-                ) : activeMenu === "bidding" ? (
-                    <SellerAuctionListPage />
-                ) : (
-                    <div className="p-8">
-                        {/* Header with Avatar */}
-                        <div className="flex justify-end mb-8">
-                            <div className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center">
-                                <User size={20} className="text-gray-600" />
+                    <MyProduct />
+                ) : activeMenu == "messages" ?
+                    (
+                        <NewsPage />
+                    ) : activeMenu === "bidding" ? (
+                        <SellerAuctionListPage />
+                    ) : (
+                        <div className="p-8">
+
+                            {/* Top Stats Cards */}
+                            <div className="grid grid-cols-4 gap-6 mb-8">
+                                {/* Listings */}
+                                <div className="bg-white rounded-xl p-6 border border-gray-200">
+                                    <div className="flex items-center gap-4">
+                                        <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
+                                            <LayoutDashboard size={24} className="text-gray-600" />
+                                        </div>
+                                        <div>
+                                            <div className="text-3xl font-bold text-gray-900">
+                                                {dashboardData?.listings ?? 0}
+                                            </div>
+                                            <div className="text-sm text-gray-500">Listings</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Orders */}
+                                <div className="bg-white rounded-xl p-6 border border-gray-200">
+                                    <div className="flex items-center gap-4">
+                                        <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
+                                            <ShoppingBag size={24} className="text-gray-600" />
+                                        </div>
+                                        <div>
+                                            <div className="text-3xl font-bold text-gray-900">
+                                                {dashboardData?.orders ?? 0}
+                                            </div>
+                                            <div className="text-sm text-gray-500">Orders</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Sold */}
+                                <div className="bg-white rounded-xl p-6 border border-gray-200">
+                                    <div className="flex items-center gap-4">
+                                        <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
+                                            <CheckCircle size={24} className="text-gray-600" />
+                                        </div>
+                                        <div>
+                                            <div className="text-3xl font-bold text-gray-900">
+                                                {dashboardData?.sold ?? 0}
+                                            </div>
+                                            <div className="text-sm text-gray-500">Sold</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Revenue */}
+                                <div className="bg-white rounded-xl p-6 border border-gray-200">
+                                    <div className="flex items-center gap-4">
+                                        <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
+                                            <span className="text-xl">₫</span>
+                                        </div>
+                                        <div>
+                                            <div className="text-3xl font-bold text-gray-900">
+                                                {dashboardData?.revenue?.toLocaleString("vi-VN") ?? 0}
+                                            </div>
+                                            <div className="text-sm text-gray-500">Revenue</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Statistics Grid */}
+                            <div className="grid grid-cols-2 gap-6 mb-8">
+                                {/* Product Statistics */}
+                                <div className="bg-white rounded-xl p-6 border border-gray-200">
+                                    <h2 className="text-lg font-semibold text-gray-900 mb-6">
+                                        Product Statistics
+                                    </h2>
+
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="flex items-center gap-3">
+                                            <Car size={20} className="text-gray-600" />
+                                            <div>
+                                                <div className="text-2xl font-bold text-gray-900">
+                                                    {dashboardData?.productStatistics?.active ?? 0}
+                                                </div>
+                                                <div className="text-sm text-gray-500">Active</div>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex items-center gap-3">
+                                            <Clock size={20} className="text-gray-600" />
+                                            <div>
+                                                <div className="text-2xl font-bold text-gray-900">
+                                                    {dashboardData?.productStatistics?.pending ?? 0}
+                                                </div>
+                                                <div className="text-sm text-gray-500">Pending</div>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex items-center gap-3">
+                                            <XCircle size={20} className="text-gray-600" />
+                                            <div>
+                                                <div className="text-2xl font-bold text-gray-900">
+                                                    {dashboardData?.productStatistics?.inactive ?? 0}
+                                                </div>
+                                                <div className="text-sm text-gray-500">Inactive</div>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex items-center gap-3">
+                                            <Star size={20} className="text-gray-600" />
+                                            <div>
+                                                <div className="text-2xl font-bold text-gray-900">
+                                                    {dashboardData?.productStatistics?.featured ?? 0}
+                                                </div>
+                                                <div className="text-sm text-gray-500">Featured</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Order Statistics */}
+                                <div className="bg-white rounded-xl p-6 border border-gray-200">
+                                    <h2 className="text-lg font-semibold text-gray-900 mb-6">
+                                        Order Statistics
+                                    </h2>
+
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="flex items-center gap-3">
+                                            <ShoppingBag size={20} className="text-gray-600" />
+                                            <div>
+                                                <div className="text-2xl font-bold text-gray-900">
+                                                    {dashboardData?.orderStatistics?.new ?? 0}
+                                                </div>
+                                                <div className="text-sm text-gray-500">New</div>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex items-center gap-3">
+                                            <Clock size={20} className="text-gray-600" />
+                                            <div>
+                                                <div className="text-2xl font-bold text-gray-900">
+                                                    {dashboardData?.orderStatistics?.processing ?? 0}
+                                                </div>
+                                                <div className="text-sm text-gray-500">Processing</div>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex items-center gap-3">
+                                            <CheckCircle size={20} className="text-gray-600" />
+                                            <div>
+                                                <div className="text-2xl font-bold text-gray-900">
+                                                    {dashboardData?.orderStatistics?.completed ?? 0}
+                                                </div>
+                                                <div className="text-sm text-gray-500">Completed</div>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex items-center gap-3">
+                                            <XCircle size={20} className="text-gray-600" />
+                                            <div>
+                                                <div className="text-2xl font-bold text-gray-900">
+                                                    {dashboardData?.orderStatistics?.cancelled ?? 0}
+                                                </div>
+                                                <div className="text-sm text-gray-500">Cancelled</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Charts */}
+                            <div className="grid grid-cols-2 gap-6">
+                                {/* Revenue Chart */}
+                                <div className="bg-white rounded-xl p-6 border border-gray-200">
+                                    <h2 className="text-lg font-semibold text-gray-900 mb-6">
+                                        Revenue
+                                    </h2>
+                                    <ResponsiveContainer width="100%" height={250}>
+                                        <BarChart data={dashboardData?.revenueByMonth || []}>
+                                            <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                                            <XAxis dataKey="month" tick={{ fontSize: 12 }} />
+                                            <YAxis tick={{ fontSize: 12 }} />
+                                            <Tooltip
+                                                formatter={(v) => [
+                                                    `₫${v.toLocaleString("vi-VN")}`,
+                                                    "Doanh thu",
+                                                ]}
+                                                contentStyle={{
+                                                    borderRadius: "8px",
+                                                    border: "1px solid #e5e7eb",
+                                                }}
+                                            />
+                                            <Bar dataKey="total" fill="#3b82f6" radius={[8, 8, 0, 0]} />
+                                        </BarChart>
+                                    </ResponsiveContainer>
+                                </div>
+
+                                {/* Orders Chart */}
+                                <div className="bg-white rounded-xl p-6 border border-gray-200">
+                                    <h2 className="text-lg font-semibold text-gray-900 mb-6">
+                                        Orders by Month
+                                    </h2>
+                                    <ResponsiveContainer width="100%" height={250}>
+                                        <LineChart data={dashboardData?.ordersByMonth || []}>
+                                            <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                                            <XAxis dataKey="month" tick={{ fontSize: 12 }} />
+                                            <YAxis tick={{ fontSize: 12 }} />
+                                            <Tooltip
+                                                formatter={(v) => [v, "Orders"]}
+                                                contentStyle={{
+                                                    borderRadius: "8px",
+                                                    border: "1px solid #e5e7eb",
+                                                }}
+                                            />
+                                            <Line
+                                                type="monotone"
+                                                dataKey="totalOrders"
+                                                stroke="#3b82f6"
+                                                strokeWidth={3}
+                                                dot={false}
+                                            />
+                                        </LineChart>
+                                    </ResponsiveContainer>
+                                </div>
                             </div>
                         </div>
-
-                        {/* Top Stats Cards */}
-                        <div className="grid grid-cols-4 gap-6 mb-8">
-                            {/* Listings */}
-                            <div className="bg-white rounded-xl p-6 border border-gray-200">
-                                <div className="flex items-center gap-4">
-                                    <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
-                                        <LayoutDashboard size={24} className="text-gray-600" />
-                                    </div>
-                                    <div>
-                                        <div className="text-3xl font-bold text-gray-900">
-                                            {dashboardData?.listings ?? 0}
-                                        </div>
-                                        <div className="text-sm text-gray-500">Listings</div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Orders */}
-                            <div className="bg-white rounded-xl p-6 border border-gray-200">
-                                <div className="flex items-center gap-4">
-                                    <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
-                                        <ShoppingBag size={24} className="text-gray-600" />
-                                    </div>
-                                    <div>
-                                        <div className="text-3xl font-bold text-gray-900">
-                                            {dashboardData?.orders ?? 0}
-                                        </div>
-                                        <div className="text-sm text-gray-500">Orders</div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Sold */}
-                            <div className="bg-white rounded-xl p-6 border border-gray-200">
-                                <div className="flex items-center gap-4">
-                                    <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
-                                        <CheckCircle size={24} className="text-gray-600" />
-                                    </div>
-                                    <div>
-                                        <div className="text-3xl font-bold text-gray-900">
-                                            {dashboardData?.sold ?? 0}
-                                        </div>
-                                        <div className="text-sm text-gray-500">Sold</div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Revenue */}
-                            <div className="bg-white rounded-xl p-6 border border-gray-200">
-                                <div className="flex items-center gap-4">
-                                    <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
-                                        <span className="text-xl">₫</span>
-                                    </div>
-                                    <div>
-                                        <div className="text-3xl font-bold text-gray-900">
-                                            {dashboardData?.revenue?.toLocaleString("vi-VN") ?? 0}
-                                        </div>
-                                        <div className="text-sm text-gray-500">Revenue</div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Statistics Grid */}
-                        <div className="grid grid-cols-2 gap-6 mb-8">
-                            {/* Product Statistics */}
-                            <div className="bg-white rounded-xl p-6 border border-gray-200">
-                                <h2 className="text-lg font-semibold text-gray-900 mb-6">
-                                    Product Statistics
-                                </h2>
-
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="flex items-center gap-3">
-                                        <Car size={20} className="text-gray-600" />
-                                        <div>
-                                            <div className="text-2xl font-bold text-gray-900">
-                                                {dashboardData?.productStatistics?.active ?? 0}
-                                            </div>
-                                            <div className="text-sm text-gray-500">Active</div>
-                                        </div>
-                                    </div>
-
-                                    <div className="flex items-center gap-3">
-                                        <Clock size={20} className="text-gray-600" />
-                                        <div>
-                                            <div className="text-2xl font-bold text-gray-900">
-                                                {dashboardData?.productStatistics?.pending ?? 0}
-                                            </div>
-                                            <div className="text-sm text-gray-500">Pending</div>
-                                        </div>
-                                    </div>
-
-                                    <div className="flex items-center gap-3">
-                                        <XCircle size={20} className="text-gray-600" />
-                                        <div>
-                                            <div className="text-2xl font-bold text-gray-900">
-                                                {dashboardData?.productStatistics?.inactive ?? 0}
-                                            </div>
-                                            <div className="text-sm text-gray-500">Inactive</div>
-                                        </div>
-                                    </div>
-
-                                    <div className="flex items-center gap-3">
-                                        <Star size={20} className="text-gray-600" />
-                                        <div>
-                                            <div className="text-2xl font-bold text-gray-900">
-                                                {dashboardData?.productStatistics?.featured ?? 0}
-                                            </div>
-                                            <div className="text-sm text-gray-500">Featured</div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Order Statistics */}
-                            <div className="bg-white rounded-xl p-6 border border-gray-200">
-                                <h2 className="text-lg font-semibold text-gray-900 mb-6">
-                                    Order Statistics
-                                </h2>
-
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="flex items-center gap-3">
-                                        <ShoppingBag size={20} className="text-gray-600" />
-                                        <div>
-                                            <div className="text-2xl font-bold text-gray-900">
-                                                {dashboardData?.orderStatistics?.new ?? 0}
-                                            </div>
-                                            <div className="text-sm text-gray-500">New</div>
-                                        </div>
-                                    </div>
-
-                                    <div className="flex items-center gap-3">
-                                        <Clock size={20} className="text-gray-600" />
-                                        <div>
-                                            <div className="text-2xl font-bold text-gray-900">
-                                                {dashboardData?.orderStatistics?.processing ?? 0}
-                                            </div>
-                                            <div className="text-sm text-gray-500">Processing</div>
-                                        </div>
-                                    </div>
-
-                                    <div className="flex items-center gap-3">
-                                        <CheckCircle size={20} className="text-gray-600" />
-                                        <div>
-                                            <div className="text-2xl font-bold text-gray-900">
-                                                {dashboardData?.orderStatistics?.completed ?? 0}
-                                            </div>
-                                            <div className="text-sm text-gray-500">Completed</div>
-                                        </div>
-                                    </div>
-
-                                    <div className="flex items-center gap-3">
-                                        <XCircle size={20} className="text-gray-600" />
-                                        <div>
-                                            <div className="text-2xl font-bold text-gray-900">
-                                                {dashboardData?.orderStatistics?.cancelled ?? 0}
-                                            </div>
-                                            <div className="text-sm text-gray-500">Cancelled</div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Charts */}
-                        <div className="grid grid-cols-2 gap-6">
-                            {/* Revenue Chart */}
-                            <div className="bg-white rounded-xl p-6 border border-gray-200">
-                                <h2 className="text-lg font-semibold text-gray-900 mb-6">
-                                    Revenue
-                                </h2>
-                                <ResponsiveContainer width="100%" height={250}>
-                                    <BarChart data={dashboardData?.revenueByMonth || []}>
-                                        <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                                        <XAxis dataKey="month" tick={{ fontSize: 12 }} />
-                                        <YAxis tick={{ fontSize: 12 }} />
-                                        <Tooltip
-                                            formatter={(v) => [
-                                                `₫${v.toLocaleString("vi-VN")}`,
-                                                "Doanh thu",
-                                            ]}
-                                            contentStyle={{
-                                                borderRadius: "8px",
-                                                border: "1px solid #e5e7eb",
-                                            }}
-                                        />
-                                        <Bar dataKey="total" fill="#3b82f6" radius={[8, 8, 0, 0]} />
-                                    </BarChart>
-                                </ResponsiveContainer>
-                            </div>
-
-                            {/* Orders Chart */}
-                            <div className="bg-white rounded-xl p-6 border border-gray-200">
-                                <h2 className="text-lg font-semibold text-gray-900 mb-6">
-                                    Orders by Month
-                                </h2>
-                                <ResponsiveContainer width="100%" height={250}>
-                                    <LineChart data={dashboardData?.ordersByMonth || []}>
-                                        <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                                        <XAxis dataKey="month" tick={{ fontSize: 12 }} />
-                                        <YAxis tick={{ fontSize: 12 }} />
-                                        <Tooltip
-                                            formatter={(v) => [v, "Orders"]}
-                                            contentStyle={{
-                                                borderRadius: "8px",
-                                                border: "1px solid #e5e7eb",
-                                            }}
-                                        />
-                                        <Line
-                                            type="monotone"
-                                            dataKey="totalOrders"
-                                            stroke="#3b82f6"
-                                            strokeWidth={3}
-                                            dot={false}
-                                        />
-                                    </LineChart>
-                                </ResponsiveContainer>
-                            </div>
+                    )}
+            </div>
+            {/* ✅ Popup xác nhận logout */}
+            {showLogoutConfirm && (
+                <div className="logout-overlay">
+                    <div className="logout-popup">
+                        <h3>Đăng xuất</h3>
+                        <p>Bạn có chắc muốn đăng xuất không?</p>
+                        <div className="logout-actions">
+                            <button className="btn-cancel" onClick={handleCancelLogout}>Hủy</button>
+                            <button className="btn-confirm" onClick={handleLogoutConfirm}>Đăng xuất</button>
                         </div>
                     </div>
-                )}
-            </div>
+                </div>
+            )}
         </div>
     );
 }
