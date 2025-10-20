@@ -13,5 +13,6 @@ namespace Application.DTOs
         public string SenderRole { get; set; }
         public string Title { get; set; }
         public string Message { get; set; }
+        public string TargetUserId { get; set; }
     }
 }
