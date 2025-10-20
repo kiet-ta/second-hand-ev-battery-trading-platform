@@ -20,10 +20,17 @@ namespace PresentationLayer.Controllers
         public async Task<IActionResult> CreateFavorite([FromBody] CreateFavoriteDto dto)
         {
             if (dto == null || dto.UserId <= 0 || dto.ItemId <= 0)
-                return BadRequest("Invalid favorite data.");
+                return BadRequest(new { message = "Invalid favorite data." });
 
-            var result = await _favoriteService.CreateFavoriteAsync(dto);
-            return Ok(result);
+            try
+            {
+                var result = await _favoriteService.CreateFavoriteAsync(dto);
+                return Ok(result);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Conflict(new { message = ex.Message });
+            }
         }
 
         [HttpGet("{userId}")]
