@@ -1,4 +1,5 @@
 using Application.DTOs.AuctionDtos;
+using Application.DTOs.ItemDtos;
 using Application.IRepositories;
 using Domain.Entities;
 using Infrastructure.Data;
@@ -84,7 +85,6 @@ public class AuctionRepository : IAuctionRepository
             from auction in _context.Auctions
             join item in _context.Items on auction.ItemId equals item.ItemId
             join image in _context.ItemImages on item.ItemId equals image.ItemId into imageGroup
-            from image in imageGroup.DefaultIfEmpty()
             select new AuctionDto
             {
                 AuctionId = auction.AuctionId,
@@ -95,7 +95,11 @@ public class AuctionRepository : IAuctionRepository
                 CurrentPrice = auction.CurrentPrice,
                 StartTime = auction.StartTime,
                 EndTime = auction.EndTime,
-                ImageUrl = image != null ? image.ImageUrl : null
+                Images = imageGroup.Select(img => new ItemImageDto
+                {
+                    ImageId = img.ImageId,
+                    ImageUrl = img.ImageUrl
+                }).ToList()
             }
         )
         .OrderByDescending(a => a.StartTime)

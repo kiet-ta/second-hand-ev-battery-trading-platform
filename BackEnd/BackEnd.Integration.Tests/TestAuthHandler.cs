@@ -23,7 +23,7 @@ public class TestAuthHandler : AuthenticationHandler<AuthenticationSchemeOptions
         var claims = new[] {
             new Claim(ClaimTypes.Name, "TestUser"),
             new Claim(ClaimTypes.NameIdentifier, "1"), // Simulate UserId = 1
-            new Claim(ClaimTypes.Role, "Manager"),
+            new Claim(ClaimTypes.Role, "manager"),
         };
 
         // 2. Create the identity and principal.

@@ -10,7 +10,6 @@ namespace PresentationLayer.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-
     public class UserController : ControllerBase
     {
         private readonly IUserService _userService;
@@ -42,7 +41,7 @@ namespace PresentationLayer.Controllers
         }
 
         [HttpGet]
-        //[Authorize(Roles = "Manager")]
+        [Authorize(Roles = "manager,staff")]
         public async Task<IActionResult> Get() => Ok(await _userService.GetAllUsersAsync());
 
         [HttpGet("{id}")]
@@ -110,6 +109,5 @@ namespace PresentationLayer.Controllers
             var result = await _userService.GetAllUsersAsync(page, pageSize);
             return Ok(result);
         }
-
     }
 }

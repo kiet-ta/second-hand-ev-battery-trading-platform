@@ -2,6 +2,7 @@
 using Application.DTOs.AuctionDtos;
 using Application.IServices;
 using Domain.Entities;
+using Google.Apis.Upload;
 using Microsoft.AspNetCore.Mvc;
 
 namespace PresentationLayer.Controllers;
@@ -30,16 +31,22 @@ public class AuctionController : ControllerBase
         var bidderHistory = await _auctionService.GetBidderHistoryAsync(auctionId);
         return Ok(bidderHistory);
     }
+    [HttpGet("item/{itemId}")]
+    public async Task<IActionResult> GetAuctionByItemId(int itemId)
+    {
+        var auctionDto = await _auctionService.GetAuctionByItemIdAsync(itemId);
+        if (auctionDto == null)
+        {
+            return NotFound(new { message = "No auction found for this item." });
+        }
+        return Ok(auctionDto);
+    }
 
     [HttpPost("{auctionId}/bid")]
     public async Task<IActionResult> PlaceBid(int auctionId, [FromBody] PlaceBidRequestDto request)
     {
-        var result = await _auctionService.PlaceBidAsync(auctionId, request.UserId, request.BidAmount);
-        if (result)
-        {
+        await _auctionService.PlaceBidAsync(auctionId, request.UserId, request.BidAmount);
             return Ok(new { message = "Bid placed successfully." });
-        }
-        return BadRequest(new { message = "Failed to place bid. Check bidding status, amount, and wallet balance." });
     }
 
     [HttpGet("{auctionId}/status")]

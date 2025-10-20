@@ -9,12 +9,9 @@ import CheckoutPage from "../pages/CheckoutPage";
 import LoginPage from "../pages/LoginPage";
 import RegisterPage from "../pages/RegisterPage";
 import ProfileContent from "../pages/ProfileContent";
-import SellerDashboard from "../pages/DashboardSeller";
-import PurchaseHistory from "../components/HistoryBought";
-import SellerHistory from "../components/HistorySold";
+import SellerDashboard from "../pages/DashboardSeller"; 
 import PaymentSuccessPage from "../pages/PaymentSuccessPage";
 import PaymentFailPage from "../pages/PaymentFailPage";
-import PurchasePage from "../pages/PurchasePage";
 import DetailedCheckoutPage from '../pages/DetailCheckout';
 import BlogList from "../pages/BlogList";
 import BlogDetail from "../pages/BlogDetail";
@@ -23,106 +20,136 @@ import ManagerDashboard from "../pages/ManagerDashboard";
 import AuctionDetailPage from "../pages/Auctions/AuctionDetailPage";
 import ComparePage from "../pages/ComparePage";
 import BuyerViewSeller from '../pages/BuyerViewSeller';
+import ComplaintsList from "../components/ComplaintsList";
+import FavouritePage from "../pages/FavouritePage";
+import SellerOnBoard from "../pages/SellerOnBoard";
+import SellerForm from "../pages/SellerRegistration";
+import SuccessPage from "../pages/SellerSuccess";
+
+// Components used in the sub-routes
+import HistorySold from "../components/HistorySold";
+import PurchaseHistory from "../components/HistoryBought"; 
+import SellerAuctionListPage from "../pages/SellerAuctionListPage";
+import MyProduct from "../components/ItemForm/AddProductForm";
+import NewsPage from "../components/CreateNews";
+import ChatRoom from "../components/Chats/ChatRoom";
+
+// Manager Components
+import DashboardContent from "../components/Manager/DashboardContent";
+import UsersContent from "../components/Manager/UserContent";
+import TransactionsContent from "../components/Manager/TransactionContent";
+import SellerApprovalsContent from "../components/Manager/SellerApprovalContent";
+import ReportsContent from "../components/Manager/ReportContent";
+import SettingsContent from "../components/Manager/SettingContent";
+import ProductModeration from "../components/ProductModeration";
+import NotificationCreator from "../components/Notifications/NotificationCreation";
+import ProtectedRoute from "../components/ProtectedRoute";
+import SellerDashboardContentView from "../components/SellerDashboardContent";
+
+// Placeholder component for Profile Index Route content (since complex state was removed)
+const ProfileNestedFormsPlaceholder = () => (
+  <div className="profile-main">
+    {/* ProfileContent handles which form is shown here */}
+    <div>Profile/Account Forms Placeholder</div> 
+  </div>
+);
+
 
 export const router = createBrowserRouter([
+  // --- MAIN LAYOUT (Public/Buyer Routes) ---
   {
     path: "/",
     element: <MainLayout />,
     children: [
-      {
-        path: "/",
-        element: <HomePage />,
-        index: true,
-      },
-      {
-        path: "/ev/:id",
-        element: <EVDetails />,
-      },
-      {
-        path: "/battery/:id",
-        element: <BatteryDetails />,
-      },
-      {
-        path: "/search",
-        element: <SearchPage />,
-      },
-      {
-        path: "/cart",
-        element: <CartPage />,
-      },
-      {
-        path: "/checkout",
-        element: <CheckoutPage />,
-      },
-      {
-        path: "/purchase",
-        element: <PurchasePage />
-      },
-      {
-        path: "/auctions",
-        element: <AuctionMainPage />
-      }
-      , {
-        path: "/auction/:id",
-        element: <AuctionDetailPage />
-      },
-      {
-        path: "/compare",
-        element: <ComparePage />
-      },
-      {
-        path: "/seller/:sellerId",
-        element: <BuyerViewSeller />
-      }
+      { path: "/", element: <HomePage />, index: true, },
+      { path: "/ev/:id", element: <EVDetails />, },
+      { path: "/battery/:id", element: <BatteryDetails />, },
+      { path: "/search", element: <SearchPage />, },
+      { path: "/cart", element: <CartPage />, },
+      { path: "/checkout", element: <CheckoutPage />, },
+      { path: "/auctions", element: <AuctionMainPage /> },
+      { path: "/auction/:id", element: <AuctionDetailPage /> },
+      { path: "/compare", element: <ComparePage /> },
+      { path: "/seller/:sellerId", element: <BuyerViewSeller /> },
+      { path: "favourite", element: <FavouritePage/> },
+      { path: "/seller-registration", element: <SellerOnBoard/> },
+      { path: "/seller-form", element: <SellerForm/> },
+      { path: "/success", element: <SuccessPage/> },
+      { path: "/blog", element: <BlogList /> },
+      { path: "/blog/:id", element: <BlogDetail /> },
     ],
   },
-  {
-    path: "/login",
-    element: <LoginPage />,
-  },
-  {
-    path: "/register",
-    element: <RegisterPage />,
-  },
+  
+  // --- AUTHENTICATION ROUTES ---
+  { path: "/login", element: <LoginPage />, },
+  { path: "/register", element: <RegisterPage />, },
+
+  // --- PROFILE DASHBOARD NESTED ROUTING (Cleaned) ---
   {
     path: "/profile",
-    element: <ProfileContent />,
-  },
-  {
-    path: "/seller",
-    element: <SellerDashboard />,
-  },
-  {
-    path: "/bought",
-    element: <PurchaseHistory />,
-  },
-  {
-    path: "/sold",
-    element: <SellerHistory />,
-  },
-  {
-    path: "/payment/success",
-    element: <PaymentSuccessPage />,
-  },
-  {
-    path: "/payment/fail",
-    element: <PaymentFailPage />,
-  },
-  {
-    path: "/detailcheckout",
-    element: <DetailedCheckoutPage />
-  },
-  {
-    path: "/blog",
-    element: <BlogList />
-  },
-  {
-    path: "/blog/:id",
-    element: <BlogDetail />
-  },
-  {
-    path: "/manage",
-    element: <ManagerDashboard />
+    element: <ProfileContent />, // Layout component
+    children: [
+      // Default route for /profile
+      { index: true, element: <ProfileNestedFormsPlaceholder /> }, 
+      
+      // My Purchase 
+      { path: "purchase", element: <div className="profile-main"><PurchaseHistory /></div> },
+      
+      // Chat
+      { path: "chat", element: <div className="profile-main"><ChatRoom /></div> }, 
+      
+      // Settings
+      { path: "settings", element: <SettingsContent /> } 
+    ]
   },
 
-])
+  // --- SELLER DASHBOARD NESTED ROUTING (Cleaned) ---
+{
+        path: "/seller",
+        // Use ProtectedRoute as the parent element for protection
+        element: <ProtectedRoute allowedRoles={['seller']} />, 
+        children: [
+            // The SellerDashboard component becomes the layout for these children
+            { element: <SellerDashboard />, children: [ 
+              { 
+                    index: true, 
+                    element: <SellerDashboardContentView />, 
+                    // NOTE: You'll need to define and import DashboardContentView separately
+                },
+                { path: "bidding", element: <SellerAuctionListPage /> },
+                { path: "products", element: <MyProduct /> },
+                { path: "history", element: <HistorySold /> },
+                { path: "settings", element: <div>Seller Settings Content</div> },
+                { path: "chat", element: <div className="profile-main"><ChatRoom /></div> },
+            ]},
+        ]
+    },
+
+  // --- MANAGER DASHBOARD NESTED ROUTING (Cleaned) ---
+ {
+        path: "/manage",
+        // Use ProtectedRoute to allow both manager and staff
+        element: <ProtectedRoute allowedRoles={['manager', 'staff']} />, 
+        children: [
+            // ManagerDashboard component becomes the layout/data provider
+            { element: <ManagerDashboard />, children: [ 
+                { index: true, element: <DashboardContent /> }, 
+                { path: "approvals", element: <SellerApprovalsContent /> },
+                { path: "users", element: <UsersContent /> },
+                { path: "products", element: <ProductModeration /> },
+                { path: "complaints", element: <ComplaintsList /> },
+                { path: "transactions", element: <TransactionsContent /> },
+                { path: "notifications", element: <NotificationCreator /> },
+                { path: "news", element: <NewsPage /> },
+                { path: "reports", element: <ReportsContent /> },
+                { path: "settings", element: <SettingsContent /> }, 
+            ]},
+        ]
+    },
+
+  // --- STANDALONE ROUTES (Outside Main Layout) ---
+  { path: "/bought", element: <PurchaseHistory /> },
+  { path: "/payment/success", element: <PaymentSuccessPage /> },
+  { path: "/payment/fail", element: <PaymentFailPage /> },
+  { path: "/detailcheckout", element: <DetailedCheckoutPage /> },
+]);

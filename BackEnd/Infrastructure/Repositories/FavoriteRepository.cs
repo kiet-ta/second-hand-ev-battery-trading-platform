@@ -94,6 +94,15 @@ namespace Infrastructure.Repositories
 
             return favorites;
         }
+        public async Task<Favorite?> GetByIdAsync(int favId)
+        {
+            return await _context.Favorites.FirstOrDefaultAsync(f => f.FavId == favId);
+        }
 
+        public async Task DeleteAsync(Favorite favorite)
+        {
+            _context.Favorites.Remove(favorite);
+            await _context.SaveChangesAsync();
+        }
     }
 }

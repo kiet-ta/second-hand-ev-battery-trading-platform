@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Threading.Tasks;
 using System.Collections.Generic;
-using Domain.DTOs.ReviewDtos;
+using Application.DTOs.ReviewDtos;
 
 namespace PresentationLayer.Controllers
 {

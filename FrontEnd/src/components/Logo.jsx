@@ -7,7 +7,7 @@ function Logo() {
     <div className="flex">
         <Link to="/" className="flex items-center text-white hover:text-green-300">
             <img src={LogoImages} alt="Logo" className="w-1/5" />
-            <h2 className="text-white text-2xl font-bold">Cóc Mua Xe</h2>
+            <h2 className="text-white text-shadow-black text-shadow-2xs text-2xl font-bold">Cóc Mua Xe</h2>
         </Link>
         </div>
   )

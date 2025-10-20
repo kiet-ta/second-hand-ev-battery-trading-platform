@@ -35,5 +35,15 @@ namespace Application.Services
         {
             return await _favoriteRepository.GetFavoritesByUserIdAsync(userId);
         }
+
+        public async Task<bool> DeleteFavoriteAsync(int favId, int userId)
+        {
+            var favorite = await _favoriteRepository.GetByIdAsync(favId);
+            if (favorite == null || favorite.UserId != userId)
+                return false;
+
+            await _favoriteRepository.DeleteAsync(favorite);
+            return true;
+        }
     }
 }

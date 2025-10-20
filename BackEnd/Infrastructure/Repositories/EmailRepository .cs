@@ -16,6 +16,19 @@ namespace Infrastructure.Repositories
         {
             _context = context;
         }
+        public async Task<string> GetNewStaffTemplateAsync(string email, string password, string actionUrl, string logoUrl)
+        {
+            var user = await GetUserByEmail(email);
+            if (user == null) throw new Exception("User not found");
+
+            return NewStaffTemplate.GetHtmlTemplate(
+                fullName: user.FullName,
+                email: user.Email,
+                temporaryPassword: password,
+                loginUrl: actionUrl,
+                logoUrl: logoUrl
+            );
+        }
 
         public async Task<string> GetWelcomeTemplate(string email, string url)
         {
@@ -53,5 +66,7 @@ namespace Infrastructure.Repositories
         {
             return await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
         }
+
     }
+
 }
