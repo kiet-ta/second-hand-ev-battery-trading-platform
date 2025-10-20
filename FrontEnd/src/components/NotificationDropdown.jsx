@@ -1,49 +1,78 @@
-// src/components/NotificationDropdown.jsx
+// src/components/NotificationDropdown.jsx (Integrated API)
+
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Bell, Filter } from "lucide-react";
-import SSEListener from './Notifications/SSEListener'; // Import the listener
+import SSEListener from './Notifications/SSEListener'; 
+import notificationApi from '../api/notificationApi'; // Import the API service
 
-// Helper to get type label
-const getTypeLabel = (type) => {
-    switch (type) {
-        case "tai_khoan": return "Tài khoản";
-        case "giao_dich": return "Giao dịch";
-        case "tin_dang": return "Tin đăng";
-        case "su_kien": return "Sự kiện";
-        default: return "Thông báo";
-    }
+// Helper to convert C# DateTime to a friendly time string
+const formatTimeAgo = (isoDate) => {
+    const now = new Date();
+    const past = new Date(isoDate);
+    const diffInMinutes = Math.floor((now - past) / (1000 * 60));
+
+    if (diffInMinutes < 60) return `${diffInMinutes <= 0 ? 1 : diffInMinutes} phút trước`;
+    if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)} giờ trước`;
+    return `${Math.floor(diffInMinutes / 1440)} ngày trước`;
 };
+
+// Helper to map C# response structure to React state structure
+const mapApiToState = (apiNoti) => ({
+    id: apiNoti.id,
+    title: apiNoti.title,
+    content: apiNoti.message, // Map 'message' to 'content'
+    category: apiNoti.notiType ? apiNoti.notiType.toLowerCase() : 'activities', // Use 'notiType'
+    type: apiNoti.type || 'giao_dich', // Assume a default type if not provided
+    time: formatTimeAgo(apiNoti.createdAt),
+    isUnread: !apiNoti.isRead, // Map 'isRead' to 'isUnread'
+});
+
+// ... (Rest of the component code remains the same, but the useEffect is modified)
+
+// Filter categories for the Activities tab
+const activityFilterCategories = [
+    ["all", "Tất cả"],
+    ["tai_khoan", "Tài khoản"],
+    ["giao_dich", "Giao dịch"], 
+    ["tin_dang", "Tin đăng"],
+];
 
 export default function NotificationDropdown({ userId }) {
     const [isOpen, setIsOpen] = useState(false);
-    const [activeTab, setActiveTab] = useState("activity");
+    const [activeTab, setActiveTab] = useState("activities"); 
     const [activeFilter, setActiveFilter] = useState("all");
     const [notifications, setNotifications] = useState([]);
     const dropdownRef = useRef(null);
 
     const unreadCount = notifications.filter(n => n.isUnread).length;
 
-    // Function to add a new notification from the SSE listener
     const handleNewNotification = useCallback((newNoti) => {
         setNotifications(prev => [newNoti, ...prev]);
     }, []);
 
     // 🔄 Fetch initial/Historical notifications
     useEffect(() => {
-        // 🚨 TODO: Replace this with an actual API call (GET /api/notifications?userId=...)
+        if (!userId) return;
+
         const fetchNotifications = async () => {
-            // FAKE API response
-            const dummy = [
-                { id: 1, title: "Thông báo", content: "Chúc mừng! Bạn đã nhận 50 Điểm Tốt nhờ hoàn thành nhiệm vụ Hé lộ dung nhan.", time: "29 ngày trước", type: "giao_dich", isUnread: false },
-                { id: 2, title: "Thông báo", content: "Chúc mừng! Bạn đã nhận 50 Điểm Tốt nhờ hoàn thành nhiệm vụ Xác minh danh phận.", time: "29 ngày trước", type: "tai_khoan", isUnread: true },
-                { id: 3, title: "Thông báo", content: "Bài đăng của bạn đã được duyệt thành công.", time: "1 ngày trước", type: "tin_dang", isUnread: true },
-            ];
-            setNotifications(dummy);
+            try {
+                // 📞 CALL API TO GET HISTORICAL DATA
+                const apiData = await notificationApi.getNotificationByReceiverId(userId);
+                
+                // Map the fetched data to the component's internal state structure
+                const mappedNotifications = apiData.map(mapApiToState);
+                setNotifications(mappedNotifications);
+                
+            } catch (error) {
+                console.error("Error fetching notifications:", error);
+                // Set to an empty array or show an error state
+                setNotifications([]); 
+            }
         };
         fetchNotifications();
-    }, []);
+    }, [userId]);
 
-    // 🖱️ Close popup when clicking outside
+    // 🖱️ Close popup when clicking outside & Mark as read on open
     useEffect(() => {
         const handleClickOutside = (e) => {
             if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
@@ -51,41 +80,36 @@ export default function NotificationDropdown({ userId }) {
             }
         };
         document.addEventListener("mousedown", handleClickOutside);
-        return () => document.removeEventListener("mousedown", handleClickOutside);
-    }, []);
 
-    // 👁️ Mark all as read when dropdown opens
-    useEffect(() => {
         if (isOpen) {
-            // 🚨 TODO: Send API request to mark all unread notifications as read
-            setNotifications(prev => 
-                prev.map(n => ({ ...n, isUnread: false }))
-            );
+            setActiveFilter("all"); 
+            setNotifications(prev => prev.map(n => ({ ...n, isUnread: false })));
+            // 🚨 TODO: Implement API call to tell the backend to mark notifications as read
+            // Example: axios.put(`${baseURL}/mark-as-read/${userId}`);
         }
+
+        return () => document.removeEventListener("mousedown", handleClickOutside);
     }, [isOpen]);
 
+    // ----------------------------------------------------
+    // FILTER LOGIC
+    // ----------------------------------------------------
+    const filteredByTab = notifications.filter(n => n.category === activeTab);
+    
+    const finalFiltered =
+        activeTab === "activities" && activeFilter !== "all"
+            ? filteredByTab.filter((n) => n.type === activeFilter)
+            : filteredByTab;
+    // ----------------------------------------------------
 
-    const filtered =
-        activeFilter === "all"
-            ? notifications
-            : notifications.filter((n) => n.type === activeFilter);
-
-    // Filter categories for the UI
-    const filterCategories = [
-        ["all", "Tất cả"],
-        ["tai_khoan", "Tài khoản"],
-        ["giao_dich", "Giao dịch"],
-        ["tin_dang", "Tin đăng"],
-        ["su_kien", "Sự kiện"],
-    ];
 
     return (
         <>
             {/* 👂 REAL-TIME SSE LISTENER */}
+            {console.log(userId)}
             <SSEListener userId={userId} onNewNotification={handleNewNotification} />
 
             <div className="relative" ref={dropdownRef}>
-                {/* 🔔 Nút mở dropdown */}
                 <button
                     onClick={() => setIsOpen(!isOpen)}
                     className="relative p-2 rounded-full text-gray-700 hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400 transition hover:bg-gray-100 dark:hover:bg-gray-800"
@@ -99,36 +123,35 @@ export default function NotificationDropdown({ userId }) {
                     )}
                 </button>
 
-                {/* 📋 Popup Dropdown */}
                 {isOpen && (
                     <div className="absolute right-0 mt-3 w-80 sm:w-96 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl shadow-2xl p-4 z-50 origin-top-right transform transition-all duration-300 ease-out animate-slide-down">
                         
-                        {/* Header */}
-                        <h3 className="font-bold text-xl text-gray-900 dark:text-gray-100 mb-2">
-                            Thông Báo
-                        </h3>
+                        <h3 className="font-bold text-xl text-gray-900 dark:text-gray-100 mb-2">Thông Báo</h3>
 
                         {/* Tabs (Hoạt Động / Tin Tức) */}
                         <div className="flex border-b border-gray-200 dark:border-gray-700 mb-3">
-                            {["activity", "news"].map((tab) => (
+                            {["activities", "news"].map((tab) => (
                                 <button
                                     key={tab}
-                                    onClick={() => setActiveTab(tab)}
+                                    onClick={() => {
+                                        setActiveTab(tab);
+                                        setActiveFilter("all"); 
+                                    }}
                                     className={`flex-1 py-1.5 text-sm font-medium transition ${activeTab === tab
                                             ? "text-blue-600 border-b-2 border-blue-600 dark:text-blue-400 dark:border-blue-400"
                                             : "text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
                                         }`}
                                 >
-                                    {tab === "activity" ? "Hoạt Động" : "Tin Tức"}
+                                    {tab === "activities" ? "Hoạt Động" : "Tin Tức"}
                                 </button>
                             ))}
                         </div>
 
-                        {/* Filters */}
-                        {activeTab === 'activity' && (
+                        {/* Filters (ONLY for the 'activities' tab) */}
+                        {activeTab === 'activities' && (
                             <div className="flex items-center flex-wrap gap-2 mb-3">
                                 <Filter className="w-4 h-4 text-gray-500 dark:text-gray-400 flex-shrink-0" />
-                                {filterCategories.map(([id, label]) => (
+                                {activityFilterCategories.map(([id, label]) => (
                                     <button
                                         key={id}
                                         onClick={() => setActiveFilter(id)}
@@ -142,27 +165,26 @@ export default function NotificationDropdown({ userId }) {
                                 ))}
                             </div>
                         )}
-
-
+                        
                         {/* Notification list */}
                         <div className="max-h-80 overflow-y-auto space-y-3 pr-2 custom-scrollbar">
-                            {filtered.length === 0 ? (
+                            {finalFiltered.length === 0 ? (
                                 <p className="text-center text-sm text-gray-500 dark:text-gray-400 py-4">
-                                    Không có thông báo nào.
+                                    {activeTab === 'activities' ? "Không có hoạt động nào." : "Không có tin tức nào."}
                                 </p>
                             ) : (
-                                filtered.map((n) => (
+                                finalFiltered.map((n) => (
                                     <div
                                         key={n.id}
                                         className={`rounded-lg p-3 cursor-pointer transition ${n.isUnread 
                                                 ? "bg-blue-50 dark:bg-blue-900/40 hover:bg-blue-100 dark:hover:bg-blue-900/60 border border-blue-100 dark:border-blue-900"
                                                 : "bg-gray-50 dark:bg-gray-800/50 hover:bg-gray-100 dark:hover:bg-gray-800 border border-gray-100 dark:border-gray-700"
                                             }`}
-                                        onClick={() => console.log('Navigate to notification detail:', n.id)} // 🚨 TODO: Add actual navigation
+                                        onClick={() => console.log('Navigate to notification detail:', n.id)}
                                     >
                                         <div className="flex justify-between items-center mb-1">
                                             <span className="font-semibold text-sm text-gray-900 dark:text-gray-100">
-                                                {getTypeLabel(n.type)}
+                                                {n.title}
                                             </span>
                                             <span className="text-xs text-gray-500 dark:text-gray-400">{n.time}</span>
                                         </div>
@@ -174,7 +196,7 @@ export default function NotificationDropdown({ userId }) {
                             )}
                         </div>
                         
-                        {/* Footer (Optional: View All Link) */}
+                        {/* Footer */}
                         <div className="mt-3 pt-2 border-t border-gray-200 dark:border-gray-700 text-center">
                             <a 
                                 href="/notifications" 

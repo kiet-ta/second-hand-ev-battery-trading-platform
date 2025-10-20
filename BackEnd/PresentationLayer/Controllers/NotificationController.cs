@@ -2,6 +2,7 @@
 using Application.IRepositories;
 using Application.IServices;
 using Domain.Entities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace PresentationLayer.Controllers
@@ -33,6 +34,23 @@ namespace PresentationLayer.Controllers
                 return NotFound($"No notifications found for receiver {receiverId}");
 
             return Ok(notifications);
+        }
+
+        [HttpGet("register")]
+        [AllowAnonymous] 
+        public async Task RegisterClient([FromQuery] string userId)
+        {
+            if (string.IsNullOrEmpty(userId))
+            {
+                HttpContext.Response.StatusCode = StatusCodes.Status400BadRequest;
+                await HttpContext.Response.WriteAsync("User ID is required for SSE registration.");
+                return;
+            }
+            await _notificationService.RegisterClientAsync(
+                HttpContext.Response,
+                HttpContext.RequestAborted,
+                userId
+            );
         }
 
         [HttpGet("type/{notiType}")]

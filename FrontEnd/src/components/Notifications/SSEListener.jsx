@@ -5,10 +5,7 @@ import NotificationToast from './NotificationToast';
 
 const SSEListener = ({ userId, onNewNotification }) => {
   const [toasts, setToasts] = useState([]);
-  // NOTE: Replace this with your actual backend URL. 
-  // e.g., 'https://api.yourdomain.com/api/notifications/register?userId='
-  const sseEndpoint = `/api/notifications/register?userId=${userId}`; 
-
+const sseEndpoint = `https://localhost:7272/api/Notifications/register?userId=${userId}`;
   const dismissToast = useCallback((id) => {
     setToasts(prev => prev.filter(n => n.id !== id));
   }, []);

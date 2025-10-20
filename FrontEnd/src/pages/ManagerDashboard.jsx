@@ -16,6 +16,7 @@ import {
     Search,
     Filter,
     RefreshCw,
+    Bell,
 } from "lucide-react";
 import {
     LineChart,
@@ -39,6 +40,7 @@ import { MoreHorizontal, ShieldAlert, UserCheck, Ban } from "lucide-react";
 import { Menu } from "@headlessui/react";
 
 import "../assets/styles/SidebarAnimation.css"; // hiệu ứng sidebar (code ở dưới)
+import NotificationCreator from "../components/Notifications/NotificationCreation";
 
 function currencyVND(x) {
     try {
@@ -188,6 +190,7 @@ export default function ManagerDashboard() {
         { key: "users", label: "User Management", icon: <UserCog size={18} /> },
         { key: "products", label: "Product Management", icon: <PackageSearch size={18} /> },
         { key: "transactions", label: "Transaction Monitor", icon: <ClipboardList size={18} /> },
+        { key: "notifications", label: "Notifications", icon: <Bell size={18} /> },
         { key: "news", label: "News", icon: <ClipboardList size={18} /> },
         { key: "reports", label: "Reports & Analytics", icon: <BarChart3 size={18} /> },
         { key: "settings", label: "Settings", icon: <Settings size={18} /> },
@@ -645,10 +648,20 @@ export default function ManagerDashboard() {
                                 </Card>
                             </motion.div>
                         )}
+                        {active == "notifications" && (
+                            <motion.div 
+                                key="notifications"
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -20 }}
+                                transition={{ duration: 0.35 }}>
+                                    <NotificationCreator/>
+                            </motion.div>
+                        )}
                         {/* NEWS */}
                         {active == "news" && (
                             <motion.div 
-                                key="transactions"
+                                key="news"
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0, y: -20 }}

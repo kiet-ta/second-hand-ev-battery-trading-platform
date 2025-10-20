@@ -1,8 +1,7 @@
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom';
 import { IoMdHome } from "react-icons/io";
 import { RiAuctionFill } from "react-icons/ri";
-import { MdOutlineAttachMoney } from "react-icons/md";
 import Logo from '../components/Logo';
 import ProfileDropDown from './ProfileDropDown';
 import { FaShoppingCart } from "react-icons/fa";
