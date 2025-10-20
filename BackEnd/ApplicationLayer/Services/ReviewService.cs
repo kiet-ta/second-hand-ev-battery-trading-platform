@@ -31,6 +31,9 @@ namespace Application.Services
             var reviews = await _reviewRepository.GetReviewsByTargetUserIdAsync(targetUserId);
             return reviews ?? new List<ReviewResponseDto>();
         }
-
+        public async Task<List<Review>> GetReviewAsync(int itemId)
+        {
+            return await _reviewRepository.GetReviewAsync(itemId);
+        }
     }
 }

@@ -6,16 +6,19 @@ const handleLogout = async () => {
     localStorage.removeItem("user")
     localStorage.removeItem("userId")
 }
-const ProfileDropDown = ({users}) => (
+const ProfileDropDown = ({users,walletBalance}) => (
     <Dropdown menu={{
         items:[
             {key: '1', label: (<a href="/profile">{users.fullName}</a>)
             },
             {type: 'divider'},
             {
-                key: '2', label: (<a href="/settings">Settings</a>)
+            key: '2', label: (<div className="flex gap-2">Wallet:<div className='font-semibold'>{walletBalance} VND</div> </div>)
             },
-            {key: '3', label: (<a href="/login" onClick={handleLogout}>Logout</a>)
+            {
+                key: '3', label: (<a href="/profile">Profile</a>)
+            },
+            {key: '4', label: (<a href="/login" onClick={handleLogout}>Logout</a>)
             }
         ]
 }}>

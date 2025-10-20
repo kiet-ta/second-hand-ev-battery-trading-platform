@@ -1,3 +1,5 @@
+using Application.DTOs.ItemDtos;
+
 namespace Application.DTOs.AuctionDtos;
 
 public class AuctionDto
@@ -13,5 +15,5 @@ public class AuctionDto
     public DateTime StartTime { get; set; }
     public DateTime EndTime { get; set; }
     public string Status { get; set; } = string.Empty;
-    public string ImageUrl { get; set; } = string.Empty;
+    public List<ItemImageDto>? Images { get; set; } = new();
 }

@@ -21,29 +21,25 @@ public class StaffManagementController : ControllerBase
     [HttpPost("staff")]
     public async Task<IActionResult> CreateStaff([FromBody] CreateStaffRequestDto request)
     {
-        try
+        var newUser = await _staffManagementService.CreateStaffAccountAsync(request);
+        var responseUser = new // Custom DTO to hide PasswordHash
         {
-            var newUser = await _staffManagementService.CreateStaffAccountAsync(request);
-            return CreatedAtAction(nameof(GetStaffPermissions), new { staffId = newUser.UserId }, newUser);
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new { message = ex.Message });
-        }
+            newUser.UserId,
+            newUser.FullName,
+            newUser.Email,
+            newUser.Phone,
+            newUser.Role,
+            newUser.AccountStatus,
+            newUser.CreatedAt
+        };
+        return CreatedAtAction(nameof(GetStaffPermissions), new { staffId = newUser.UserId }, newUser);
     }
 
     [HttpPost("staff/{staffId}/permissions")]
     public async Task<IActionResult> AssignPermissions(int staffId, [FromBody] List<int> permissionIds)
     {
-        try
-        {
-            await _staffManagementService.AssignPermissionsToStaffAsync(staffId, permissionIds);
-            return Ok(new { message = "Permissions updated successfully." });
-        }
-        catch (Exception ex)
-        {
-            return NotFound(new { message = ex.Message });
-        }
+        await _staffManagementService.AssignPermissionsToStaffAsync(staffId, permissionIds);
+        return Ok(new { message = "Permissions updated successfully." });
     }
 
     [HttpGet("permissions")]

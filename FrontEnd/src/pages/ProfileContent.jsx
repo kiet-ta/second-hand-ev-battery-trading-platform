@@ -147,7 +147,7 @@ const ProfileContent = () => {
 
                     <div className="header-actions flex items-center gap-5">
                         <div className="relative">
-                            <NotificationDropdown />
+                            <NotificationDropdown userId={localStorage.getItem("userId")} />
                         </div>
 
                         <div className="relative">

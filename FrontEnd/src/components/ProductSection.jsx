@@ -27,7 +27,7 @@ const ProductSection = ({ title, items = [], loading = false, itemsToLoad = 4 })
                 type={item.itemType}
                 price={item.price}
                 sales={0} // Replace with actual sales data if available
-                image={item.image || "https://i.pinimg.com/1200x/555306/43312e136a9fa2a576d6fcfbd0.jpg"} // Use item's image with a fallback
+                itemImages={item.images || "https://i.pinimg.com/1200x/555306/43312e136a9fa2a576d6fcfbd0.jpg"} // Use item's image with a fallback
               />
             ))
         }

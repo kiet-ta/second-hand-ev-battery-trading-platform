@@ -6,4 +6,6 @@ public class CreateStaffRequestDto
     public string Email { get; set; }
     public string Password { get; set; }
     public string? Phone { get; set; }
+
+    public List<string> Permissions { get; set; } = new List<string>();
 }

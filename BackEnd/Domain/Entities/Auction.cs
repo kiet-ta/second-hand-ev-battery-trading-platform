@@ -16,7 +16,7 @@ public class Auction
 
     public DateTime EndTime { get; set; }
 
-    public string Status { get; set; } = "upcoming"; // upcoming, ongoing, ended, cancelled
+    public string Status { get; set; } = String.Empty; // upcoming, ongoing, ended, cancelled
 
     public DateTime CreatedAt { get; set; } = DateTime.Now;
 
