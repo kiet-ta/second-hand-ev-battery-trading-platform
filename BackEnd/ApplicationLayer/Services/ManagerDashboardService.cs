@@ -1,4 +1,4 @@
-﻿using Application.DTOs.ManageCompanyDto;
+﻿using Application.DTOs.ManageCompanyDtos;
 using Application.IRepositories;
 using Application.IRepositories.IPaymentRepositories;
 using Application.IServices;
