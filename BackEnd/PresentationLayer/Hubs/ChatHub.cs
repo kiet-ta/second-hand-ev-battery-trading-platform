@@ -75,8 +75,8 @@ namespace PresentationLayer.Hubs
                 );
 
                 // Broadcast to 2 users
-                await Clients.Group($"u:{to}").SendAsync("ReceiveMessage", cid, msgDto);
-                await Clients.Group($"u:{from}").SendAsync("ReceiveMessage", cid, msgDto);
+                await Clients.Group($"u:{to}").SendAsync("receivemessage", cid, msgDto);
+                await Clients.Group($"u:{from}").SendAsync("receivemessage", cid, msgDto);
 
                 Console.WriteLine($"Message {savedMessage.Id} broadcasted successfully");
             }

@@ -8,7 +8,7 @@ namespace PresentationLayer.Controllers;
 
 [Route("api/management")]
 [ApiController]
-[Authorize(Roles = "Manager")]
+[Authorize(Roles = "manager")]
 public class StaffManagementController : ControllerBase
 {
     private readonly IStaffManagementService _staffManagementService;

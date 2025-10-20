@@ -3,33 +3,41 @@ import SettingsCard from "../components/SettingCard";
 import ProfileForm from "../components/ProfileForm";
 import AddressManagement from "../pages/AddressManagement";
 import HistoryBought from "../components/HistoryBought";
+import ChatRoom from "../components/Chats/ChatRoom"
 import "../assets/styles/ProfileContent.css";
 import anhtao from "../assets/images/Logo.png";
 import { FaRegUser } from "react-icons/fa";
 import { LuClipboardList } from "react-icons/lu";
-import { IoSettingsOutline } from "react-icons/io5";
+import { IoSettingsOutline, IoChatboxOutline } from "react-icons/io5";
 import { IoMdSearch } from "react-icons/io";
 import { IoMdNotificationsOutline } from "react-icons/io";
 import { IoCartOutline } from "react-icons/io5";
 import { MdLogout } from "react-icons/md";
 import Logo from "../components/Logo";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import NotificationDropdown from "../components/NotificationDropdown";
 import ChangePassword from "../components/ChangePassword";
 
 
 const ProfileContent = () => {
-    const [activeSection, setActiveSection] = useState("profile");
+        const navigate = useNavigate();
+    const location = useLocation();
+
+    const initialSection = location.state?.activeSection || "profile";
+    const initialChatRoomId = location.state?.chatRoomId || null;
+    const initialReceiverId = location.state?.receiverId || null;
+
+
+    const [activeSection, setActiveSection] = useState(initialSection);
     const [activeCard, setActiveCard] = useState("account");
     const [searchQuery, setSearchQuery] = useState("");
     const [isDarkMode, setIsDarkMode] = useState(false);
-    const navigate = useNavigate();
     const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+    const userId = localStorage.getItem("userId")
     const [currentUser, setCurrentUser] = useState({
         fullName: localStorage.getItem("userName") || "Guest",
         avatarProfile: localStorage.getItem("userAvatar") || anhtao
     });
-
     useEffect(() => {
         const fetchUser = async () => {
             try {
@@ -90,10 +98,19 @@ const ProfileContent = () => {
         }
     };
 
+
+    useEffect(() => {
+        if (location.state?.activeSection === 'chat') {
+            // Replace history state to prevent immediately jumping back to chat on refresh
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
+    }, [location.state]);
+
     const menuItems = [
         { id: "profile", label: "Profile", icon: <FaRegUser /> },
         { id: "purchase", label: "My Purchase", icon: <LuClipboardList /> },
         { id: "settings", label: "Settings", icon: <IoSettingsOutline /> },
+        { id: "chat", label: "Chat", icon: <IoChatboxOutline /> }
     ];
 
     const settingsCards = [
@@ -203,6 +220,16 @@ const ProfileContent = () => {
                     {activeSection === "purchase" && (
                         <div className="profile-main">
                             <HistoryBought />
+                        </div>
+                    )}
+
+                    {activeSection == "chat" && (
+                        <div className="profile-main">
+                            <ChatRoom
+                                currentUserId={userId}
+                                initialRoomId={initialChatRoomId}
+                                initialReceiverId={initialReceiverId}
+                            />
                         </div>
                     )}
 

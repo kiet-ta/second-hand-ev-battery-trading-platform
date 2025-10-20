@@ -4,68 +4,81 @@ import { createPortal } from 'react-dom';
 import NotificationToast from './NotificationToast';
 
 const SSEListener = ({ userId, onNewNotification }) => {
-  const [toasts, setToasts] = useState([]);
-const sseEndpoint = `https://localhost:7272/api/Notifications/register?userId=${userId}`;
-  const dismissToast = useCallback((id) => {
-    setToasts(prev => prev.filter(n => n.id !== id));
-  }, []);
+    const [toasts, setToasts] = useState([]);
+    const baseURL = import.meta.env.VITE_BACKEND_BASE_URL;
+    
+    const sseEndpoint = `${baseURL}api/Notifications/register?userId=${userId}`; 
 
-  useEffect(() => {
-    if (!window.EventSource || !userId) {
-      console.warn("SSE not supported or userId is missing.");
-      return;
-    }
+    const dismissToast = useCallback((id) => {
+        setToasts(prev => prev.filter(n => n.id !== id));
+    }, []);
 
-    const eventSource = new EventSource(sseEndpoint);
+    useEffect(() => {
+        if (!window.EventSource) {
+            console.error("Browser does not support Server-Sent Events.");
+            return;
+        }
+        if (!userId || userId.length === 0) {
+            console.warn("SSE Listener waiting for valid userId...");
+            return;
+        }
 
-    eventSource.onmessage = (event) => {
-      try {
-        // The C# backend sends the message content as plain string "data: {message}\n\n".
-        // Here we assume the message is a JSON string of a notification object.
-        const parsedData = JSON.parse(event.data); 
+        console.log(`Attempting to connect SSE for user: ${userId} via proxy...`);
         
-        // Ensure the notification object has required fields (id, content, type)
-        const newNotification = {
-          id: Date.now(), 
-          ...parsedData,
-          isUnread: true, // Mark as unread for the main dropdown
+        const eventSource = new EventSource(sseEndpoint);
+
+        eventSource.onmessage = (event) => {
+            try {
+                const payload = JSON.parse(event.data); 
+                console.log("[SSE DEBUG] Message Received!");
+            console.log("[SSE DEBUG] Raw Event Data:", event.data);
+                const category = payload.notiType ? payload.notiType.toLowerCase() : 'activities';
+                
+                const newNotification = {
+                    id: Date.now(), 
+                    ...payload,
+                    category: category, 
+                    isUnread: true, 
+                };
+
+                setToasts(prev => [newNotification, ...prev]);
+                setTimeout(() => dismissToast(newNotification.id), 7000);
+
+                onNewNotification(newNotification);
+                
+            } catch (e) {
+                console.error('Failed to parse SSE message:', event.data, e);
+            }
+        };
+        
+        eventSource.onopen = () => {
+             console.log('SSE connection successfully opened.');
         };
 
-        // 1. Show the real-time toast
-        setToasts(prev => [newNotification, ...prev]);
-        setTimeout(() => dismissToast(newNotification.id), 7000);
 
-        // 2. Pass the notification up to be added to the main list
-        onNewNotification(newNotification);
+        eventSource.onerror = (error) => {
+             console.error('SSE Error. Connection will attempt to reconnect.', error);
+        };
+
+        return () => {
+            eventSource.close();
+            console.log('SSE connection closed or re-initiated.');
+        };
         
-      } catch (e) {
-        console.error('Failed to parse SSE message:', event.data, e);
-      }
-    };
+    }, [userId, sseEndpoint, dismissToast, onNewNotification]);
 
-    eventSource.onerror = (error) => {
-      console.error('SSE Error. Connection will attempt to reconnect.', error);
-    };
-
-    return () => {
-      eventSource.close();
-      console.log('SSE connection closed.');
-    };
-  }, [sseEndpoint, userId, dismissToast, onNewNotification]);
-
-  // Render toasts in a portal
-  return createPortal(
-    <div className="fixed top-4 right-4 z-[100] space-y-3">
-      {toasts.map(toast => (
-        <NotificationToast 
-          key={toast.id} 
-          notification={toast}
-          onClose={() => dismissToast(toast.id)}
-        />
-      ))}
-    </div>,
-    document.body
-  );
+    return createPortal(
+        <div className="fixed top-4 right-4 z-[100] space-y-3">
+            {toasts.map(toast => (
+                <NotificationToast 
+                    key={toast.id} 
+                    notification={toast}
+                    onClose={() => dismissToast(toast.id)}
+                />
+            ))}
+        </div>,
+        document.body
+    );
 };
 
 export default SSEListener;

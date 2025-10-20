@@ -89,6 +89,10 @@ namespace PresentationLayer
             builder.Services.AddScoped<ICommissionFeeRuleRepository, CommissionFeeRuleRepository>();
             builder.Services.AddScoped<ITransactionRepository, TransactionRepository>();
 
+            builder.Services.Configure<MailSettings>(
+    builder.Configuration.GetSection("MailSettings"));
+
+
             // AddHttp
             builder.Services.AddHttpClient<IChatRepository, FirebaseChatRepository>();
             builder.Services.AddHttpContextAccessor();
@@ -159,7 +163,7 @@ namespace PresentationLayer
                 options.AddPolicy("AllowReactApp",
                     policy =>
                     {
-                        policy.WithOrigins("http://localhost:5173")
+                        policy.WithOrigins("http://localhost:5173", "http://localhost:5174")
                               .AllowAnyHeader()
                               .AllowAnyMethod()
                               .AllowCredentials();
@@ -208,7 +212,8 @@ namespace PresentationLayer
             builder.Services.AddAutoMapper(
                 typeof(KYC_DocumentProfile).Assembly,
                 typeof(AddressProfile).Assembly,
-                typeof(ReviewProfile).Assembly
+                typeof(ReviewProfile).Assembly,
+                typeof(PermissionProfille).Assembly
                 );
             builder.Services.AddScoped<IWalletService, WalletService>();
             //builder.Services.AddSwaggerGen();

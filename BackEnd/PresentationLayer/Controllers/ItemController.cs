@@ -214,5 +214,38 @@ namespace PresentationLayer.Controllers
 
             return Ok(item);
         }
+        [HttpPut("{itemId}/approve")]
+        public async Task<IActionResult> ApproveItem(int itemId)
+        {
+            try
+            {
+                var result = await _service.SetApprovedItemTagAsync(itemId);
+                if (!result)
+                    return BadRequest("Item not found or not in 'pending' state.");
+
+                return Ok(new { message = "Item approved successfully." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = $"Error approving item: {ex.Message}" });
+            }
+        }
+
+        [HttpPut("{itemId}/reject")]
+        public async Task<IActionResult> RejectItem(int itemId)
+        {
+            try
+            {
+                var result = await _service.SetRejectedItemTagAsync(itemId);
+                if (!result)
+                    return BadRequest("Item not found or not in 'pending' state.");
+
+                return Ok(new { message = "Item rejected successfully." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = $"Error rejecting item: {ex.Message}" });
+            }
+        }
     }
 }

@@ -42,6 +42,7 @@ import { Menu } from "@headlessui/react";
 
 import "../assets/styles/SidebarAnimation.css"; // hiệu ứng sidebar (code ở dưới)
 import NotificationCreator from "../components/Notifications/NotificationCreation";
+import ProductModeration from "../components/ProductModeration";
 
 function currencyVND(x) {
     try {
@@ -635,28 +636,7 @@ export default function ManagerDashboard() {
                                 exit={{ opacity: 0, x: -40 }}
                                 transition={{ duration: 0.3 }}
                             >
-                                <Card>
-                                    <CardHeader title="Product Management" icon={<PackageSearch size={18} />} />
-                                    <div className="p-4 grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                        {products.map((p, idx) => (
-                                            <div key={p.item?.itemId || `prod-${idx}`}
-                                                className="border border-slate-200 rounded-xl p-4 flex flex-col hover:shadow-md transition"
-                                            >
-                                                <img
-                                                    src={p.item.images?.[0]?.imageUrl || "https://placehold.co/300x200?text=No+Image"}
-                                                    alt={p.item.title}
-                                                    className="w-full h-36 object-cover rounded-lg mb-3"
-                                                />
-                                                <h4 className="font-semibold text-slate-800">{p.item.title}</h4>
-                                                <p className="text-sm text-slate-500 mb-1">{p.item.itemType?.toUpperCase()}</p>
-                                                <p className="text-slate-700 font-medium">{currencyVND(p.item.price)}</p>
-                                                <p className="text-xs text-slate-500 mt-1">
-                                                    Seller: {p.seller?.fullName || "Không xác định"}
-                                                </p>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </Card>
+                                <ProductModeration/>
                             </motion.div>
                         )}
 
