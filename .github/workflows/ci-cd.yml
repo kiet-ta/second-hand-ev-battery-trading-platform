@@ -61,6 +61,60 @@ jobs:
           cd BackEnd
           dotnet test --configuration Release --filter "TestCategory=Integration"
 
+  # ======================= SONARCLOUD ANALYSIS =====================
+  sonarcloud-analysis:
+    name: Backend - SonarCloud Analysis
+    needs: [backend-build-and-unit-test, backend-integration-test]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # # Get the full history to avoid "Missing blame information" error
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'zulu'
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Install SonarScanner
+        run: dotnet tool install --global dotnet-sonarscanner
+
+      - name: Install Coverlet
+        run: |
+          dotnet add BackEnd/BackEnd.Application.Tests/BackEnd.Application.Tests.csproj package coverlet.collector
+          dotnet add BackEnd/BackEnd.Integration.Tests/BackEnd.Integration.Tests.csproj package coverlet.collector
+      
+      - name: Run SonarCloud Scan
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          dotnet sonarscanner begin \
+            /o:"kiet-ta" \
+            /k:"kiet-ta_second-hand-ev-battery-trading-platform" \
+            /d:sonar.login="${{ secrets.SONAR_TOKEN }}" \
+            /d:sonar.host.url="https://sonarcloud.io" \
+            /d:sonar.projectBaseDir="BackEnd" \
+            /d:sonar.cs.opencover.reportsPaths="BackEnd/TestResults/coverage.opencover.xml"
+
+          dotnet build BackEnd/BackEnd.sln --no-restore
+
+          # test and create file coverage.xml
+          dotnet test BackEnd/BackEnd.sln --no-build \
+            /p:CollectCoverage=true \
+            /p:CoverletOutputFormat=opencover \
+            /p:CoverletOutput="BackEnd/TestResults/coverage.opencover.xml" \
+            /p:MergeWith="BackEnd/TestResults/coverage.opencover.xml"
+
+          # end flow
+          dotnet sonarscanner end /d:sonar.login="${{ secrets.SONAR_TOKEN }}"
   # ======================= FRONTEND PIPELINE =======================
   frontend-build-test:
     name: Frontend - Build & Test
