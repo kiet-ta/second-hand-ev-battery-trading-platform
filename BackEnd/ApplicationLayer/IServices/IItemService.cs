@@ -40,5 +40,7 @@ namespace Application.IServices
         Task<IEnumerable<ItemBoughtDto>> GetBoughtItemsWithDetailsAsync(int userId);
         Task<IEnumerable<ItemSellerDto>> GetSellerItemsAsync(int sellerId);
         Task<UserItemDetailDto?> GetItemDetailByIdAsync(int itemId);
+        Task<bool> SetApprovedItemTagAsync(int itemId);
+        Task<bool> SetRejectedItemTagAsync(int itemId);
     }
 }
