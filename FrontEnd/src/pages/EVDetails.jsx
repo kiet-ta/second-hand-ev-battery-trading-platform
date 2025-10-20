@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { Spin, Alert, message } from 'antd'; // Using Ant Design for feedback
 import { FiMessageSquare, FiPhone, FiMapPin, FiCalendar, FiTrendingUp } from 'react-icons/fi';
 import { FaStar } from 'react-icons/fa';
@@ -8,6 +8,7 @@ import { GiGemChain } from "react-icons/gi";
 // API Hooks
 import itemApi from '../api/itemApi';
 import userApi from '../api/userApi';
+import chatApi from '../api/chatApi';
 
 // Reusable component for star ratings
 const StarRating = ({ rating }) => (
@@ -20,15 +21,15 @@ const StarRating = ({ rating }) => (
 
 // MOCK DATA: Using your provided mock review data as requested.
 const commenter = [
-    { name: "Nguyen Van A", picture: "https://i.pinimg.com/736x/5b/3f/09/5b3f09d67f448e39dab9e8d8f3cc3f94.jpg", comment: "The car was in excellent condition, exactly as described!", rating: 5, time: "2023-10-01 10:00", imagefollow: ["https://i.pinimg.com/1200x/55/53/06/55530643312e136a9fa2a576d6fcfbd0.jpg"] },
-    { name: "Tran Thi B", picture: "https://i.pinimg.com/736x/b6/10/ae/b610ae5879e2916e1bb7c4c161754f4d.jpg", comment: "Good communication with the seller, smooth transaction.", rating: 4, time: "2023-10-02 12:30", imagefollow: [] },
-    { name: "Le Van C", picture: "https://i.pinimg.com/736x/ae/5d/4f/ae5d4f0a3f4e8b9c8e4e4e4e4e4e4e4e.jpg", comment: "A few minor scratches that weren't mentioned, but overall happy.", rating: 3, time: "2023-10-03 14:45", imagefollow: [] }
+  { name: "Nguyen Van A", picture: "https://i.pinimg.com/736x/5b/3f/09/5b3f09d67f448e39dab9e8d8f3cc3f94.jpg", comment: "The car was in excellent condition, exactly as described!", rating: 5, time: "2023-10-01 10:00", imagefollow: ["https://i.pinimg.com/1200x/55/53/06/55530643312e136a9fa2a576d6fcfbd0.jpg"] },
+  { name: "Tran Thi B", picture: "https://i.pinimg.com/736x/b6/10/ae/b610ae5879e2916e1bb7c4c161754f4d.jpg", comment: "Good communication with the seller, smooth transaction.", rating: 4, time: "2023-10-02 12:30", imagefollow: [] },
+  { name: "Le Van C", picture: "https://i.pinimg.com/736x/ae/5d/4f/ae5d4f0a3f4e8b9c8e4e4e4e4e4e4e4e.jpg", comment: "A few minor scratches that weren't mentioned, but overall happy.", rating: 3, time: "2023-10-03 14:45", imagefollow: [] }
 ];
 
 function EVDetails() {
   const location = useLocation();
   const itemId = location.state;
-
+  const navigate = useNavigate();
   // State Management: Consolidated state with loading and error handling
   const [item, setItem] = useState(null);
   const [sellerProfile, setSellerProfile] = useState(null);
@@ -48,9 +49,15 @@ function EVDetails() {
         setLoading(true);
         const itemData = await itemApi.getItemDetailByID(itemId);
         setItem(itemData);
-
-        const userData = await userApi.getUserByID(itemData.updatedBy);
-        setSellerProfile(userData);
+        const sellerId = itemData.updatedBy;
+        if (sellerId) {
+          const userData = await userApi.getUserByID(sellerId);
+          setSellerProfile(userData);
+        } else {
+          // Handle case where item has no seller attached (e.g., set to default)
+          setSellerProfile(null);
+          console.warn("Item data is missing the 'updatedBy' (seller) ID.");
+        }
       } catch (err) {
         console.error("Error fetching EV details:", err);
         setError("Failed to load vehicle details. Please try again later.");
@@ -62,6 +69,45 @@ function EVDetails() {
     fetchItemData();
   }, [itemId]);
 
+  const handleChatWithSeller = async () => {
+    // 1. Get the authenticated buyer ID (ensure it's a number)
+    const buyerId = parseInt(localStorage.getItem("userId"), 10);
+    const sellerId = item?.updatedBy;
+
+    if (isNaN(buyerId)) {
+      message.error("Please log in to start a chat.");
+      navigate('/login');
+      return;
+    }
+    if (!sellerId || buyerId === sellerId) {
+      message.error("Cannot start chat. Invalid seller ID or sending to self.");
+      return;
+    }
+
+    try {
+      message.loading('Starting chat...', 0);
+
+      // 2. Call the idempotent API function
+      const room = await chatApi.createChatRoom(buyerId, sellerId);
+
+      message.destroy();
+      message.success(`Chat room ${room.cid} is ready!`);
+
+      // 3. Navigate to the chat section, passing the room ID and receiver ID
+      navigate('/profile', {
+        state: {
+          activeSection: 'chat',
+          chatRoomId: room.cid,
+          // The receiver is the other person (the seller)
+          receiverId: sellerId
+        }
+      });
+    } catch (error) {
+      message.destroy();
+      console.error("Error ensuring chat room:", error);
+      message.error("Failed to start chat. Please try again.");
+    }
+  };
   // Loading State
   if (loading) {
     return (
@@ -84,27 +130,27 @@ function EVDetails() {
   if (!item) {
     return null;
   }
-  
+
   const { evDetail } = item;
 
   // Key Specifications for easy mapping
   const keySpecs = [
-      { label: 'Brand', value: evDetail?.brand },
-      { label: 'Model', value: evDetail?.model },
-      { label: 'Body Style', value: evDetail?.bodyStyle },
-      { label: 'Color', value: evDetail?.color },
-      { label: 'License Plate', value: evDetail?.licensePlate }
+    { label: 'Brand', value: evDetail?.brand },
+    { label: 'Model', value: evDetail?.model },
+    { label: 'Body Style', value: evDetail?.bodyStyle },
+    { label: 'Color', value: evDetail?.color },
+    { label: 'License Plate', value: evDetail?.licensePlate }
   ];
 
   return (
     <div className="bg-gray-50 min-h-screen p-4 sm:p-6 lg:p-8">
       <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-5 gap-8">
-        
+
         {/* Left Column: Image, Specs, Description */}
         <div className="lg:col-span-3 flex flex-col gap-8">
           <div className="bg-white rounded-lg shadow-md overflow-hidden">
-             {/* Assuming you have an images array in your item object */}
-             <img src="https://i.pinimg.com/1200x/55/53/06/55530643312e136a9fa2a576d6fcfbd0.jpg" alt={item.title} className="w-full h-auto object-cover" />
+            {/* Assuming you have an images array in your item object */}
+            <img src="https://i.pinimg.com/1200x/55/53/06/55530643312e136a9fa2a576d6fcfbd0.jpg" alt={item.title} className="w-full h-auto object-cover" />
           </div>
 
           <div className="bg-white rounded-lg shadow-md p-6">
@@ -133,7 +179,7 @@ function EVDetails() {
             <h1 className="text-3xl font-bold text-gray-900 leading-tight">
               {item.title}
             </h1>
-            
+
             {evDetail && (
               <div className="flex flex-wrap gap-x-4 gap-y-2 text-gray-600 items-center">
                 <div className="flex items-center gap-2"><FiCalendar /><span>{evDetail.year}</span></div>
@@ -141,21 +187,22 @@ function EVDetails() {
                 <div className="flex items-center gap-2"><FiMapPin /><span>{evDetail.location}</span></div>
               </div>
             )}
-             {evDetail?.hasAccessories && (
-                <div className="bg-teal-100 text-teal-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded-full inline-flex items-center gap-1 self-start">
-                    <GiGemChain /> Includes Accessories
-                </div>
+            {evDetail?.hasAccessories && (
+              <div className="bg-teal-100 text-teal-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded-full inline-flex items-center gap-1 self-start">
+                <GiGemChain /> Includes Accessories
+              </div>
             )}
 
             <div className="bg-gray-100 p-4 rounded-lg my-2">
               <span className="text-4xl font-extrabold text-indigo-600">${item.price.toLocaleString()}</span>
             </div>
-            
+
             <div className="flex flex-col sm:flex-row gap-3 mt-2">
-              <button className="flex-1 bg-blue-500 text-white font-bold py-3 px-6 rounded-lg flex items-center justify-center gap-2 hover:bg-blue-600 transition-colors">
-                <FiMessageSquare /> Chat with Seller
-              </button>
               <button
+                onClick={handleChatWithSeller}
+                className="flex-1 bg-blue-500 text-white font-bold py-3 px-6 rounded-lg flex items-center justify-center gap-2 hover:bg-blue-600 transition-colors">
+                <FiMessageSquare /> Chat with Seller
+              </button>              <button
                 onClick={() => setIsPhoneVisible(!isPhoneVisible)}
                 className="flex-1 bg-green-500 text-white font-bold py-3 px-6 rounded-lg flex items-center justify-center gap-2 hover:bg-green-600 transition-colors"
               >
@@ -164,11 +211,11 @@ function EVDetails() {
               </button>
             </div>
           </div>
-          
+
           {sellerProfile && (
             <div className="bg-white rounded-lg shadow-md p-6 flex items-center gap-4">
-              <img 
-                className="w-16 h-16 rounded-full object-cover" 
+              <img
+                className="w-16 h-16 rounded-full object-cover"
                 src={sellerProfile.avatar || 'https://i.pinimg.com/736x/b6/10/ae/b610ae5879e2916e1bb7c4c161754f4d.jpg'}
                 alt={sellerProfile.fullName}
               />
@@ -188,7 +235,7 @@ function EVDetails() {
               {commenter.length > 0 ? (
                 commenter.map((review, index) => (
                   <div key={index} className="flex gap-4 border-b border-gray-100 pb-4 last:border-b-0">
-                    <img src={review.picture} alt={review.name} className="w-12 h-12 rounded-full object-cover flex-shrink-0"/>
+                    <img src={review.picture} alt={review.name} className="w-12 h-12 rounded-full object-cover flex-shrink-0" />
                     <div className="flex-1">
                       <div className="flex justify-between items-center">
                         <p className="font-bold">{review.name}</p>
@@ -196,10 +243,10 @@ function EVDetails() {
                       </div>
                       <div className="my-1"><StarRating rating={review.rating} /></div>
                       <p className="text-gray-800">{review.comment}</p>
-                       {review.imagefollow && review.imagefollow.length > 0 && (
+                      {review.imagefollow && review.imagefollow.length > 0 && (
                         <div className="flex gap-2 mt-2">
                           {review.imagefollow.map((img, idx) => (
-                            <img key={idx} src={img} className="w-20 h-20 object-cover rounded-md cursor-pointer hover:opacity-80 transition" alt="review"/>
+                            <img key={idx} src={img} className="w-20 h-20 object-cover rounded-md cursor-pointer hover:opacity-80 transition" alt="review" />
                           ))}
                         </div>
                       )}
