@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Application.DTOs;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -10,5 +11,8 @@ namespace Application.IServices
     {
         Task<bool> ApproveNewsAsync(int newsId);
         Task<bool> CancelNewsAsync(int newsId);
+        Task<bool> AddNewsAsync(CreateNewsDto dto);
+        Task DeleteNewsAsync(int newsId);
+        Task<bool> RejectNewsAsync(int newsId);
     }
 }
