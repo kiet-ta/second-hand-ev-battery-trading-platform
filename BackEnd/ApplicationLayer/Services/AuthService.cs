@@ -6,6 +6,7 @@ using Application.Validations;
 using Domain.Entities;
 using FluentValidation;
 using Google.Apis.Auth;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -58,25 +59,28 @@ namespace Application.Services
 
         public async Task<AuthResponseDto> RegisterAsync(RegisterDto dto)
         {
+            // Validate input
             var validator = new RegisterValidator();
             var result = validator.Validate(dto);
             if (!result.IsValid)
                 throw new ValidationException(string.Join("; ", result.Errors.Select(e => e.ErrorMessage)));
 
+            // Business validate
             if (await _userRepository.GetByEmailAsync(dto.Email) != null)
                 throw new ValidationException("Email already registered");
 
-            var existingUsers = await _userRepository.GetAllAsync();
-            if (existingUsers.Any(u => u.Phone == dto.Phone))
-                throw new ValidationException("Phone number already used");
+            // Optional: check phone unique
+            //var existingUsers = await _userRepository.GetAllAsync();
+            //if (existingUsers.Any(u => u.Phone == dto.Phone))
+            //    throw new ValidationException("Phone number already used");
 
+            //  Hash password + Save
             var user = new User
             {
                 UserId = GenerateUserId(),
                 FullName = dto.FullName.Trim(),
                 Email = dto.Email.ToLower(),
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
-                Phone = dto.Phone,
                 Role = "Buyer",
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow,
@@ -104,7 +108,7 @@ namespace Application.Services
             if (string.IsNullOrWhiteSpace(idToken))
                 throw new InvalidGoogleTokenException("Token is empty");
 
-            // Log để debug
+            // Log to debug
             _logger.LogInformation("Attempting to validate Google token");
             _logger.LogInformation("GoogleClientId from config: {ClientId}", _appSettings.GoogleClientId);
 
