@@ -26,6 +26,15 @@ public class StaffManagementService : IStaffManagementService
         _staffPermissionRepository = staffPermissionRepository;
         _mapper = mapper;
     }
+    public static int GenerateUserId()
+    {
+        var now = DateTime.UtcNow;
+        string timestamp = now.ToString("yyyyMMddHHmmss");
+        int random = new Random().Next(100, 999);
+        string combined = timestamp + random.ToString();
+        int hash = combined.GetHashCode();
+        return Math.Abs(hash);
+    }
 
     public async Task AssignPermissionsToStaffAsync(int staffId, List<int> permissionIds)
     {
@@ -50,6 +59,7 @@ public class StaffManagementService : IStaffManagementService
         }
         var newUser = new User
         {
+            UserId = GenerateUserId(),
             FullName = request.FullName,
             Email = request.Email,
             PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password),
