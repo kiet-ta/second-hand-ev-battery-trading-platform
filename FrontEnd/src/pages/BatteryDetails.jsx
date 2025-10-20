@@ -20,6 +20,15 @@ const StarRating = ({ rating }) => (
   </div>
 );
 
+const VerifiedCheck = ({ className = "" }) => (
+    <div className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 ${className}`}>
+        <svg className="-ml-0.5 mr-1.5 h-3 w-3 text-green-500 fill-current" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+        </svg>
+        Đã Duyệt
+    </div>
+);
+
 function BatteryDetails() {
   const location = useLocation();
   const navigate = useNavigate();
@@ -172,12 +181,14 @@ function BatteryDetails() {
   const imageUrls = itemImages.map(img => img.imageUrl);
   const placeholderImage = 'https://placehold.co/1200x800/374151/d1d5db?text=Battery+Image';
   const displayImage = imageUrls[selectedImage] || placeholderImage;
+  const isVerified = item.moderation === 'approved_tag';
 
   const formatPrice = (price) => {
     if (price === undefined || price === null) return 'N/A';
     // Using toLocaleString with currency formatting for Vietnamese Dong
     return price.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' });
   };
+
 
   // Key Specifications for Battery
   const keySpecs = [
@@ -203,7 +214,6 @@ function BatteryDetails() {
                 onError={(e) => { e.currentTarget.src = placeholderImage; }}
                 className="w-full object-cover rounded-t-lg aspect-[3/2]"
               />
-
               {/* Carousel Navigation */}
               {imageUrls.length > 1 && (
                 <>
@@ -252,6 +262,8 @@ function BatteryDetails() {
             <h1 className="text-3xl font-bold text-gray-900 leading-tight">
               {item.title}
             </h1>
+            {isVerified && <VerifiedCheck />}
+
             <div className="text-md text-gray-500 flex items-center gap-2">
               {/* Battery Detail line */}
               <GiBatteryPack className='text-xl text-indigo-500' />
