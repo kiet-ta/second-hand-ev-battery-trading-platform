@@ -21,13 +21,13 @@ function CardCart({
     onQuantityChange(id, Math.max(1, quantity - 1));
   };
 
-  const totalPrice = (price * quantity).toLocaleString("en-US", {
+  const totalPrice = (price * quantity).toLocaleString("vi-VN", {
     style: "currency",
-    currency: "USD",
+    currency: "VND",
   });
-  const unitPrice = price.toLocaleString("en-US", {
+  const unitPrice = price.toLocaleString("vi-VN", {
     style: "currency",
-    currency: "USD",
+    currency: "VND",
   });
 
   return (

@@ -1,4 +1,4 @@
-﻿using Application.DTOs.ManagerDto;
+﻿using Application.DTOs.ManageCompanyDto;
 using System;
 using System.Collections.Generic;
 using System.Linq;

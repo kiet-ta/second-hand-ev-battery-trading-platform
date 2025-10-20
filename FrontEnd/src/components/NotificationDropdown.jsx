@@ -199,7 +199,7 @@ export default function NotificationDropdown({ userId }) {
                         {/* Footer */}
                         <div className="mt-3 pt-2 border-t border-gray-200 dark:border-gray-700 text-center">
                             <a 
-                                href="/notifications" 
+                                href="/profile/notification" 
                                 className="text-sm font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
                             >
                                 Xem tất cả

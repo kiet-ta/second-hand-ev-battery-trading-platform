@@ -9,7 +9,7 @@ import { FaSuitcase } from "react-icons/fa6";
 import { LuShoppingBag } from "react-icons/lu";
 import { jwtDecode } from 'jwt-decode';
 import walletApi from '../api/walletApi';
-
+import NotificationDropDown from './NotificationDropdown'
 
 function Navbar(data) {
   const navigate = useNavigate()
@@ -37,9 +37,6 @@ function Navbar(data) {
     { name: 'Home', link: '/', icon: <IoMdHome /> },
     { name: 'Auction', link: '/auctions', icon: <RiAuctionFill /> }
   ]
-  const rightmenu = [
-    { name: 'Notification', link: '/notification', icon: <IoMdHome /> },
-    { name: 'Support', link: '/support' }]
   return (
 
     <div>
@@ -67,15 +64,15 @@ function Navbar(data) {
 
           </div>
           <div className="right-header flex w-full justify-end" >
-            {rightmenu.map((item, index) => (
-              <Link to={item.link} key={index} className="mx-4 hover:text-green-300 flex items-center">
-                {item.icon}
-                <span className="ml-2">{item.name}</span>
-              </Link>
-            ))}
             {data.data ? (
+              <div className="flex justify-center">
+              <div className="ml-5 mt-2">
+                <NotificationDropDown userId={localStorage.getItem("userId")} />
+              </div>
               <div className="ml-5">
                 <ProfileDropDown users={data.data} walletBalance={walletBalance} />
+              </div>
+
               </div>
             )
               : (
@@ -97,6 +94,7 @@ function Navbar(data) {
             <form action='/search' method='GET' className="w-full p-2 rounded-lg text-black bg-white relative">
                 <input type="text" name="query" placeholder="Search..." className="w-5/6"/>
                 <select className="bg-maincolor-darker w-1/6 absolute right-0 top-0 h-full align-middle text-center font-bold border-1" name="itemType">
+                <option value="All">All</option>
                 <option value="EV">Vehicle</option>
                 <option value="Battery">Battery</option>
                 </select>

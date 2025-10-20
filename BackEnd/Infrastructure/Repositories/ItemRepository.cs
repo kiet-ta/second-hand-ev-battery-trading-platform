@@ -129,6 +129,7 @@ namespace Infrastructure.Repositories
                             CategoryId = i.CategoryId,
                             Description = i.Description,
                             Price = i.Price,
+                    //Moderation = item.Moderation,
                             Quantity = i.Quantity,
                             CreatedAt = i.CreatedAt,
                             UpdatedAt = i.UpdatedAt,
@@ -169,6 +170,7 @@ namespace Infrastructure.Repositories
                             Description = i.Description,
                             Price = i.Price,
                             Quantity = i.Quantity,
+                    //Moderation = item.Moderation,
                             CreatedAt = i.CreatedAt,
                             UpdatedAt = i.UpdatedAt,
                             UpdatedBy = i.UpdatedBy,
@@ -415,6 +417,19 @@ namespace Infrastructure.Repositories
                 };
 
             return await query.AsNoTracking().FirstOrDefaultAsync();
+        }
+
+        public async Task<bool> SetItemTagAsync(int itemId, string tag)
+        {
+            var item = await _context.Items.FirstOrDefaultAsync(i => i.ItemId == itemId);
+            if (item == null)
+            {
+                return false;
+            }
+            item.Moderation = tag;
+            _context.Items.Update(item);
+            await _context.SaveChangesAsync();
+            return true;
         }
     }
 }

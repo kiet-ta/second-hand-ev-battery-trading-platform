@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import Logo from '../components/Logo';
-import '../assets/styles/LoginPage.css'; // Create a CSS file for styling
+import '../assets/styles/LoginPage.css';
 import banner1 from '../assets/images/banner1.png';
 import banner2 from '../assets/images/banner2.png';
 import banner3 from '../assets/images/banner3.png';
@@ -183,7 +183,7 @@ export default function RegisterPage() {
         <div className="login-container">
             {/* Header */}
             <header className="bg-maincolor">
-          <div className="w-1/4 h-full flex justify-start"><Logo></Logo></div>
+                <div className="w-1/4 h-full flex justify-start"><Logo></Logo></div>
             </header>
 
             {/* Nội dung chính: banner + form */}

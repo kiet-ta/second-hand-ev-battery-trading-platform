@@ -39,12 +39,8 @@ public class AuctionController : ControllerBase
     [HttpPost("{auctionId}/bid")]
     public async Task<IActionResult> PlaceBid(int auctionId, [FromBody] PlaceBidRequestDto request)
     {
-        var result = await _auctionService.PlaceBidAsync(auctionId, request.UserId, request.BidAmount);
-        if (result)
-        {
+        await _auctionService.PlaceBidAsync(auctionId, request.UserId, request.BidAmount);
             return Ok(new { message = "Bid placed successfully." });
-        }
-        return BadRequest(new { message = "Failed to place bid. Check bidding status, amount, and wallet balance." });
     }
 
     [HttpGet("{auctionId}/status")]
