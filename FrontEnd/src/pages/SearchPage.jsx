@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useSearchParams, BrowserRouter as Router } from 'react-router-dom';
 import itemApi from '../api/itemApi';
+import CardComponent from '../components/Cards/Card'
 
 const priceRanges = [
     { label: 'Any Price', value: '--' },
