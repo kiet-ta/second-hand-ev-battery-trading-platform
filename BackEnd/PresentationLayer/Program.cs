@@ -1,4 +1,5 @@
 ﻿using Application.DTOs;
+using Application.DTOs.AuthenticationDtos;
 using Application.DTOs.PaymentDtos;
 using Application.IHelpers;
 using Application.IRepositories;
@@ -41,6 +42,7 @@ namespace PresentationLayer
 
             //  Register DbContext (DB First)
             builder.Services.AddDbContext<EvBatteryTradingContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+            builder.Services.Configure<AppSetting>(builder.Configuration.GetSection("Google"));
             builder.Services.Configure<FirebaseOptions>(builder.Configuration.GetSection("Firebase"));
             // DI for Repository + Service
             //---Services
@@ -65,7 +67,6 @@ namespace PresentationLayer
             builder.Services.AddScoped<IReviewService, ReviewService>();
             builder.Services.AddScoped<ICommissionService, CommissionService>();
             builder.Services.AddScoped<IProfanityFilterService, ProfanityFilterService>();
-
             //---Repositories
             builder.Services.AddScoped<IAuctionRepository, AuctionRepository>();
             builder.Services.AddScoped<IAddressRepository, AddressRepository>();
@@ -75,7 +76,8 @@ namespace PresentationLayer
             builder.Services.AddScoped<IEVDetailRepository, EVDetailRepository>();
             builder.Services.AddScoped<IBatteryDetailRepository, BatteryDetailRepository>();
             builder.Services.AddScoped<IHistorySoldRepository, HistorySoldRepository>();
-            //builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
+            builder.Services.AddScoped<IUserRepository, UserRepository>();
+
             builder.Services.AddScoped<IBidRepository, BidRepository>();
             builder.Services.AddScoped<IWalletRepository, WalletRepository>();
             builder.Services.AddScoped<IWalletTransactionRepository, WalletTransactionRepository>();

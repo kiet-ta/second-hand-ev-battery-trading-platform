@@ -21,6 +21,7 @@ public class AuctionService : IAuctionService
     private readonly IItemImageRepository _itemImageRepository;
     private readonly IEVDetailRepository _eVDetailRepository;
     private readonly IBatteryDetailRepository _batteryDetailRepository;
+    private readonly IUserRepository _userRepository;
 
     public AuctionService(
         IAuctionRepository auctionRepository,
@@ -30,6 +31,7 @@ public class AuctionService : IAuctionService
         IItemRepository itemRepository,
         IEVDetailRepository eVDetailRepository,
         IBatteryDetailRepository batteryDetailRepository,
+        IUserRepository userRepository,
         IItemImageRepository itemImageRepository)
     {
         _auctionRepository = auctionRepository;
@@ -39,7 +41,35 @@ public class AuctionService : IAuctionService
         _itemRepository = itemRepository;
         _eVDetailRepository = eVDetailRepository;
         _batteryDetailRepository = batteryDetailRepository;
+        _userRepository = userRepository;
         _itemImageRepository = itemImageRepository;
+    }
+
+    public async Task<IEnumerable<BidderHistoryDto>> GetBidderHistoryAsync(int auctionId)
+    {
+        var auctionExists = await _auctionRepository.GetByIdAsync(auctionId);
+        if (auctionExists == null)
+            throw new KeyNotFoundException($"Auction with ID {auctionId} not found.");
+        var bids = await _bidRepository.GetBidsByAuctionIdAsync(auctionId);
+        if (!bids.Any())
+            return Enumerable.Empty<BidderHistoryDto>();
+        var userIds = bids.Select(b => b.UserId).Distinct().ToHashSet();
+        var users = (await _userRepository.GetAllAsync()).Where(u => userIds.Contains(u.UserId)).ToDictionary(u => u.UserId);
+
+        var history = bids.Select(Bid =>
+        {
+            users.TryGetValue(Bid.UserId, out var user);
+            return new BidderHistoryDto
+            {
+                UserId = Bid.UserId,
+                FullName = user?.FullName ?? "Unknown",
+                BidAmount = Bid.BidAmount,
+                BidTime = Bid.BidTime
+            };
+        })
+            .OrderByDescending(b => b.BidTime)
+            .ToList();
+        return history;
     }
 
     public async Task<AuctionDto?> GetAuctionByItemIdAsync(int itemId)

@@ -25,6 +25,12 @@ public class AuctionController : ControllerBase
         return Ok(response);
     }
 
+    [HttpGet("{auctionId}/bidders")]
+    public async Task<IActionResult> GetBidderHistory(int auctionId)
+    {
+        var bidderHistory = await _auctionService.GetBidderHistoryAsync(auctionId);
+        return Ok(bidderHistory);
+    }
     [HttpGet("item/{itemId}")]
     public async Task<IActionResult> GetAuctionByItemId(int itemId)
     {
