@@ -7,11 +7,11 @@ using Application.IRepositories.IChatRepositories;
 using Application.IRepositories.IManageStaffRepositories;
 using Application.IRepositories.IPaymentRepositories;
 using Application.IServices;
+using Application.Mappings;
 using Application.Services;
 using Application.Validations;
 using CloudinaryDotNet;
 using Domain.Entities;
-using Domain.Mappings;
 using FluentValidation;
 using Infrastructure.Data;
 using Infrastructure.Helpers;
@@ -205,7 +205,11 @@ namespace PresentationLayer
             builder.Services.AddScoped<IPermissionRepository, PermissionRepository>();
             builder.Services.AddScoped<IStaffPermissionRepository, StaffPermissionRepository>();
             builder.Services.AddScoped<IStaffManagementService, StaffManagementService>();
-            builder.Services.AddAutoMapper(typeof(KYC_DocumentProfile).Assembly);
+            builder.Services.AddAutoMapper(
+                typeof(KYC_DocumentProfile).Assembly,
+                typeof(AddressProfile).Assembly,
+                typeof(ReviewProfile).Assembly
+                );
             builder.Services.AddScoped<IWalletService, WalletService>();
             //builder.Services.AddSwaggerGen();
 
@@ -214,10 +218,6 @@ namespace PresentationLayer
             builder.Services.AddScoped<INewsService, NewsService>();
             builder.Services.AddSingleton<INotificationService, NotificationService>();
             builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
-
-
-
-
 
             builder.Services.AddSwaggerGen(c =>
             {
@@ -256,7 +256,6 @@ namespace PresentationLayer
                 });
             });
 
-
             var app = builder.Build();
             app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
 
@@ -275,10 +274,7 @@ namespace PresentationLayer
             app.MapControllers();
             app.MapHub<ChatHub>("/chatHub");
 
-
             app.Run();
-
-
         }
     }
 }

@@ -1,6 +1,6 @@
-﻿using Application.IRepositories;
+﻿using Application.DTOs;
+using Application.IRepositories;
 using AutoMapper;
-using Domain.DTOs;
 using Domain.Entities;
 
 namespace Application.Services

@@ -1,5 +1,5 @@
-﻿using AutoMapper;
-using Domain.DTOs;
+﻿using Application.DTOs;
+using AutoMapper;
 using Domain.Entities;
 using System;
 using System.Collections.Generic;
@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Domain.Mappings
+namespace Application.Mappings
 {
     public class KYC_DocumentProfile : Profile
     {

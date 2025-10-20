@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Domain.DTOs.ReviewDtos
+namespace Application.DTOs.ReviewDtos
 {
     public class CreateReviewImageDto
     {
