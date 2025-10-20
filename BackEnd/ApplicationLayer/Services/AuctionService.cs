@@ -112,26 +112,29 @@ public class AuctionService : IAuctionService
         };
     }
 
-    public async Task<bool> PlaceBidAsync(int auctionId, int userId, decimal bidAmount)
+    public async Task PlaceBidAsync(int auctionId, int userId, decimal bidAmount)
     {
         var auction = await _auctionRepository.GetByIdAsync(auctionId);
 
         // Validate auction status and time
         if (auction == null || auction.Status != "ongoing" || DateTime.Now > auction.EndTime)
         {
-            return false;
+            //throw 400
+            throw new InvalidOperationException("Auction is not active or has ended.");
         }
 
         var currentPrice = auction.CurrentPrice;
         if (bidAmount <= currentPrice)
         {
-            return false;
+            //throw 400
+            throw new ArgumentException("Bid amount must be higher than the current price.");
         }
 
         var wallet = await _walletRepository.GetWalletByUserIdAsync(userId);
         if (wallet == null || wallet.Balance < bidAmount)
         {
-            return false;
+            //throw 400
+            throw new InvalidOperationException("User wallet not found or insufficient funds.");
         }
 
         // Deduct bid amount from user wallet
@@ -157,8 +160,6 @@ public class AuctionService : IAuctionService
         auction.CurrentPrice = bidAmount;
         await _auctionRepository.UpdateCurrentPriceAsync(auction);
         await _auctionRepository.UpdateTotalBidsAsync(auctionId);
-
-        return true;
     }
 
     public async Task UpdateAuctionStatusesAsync()
@@ -241,11 +242,11 @@ public class AuctionService : IAuctionService
         return auctionDto;
     }
 
-    public async Task<AuctionStatusDto?> GetAuctionStatusAsync(int auctionId)
+    public async Task<AuctionStatusDto> GetAuctionStatusAsync(int auctionId)
     {
         var auction = await _auctionRepository.GetByIdAsync(auctionId);
         if (auction == null)
-            return null;
+            throw new KeyNotFoundException("Auction not found."); //404
 
         var now = DateTime.Now;
         string status;

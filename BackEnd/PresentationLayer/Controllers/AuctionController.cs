@@ -1,7 +1,6 @@
 ﻿using Application.DTOs;
 using Application.DTOs.AuctionDtos;
 using Application.IServices;
-using Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
 
 namespace PresentationLayer.Controllers;
@@ -27,23 +26,15 @@ public class AuctionController : ControllerBase
     [HttpPost("{auctionId}/bid")]
     public async Task<IActionResult> PlaceBid(int auctionId, [FromBody] PlaceBidRequestDto request)
     {
-        var result = await _auctionService.PlaceBidAsync(auctionId, request.UserId, request.BidAmount);
-        if (result)
-        {
-            return Ok(new { message = "Bid placed successfully." });
-        }
-        return BadRequest(new { message = "Failed to place bid. Check bidding status, amount, and wallet balance." });
+        await _auctionService.PlaceBidAsync(auctionId, request.UserId, request.BidAmount);
+        return Ok(new { message = "Bid placed successfully." });
     }
 
     [HttpGet("{auctionId}/status")]
     public async Task<IActionResult> GetAuctionStatus(int auctionId)
     {
         var auctionStatus = await _auctionService.GetAuctionStatusAsync(auctionId);
-        if (auctionStatus != null)
-        {
-            return Ok(auctionStatus);
-        }
-        return NotFound(new { message = "Bidding not found." });
+        return Ok(auctionStatus);
     }
 
     [HttpPost]
@@ -57,10 +48,6 @@ public class AuctionController : ControllerBase
     public async Task<IActionResult> GetActionByUserId(int userId)
     {
         var auction = _auctionService.GetAuctionsByUserId(userId);
-        if (auction == null)
-        {
-            return NotFound(new { message = "No auctions found for this user." });
-        }
         return Ok(auction);
     }
 }

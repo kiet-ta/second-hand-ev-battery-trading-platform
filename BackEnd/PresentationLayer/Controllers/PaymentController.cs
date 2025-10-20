@@ -17,14 +17,12 @@ public class PaymentController : ControllerBase
 {
     private readonly IPaymentService _paymentService;
     private readonly IValidator<PaymentRequestDto> _validator;
-    private readonly IUserService _userService;
     public record Response(int error, string message, object? data);
 
     public PaymentController(IPaymentService paymentService, IValidator<PaymentRequestDto> validator, IUserService userService)
     {
         _paymentService = paymentService;
         _validator = validator;
-        _userService = userService;
     }
 
     [HttpPost("webhook")]
@@ -81,16 +79,8 @@ public class PaymentController : ControllerBase
         if (!validationResult.IsValid)
             return BadRequest(validationResult.Errors);
 
-        try
-        {
-            var response = await _paymentService.CreatePaymentAsync(request);
-            return Ok(response);
-        }
-        catch (Exception ex)
-        {
-            // Log ex
-            return StatusCode(500, "Server error: " + ex.Message);
-        }
+        var response = await _paymentService.CreatePaymentAsync(request);
+        return Ok(response);
     }
 
     [HttpGet("info/{orderCode:long}")]
@@ -111,21 +101,7 @@ public class PaymentController : ControllerBase
     [Authorize]
     public async Task<IActionResult> CreateSellerRegistrationPayment([FromBody] SellerRegistrationPaymentRequestDto request)
     {
-        try
-        {
-            // Check if the user is already a seller and has paid the fee
-            var user = await _userService.GetUserByIdAsync(request.UserId);
-            if (user.Role != "seller" || user.Paid == "registering" || user.Paid == "account-maintenance-fee")
-            {
-                return BadRequest(new { message = "User is not a seller or has paid the fee." });
-            }
-
-            var response = await _paymentService.CreateSellerRegistrationPaymentAsync(request);
-            return Ok(response);
-        }
-        catch (Exception ex)
-        {
-            return StatusCode(500, "Server error: " + ex.Message);
-        }
+        var response = await _paymentService.CreateSellerRegistrationPaymentAsync(request);
+        return Ok(response);
     }
 }
