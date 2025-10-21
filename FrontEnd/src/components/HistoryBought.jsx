@@ -23,7 +23,7 @@ export default function HistoryBought() {
         },
       });
       if (!res.ok) throw new Error("Failed to fetch orders");
-      
+
       const data = await res.json();
 
       const formattedOrders = data.map(order => ({
@@ -59,9 +59,9 @@ export default function HistoryBought() {
 
   useEffect(() => {
     if (userId && token) {
-        fetchOrders();
+      fetchOrders();
     } else {
-        setLoading(false);
+      setLoading(false);
     }
   }, [userId, token]);
 
@@ -71,7 +71,7 @@ export default function HistoryBought() {
       ...reviewDataFromModal,
       targetUserId: 1, // Hardcoded as requested.
     };
-    
+
     try {
       await reviewApi.postReview(apiPayload);
       alert("Đánh giá của bạn đã được gửi thành công!");
@@ -81,10 +81,10 @@ export default function HistoryBought() {
       alert(error.message || "Không thể gửi đánh giá. Vui lòng thử lại.");
     }
   };
-  
+
   const handleOpenReviewModal = (order) => { setSelectedOrder(order); setIsModalOpen(true); };
   const handleCloseReviewModal = () => { setSelectedOrder(null); setIsModalOpen(false); };
-  
+
   // --- UPDATED: Helper functions for UI ---
   const getStatusColor = (status) => {
     switch (status) {
@@ -162,14 +162,14 @@ export default function HistoryBought() {
                     <h3 className="text-lg font-semibold">{order.brand} {order.model} - {order.year}</h3>
                     {order.itemType === 'ev' && (
                       <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-gray-600 mt-1">
-                        <span className="flex items-center gap-1.5"><Car size={14}/>{order.brand}</span>
-                        <span className="flex items-center gap-1.5"><Palette size={14}/>{order.color}</span>
-                        <span className="flex items-center gap-1.5"><GaugeCircle size={14}/>{order.mileage.toLocaleString('vi-VN')} km</span>
+                        <span className="flex items-center gap-1.5"><Car size={14} />{order.brand}</span>
+                        <span className="flex items-center gap-1.5"><Palette size={14} />{order.color}</span>
+                        <span className="flex items-center gap-1.5"><GaugeCircle size={14} />{order.mileage.toLocaleString('vi-VN')} km</span>
                       </div>
                     )}
                     {order.itemType === 'battery' && (
                       <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-gray-600 mt-1">
-                        <span className="flex items-center gap-1.5"><Zap size={14}/>{order.capacity} kWh</span>
+                        <span className="flex items-center gap-1.5"><Zap size={14} />{order.capacity} kWh</span>
                         <span className="flex items-center gap-1.5">Điện áp: {order.voltage}V</span>
                         <span className="flex items-center gap-1.5">Chu kỳ sạc: {order.chargeCycles}</span>
                       </div>
@@ -181,8 +181,8 @@ export default function HistoryBought() {
                 {/* Order Footer */}
                 <div className="border-t pt-3 flex justify-between items-center">
                   <div>
-                      <p className="text-sm text-gray-600">Thanh toán: <span className="font-medium text-gray-800">{order.method}</span></p>
-                      <p className="text-2xl font-bold text-blue-600">{formatPrice(order.totalAmount)}</p>
+                    <p className="text-sm text-gray-600">Thanh toán: <span className="font-medium text-gray-800">{order.method}</span></p>
+                    <p className="text-2xl font-bold text-blue-600">{formatPrice(order.totalAmount)}</p>
                   </div>
                   {order.status === "completed" && (
                     <div>
