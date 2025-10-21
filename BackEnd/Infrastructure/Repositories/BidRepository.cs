@@ -12,7 +12,7 @@ namespace Infrastructure.Repositories
         public BidRepository(EvBatteryTradingContext context) =>
             _context = context;
 
-        public async Task<IEnumerable<Bid>> GetBidsByAuctionAsync(int auctionId) =>
+        public async Task<IEnumerable<Bid>> GetBidsByAuctionIdAsync(int auctionId) =>
             await _context.Bids.Where(b => b.AuctionId == auctionId).OrderByDescending(b => b.BidTime).ToListAsync();
 
         public async Task<Bid?> GetHighestBidAsync(int auctionId) =>

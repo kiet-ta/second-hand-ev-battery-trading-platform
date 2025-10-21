@@ -29,7 +29,7 @@ namespace PresentationLayer.Controllers
 
 
         [HttpGet("register")]
-        [AllowAnonymous] 
+        [AllowAnonymous]
         public async Task RegisterClient([FromQuery] string userId)
         {
             if (string.IsNullOrEmpty(userId))
@@ -76,7 +76,7 @@ namespace PresentationLayer.Controllers
                 SenderRole = request.SenderRole,
                 Title = request.Title,
                 Message = request.Message,
-                TargetUserId = request.TargetUserId 
+                TargetUserId = request.TargetUserId
             };
 
             var dbSuccess = await _notificationService.AddNewNotification(serviceDto);

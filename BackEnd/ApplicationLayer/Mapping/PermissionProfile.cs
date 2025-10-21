@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Domain.Mappings;
+namespace Application.Mapping;
 public class PermissionProfile : Profile
 {
     public PermissionProfile()

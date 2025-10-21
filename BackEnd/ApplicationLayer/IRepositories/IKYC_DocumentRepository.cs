@@ -1,4 +1,4 @@
-﻿using Application.DTOs.ManageCompanyDto;
+﻿using Application.DTOs.ManageCompanyDtos;
 using Domain.Entities;
 using System;
 using System.Collections.Generic;
@@ -12,7 +12,7 @@ namespace Application.IRepositories
     {
         Task<User?> GetByIdAsync(int id);
         Task UpdateAccountStatusAsync(int id, string status);
-        Task SetUserKYCStatusAsync(int id, string status);
+        Task SetUserKYCStatusAsync(int id, string status, string role);
 
         Task CreateKYC_DocumentAsync(KycDocument kyc);
         Task<KycDocument?> GetKYC_DocumentByIdAsync(int id);

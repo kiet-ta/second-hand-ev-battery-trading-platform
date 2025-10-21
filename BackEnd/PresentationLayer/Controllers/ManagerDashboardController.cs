@@ -1,4 +1,4 @@
-﻿using Application.DTOs.ManageCompanyDto;
+﻿using Application.DTOs.ManageCompanyDtos;
 using Application.IServices;
 using Application.Services;
 using Microsoft.AspNetCore.Authorization;

@@ -77,7 +77,7 @@ namespace Application.Services
             kycDoc.VerifiedBy = dto.VerifiedBy;
 
             // Update user status
-            await _kycRepo.SetUserKYCStatusAsync(user.UserId, "approved");
+            await _kycRepo.SetUserKYCStatusAsync(user.UserId, "approved", "seller");
         }
 
         public async Task RejectKycAsync(int kycId, ApproveKyc_DocumentDTO dto)
@@ -101,13 +101,13 @@ namespace Application.Services
             kycDoc.VerifiedBy = dto.VerifiedBy;
 
             // Update user status
-            await _kycRepo.SetUserKYCStatusAsync(user.UserId, "rejected");
+            await _kycRepo.SetUserKYCStatusAsync(user.UserId, "rejected", "buyer");
 
         }
 
         private async Task SetUserKycPendingAsync(User user)
         {
-            await _kycRepo.SetUserKYCStatusAsync(user.UserId, "pending");
+            await _kycRepo.SetUserKYCStatusAsync(user.UserId, "pending", "buyer");
         }
 
         // ================= 3. Get KYC Lists =================

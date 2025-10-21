@@ -18,6 +18,10 @@ const auctionApi = {
     bidAuction: async (auctionId, payload) => {
         const response = await axios.post(`${baseURL}/${auctionId}/bid`,payload)
         return response.data
+    },
+    getBiddingHistory: async (auctionId) => {
+        const response = await axios.get(`${baseURL}/${auctionId}/bidders`)
+        return response.data
     }
 }
 export default auctionApi

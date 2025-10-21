@@ -46,9 +46,14 @@ export default function ProductCreationModal({ onSuccess }) {
     };
 
     const handleCancel = () => {
-        handleReset();
-        setIsOpenModal(false);
-        if (onSuccess) {
+        // 1. Reset all form fields and state
+        handleReset(); 
+        // 2. Close the modal
+        setIsOpenModal(false); 
+        // 3. (Optional) Call onSuccess if the intent is to refresh parent state 
+        //    even on cancellation/close. If onSuccess is only for completion, 
+        //    remove this.
+        if (onSuccess) { 
             onSuccess();
         }
     };
@@ -63,6 +68,7 @@ export default function ProductCreationModal({ onSuccess }) {
     };
 
     const handleStep1Finish = async (values) => {
+        console.log(userID,"UserID")
         setIsLoading(true);
         const apiPayload = {
             categoryId: values.categoryId,
@@ -73,7 +79,7 @@ export default function ProductCreationModal({ onSuccess }) {
             status: "active",
             updatedBy: userID,
         };
-
+        console.log(apiPayload,"PayLoad")
         if (values.categoryId === 1) {
             Object.assign(apiPayload, {
                 brand: values.brand, model: values.model, version: values.version, year: values.year, bodyStyle: values.bodyStyle, color: values.color, licensePlate: values.licensePlate, hasAccessories: values.hasAccessories, previousOwners: values.previousOwners, isRegistrationValid: values.isRegistrationValid, mileage: values.miledeage,
@@ -179,10 +185,31 @@ export default function ProductCreationModal({ onSuccess }) {
                         Next
                     </Button>
                 )}
+                {/* Step 2 (Image Uploader) will need its own 'Next'/'Submit' button inside Step3ImageUploader or a conditional logic here to trigger handleImageUpload */}
+                {currentStep === 2 && (
+                    // In your current setup, Step3ImageUploader component must handle its own submission logic, 
+                    // or you need to pass a submit handler down and trigger it here, which is more complex.
+                    // Assuming Step3ImageUploader has its own way to trigger onSubmit prop.
+                    // If you want a 'Next' button here, you need to adjust Step3ImageUploader.
+                    // For now, let's assume Step3 handles its own flow to call handleImageUpload.
+                    <Button type="primary" onClick={() => {
+                        // This is a placeholder. A real implementation would trigger the submission 
+                        // logic inside Step3ImageUploader to call handleImageUpload.
+                        // Since we don't have the Step3 code, we'll leave it to its internal logic for now, 
+                        // or you can add a manual call to proceed if there are no files to upload.
+                        // For a quick fix assuming no files skips upload:
+                         if (newItem && currentStep === 2) {
+                             handleImageUpload([]); // Manually proceed if user wants to skip
+                         }
+                    }}>
+                        {/* If Step3 is mandatory, change this */}
+                        Skip & Finish
+                    </Button>
+                )}
                 {currentStep === 3 && (
                      <Button type="primary" onClick={handleCancel}>
-                        Done
-                    </Button>
+                         Done
+                     </Button>
                 )}
             </div>
         </div>
@@ -203,7 +230,7 @@ export default function ProductCreationModal({ onSuccess }) {
                 onCancel={handleCancel}
                 width={800}
                 footer={renderFooter()}
-                destroyOnClose
+                // Removed destroyOnClose to resolve deprecation warning.
             >
                 <Spin spinning={isLoading}>
                     <Steps current={currentStep} items={steps} className="mb-8" />
@@ -215,4 +242,3 @@ export default function ProductCreationModal({ onSuccess }) {
         </>
     );
 }
-

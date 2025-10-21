@@ -26,9 +26,7 @@ import SuccessPage from "../pages/SellerSuccess";
 
 // Components used in the sub-routes
 import PurchaseHistory from "../components/HistoryBought";
-import MyProduct from "../components/ItemForm/AddProductForm";
 import NewsPage from "../components/CreateNews";
-import ChatRoom from "../components/Chats/ChatRoom";
 
 // --- Profile (Router-Based SPA) ---
 import ProfileLayout from "../pages/Profile/ProfileLayout";
@@ -37,7 +35,6 @@ import AccountSetting from "../pages/Profile/AccountSetting";
 import AddressSetting from "../pages/Profile/AddressSetting";
 import NotificationSetting from "../pages/Profile/NotificationSetting";
 import SecuritySetting from "../pages/Profile/SecuritySetting";
-import ProfileSection from "../pages/Profile/ProfileSection";
 import PurchaseSection from "../pages/Profile/PurchaseSection";
 import SettingsSection from "../pages/Profile/SettingsSection";
 
@@ -64,7 +61,7 @@ import ProtectedRoute from "../components/ProtectedRoute";
 const ProfileNestedFormsPlaceholder = () => (
   <div className="profile-main">
     {/* ProfileContent handles which form is shown here */}
-    <div>Profile/Account Forms Placeholder</div>
+    <div>Profile/Account Forms Placeholder</div> 
   </div>
 );
 
@@ -93,7 +90,6 @@ export const router = createBrowserRouter([
       { path: "/blog/:id", element: <BlogDetail /> },
     ],
   },
-
   // --- AUTHENTICATION ROUTES ---
   { path: "/login", element: <LoginPage />, },
   { path: "/register", element: <RegisterPage />, },

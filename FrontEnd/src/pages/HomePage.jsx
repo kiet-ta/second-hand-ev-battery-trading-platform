@@ -66,9 +66,9 @@ function HomePage() {
    {/* --- Top Section with your specified width --- */}
    <div className="First-sale flex flex-wrap w-full bg-white gap-0 p-4 justify-around items-start">
     <div className="Advertisement w-1/6 hidden lg:grid grid-cols-2 gap-2">
-     <div className="col-span-2"><img src="https://i.pinimg.com/736x/9f/2b/97/9f2b9783252352925b8bbc1c0f1f2145.jpg" className='w-full h-auto rounded-lg' alt="Ad 1" /></div>
-     <div><img src="https://i.pinimg.com/1200x/e9/22/29/e9222949753e671a7e8f7c09725ebed0.jpg" className='w-full h-auto rounded-lg' alt="Ad 2" /></div>
-     <div><img src="https://i.pinimg.com/1200x/73/9d/61/739d6130ed4b7c1abf45a429d1e83b0b.jpg" className='w-full h-auto rounded-lg' alt="Ad 3" /></div>
+     <div className="col-span-2"><img src="https://res.cloudinary.com/tucore/image/upload/v1760941757/EV_BATTERY_TRADING/Item/kvoawoe0vnah8zjzzipz.jpg" className='w-full h-auto rounded-lg' alt="Ad 1" /></div>
+     <div><img src="https://res.cloudinary.com/tucore/image/upload/v1760941494/EV_BATTERY_TRADING/Item/bvzqv7hi2og6axtd2t3i.jpg" className='w-full h-auto rounded-lg' alt="Ad 2" /></div>
+     <div><img src="https://res.cloudinary.com/tucore/image/upload/v1760941531/EV_BATTERY_TRADING/Item/f2xmqrttvqwgllqztcdp.jpg" className='w-full h-auto rounded-lg' alt="Ad 3" /></div>
     </div>
 
     <div className="Products flex w-full lg:w-4/6 justify-center content-center self-center gap-5">
@@ -98,7 +98,7 @@ function HomePage() {
 
    {/* --- Banner --- */}
    <div className="Banner mt-5 mx-auto px-4">
-    <img src="https://images4.alphacoders.com/136/thumb-1920-1360814.png"
+    <img src="https://thegioixechaydien.com.vn/uploads/files/bai-viet/nguoi-dung/tin-hay/2016/thang-09/baner-xe-dap-dien/baner-xe-dap-dien-13.jpg"
      className="h-40 w-full object-cover rounded-lg shadow-lg" alt="Promotional Banner" />
    </div>
 
