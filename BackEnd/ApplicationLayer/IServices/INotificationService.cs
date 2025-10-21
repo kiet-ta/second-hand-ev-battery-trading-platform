@@ -23,7 +23,6 @@ namespace Application.IServices
         Task<List<Notification>> GetNotificationBySenderIdAsync(int senderId);
         Task<List<Notification>> GetNotificationByIdAsync(int id);
         Task<bool> DeleteNotificationAsync(int id);
-        Task<bool> SendNotificationAsync(CreateNotificationDTO noti, int receiverId);
 
     }
 }

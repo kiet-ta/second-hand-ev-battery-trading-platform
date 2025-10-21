@@ -45,6 +45,7 @@ import SellerBiddingPage from "../pages/Seller/SellerBiddingPage";
 import SellerOrdersPage from "../pages/Seller/SellerOrdersPage";
 import SellerHistoryPage from "../pages/Seller/SellerHistoryPage";
 import SellerSettingsPage from "../pages/Seller/SellerSettingsPage";
+import ChatRoomWrapper from "../components/Chats/ChatRoomWrapper";
 
 // Manager Components
 import DashboardContent from "../components/Manager/DashboardContent";
@@ -56,6 +57,7 @@ import SettingsContent from "../components/Manager/SettingContent";
 import ProductModeration from "../components/ProductModeration";
 import NotificationCreator from "../components/Notifications/NotificationCreation";
 import ProtectedRoute from "../components/ProtectedRoute";
+import KycManagementPage from "../pages/KYCManagementPage";
 
 // Placeholder component for Profile Index Route content (since complex state was removed)
 const ProfileNestedFormsPlaceholder = () => (
@@ -112,6 +114,7 @@ export const router = createBrowserRouter([
       },
       { path: "purchase", element: <PurchaseSection /> },
       { path: "settings", element: <SettingsSection /> },
+      { path: "chats", element: <ChatRoomWrapper />}
     ],
   },
 
@@ -128,6 +131,7 @@ export const router = createBrowserRouter([
           { path: "bidding", element: <SellerBiddingPage /> },
           { path: "orders", element: <SellerOrdersPage /> },
           { path: "history", element: <SellerHistoryPage /> },
+          { path: "chat", element: <ChatRoomWrapper/>},
           { path: "settings", element: <SellerSettingsPage /> },
         ],
       },
@@ -147,6 +151,7 @@ export const router = createBrowserRouter([
         children: [
           { index: true, element: <DashboardContent /> },
           { path: "approvals", element: <SellerApprovalsContent /> },
+          { path: "kyc_management", element: <KycManagementPage /> },
           { path: "users", element: <UsersContent /> },
           { path: "products", element: <ProductModeration /> },
           { path: "complaints", element: <ComplaintsList /> },

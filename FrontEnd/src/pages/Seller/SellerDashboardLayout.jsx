@@ -20,7 +20,7 @@ export default function SellerDashboardLayout() {
         { id: "bidding", icon: Hammer, label: "Bidding", path: "/seller/bidding" },
         { id: "orders", icon: ShoppingBag, label: "Orders", path: "/seller/orders" },
         { id: "history", icon: Clock, label: "History Sold", path: "/seller/history" },
-        { id: "messages", icon: MessageSquare, label: "Messages", path: "/seller/messages" },
+        { id: "chat", icon: MessageSquare, label: "Chat", path: "/seller/chat" },
         { id: "settings", icon: Settings, label: "Settings", path: "/seller/settings" },
     ];
 

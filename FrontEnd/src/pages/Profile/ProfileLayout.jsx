@@ -17,7 +17,7 @@ export default function ProfileLayout() {
     const menuItems = [
         { to: "/profile", label: "Profile", icon: <FaRegUser /> },
         { to: "/profile/purchase", label: "My Purchase", icon: <LuClipboardList /> },
-        { to: "/profile/chat", label: "Chat", icon: <IoChatboxOutline /> },
+        { to: "/profile/chats", label: "Chat", icon: <IoChatboxOutline /> },
         { to: "/profile/settings", label: "Settings", icon: <IoSettingsOutline /> },
     ];
 
