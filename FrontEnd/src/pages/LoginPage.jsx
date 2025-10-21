@@ -14,7 +14,7 @@ export default function LoginPage() {
         import.meta.env.VITE_GOOGLE_CLIENT_ID ||
         '301055344643-gel1moqvoq9flgf8978aje7j9frtci79.apps.googleusercontent.com';
 
-    const [user, setUser] = useState(null); 
+    const [user, setUser] = useState(null);
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
@@ -107,7 +107,7 @@ export default function LoginPage() {
             localStorage.setItem("user", JSON.stringify(newUser));
         }
     }
-    
+
     // 👇 FIX: The previously missing logic is completed here
     const handleLocalLogin = async (e) => {
         e.preventDefault();
@@ -135,7 +135,7 @@ export default function LoginPage() {
             // 1. Call API login
             const data = await authApi.login(trimmedEmail, trimmedPassword);
             const res = data.data;
-                        const newUser = {
+            const newUser = {
                 ...res.user,
                 userId: res.userId,
                 token: res.token,
@@ -146,12 +146,12 @@ export default function LoginPage() {
             localStorage.setItem("token", res.token);
             setUser(newUser);
             message.success("Login successful!");
-            
+
             // 2. Decode the JWT to check the role and navigate
             const decodedToken = parseJwt(res.token);
             if (decodedToken && decodedToken.role) {
                 const role = decodedToken.role.toLowerCase();
-                
+
                 if (role === 'manager' || role === 'staff') {
                     navigate('/manage');
                 } else if (role === 'seller') {
@@ -195,7 +195,7 @@ export default function LoginPage() {
         <div className="login-container">
             {/* Header */}
             <header className="bg-maincolor">
-            <div className="w-1/4 h-full flex justify-start"><Logo></Logo></div>
+                <div className="w-1/4 h-full flex justify-start"><Logo></Logo></div>
             </header>
 
             {/* Nội dung chính: banner + form */}
@@ -250,17 +250,17 @@ export default function LoginPage() {
 
                                 </form>
 
-                                <a href="#" className="forgot-password">
+                                {/* <a href="#" className="forgot-password">
                                     Forgot Password
-                                </a>
+                                </a> */}
 
                                 <div className="divider">
                                     <span>OR</span>
                                 </div>
 
-                                <div className="social-login">
+                                {/* <div className="social-login">
                                     <div ref={googleButtonRef} />
-                                </div>
+                                </div> */}
 
                                 <p className="signup-link">
                                     Are you new? <Link to="/register">Create an account</Link>
