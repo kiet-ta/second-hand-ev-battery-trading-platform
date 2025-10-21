@@ -1,17 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-// FIX: Keeping notificationApi mock to resolve module errors and maintain notification logic.
+import notificationApi from '../../api/notificationApi';
+import auctionApi from '../../api/auctionApi';
 
-// Mock implementation of notificationApi
-const notificationApi = {
-    createNotification: async (payload) => {
-        console.log("Mock Notification Sent:", payload);
-        return Promise.resolve({ status: 'sent' });
-    }
-};
+// The original mock implementation of notificationApi has been removed as per instructions.
 
-// --- SVG Components to replace react-icons/fa imports (Unchanged) ---
+// --- SVG Components (Unchanged) ---
 const ChevronLeft = (props) => (
     <svg className={props.className} fill="currentColor" viewBox="0 0 256 512" xmlns="http://www.w3.org/2000/svg"><path d="M192 480c-7.3 0-14.7-2.9-20-8.2L12.3 268.3c-10.4-10.4-10.4-27.3 0-37.7L172 8.2c10.4-10.4 27.3-10.4 37.7 0s10.4 27.3 0 37.7L50.1 250l159.6 159.6c10.4 10.4 10.4 27.3 0 37.7-5.2 5.3-12.5 8.3-20 8.3z"/></svg>
 );
@@ -26,7 +21,7 @@ const ArrowRight = (props) => (
 );
 // --- END SVG Components ---
 
-// --- Messaging Placeholder (Using console for feedback) ---
+// --- Messaging Placeholder (Unchanged) ---
 const message = {
     success: (text) => console.log(`[SUCCESS] ${text}`),
     error: (text) => console.error(`[ERROR] ${text}`),
@@ -34,7 +29,7 @@ const message = {
 // --- END Messaging Placeholder ---
 
 
-// EXISTING HELPER FUNCTION (Unchanged)
+// EXISTING HELPER FUNCTION (Modified to return distance for easier checks)
 const formatCountdown = (status, startTimeStr, endTimeStr) => {
     const now = new Date().getTime();
 
@@ -48,27 +43,21 @@ const formatCountdown = (status, startTimeStr, endTimeStr) => {
     if (status === 'UPCOMING') {
         distance = startTime - now;
         label = "Starts In";
-        if (distance < 0) {
-            distance = 0;
-        }
     } else if (status === 'ONGOING') {
         distance = endTime - now;
         label = "Ends In";
-        if (distance < 0) {
-            isFinished = true;
-        }
     } else {
         distance = 0;
+    }
+
+    if (distance <= 0) {
         isFinished = true;
+        // Determine final display time based on actual prop status
+        const finalTime = status === 'ENDED' || status === 'ONGOING' ? "ENDED" : "OVERDUE";
+        return { time: finalTime, label: "Status", isFinished: true, distance: 0 };
     }
 
-    if (isFinished || status === 'ENDED' || distance <= 0) {
-        if (distance <= 0) {
-             return { time: "ENDED", label: "Status", isFinished: true };
-        }
-        return { time: status === 'ENDED' ? "ENDED" : "OVERDUE", label: "Status", isFinished: true };
-    }
-
+    // Calculation for display time (days, hours, minutes, seconds)
     const days = Math.floor(distance / (1000 * 60 * 60 * 24));
     const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
     const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
@@ -77,9 +66,47 @@ const formatCountdown = (status, startTimeStr, endTimeStr) => {
     const pad = (num) => String(num).padStart(2, '0');
 
     if (days > 0) {
-        return { time: `${days}d ${pad(hours)}h`, label, isFinished: false };
+        return { time: `${days}d ${pad(hours)}h`, label, isFinished: false, distance };
     }
-    return { time: `${pad(hours)}h ${pad(minutes)}m ${pad(seconds)}s`, label, isFinished: false };
+    return { time: `${pad(hours)}h ${pad(minutes)}m ${pad(seconds)}s`, label, isFinished: false, distance };
+};
+
+/**
+ * Sends a notification to a list of user IDs.
+ * NOTE: The API structure provided only supports a single 'targetUserId'. 
+ * To fulfill the request of notifying *all* bidders, this function implements
+ * a **loop** to send a notification for each unique user ID.
+ * @param {number[]} userIds - Array of unique user IDs to notify.
+ * @param {string} title - Notification title.
+ * @param {string} message - Notification message.
+ */
+const sendGroupNotification = async (userIds, title, message) => {
+    // Assuming the senderId and senderRole are fixed for system notifications
+    const SENDER_ID = 4; // Used 4 as specified in the prompt example payload, or 1 as in the original mock
+    
+    // Convert to string IDs for API payload
+    const targetUserIdsStr = userIds.map(String);
+
+    const notificationPromises = targetUserIdsStr.map(targetUserId => {
+        const apiPayload = {
+            notiType: "activities",
+            senderId: SENDER_ID, 
+            senderRole: "manager",
+            title: title,
+            message: message,
+            targetUserId: targetUserId 
+        };
+        // NOTE: The promise is only for logging/error handling, we don't await all of them here
+        return notificationApi.createNotification(apiPayload)
+            .catch(e => {
+                console.error(`Failed to send notification to user ${targetUserId} for ${title}:`, e);
+                return null; // Return null for failed promises
+            });
+    });
+
+    const results = await Promise.all(notificationPromises);
+    const successCount = results.filter(r => r !== null).length;
+    console.log(`[Notification Service] Successfully sent ${successCount} notifications out of ${userIds.length} targets for: ${title}`);
 };
 
 
@@ -93,23 +120,103 @@ export const CarAuctionCard = ({
     endTime,
     startTime,
     status, // ONGOING, UPCOMING, ENDED
-    imageUrls = [], // Assumed array of objects: [{imageUrl: 'url'}, ...]
+    imageUrls = [],
 }) => {
     const navigate = useNavigate();
-    const LOGGED_IN_USER_ID = 1; // Mocked User ID for notification payload (kept for notification logic)
 
     const placeholderImage = `https://placehold.co/600x400/374151/d1d5db?text=${encodeURIComponent(title || 'No Image')}`;
     
-    // REMOVED: latestBid, bidAmount, isBidding states.
-
-    // State for image carousel
     const [currentSlide, setCurrentSlide] = useState(0);
-
-    // Track the countdown state
     const [countdown, setCountdown] = useState(() => formatCountdown(status, startTime, endTime));
-    const [notificationSent, setNotificationSent] = useState(false);
+    
+    // New states for notification management
+    const [bidders, setBidders] = useState([]);
+    const [endNotificationSent, setEndNotificationSent] = useState(false);
+    const [warningNotificationSent, setWarningNotificationSent] = useState(false);
 
-    // --- Carousel Handlers ---
+
+    // --- Effect 1: Fetch Bidding History to get unique User IDs ---
+    useEffect(() => {
+        // Only fetch bidders if the auction is ONGOING or has ENDED, and an ID exists
+        if (!id || status === 'UPCOMING') return;
+
+        const fetchBidders = async () => {
+            try {
+                // Assuming getBiddingHistory returns an array like the one provided in the prompt
+                const history = await auctionApi.getBiddingHistory(id); 
+                
+                // Extract unique user IDs and convert to numbers if necessary (using number for safety)
+                const uniqueBidders = [...new Set(history.map(bid => bid.userId))].filter(Boolean); // Filter out potential null/undefined
+                setBidders(uniqueBidders);
+                console.log(`[Auction ${id}] Fetched ${uniqueBidders.length} unique bidders.`);
+
+            } catch (e) {
+                console.error(`[Auction ${id}] Failed to fetch bidding history:`, e);
+            }
+        };
+
+        fetchBidders();
+        // Run once on mount and if ID or status changes (e.g., UPCOMING -> ONGOING)
+    }, [id, status]);
+
+
+    // --- Effect 2: Countdown Timer and Notification Logic ---
+    useEffect(() => {
+        const initialCountdown = formatCountdown(status, startTime, endTime);
+        setCountdown(initialCountdown);
+        
+        // Skip interval if already finished
+        if (initialCountdown.isFinished) {
+            setEndNotificationSent(true);
+            setWarningNotificationSent(true);
+            return;
+        }
+
+        const intervalId = setInterval(() => {
+            const newCountdown = formatCountdown(status, startTime, endTime);
+            setCountdown(newCountdown);
+            
+            // Only execute notification logic for ONGOING auctions with known bidders
+            if (status === 'ONGOING' && bidders.length > 0) {
+                const distanceMs = newCountdown.distance;
+                
+                // 1. 5-Second Warning Notification Logic (0 < distance <= 5000ms)
+                if (distanceMs > 0 && distanceMs <= 60000 && !warningNotificationSent) {
+                    setWarningNotificationSent(true); 
+
+                    const title = `🚨 Sắp kết thúc!`;
+                    const messageText = `Đấu giá cho sản phẩm ${title} chỉ còn dưới 5 giây. Nhanh chóng đặt giá cuối cùng!`;
+                    
+                    sendGroupNotification(bidders, title, messageText)
+                        .catch(() => setWarningNotificationSent(false)); // Reset flag on failure
+                }
+
+                // 2. END Notification Logic (distance <= 0)
+                if (newCountdown.isFinished && !endNotificationSent) {
+                    setEndNotificationSent(true); // Set flag immediately 
+                    
+                    const title = `✅ Đấu giá kết thúc`;
+                    const messageText = `Sản phẩm bạn đấu giá ${title} đã kết thúc. Mời bạn xem kết quả.`;
+                    
+                    sendGroupNotification(bidders, title, messageText)
+                        .then(() => clearInterval(intervalId)) // Stop timer
+                        .catch(() => setEndNotificationSent(false)); // Reset flag on failure
+                }
+            }
+            
+            // Clear interval if countdown hits zero, regardless of notification status, to stop memory leaks
+            if (newCountdown.isFinished) {
+                clearInterval(intervalId);
+            }
+
+        }, 1000); 
+
+        return () => clearInterval(intervalId);
+
+    }, [status, startTime, endTime, title, id, bidders, endNotificationSent, warningNotificationSent]);
+
+
+    // --- Carousel Handlers (Unchanged) ---
     const nextSlide = useCallback((e) => {
         e.stopPropagation();
         setCurrentSlide((prev) => (prev + 1) % imageUrls.length);
@@ -121,71 +228,25 @@ export const CarAuctionCard = ({
     }, [imageUrls.length]);
     // --- End Carousel Handlers ---
 
-
-    // --- Countdown and Notification Effect (Unchanged logic, uses notificationApi mock) ---
-    useEffect(() => {
-        const initialCountdown = formatCountdown(status, startTime, endTime);
-        setCountdown(initialCountdown);
-        
-        if (initialCountdown.isFinished) {
-            setNotificationSent(true);
-            return;
-        }
-
-        const intervalId = setInterval(() => {
-            const newCountdown = formatCountdown(status, startTime, endTime);
-            setCountdown(newCountdown);
-
-            if (newCountdown.isFinished && !notificationSent) {
-                
-                const sendNotification = async () => {
-                    const apiPayload = {
-                        notiType: "activities",
-                        senderId: 1, 
-                        senderRole: "manager",
-                        title: `Đấu giá kết thúc`,
-                        message: `Sản phẩm bạn đấu giá ${title} đã kết thúc. Mời bạn xem kết quả`,
-                        targetUserId: LOGGED_IN_USER_ID.toString() 
-                    };
-                    try {
-                        await notificationApi.createNotification(apiPayload);
-                        setNotificationSent(true); 
-                        clearInterval(intervalId);
-                    } catch (e) {
-                        console.error("Failed to send auction end notification:", e);
-                    }
-                };
-                sendNotification();
-            }
-
-        }, 1000); 
-
-        return () => clearInterval(intervalId);
-
-    }, [status, startTime, endTime, title, notificationSent, id]); 
-
-
     const handleCardClick = () => {
         navigate(`/auction/${id}`);
     };
 
-    // Helper to format currency
+    // Helper to format currency (Unchanged)
     const formatCurrency = (amount) => {
         const price = amount || 0;
         return price.toLocaleString('vi-VN') + ' VND';
     };
 
-    // REMOVED: handlePlaceBid function
-
-    // Determine the price to display (uses props directly now)
+    // Determine the price to display (Unchanged)
     const displayPrice = currentBid > 0 ? currentBid : startingPrice;
     
-    // Safely get the image URL from the array of objects
+    // Safely get the image URL from the array of objects (Unchanged)
     const displayImage = (imageUrls && imageUrls.length > 0 && imageUrls[currentSlide]?.imageUrl) 
         ? imageUrls[currentSlide].imageUrl 
         : placeholderImage;
 
-    // Determine the state for conditional rendering
+    // Determine the state for conditional rendering (Unchanged)
     const isUpcoming = countdown.label === 'Starts In' && !countdown.isFinished;
     const isEnded = countdown.isFinished;
 
@@ -195,7 +256,7 @@ export const CarAuctionCard = ({
             className="flex flex-col w-full max-w-sm rounded-xl overflow-hidden shadow-lg 
             hover:shadow-2xl transition-shadow duration-300 cursor-pointer bg-white"
         >
-            {/* -------------------- Image Carousel -------------------- */}
+            {/* -------------------- Image Carousel (Unchanged) -------------------- */}
             <div className="relative h-60 overflow-hidden group">
                 <img
                     src={displayImage}
@@ -231,7 +292,7 @@ export const CarAuctionCard = ({
                     </>
                 )}
             </div>
-            {/* ------------------ Card Content ------------------ */}
+            {/* ------------------ Card Content (Unchanged) ------------------ */}
             <div className="p-5 flex flex-col flex-grow">
                 <div className="flex-grow">
                     <p className="text-sm text-gray-500 mb-1">{category}</p>

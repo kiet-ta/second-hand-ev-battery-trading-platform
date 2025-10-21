@@ -24,5 +24,6 @@ namespace Application.IServices
         Task<List<Notification>> GetNotificationByIdAsync(int id);
         Task<bool> DeleteNotificationAsync(int id);
 
+
     }
 }

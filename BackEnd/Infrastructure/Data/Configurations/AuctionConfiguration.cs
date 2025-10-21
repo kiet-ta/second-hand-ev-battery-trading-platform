@@ -8,7 +8,7 @@ public class AuctionConfiguration : IEntityTypeConfiguration<Auction>
 {
     public void Configure(EntityTypeBuilder<Auction> entity)
     {
-        entity.ToTable("auctions");
+        entity.ToTable("auctions", t => t.ExcludeFromMigrations().HasTrigger("tr_Auctions_SetStatusOnDataChange"));
         entity.HasKey(e => e.AuctionId);
 
         entity.Property(e => e.AuctionId).HasColumnName("auction_id");
