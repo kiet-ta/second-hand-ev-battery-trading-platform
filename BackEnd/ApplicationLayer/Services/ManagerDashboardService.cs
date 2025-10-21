@@ -1,4 +1,4 @@
-﻿using Application.DTOs.ManagerDto;
+﻿using Application.DTOs.ManageCompanyDtos;
 using Application.IRepositories;
 using Application.IRepositories.IPaymentRepositories;
 using Application.IServices;
@@ -163,6 +163,7 @@ namespace Application.Services
             var user = await _userRepo.GetByIdAsync(doc.UserId);
             if (user != null)
             {
+                user.Role = "seller";
                 user.KycStatus = "approved";
                 await _userRepo.UpdateAsync(user);
             }

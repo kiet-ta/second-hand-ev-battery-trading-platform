@@ -1,6 +1,4 @@
 using Application.IRepositories;
-using AutoMapper;
-using Domain.DTOs;
 using Domain.Entities;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -31,8 +29,16 @@ public class UserRepository : IUserRepository
 
     public async Task<User?> GetByEmailAsync(string email)
     {
+        if (string.IsNullOrWhiteSpace(email)) return null;
         return await _context.Users
-            .FirstOrDefaultAsync(u => u.Email == email && !(u.IsDeleted == true));
+            .AsNoTracking()
+            .FirstOrDefaultAsync(u => u.Email == email && !u.IsDeleted);
+    }
+
+    public async Task<bool> ExistsByUsernameAsync(string username)
+    {
+        if (string.IsNullOrWhiteSpace(username)) return false;
+        return await _context.Users.AnyAsync(u => u.FullName == username && !u.IsDeleted);
     }
 
     public async Task AddAsync(User user)

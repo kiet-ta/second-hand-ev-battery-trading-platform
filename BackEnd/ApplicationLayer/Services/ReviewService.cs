@@ -1,6 +1,6 @@
-﻿using Application.IRepositories;
+﻿using Application.DTOs.ReviewDtos;
+using Application.IRepositories;
 using Application.IServices;
-using Domain.DTOs.ReviewDtos;
 using Domain.Entities;
 using System;
 using System.Collections.Generic;
@@ -31,7 +31,7 @@ namespace Application.Services
             var reviews = await _reviewRepository.GetReviewsByTargetUserIdAsync(targetUserId);
             return reviews ?? new List<ReviewResponseDto>();
         }
-        public async Task<Review> GetReviewAsync(int itemId)
+        public async Task<List<Review>> GetReviewAsync(int itemId)
         {
             return await _reviewRepository.GetReviewAsync(itemId);
         }

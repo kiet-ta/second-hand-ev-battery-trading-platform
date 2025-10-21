@@ -31,10 +31,10 @@ namespace Application.Validations
                 .Equal(x => x.Password)
                 .WithMessage("Passwords do not match.");
 
-            RuleFor(x => x.Phone)
-                .NotEmpty()
-                .Matches(@"^(0|\+84)\d{9}$")
-                .WithMessage("Invalid phone number format.");
+            //RuleFor(x => x.Phone)
+            //    .NotEmpty()
+            //    .Matches(@"^(0|\+84)\d{9}$")
+            //    .WithMessage("Invalid phone number format.");
         }
     }
 }

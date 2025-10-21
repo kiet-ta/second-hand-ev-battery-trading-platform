@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Net.payOS;
 using Net.payOS.Types;
+using System.Security.Claims;
 using System.Text.Json;
 
 namespace PresentationLayer.Controllers;
@@ -17,14 +18,12 @@ public class PaymentController : ControllerBase
 {
     private readonly IPaymentService _paymentService;
     private readonly IValidator<PaymentRequestDto> _validator;
-    private readonly IUserService _userService;
     public record Response(int error, string message, object? data);
 
     public PaymentController(IPaymentService paymentService, IValidator<PaymentRequestDto> validator, IUserService userService)
     {
         _paymentService = paymentService;
         _validator = validator;
-        _userService = userService;
     }
 
     [HttpPost("webhook")]
@@ -77,20 +76,12 @@ public class PaymentController : ControllerBase
     [HttpPost("create-payment-link")]
     public async Task<IActionResult> CreatePayment([FromBody] PaymentRequestDto request)
     {
-        var validationResult = await _validator.ValidateAsync(request);
-        if (!validationResult.IsValid)
-            return BadRequest(validationResult.Errors);
+        //var validationResult = await _validator.ValidateAsync(request);
+        //if (!validationResult.IsValid)
+        //    return BadRequest(validationResult.Errors);
 
-        try
-        {
-            var response = await _paymentService.CreatePaymentAsync(request);
-            return Ok(response);
-        }
-        catch (Exception ex)
-        {
-            // Log ex
-            return StatusCode(500, "Server error: " + ex.Message);
-        }
+        var response = await _paymentService.CreatePaymentAsync(request);
+        return Ok(response);
     }
 
     [HttpGet("info/{orderCode:long}")]
@@ -111,21 +102,26 @@ public class PaymentController : ControllerBase
     [Authorize]
     public async Task<IActionResult> CreateSellerRegistrationPayment([FromBody] SellerRegistrationPaymentRequestDto request)
     {
-        try
-        {
-            // Check if the user is already a seller and has paid the fee
-            var user = await _userService.GetUserByIdAsync(request.UserId);
-            if (user.Role != "seller" || user.Paid == "registering" || user.Paid == "account-maintenance-fee")
-            {
-                return BadRequest(new { message = "User is not a seller or has paid the fee." });
-            }
+        var response = await _paymentService.CreateSellerRegistrationPaymentAsync(request);
+        return Ok(response);
+    }
 
-            var response = await _paymentService.CreateSellerRegistrationPaymentAsync(request);
-            return Ok(response);
-        }
-        catch (Exception ex)
+    [HttpPost("initiate-deposit")]
+    [Authorize]
+    public async Task<IActionResult> InitiateWalletDeposit([FromBody] InitiateDepositRequestDto request)
+    {
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (!int.TryParse(userIdClaim, out var userId))
         {
-            return StatusCode(500, "Server error: " + ex.Message);
+            return Unauthorized("Invalid user token.");
         }
+
+        if (request.Amount <= 0)
+        {
+            return BadRequest(new { message = "Deposit amount must be positive." });
+        }
+
+        var response = await _paymentService.CreateDepositPaymentLinkAsync(userId, request.Amount);
+        return Ok(response);
     }
 }

@@ -1,23 +1,42 @@
-import React from 'react'
-import { Link } from 'react-router-dom';
+import { useEffect, useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom';
 import { IoMdHome } from "react-icons/io";
 import { RiAuctionFill } from "react-icons/ri";
-import { MdOutlineAttachMoney } from "react-icons/md";
 import Logo from '../components/Logo';
 import ProfileDropDown from './ProfileDropDown';
 import { FaShoppingCart } from "react-icons/fa";
 import { FaSuitcase } from "react-icons/fa6";
 import { LuShoppingBag } from "react-icons/lu";
-
+import { jwtDecode } from 'jwt-decode';
+import walletApi from '../api/walletApi';
+import NotificationDropDown from './NotificationDropdown'
 
 function Navbar(data) {
+  const navigate = useNavigate()
+  const [walletBalance,setWalletBalance] = useState(null)
+  useEffect(() => {
+    const fetchData = async () => {
+        const walletBalance = await walletApi.getWalletByUser(localStorage.getItem("userId"))
+  setWalletBalance(walletBalance.balance)
+    }
+    fetchData()
+  },[])
+  const handleSellerClick = (e) =>{
+    e.preventDefault();
+    e.stopPropagation();
+    const jwt = localStorage.getItem("token")
+    const decodeJWT = jwtDecode(jwt)
+    if(decodeJWT.role == "buyer") {
+      navigate('/seller-registration')
+    }
+    else {
+      navigate('/seller')
+    }
+  }
   const leftmenu = [
     { name: 'Home', link: '/', icon: <IoMdHome /> },
     { name: 'Auction', link: '/auctions', icon: <RiAuctionFill /> }
   ]
-  const rightmenu = [
-    { name: 'Notification', link: '/notification', icon: <IoMdHome /> },
-    { name: 'Support', link: '/support' }]
   return (
 
     <div>
@@ -36,7 +55,7 @@ function Navbar(data) {
                 <span className="ml-2">Manager</span>
               </Link>
             ) : (
-              <Link to="/seller" className="mx-4 hover:text-green-300 flex items-center">
+              <Link onClick={handleSellerClick} className="mx-4 hover:text-green-300 flex items-center">
                 <FaSuitcase />
                 <span className="ml-2">Seller</span>
               </Link>
@@ -44,16 +63,16 @@ function Navbar(data) {
             }
 
           </div>
-          <div className="right-header flex w-full justify-end" >
-            {rightmenu.map((item, index) => (
-              <Link to={item.link} key={index} className="mx-4 hover:text-green-300 flex items-center">
-                {item.icon}
-                <span className="ml-2">{item.name}</span>
-              </Link>
-            ))}
+          <div className="right-header flex w-full justify-end h-5" >
             {data.data ? (
+              <div className="flex justify-center">
               <div className="ml-5">
-                <ProfileDropDown users={data.data} />
+                <NotificationDropDown userId={localStorage.getItem("userId")} />
+              </div>
+              <div className="ml-5">
+                <ProfileDropDown users={data.data} walletBalance={walletBalance} />
+              </div>
+
               </div>
             )
               : (
@@ -72,9 +91,10 @@ function Navbar(data) {
         <div className="w-full flex h-20 items-center align-middle content-center">
           <div className="w-1/4 h-full flex justify-start"><Logo></Logo></div>
           <div className="content-center align-middle w-2/4">
-            <form action='/search' method='GET' className="w-full p-2 rounded-lg text-black bg-white relative">
-                <input type="text" name="query" placeholder="Search..." className="w-5/6"/>
+            <form action='/search' method='GET' className="w-full rounded-lg text-black bg-white relative">
+                <input type="text" name="query" placeholder="Search..." className="w-5/6 text-2xl"/>
                 <select className="bg-maincolor-darker w-1/6 absolute right-0 top-0 h-full align-middle text-center font-bold border-1" name="itemType">
+                <option value="All">All</option>
                 <option value="EV">Vehicle</option>
                 <option value="Battery">Battery</option>
                 </select>
@@ -86,9 +106,9 @@ function Navbar(data) {
               {<FaShoppingCart />}
               <span className="ml-2">Cart</span>
             </Link>
-            <Link to={'/purchase'} className="mx-4 hover:text-green-300 flex items-center">
+            <Link to={'/favourite'} className="mx-4 hover:text-green-300 flex items-center">
               {<LuShoppingBag />}
-              <span className="ml-2">Purchase</span>
+              <span className="ml-2">Favourite</span>
             </Link>
           </div>
         </div>

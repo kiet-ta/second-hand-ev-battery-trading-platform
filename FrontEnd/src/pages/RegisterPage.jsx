@@ -1,10 +1,10 @@
 import React, { useEffect, useState, useRef } from 'react';
 import Logo from '../components/Logo';
-import '../assets/styles/LoginPage.css'; // Create a CSS file for styling
+import '../assets/styles/LoginPage.css';
 import banner1 from '../assets/images/banner1.png';
 import banner2 from '../assets/images/banner2.png';
 import banner3 from '../assets/images/banner3.png';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Popover } from 'antd';
 import authApi from '../api/authApi'
 import { FaRegEyeSlash, FaRegEye } from "react-icons/fa";
@@ -25,7 +25,7 @@ export default function RegisterPage() {
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
     const googleButtonRef = useRef(null);
-
+    const navigate = useNavigate();
     const slides = [
         {
             id: 1,
@@ -165,11 +165,13 @@ export default function RegisterPage() {
                 username,
                 email,
                 password,
+                confirmPassword,
                 fullname
             };
 
             const res = await authApi.register(newUser);
             console.log("Register success:", res);
+            navigate(`/login`)
             alert("Đăng ký thành công ✅");
         } catch (err) {
             console.error("Register error:", err);
@@ -183,7 +185,7 @@ export default function RegisterPage() {
         <div className="login-container">
             {/* Header */}
             <header className="bg-maincolor">
-          <div className="w-1/4 h-full flex justify-start"><Logo></Logo></div>
+                <div className="w-1/4 h-full flex justify-start"><Logo></Logo></div>
             </header>
 
             {/* Nội dung chính: banner + form */}
@@ -263,9 +265,9 @@ export default function RegisterPage() {
                                     <span>OR</span>
                                 </div>
 
-                                <div className="social-login">
+                                {/* <div className="social-login">
                                     <div ref={googleButtonRef} />
-                                </div>
+                                </div> */}
 
 
                             </>

@@ -6,8 +6,7 @@ import banner2 from '../assets/images/banner2.png';
 import banner3 from '../assets/images/banner3.png';
 import authApi from '../api/authApi';
 import { Link, useNavigate } from 'react-router-dom';
-import { message } from "antd";
-import { Popover } from 'antd';
+import { message, Popover } from "antd";
 
 export default function LoginPage() {
     const navigate = useNavigate();
@@ -15,7 +14,7 @@ export default function LoginPage() {
         import.meta.env.VITE_GOOGLE_CLIENT_ID ||
         '301055344643-gel1moqvoq9flgf8978aje7j9frtci79.apps.googleusercontent.com';
 
-    const [user, setUser] = useState(null); // cho cả Google + Local
+    const [user, setUser] = useState(null);
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
@@ -73,6 +72,7 @@ export default function LoginPage() {
             );
             return JSON.parse(jsonPayload);
         } catch (e) {
+            console.error("JWT decoding failed:", e);
             return null;
         }
     }
@@ -107,6 +107,8 @@ export default function LoginPage() {
             localStorage.setItem("user", JSON.stringify(newUser));
         }
     }
+
+    // 👇 FIX: The previously missing logic is completed here
     const handleLocalLogin = async (e) => {
         e.preventDefault();
         setError("");
@@ -114,12 +116,8 @@ export default function LoginPage() {
         const trimmedEmail = email.trim();
         const trimmedPassword = password.trim();
 
-        if (!trimmedEmail) {
-            setError("Please enter username or email.");
-            return;
-        }
-        if (!trimmedPassword) {
-            setError("Please enter password.");
+        if (!trimmedEmail || !trimmedPassword) {
+            setError("Please enter all login information.");
             return;
         }
 
@@ -134,25 +132,44 @@ export default function LoginPage() {
         }
 
         try {
-            // Gọi API login
-            const res = await authApi.login(trimmedEmail, trimmedPassword);
+            // 1. Call API login
+            const data = await authApi.login(trimmedEmail, trimmedPassword);
+            const res = data.data;
             const newUser = {
                 ...res.user,
                 userId: res.userId,
                 token: res.token,
             };
 
+
             localStorage.setItem("userId", res.userId);
             localStorage.setItem("token", res.token);
             setUser(newUser);
             message.success("Login successful!");
-            navigate("/");
+
+            // 2. Decode the JWT to check the role and navigate
+            const decodedToken = parseJwt(res.token);
+            if (decodedToken && decodedToken.role) {
+                const role = decodedToken.role.toLowerCase();
+
+                if (role === 'manager' || role === 'staff') {
+                    navigate('/manage');
+                } else if (role === 'seller') {
+                    navigate('/seller');
+                } else {
+                    // Default to buyer, check for seller registration status if possible (assuming res.isSellerRegistered exists)
+                    // If not registered as a full seller, push them to the onboarding page first.
+                    navigate('/');
+                }
+            } else {
+                navigate('/'); // Default to homepage if role is missing
+            }
+
         } catch (err) {
             console.error("Login error:", err);
             setError("Incorrect login information.");
         }
     };
-
 
 
     function signOut() {
@@ -178,7 +195,7 @@ export default function LoginPage() {
         <div className="login-container">
             {/* Header */}
             <header className="bg-maincolor">
-          <div className="w-1/4 h-full flex justify-start"><Logo></Logo></div>
+                <div className="w-1/4 h-full flex justify-start"><Logo></Logo></div>
             </header>
 
             {/* Nội dung chính: banner + form */}
@@ -233,17 +250,17 @@ export default function LoginPage() {
 
                                 </form>
 
-                                <a href="#" className="forgot-password">
+                                {/* <a href="#" className="forgot-password">
                                     Forgot Password
-                                </a>
+                                </a> */}
 
                                 <div className="divider">
                                     <span>OR</span>
                                 </div>
 
-                                <div className="social-login">
+                                {/* <div className="social-login">
                                     <div ref={googleButtonRef} />
-                                </div>
+                                </div> */}
 
                                 <p className="signup-link">
                                     Are you new? <Link to="/register">Create an account</Link>

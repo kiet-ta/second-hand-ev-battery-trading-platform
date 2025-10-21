@@ -1,4 +1,4 @@
-﻿using Application.DTOs.ManagerDto;
+﻿using Application.DTOs.ManageCompanyDtos;
 using Application.IRepositories;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;

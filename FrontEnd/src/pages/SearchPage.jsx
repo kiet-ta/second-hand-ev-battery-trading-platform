@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useSearchParams, BrowserRouter as Router } from 'react-router-dom';
 import itemApi from '../api/itemApi';
+import CardComponent from '../components/Cards/Card'
 
 const priceRanges = [
     { label: 'Any Price', value: '--' },
@@ -155,7 +156,7 @@ function SearchPage() {
                 <div className='text-2xl font-semibold text-gray-800'>Search result for "{filters.title}"</div>
                 <div className='bg-white rounded-2xl mt-2 p-4 gap-4 flex flex-wrap justify-start shadow-md min-h-[400px]'>
                     {isLoading ? (
-                        <div className="w-full flex justify-center items-center font-semibold text-gray-500">Loading...</div>
+                        <div className="w-full flex justify-evenly items-center font-semibold text-gray-500">Loading...</div>
                     ) : itemList.length > 0 ? (
                         itemList.map((item) => (
                             <CardComponent 
@@ -165,7 +166,7 @@ function SearchPage() {
                                 type={item.itemType}
                                 price={item.price}
                                 sales={0}
-                                image={`https://placehold.co/600x400/EEE/31343C?text=${item.title.replace(/\s/g,'+')}`}
+        itemImages={item.images}
                             />
                         ))
                     ) : (

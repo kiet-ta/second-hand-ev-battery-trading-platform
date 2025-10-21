@@ -28,17 +28,19 @@ namespace Application.IServices
         Task<PagedResultItem<ItemDto>> SearchItemsAsync(
         string itemType,
         string title,
-        decimal? minPrice = null,
-        decimal? maxPrice = null,
-        int page = 1,
-        int pageSize = 20,
-        string sortBy = "UpdatedAt",
-        string sortDir = "desc");
+        decimal? minPrice,
+        decimal? maxPrice,
+        int page,
+        int pageSize,
+        string sortBy,
+        string sortDir);
 
         Task<ItemWithDetailDto?> GetItemWithDetailsAsync(int id);
         Task<IEnumerable<ItemWithDetailDto>> GetAllItemsWithDetailsAsync();
         Task<IEnumerable<ItemBoughtDto>> GetBoughtItemsWithDetailsAsync(int userId);
         Task<IEnumerable<ItemSellerDto>> GetSellerItemsAsync(int sellerId);
         Task<UserItemDetailDto?> GetItemDetailByIdAsync(int itemId);
+        Task<bool> SetApprovedItemTagAsync(int itemId);
+        Task<bool> SetRejectedItemTagAsync(int itemId);
     }
 }

@@ -1,4 +1,6 @@
+﻿using Application;
 ﻿using Application.DTOs;
+using Application.DTOs.AuthenticationDtos;
 using Application.DTOs.PaymentDtos;
 using Application.IHelpers;
 using Application.IRepositories;
@@ -7,11 +9,11 @@ using Application.IRepositories.IChatRepositories;
 using Application.IRepositories.IManageStaffRepositories;
 using Application.IRepositories.IPaymentRepositories;
 using Application.IServices;
+using Application.Mappings;
 using Application.Services;
 using Application.Validations;
 using CloudinaryDotNet;
 using Domain.Entities;
-using Domain.Mappings;
 using FluentValidation;
 using Infrastructure.Data;
 using Infrastructure.Helpers;
@@ -28,6 +30,7 @@ using Microsoft.OpenApi.Models;
 using Net.payOS;
 using PresentationLayer.Authorization;
 using PresentationLayer.Hubs;
+using PresentationLayer.Middleware;
 using System.Text;
 
 namespace PresentationLayer
@@ -40,8 +43,8 @@ namespace PresentationLayer
 
             //  Register DbContext (DB First)
             builder.Services.AddDbContext<EvBatteryTradingContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+            builder.Services.Configure<AppSetting>(builder.Configuration.GetSection("Google"));
             builder.Services.Configure<FirebaseOptions>(builder.Configuration.GetSection("Firebase"));
-
             // DI for Repository + Service
             //---Services
             builder.Services.AddScoped<IAuthService, AuthService>();
@@ -65,7 +68,6 @@ namespace PresentationLayer
             builder.Services.AddScoped<IReviewService, ReviewService>();
             builder.Services.AddScoped<ICommissionService, CommissionService>();
             builder.Services.AddScoped<IProfanityFilterService, ProfanityFilterService>();
-
             //---Repositories
             builder.Services.AddScoped<IAuctionRepository, AuctionRepository>();
             builder.Services.AddScoped<IAddressRepository, AddressRepository>();
@@ -75,7 +77,8 @@ namespace PresentationLayer
             builder.Services.AddScoped<IEVDetailRepository, EVDetailRepository>();
             builder.Services.AddScoped<IBatteryDetailRepository, BatteryDetailRepository>();
             builder.Services.AddScoped<IHistorySoldRepository, HistorySoldRepository>();
-            //builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
+            builder.Services.AddScoped<IUserRepository, UserRepository>();
+
             builder.Services.AddScoped<IBidRepository, BidRepository>();
             builder.Services.AddScoped<IWalletRepository, WalletRepository>();
             builder.Services.AddScoped<IWalletTransactionRepository, WalletTransactionRepository>();
@@ -88,6 +91,10 @@ namespace PresentationLayer
             builder.Services.AddScoped<IComplaintRepository, ComplaintRepository>();
             builder.Services.AddScoped<ICommissionFeeRuleRepository, CommissionFeeRuleRepository>();
             builder.Services.AddScoped<ITransactionRepository, TransactionRepository>();
+
+            builder.Services.Configure<MailSettings>(
+    builder.Configuration.GetSection("MailSettings"));
+
 
             // AddHttp
             builder.Services.AddHttpClient<IChatRepository, FirebaseChatRepository>();
@@ -159,7 +166,7 @@ namespace PresentationLayer
                 options.AddPolicy("AllowReactApp",
                     policy =>
                     {
-                        policy.WithOrigins("http://localhost:5173")
+                        policy.WithOrigins("http://localhost:5173", "http://localhost:5174")
                               .AllowAnyHeader()
                               .AllowAnyMethod()
                               .AllowCredentials();
@@ -193,7 +200,7 @@ namespace PresentationLayer
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
             builder.Configuration.AddUserSecrets<Program>();
-
+            builder.Services.Configure<MailSettings>(builder.Configuration.GetSection("MailSettings"));
             builder.Services.AddScoped<IMailService, MailService>();
             builder.Services.AddScoped<IEmailRepository, EmailTemplateRepository>();
             builder.Services.AddScoped<IValidator<PaymentRequestDto>, PaymentRequestValidator>();
@@ -205,9 +212,20 @@ namespace PresentationLayer
             builder.Services.AddScoped<IPermissionRepository, PermissionRepository>();
             builder.Services.AddScoped<IStaffPermissionRepository, StaffPermissionRepository>();
             builder.Services.AddScoped<IStaffManagementService, StaffManagementService>();
-            builder.Services.AddAutoMapper(typeof(KYC_DocumentProfile).Assembly);
+            builder.Services.AddAutoMapper(
+                typeof(KYC_DocumentProfile).Assembly,
+                typeof(AddressProfile).Assembly,
+                typeof(ReviewProfile).Assembly,
+                typeof(PermissionProfille).Assembly
+                );
             builder.Services.AddScoped<IWalletService, WalletService>();
             //builder.Services.AddSwaggerGen();
+
+            // News
+            builder.Services.AddScoped<INewsRepository, NewsRepository>();
+            builder.Services.AddScoped<INewsService, NewsService>();
+            builder.Services.AddSingleton<INotificationService, NotificationService>();
+            builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
 
             builder.Services.AddSwaggerGen(c =>
             {
@@ -247,6 +265,7 @@ namespace PresentationLayer
             });
 
             var app = builder.Build();
+            app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
 
             if (app.Environment.IsDevelopment())
             {
@@ -262,6 +281,7 @@ namespace PresentationLayer
 
             app.MapControllers();
             app.MapHub<ChatHub>("/chatHub");
+
             app.Run();
         }
     }

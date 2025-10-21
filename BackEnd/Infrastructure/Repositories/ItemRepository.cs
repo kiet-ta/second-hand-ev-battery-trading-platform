@@ -57,6 +57,136 @@ namespace Infrastructure.Repositories
             return query.AsNoTracking(); // Optimized for read-only queries
         }
 
+        public async Task<PagedResultItem<ItemDto>> SearchItemsAsync(
+        string itemType,
+        string title,
+        decimal? minPrice,
+        decimal? maxPrice,
+        int page,
+        int pageSize,
+        string sortBy,
+        string sortDir)
+        {
+            if (page <= 0) page = 1;
+            if (pageSize <= 0) pageSize = 20;
+
+            var query = from i in _context.Items
+                        join u in _context.Users
+                            on i.UpdatedBy equals u.UserId into gj
+                        from user in gj.DefaultIfEmpty()
+                        where i.IsDeleted == false
+                        select new ItemDto
+                        {
+                            ItemId = i.ItemId,
+                            ItemType = i.ItemType,
+                            CategoryId = i.CategoryId,
+                            Title = i.Title,
+                            Description = i.Description,
+                            Price = i.Price,
+                            Quantity = i.Quantity,
+                            Status = i.Status,
+                            CreatedAt = i.CreatedAt,
+                            UpdatedAt = i.UpdatedAt,
+                            SellerName = user != null ? user.FullName : string.Empty,
+                            Images = _context.ItemImages
+                                .Where(img => img.ItemId == i.ItemId)
+                                .Select(img => new ItemImageDto
+                                {
+                                    ImageId = img.ImageId,
+                                    ImageUrl = img.ImageUrl
+                                }).ToList()
+                        };
+
+            // Filter by itemType
+            if (!string.IsNullOrWhiteSpace(itemType) && itemType.ToLower() != "all")
+            {
+                query = query.Where(i => i.ItemType == itemType.Trim().ToLower());
+            }
+
+            // Filter by title
+            if (!string.IsNullOrWhiteSpace(title))
+            {
+                query = query.Where(i => i.Title.ToLower().Contains(title.Trim().ToLower()));
+            }
+
+            // Filter by price range
+            if (minPrice.HasValue)
+            {
+                query = query.Where(i => i.Price >= minPrice.Value);
+            }
+
+            if (maxPrice.HasValue)
+            {
+                query = query.Where(i => i.Price <= maxPrice.Value);
+            }
+
+            // Sorting
+            bool desc = sortDir.Equals("desc", StringComparison.OrdinalIgnoreCase);
+            query = sortBy switch
+            {
+                "Price" => desc ? query.OrderByDescending(i => i.Price) : query.OrderBy(i => i.Price),
+                "Title" => desc ? query.OrderByDescending(i => i.Title) : query.OrderBy(i => i.Title),
+                _ => desc ? query.OrderByDescending(i => i.UpdatedAt) : query.OrderBy(i => i.UpdatedAt)
+            };
+
+            // Get total count
+            var total = await query.LongCountAsync();
+
+            // Pagination
+            var items = await query
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            // Load item details
+            foreach (var item in items)
+            {
+                if (item.ItemType == "ev")
+                {
+                    var detail = await _context.EVDetails
+                        .Where(d => d.ItemId == item.ItemId)
+                        .Select(d => new EVDetailDto
+                        {
+                            Brand = d.Brand,
+                            Model = d.Model,
+                            Version = d.Version,
+                            Year = d.Year,
+                            BodyStyle = d.BodyStyle,
+                            Color = d.Color,
+                            LicensePlate = d.LicensePlate,
+                            HasAccessories = d.HasAccessories,
+                            PreviousOwners = d.PreviousOwners,
+                            IsRegistrationValid = d.IsRegistrationValid,
+                            Mileage = d.Mileage
+                        })
+                        .FirstOrDefaultAsync();
+                    item.ItemDetail = detail;
+                }
+                else if (item.ItemType == "battery")
+                {
+                    var detail = await _context.BatteryDetails
+                        .Where(d => d.ItemId == item.ItemId)
+                        .Select(d => new BatteryDetailDto
+                        {
+                            Brand = d.Brand,
+                            Capacity = d.Capacity,
+                            Voltage = d.Voltage,
+                            ChargeCycles = d.ChargeCycles
+                        })
+                        .FirstOrDefaultAsync();
+                    item.ItemDetail = detail;
+                }
+            }
+
+            return new PagedResultItem<ItemDto>
+            {
+                Page = page,
+                PageSize = pageSize,
+                TotalCount = total,
+                Items = items
+            };
+        }
+
         public async Task<Item> AddAsync(Item item, CancellationToken? ct = null)
         {
             var en = (await _context.Items.AddAsync(item)).Entity;
@@ -129,6 +259,7 @@ namespace Infrastructure.Repositories
                             CategoryId = i.CategoryId,
                             Description = i.Description,
                             Price = i.Price,
+                            Moderation = i.Moderation,
                             Quantity = i.Quantity,
                             CreatedAt = i.CreatedAt,
                             UpdatedAt = i.UpdatedAt,
@@ -169,6 +300,7 @@ namespace Infrastructure.Repositories
                             Description = i.Description,
                             Price = i.Price,
                             Quantity = i.Quantity,
+                            Moderation = i.Moderation,
                             CreatedAt = i.CreatedAt,
                             UpdatedAt = i.UpdatedAt,
                             UpdatedBy = i.UpdatedBy,
@@ -210,6 +342,9 @@ namespace Infrastructure.Repositories
                                 join bat in _context.BatteryDetails
                                     on q.item.ItemId equals bat.ItemId into batJoin
                                 from bat in batJoin.DefaultIfEmpty()
+                                //join im in _context.ItemImages
+                                //    on q.item.ItemId equals im.ItemId into imJoin
+                                //from im in imJoin.DefaultIfEmpty()
                                 select new ItemBoughtDto
                                 {
                                     ItemId = q.item.ItemId,
@@ -239,7 +374,15 @@ namespace Infrastructure.Repositories
                                     ChargeCycles = bat.ChargeCycles,
 
                                     // Amount of item
-                                    ItemAmount = q.pd.Amount
+                                    ItemAmount = q.pd.Amount,
+
+                                    ItemImage = _context.ItemImages
+                                        .Where(img => img.ItemId == q.item.ItemId)
+                                        .Select(img => new ItemImage
+                                        {
+                                            ImageId = img.ImageId,
+                                            ImageUrl = img.ImageUrl
+                                        }).ToList()
                                 }).ToListAsync();
 
             return result;
@@ -415,6 +558,19 @@ namespace Infrastructure.Repositories
                 };
 
             return await query.AsNoTracking().FirstOrDefaultAsync();
+        }
+
+        public async Task<bool> SetItemTagAsync(int itemId, string tag)
+        {
+            var item = await _context.Items.FirstOrDefaultAsync(i => i.ItemId == itemId);
+            if (item == null)
+            {
+                return false;
+            }
+            item.Moderation = tag;
+            _context.Items.Update(item);
+            await _context.SaveChangesAsync();
+            return true;
         }
     }
 }

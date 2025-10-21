@@ -76,17 +76,20 @@ namespace PresentationLayer.Controllers
         [HttpGet("search")]
         //[CacheResult(600)]
         public async Task<IActionResult> SearchItem(
-            [FromQuery] string itemType,
-            [FromQuery] string title,
-            [FromQuery] decimal? minPrice,
-            [FromQuery] decimal? maxPrice,
-            [FromQuery] int page = 1,
-            [FromQuery] int pageSize = 20,
-            [FromQuery] string sortBy = "UpdatedAt",
-            [FromQuery] string sortDir = "desc")
+            [FromQuery] string itemType = "all",
+        [FromQuery] string title = "",
+        [FromQuery] decimal? minPrice = null,
+        [FromQuery] decimal? maxPrice = null,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 20,
+        [FromQuery] string sortBy = "UpdatedAt",
+        [FromQuery] string sortDir = "desc")
         {
             var result = await _service.SearchItemsAsync(
-                itemType, title, minPrice, maxPrice, page, pageSize, sortBy, sortDir);
+            itemType, title, minPrice, maxPrice, page, pageSize, sortBy, sortDir);
+
+            if (result.Items == null || !result.Items.Any())
+                return NotFound(new { message = "No items found." });
 
             return Ok(result);
         }
@@ -213,6 +216,39 @@ namespace PresentationLayer.Controllers
                 return NotFound(new { message = "Item not found or has been deleted." });
 
             return Ok(item);
+        }
+        [HttpPut("{itemId}/approve")]
+        public async Task<IActionResult> ApproveItem(int itemId)
+        {
+            try
+            {
+                var result = await _service.SetApprovedItemTagAsync(itemId);
+                if (!result)
+                    return BadRequest("Item not found or not in 'pending' state.");
+
+                return Ok(new { message = "Item approved successfully." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = $"Error approving item: {ex.Message}" });
+            }
+        }
+
+        [HttpPut("{itemId}/reject")]
+        public async Task<IActionResult> RejectItem(int itemId)
+        {
+            try
+            {
+                var result = await _service.SetRejectedItemTagAsync(itemId);
+                if (!result)
+                    return BadRequest("Item not found or not in 'pending' state.");
+
+                return Ok(new { message = "Item rejected successfully." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = $"Error rejecting item: {ex.Message}" });
+            }
         }
     }
 }

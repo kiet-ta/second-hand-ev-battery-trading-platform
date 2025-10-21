@@ -4,6 +4,7 @@ using Application.IRepositories.IManageStaffRepositories;
 using Application.IServices;
 using AutoMapper;
 using Domain.Entities;
+using Microsoft.EntityFrameworkCore;
 
 namespace Application.Services;
 
@@ -25,13 +26,22 @@ public class StaffManagementService : IStaffManagementService
         _staffPermissionRepository = staffPermissionRepository;
         _mapper = mapper;
     }
+    public static int GenerateUserId()
+    {
+        var now = DateTime.UtcNow;
+        string timestamp = now.ToString("yyyyMMddHHmmss");
+        int random = new Random().Next(100, 999);
+        string combined = timestamp + random.ToString();
+        int hash = combined.GetHashCode();
+        return Math.Abs(hash);
+    }
 
     public async Task AssignPermissionsToStaffAsync(int staffId, List<int> permissionIds)
     {
         var staff = await _userRepository.GetByIdAsync(staffId);
         if (staff == null || staff.Role != "staff")
         {
-            throw new Exception("Staff not found.");
+            throw new Exception("Staff not found or user is not a staff member.");
         }
         await _staffPermissionRepository.AssignPermissionsToStaffAsync(staffId, permissionIds);
     }
@@ -43,8 +53,13 @@ public class StaffManagementService : IStaffManagementService
         {
             throw new Exception("Email already exists.");
         }
+        if (string.IsNullOrWhiteSpace(request.Password) || request.Password.Length < 8)
+        {
+            throw new ArgumentException("Password must be at least 8 characters long.");
+        }
         var newUser = new User
         {
+            UserId = GenerateUserId(),
             FullName = request.FullName,
             Email = request.Email,
             PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password),
@@ -56,13 +71,52 @@ public class StaffManagementService : IStaffManagementService
             IsDeleted = false
         };
         await _userRepository.AddAsync(newUser);
+
+        if (request.Permissions != null && request.Permissions.Any())
+        {
+            // get all permissions from Db
+            var allPermissions = await _permissionRepository.GetAllPermissionAsync();
+            var allPermissionsDict = allPermissions.ToDictionary(p => p.PermissionName, p => p.PermissionId, StringComparer.OrdinalIgnoreCase); // using Dic for faster
+
+            //validate permission classification is in Db and not in Db
+            var permissionIdsToAssign = new List<int>();
+            var invalidPermissions = new List<string>();
+
+            // Map permission name to ID
+            foreach (var permissionName in request.Permissions)
+            {
+                if (allPermissionsDict.TryGetValue(permissionName, out var permissionId))
+                {
+                    permissionIdsToAssign.Add(permissionId);
+                }
+                else
+                {
+                    invalidPermissions.Add(permissionName);
+                }
+            }
+            if (invalidPermissions.Any())
+            {
+                throw new ArgumentException($"Invalid permission names: {string.Join(", ", invalidPermissions)}");
+            }
+
+            // assign permission valid
+            if (permissionIdsToAssign.Any())
+            {
+                await _staffPermissionRepository.AssignPermissionsToStaffAsync(newUser.UserId, permissionIdsToAssign);
+            }
+        }
         return newUser;
     }
 
     public async Task<List<PermissionDto>> GetAllPermissionsAsync()
     {
-        var permissions = await _permissionRepository.GetAllPermissionAsync();
+
+            var permissions = await _permissionRepository.GetAllPermissionAsync();
+            if (permissions == null)
+                return new List<PermissionDto>();
+
         return _mapper.Map<List<PermissionDto>>(permissions);
+        
     }
 
     public async Task<List<PermissionDto>> GetPermissionsByStaffIdAsync(int staffId)

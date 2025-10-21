@@ -9,11 +9,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="Mappings\**" />
     <Compile Remove="Resources\**" />
-    <EmbeddedResource Remove="Mappings\**" />
     <EmbeddedResource Remove="Resources\**" />
-    <None Remove="Mappings\**" />
     <None Remove="Resources\**" />
   </ItemGroup>
 
@@ -22,6 +19,7 @@
     <PackageReference Include="FluentValidation" Version="12.0.0" />
     <PackageReference Include="Google.Apis.Auth" Version="1.72.0" />
     <PackageReference Include="MailKit" Version="4.14.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.3.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.20" />
     <PackageReference Include="payOS" Version="1.0.9" />
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.14.0" />

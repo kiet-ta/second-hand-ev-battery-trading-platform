@@ -13,7 +13,7 @@ namespace Infrastructure.Data.Configurations
     {
         public void Configure(EntityTypeBuilder<News> entity)
         {
-            entity.HasKey(e => e.NewsId).HasName("PK__blogs__2975AA280A34B096");
+            entity.HasKey(e => e.NewsId).HasName("PK__news__4C27CCD85801CE63");
 
             entity.ToTable("news");
 
@@ -34,16 +34,18 @@ namespace Infrastructure.Data.Configurations
             entity.Property(e => e.Title)
                 .HasMaxLength(255)
                 .HasColumnName("title");
-            entity.Property(e => e.UserId).HasColumnName("user_id");
             entity.Property(e => e.Status)
                 .HasMaxLength(20)
                 .HasDefaultValue("pending")
                 .HasColumnName("status");
+            entity.Property(e => e.IsDeleted)
+            .HasColumnName("is_deleted")
+            .HasDefaultValue(false);
 
             entity.HasOne<User>().WithMany()
-                .HasForeignKey(d => d.UserId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__blogs__user_id__00200768");
+                .HasForeignKey(d => d.AuthorId)
+               .OnDelete(DeleteBehavior.NoAction)
+                .HasConstraintName("FK__news__author_id__17036CC0");
         }
     }
 }

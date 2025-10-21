@@ -35,10 +35,19 @@ export const managerAPI = {
 
     // ✅ Seller Approvals – danh sách seller chờ duyệt
     getPendingSellerApprovals: async () => {
-        const res = await fetch(`${BASE}/ManagerDashboard/pending`);
+        const token = localStorage.getItem("token"); // 👈 thêm dòng này
+
+        const res = await fetch(`${BASE}/ManagerDashboard/pending`, {
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`, // 👈 gửi kèm token như approveSeller
+            },
+        });
+
         if (!res.ok) throw new Error("Không thể tải danh sách chờ duyệt");
         return await res.json();
     },
+
 
     // ✅ Seller Approvals – duyệt seller
     approveSeller: async (id) => {
@@ -119,4 +128,20 @@ export const managerAPI = {
 
         return await res.json();
     },
+    getUsersPaginated: async (page = 1, pageSize = 20) => {
+        const token = localStorage.getItem("token");
+        const res = await fetch(
+            `https://localhost:7272/api/User/all/user/pagination?page=${page}&pageSize=${pageSize}`,
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    "Content-Type": "application/json",
+                },
+            }
+        );
+
+        if (!res.ok) throw new Error("Không thể tải danh sách user");
+        return await res.json();
+    },
+
 };

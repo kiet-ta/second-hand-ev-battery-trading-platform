@@ -1,7 +1,6 @@
 ﻿using Application.DTOs;
 using Application.DTOs.ItemDtos;
 using Application.IRepositories;
-using Domain.DTOs;
 using Domain.Entities;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -32,7 +31,6 @@ namespace Infrastructure.Repositories
                 )
                 .FirstOrDefaultAsync();
         }
-
 
         public async Task<List<Item>> GetAllSellerItemsAsync(int sellerId)
         {
@@ -84,6 +82,7 @@ namespace Infrastructure.Repositories
 
             return items;
         }
+
         public async Task<List<Item>> GetCanceledItemsAsync(int sellerId)
         {
             var items = await _context.Items
@@ -117,13 +116,10 @@ namespace Infrastructure.Repositories
             foreach (var item in items)
             {
                 item.Status = "canceled";
-
             }
 
             return items;
         }
-
-
 
         public async Task<List<Item>> GetSoldItemsAsync(int sellerId)
         {
@@ -148,6 +144,7 @@ namespace Infrastructure.Repositories
         }
 
 #pragma warning disable CS8601
+
         public async Task<List<BatteryItemDto>> MapToBatteryItemsAsync(List<Item> batteryItems)
         {
             var itemIds = batteryItems.Select(i => i.ItemId).ToList();
@@ -180,7 +177,6 @@ namespace Infrastructure.Repositories
                             ListedPrice = item.Price,
                             ActualPrice = pd != null ? pd.Amount : (decimal?)null,
                             PaymentMethod = p != null ? p.Method : null,
-
 
                             CreatedAt = item.CreatedAt,
                             SoldAt = item.UpdatedAt,
@@ -229,7 +225,6 @@ namespace Infrastructure.Repositories
                             ListedPrice = item.Price,
                             ActualPrice = pd != null ? pd.Amount : (decimal?)null,
                             PaymentMethod = p != null ? p.Method : null,
-
 
                             CreatedAt = item.CreatedAt,
                             SoldAt = item.UpdatedAt,

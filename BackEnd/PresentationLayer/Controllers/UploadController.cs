@@ -2,11 +2,6 @@
 using Application.DTOs.ItemDtos;
 using Application.IRepositories;
 using Application.IServices;
-using Application.Services;
-using CloudinaryDotNet;
-using CloudinaryDotNet.Actions;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
@@ -30,23 +25,13 @@ namespace PresentationLayer.Controllers
         [HttpGet("avatar/user/{userId}")]
         public async Task<IActionResult> GetAvatar(int userId)
         {
-            try
-            {
-                var avatarUrl = await _userService.GetAvatarAsync(userId);
+            var avatarUrl = await _userService.GetAvatarAsync(userId);
 
-                if (string.IsNullOrEmpty(avatarUrl))
-                    return NotFound(new { message = "Avatar not found" });
-
-                return Ok(new
-                {
-                    userId,
-                    avatarUrl
-                });
-            }
-            catch (Exception ex)
+            return Ok(new
             {
-                return NotFound(new { message = ex.Message });
-            }
+                userId,
+                avatarUrl
+            });
         }
 
         [HttpPost("avatar/user")]
@@ -76,15 +61,8 @@ namespace PresentationLayer.Controllers
         [Consumes("multipart/form-data")]
         public async Task<IActionResult> Upload([FromForm] UploadItemImageRequest request)
         {
-            try
-            {
-                var urls = await _itemImageService.UploadItemImagesAsync(request.ItemId, request.Files);
-                return Ok(new { Message = "Upload success", ImageUrls = urls });
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { Error = ex.Message });
-            }
+            var urls = await _itemImageService.UploadItemImagesAsync(request.ItemId, request.Files);
+            return Ok(new { Message = "Upload success", ImageUrls = urls });
         }
 
         [HttpGet("item/{itemId}")]
