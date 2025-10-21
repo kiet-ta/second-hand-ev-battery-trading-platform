@@ -185,7 +185,7 @@ export const CarAuctionCard = ({
                     setWarningNotificationSent(true); 
 
                     const title = `🚨 Sắp kết thúc!`;
-                    const messageText = `Đấu giá cho sản phẩm ${title} chỉ còn dưới 5 giây. Nhanh chóng đặt giá cuối cùng!`;
+                    const messageText = `Đấu giá cho sản phẩm ${title} chỉ còn dưới 1p. Nhanh chóng đặt giá cuối cùng!`;
                     
                     sendGroupNotification(bidders, title, messageText)
                         .catch(() => setWarningNotificationSent(false)); // Reset flag on failure
