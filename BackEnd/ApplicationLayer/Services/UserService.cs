@@ -112,7 +112,7 @@ namespace Application.Services
         {
             var existing = await _userRepository.GetByEmailAsync(user.Email);
             if (existing != null)
-                throw new InvalidOperationException("Email đã tồn tại!");
+                throw new InvalidOperationException("Email does not exist");
 
             user.CreatedAt = DateTime.Now;
             user.UpdatedAt = DateTime.Now;
@@ -124,7 +124,7 @@ namespace Application.Services
         {
             var existing = await _userRepository.GetByIdAsync(user.UserId);
             if (existing == null)
-                throw new KeyNotFoundException("User không tồn tại!");
+                throw new KeyNotFoundException("User does not exist");
 
             existing.FullName = user.FullName;
             existing.Phone = user.Phone;
