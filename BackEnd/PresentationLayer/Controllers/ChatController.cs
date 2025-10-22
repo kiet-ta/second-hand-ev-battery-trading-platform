@@ -44,15 +44,11 @@ namespace PresentationLayer.Controllers
         [HttpGet("rooms/{cid}/messages")]
         public async Task<IActionResult> GetMessages(long cid, [FromQuery] int limit = 50)
         {
-            try
-            {
+            
                 var messages = await _chat.GetMessagesAsync(cid, limit);
                 return Ok(messages);
-            }
-            catch (ArgumentException ex)
-            {
-                return NotFound(new { error = ex.Message });
-            }
+            
+            
         }
     }
 }
