@@ -25,9 +25,8 @@ export default function SellerAuctionListPage() {
             if (!res.ok) throw new Error("Không thể tải danh sách đấu giá");
 
             const data = await res.json();
-            console.log("Auction API response:", data);
+            console.log("Kết quả API Đấu giá:", data);
 
-            // ✅ Lấy danh sách thật từ trường `data`
             setAuctions(Array.isArray(data.data) ? data.data : []);
         } catch (err) {
             console.error("Lỗi tải dữ liệu đấu giá:", err);
@@ -50,15 +49,14 @@ export default function SellerAuctionListPage() {
         setFadeState("out");
         setTimeout(() => {
             setShowModal(false);
-            if (refresh) fetchAuctions(); // ✅ Refresh danh sách sau khi tạo
+            if (refresh) fetchAuctions(); // ✅ Làm mới danh sách sau khi tạo mới
         }, 200);
     };
 
     const formatPrice = (v) =>
         new Intl.NumberFormat("vi-VN").format(v || 0) + " ₫";
 
-    const formatTime = (t) =>
-        t ? new Date(t).toLocaleString("vi-VN") : "--";
+    const formatTime = (t) => (t ? new Date(t).toLocaleString("vi-VN") : "--");
 
     const getStatusColor = (status) => {
         switch (status?.toUpperCase()) {
@@ -79,13 +77,13 @@ export default function SellerAuctionListPage() {
                 {/* Header */}
                 <div className="flex justify-between items-center mb-6">
                     <h1 className="text-2xl font-semibold text-gray-800">
-                        My Auction Listings
+                        Danh sách phiên đấu giá của tôi
                     </h1>
                     <button
                         onClick={openModal}
-                        className="px-5 py-2 rounded bg-gray-900 text-white hover:bg-gray-800 transition"
+                        className="px-5 py-2 rounded bg-indigo-600 text-white hover:bg-indigo-500 transition"
                     >
-                        + Create New Auction
+                        + Tạo phiên đấu giá mới
                     </button>
                 </div>
 
@@ -98,7 +96,7 @@ export default function SellerAuctionListPage() {
                     <p className="text-red-600 text-center">{error}</p>
                 ) : auctions.length === 0 ? (
                     <p className="text-gray-500 text-center py-10">
-                        No auctions found.
+                        Chưa có phiên đấu giá nào.
                     </p>
                 ) : (
                     // ✅ Danh sách đấu giá
@@ -113,9 +111,9 @@ export default function SellerAuctionListPage() {
                                     <img
                                         src={
                                             a.imageUrl ||
-                                            "https://via.placeholder.com/150x100?text=Auction"
+                                            "https://via.placeholder.com/150x100?text=Đấu+giá"
                                         }
-                                        alt={a.title || "Auction Item"}
+                                        alt={a.title || "Sản phẩm đấu giá"}
                                         className="w-full h-full object-cover"
                                     />
                                 </div>
@@ -124,27 +122,27 @@ export default function SellerAuctionListPage() {
                                 <div className="flex-1 px-6 py-4 flex flex-col justify-between">
                                     <div className="flex justify-between items-start">
                                         <h3 className="text-lg font-medium text-gray-900">
-                                            {a.title || "Unnamed Auction"}
+                                            {a.title || "Phiên đấu giá chưa đặt tên"}
                                         </h3>
                                         <span
                                             className={`text-xs px-2 py-1 rounded font-medium ${getStatusColor(
                                                 a.status
                                             )}`}
                                         >
-                                            {a.status?.toUpperCase() || "UNKNOWN"}
+                                            {a.status?.toUpperCase() || "KHÔNG XÁC ĐỊNH"}
                                         </span>
                                     </div>
 
                                     <div className="flex justify-between items-center mt-2 text-sm text-gray-600">
                                         <div>
                                             <p>
-                                                Start Price:{" "}
+                                                Giá khởi điểm:{" "}
                                                 <span className="font-medium text-gray-800">
                                                     {formatPrice(a.startingPrice)}
                                                 </span>
                                             </p>
                                             <p>
-                                                Current Bid:{" "}
+                                                Giá hiện tại:{" "}
                                                 <span className="text-gray-900 font-semibold">
                                                     {formatPrice(a.currentPrice)}
                                                 </span>
@@ -153,34 +151,34 @@ export default function SellerAuctionListPage() {
 
                                         <div className="text-right">
                                             <p>
-                                                Bids:{" "}
-                                                <span className="font-medium">
-                                                    {a.totalBids || 0}
-                                                </span>
+                                                Số lượt đặt giá:{" "}
+                                                <span className="font-medium">{a.totalBids || 0}</span>
                                             </p>
-                                            {/* ✅ Thêm phần Start & End Time */}
+
+                                            {/* ✅ Thêm thời gian bắt đầu & kết thúc */}
                                             <div className="flex flex-col text-xs text-gray-400 mt-1 space-y-1">
                                                 <p className="flex items-center justify-end gap-1">
                                                     <Clock className="w-4 h-4 text-gray-500" />
-                                                    Start: {formatTime(a.startTime)}
+                                                    Bắt đầu: {formatTime(a.startTime)}
                                                 </p>
                                                 <p className="flex items-center justify-end gap-1">
                                                     <Clock className="w-4 h-4 text-gray-500" />
-                                                    End: {formatTime(a.endTime)}
+                                                    Kết thúc: {formatTime(a.endTime)}
                                                 </p>
                                             </div>
                                         </div>
                                     </div>
 
+                                    {/* Hành động */}
                                     <div className="flex justify-end items-center gap-4 mt-3 text-sm">
-                                        <button className="flex items-center gap-1 text-gray-700 hover:text-gray-900">
-                                            <Eye className="w-4 h-4 text-gray-600" /> View
+                                        <button className="flex items-center gap-1 text-gray-700 hover:text-indigo-600">
+                                            <Eye className="w-4 h-4" /> Xem chi tiết
                                         </button>
-                                        <button className="flex items-center gap-1 text-gray-700 hover:text-gray-900">
-                                            <Edit className="w-4 h-4 text-gray-600" /> Edit
+                                        <button className="flex items-center gap-1 text-gray-700 hover:text-green-600">
+                                            <Edit className="w-4 h-4" /> Chỉnh sửa
                                         </button>
-                                        <button className="flex items-center gap-1 text-gray-700 hover:text-gray-900">
-                                            <Trash2 className="w-4 h-4 text-gray-600" /> Delete
+                                        <button className="flex items-center gap-1 text-gray-700 hover:text-red-600">
+                                            <Trash2 className="w-4 h-4" /> Xóa
                                         </button>
                                     </div>
                                 </div>
