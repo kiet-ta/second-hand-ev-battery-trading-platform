@@ -45,6 +45,7 @@ const NotificationItem = React.memo(({ notification, onClick }) => (
 
 const activityFilterCategories = [
   ["all", "Tất cả"],
+  ["unread", "Chưa đọc"], // <-- new filter
   ["tai_khoan", "Tài khoản"],
   ["giao_dich", "Giao dịch"],
   ["tin_dang", "Tin đăng"],
@@ -94,26 +95,45 @@ export default function NotificationDropdown({ userId }) {
     };
     document.addEventListener("mousedown", handleClickOutside);
 
-    if (isOpen) {
-      setActiveFilter("all");
-      setNotifications((prev) => prev.map((n) => ({ ...n, isUnread: false })));
-    }
-
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [isOpen]);
+  }, []);
 
-  // ✅ Memoize filtered list
+  // ✅ Filtered notifications
   const filteredNotifications = useMemo(() => {
     const filteredByTab = notifications.filter((n) => n.category === activeTab);
-    if (activeTab === "activities" && activeFilter !== "all") {
-      return filteredByTab.filter((n) => n.type === activeFilter);
+    let result = filteredByTab;
+
+    if (activeTab === "activities") {
+      if (activeFilter === "unread") {
+        result = filteredByTab.filter(n => n.isUnread);
+      } else if (activeFilter !== "all") {
+        result = filteredByTab.filter(n => n.type === activeFilter);
+      }
     }
-    return filteredByTab;
+
+    return result;
   }, [notifications, activeTab, activeFilter]);
 
+  // ✅ Handle individual click
   const handleItemClick = useCallback((id) => {
     console.log("Navigate to notification:", id);
   }, []);
+
+  // ✅ Mark all as read
+  const handleMarkAllAsRead = async () => {
+    try {
+      const unreadNotifications = notifications.filter(n => n.isUnread);
+      await Promise.all(
+        unreadNotifications.map(n => notificationApi.putNotificationStatusIsRead(n.id))
+      );
+      setNotifications(prev =>
+        prev.map(n => ({ ...n, isUnread: false }))
+      );
+      setActiveFilter("all");
+    } catch (error) {
+      console.error("Error marking notifications as read:", error);
+    }
+  };
 
   return (
     <>
@@ -136,7 +156,19 @@ export default function NotificationDropdown({ userId }) {
 
         {isOpen && (
           <div className="absolute right-0 mt-3 w-80 sm:w-96 bg-[#FAF8F4] border border-[#e0d8cf] rounded-xl shadow-[0_8px_24px_rgba(0,0,0,0.1)] p-4 z-50 animate-slide-down will-change-transform">
-            <h3 className="font-bold text-lg text-gray-800 mb-2">Thông Báo</h3>
+            
+            {/* Header with Mark all as read */}
+            <div className="flex justify-between items-center mb-2">
+              <h3 className="font-bold text-lg text-gray-800">Thông Báo</h3>
+              {notifications.some(n => n.isUnread) && (
+                <button
+                  onClick={handleMarkAllAsRead}
+                  className="text-xs text-blue-600 hover:text-blue-700"
+                >
+                  Đánh dấu tất cả đã đọc
+                </button>
+              )}
+            </div>
 
             {/* Tabs */}
             <div className="flex border-b border-gray-300 mb-3">

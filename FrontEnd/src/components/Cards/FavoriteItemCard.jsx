@@ -1,5 +1,5 @@
 import React, { useState, memo } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import favouriteApi from '../../api/favouriteApi';
 import { FiHeart } from 'react-icons/fi';
 import Slider from "react-slick";
@@ -37,7 +37,6 @@ function FavoriteItemCard({
   isVerified = false,
   onRemoveSuccess,
 }) {
-  const navigate = useNavigate();
   const [isRemoving, setIsRemoving] = useState(false);
   const [deleted, setDeleted] = useState(false);
 

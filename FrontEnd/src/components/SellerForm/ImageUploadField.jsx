@@ -28,7 +28,7 @@ const ImageUploadField = ({ label, imageUrl, onUpload }) => {
 
       message.success("Tải ảnh thành công!");
     } catch (err) {
-      message.error("Tải ảnh thất bại, vui lòng thử lại.");
+      message.error("Tải ảnh thất bại, vui lòng thử lại.",err);
     } finally {
       setUploading(false);
       e.target.value = null; // reset file input

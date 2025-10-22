@@ -115,7 +115,6 @@ function SearchPage() {
     const textColor = 'text-[#2C2C2C]';
     const secondaryTextColor = 'text-gray-600';
     const accentColor = 'text-[#B8860B]';
-    const accentHoverColor = 'hover:text-[#D4AF37]';
     const borderColor = 'border-[#C4B5A0]';
     const lightBorderColor = 'border-[#E8E4DC]';
     const buttonBgColor = 'bg-[#D4AF37]';

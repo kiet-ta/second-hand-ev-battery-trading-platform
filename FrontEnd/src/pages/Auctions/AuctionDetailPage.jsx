@@ -96,7 +96,7 @@ function AuctionDetailPage() {
     } finally {
       setLoading(false);
     }
-  }, [id]);
+  }, [id, fetchBidHistory]);
 
   useEffect(() => {
     fetchAuctionDetails();
@@ -283,7 +283,7 @@ function AuctionDetailPage() {
       <List
         itemLayout="horizontal"
         dataSource={bidHistory}
-        renderItem={(bid, index) => (
+        renderItem={(bid) => (
           <List.Item>
             <List.Item.Meta
               avatar={
