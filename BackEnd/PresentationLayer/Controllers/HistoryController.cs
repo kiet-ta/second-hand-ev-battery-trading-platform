@@ -40,18 +40,14 @@ namespace PresentationLayer.Controllers
         [HttpGet("{sellerId}")]
         public async Task<IActionResult> GetAllHistory(int sellerId)
         {
-            try
-            {
+           
                 var seller = await _historySoldService.GetAllSellerItemsAsync(sellerId);
                 if (seller == null || seller.Count == 0)
                     return NotFound(new { Message = "Seller không tồn tại hoặc chưa có item nào." });
 
                 return Ok(seller);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { Message = "Lỗi hệ thống: " + ex.Message });
-            }
+           
+            
         }
     }
 }
