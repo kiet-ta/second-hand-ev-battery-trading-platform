@@ -160,16 +160,27 @@ namespace Application.Services
             return result;
         }
 
-        public async Task<List<Notification>> GetNotificationByIdAsync(int id)
+        public async Task<Notification> GetNotificationByIdAsync(int id)
         {
             using var scope = _scopeFactory.CreateScope();
             var repo = scope.ServiceProvider.GetRequiredService<INotificationRepository>();
 
-            var result = await repo.GetNotificationById(id);
+            var result = await repo.GetNotificationByIdAsync(id);
             if (result == null)
                 throw new KeyNotFoundException("Notification not found.");
 
             return result;
+        }
+        public async Task<bool> AddNotificationByIdAsync(CreateNotificationDTO noti, int receiverId)
+        {
+            using var scope = _scopeFactory.CreateScope();
+            var repo = scope.ServiceProvider.GetRequiredService<INotificationRepository>();
+
+            if (noti == null)
+                throw new ArgumentNullException(nameof(noti));
+
+            await repo.AddNotificationById(noti, receiverId);
+            return true;
         }
 
         public async Task<List<Notification>> GetAllNotificationsAsync()
@@ -183,5 +194,33 @@ namespace Application.Services
 
             return result;
         }
+        public async Task<bool> MarkNotificationAsReadAsync(int id)
+        {
+            using var scope = _scopeFactory.CreateScope();
+            var repo = scope.ServiceProvider.GetRequiredService<INotificationRepository>();
+
+            var notification = await repo.GetNotificationByIdAsync(id);
+            if (notification == null)
+                throw new Exception($"Notification with ID {id} not found.");
+
+            var result = await repo.MarkNotificationAsReadAsync(id);
+            if (!result)
+                throw new Exception("Failed to update notification status.");
+
+            return true;
+        }
+
+        public async Task<List<Notification>> GetNotificationsByReadStatusAsync(bool isRead)
+        {
+            using var scope = _scopeFactory.CreateScope();
+            var repo = scope.ServiceProvider.GetRequiredService<INotificationRepository>();
+            var notifications = await repo.GetNotificationsByReadStatusAsync(isRead);
+
+            if (notifications == null || notifications.Count == 0)
+                throw new Exception($"No {(isRead ? "read" : "unread")} notifications found.");
+
+            return notifications;
+        }
+
     }
 }
