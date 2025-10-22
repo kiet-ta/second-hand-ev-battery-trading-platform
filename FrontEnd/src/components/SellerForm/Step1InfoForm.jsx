@@ -1,48 +1,103 @@
-// Step1_PersonalInfo.js
-import React from 'react';
+import React, { useEffect, useState } from "react";
+import { Input, Button, Switch, message } from "antd";
+import userApi from "../../api/userApi"; // adjust your import
 
-const Step1_PersonalInfo = ({ formData, setFormData, nextStep }) => (
-  <div>
-    <h2 className="text-xl font-semibold text-gray-800 mb-4">Bước 1: Thông tin cá nhân</h2>
-    <div className="space-y-4">
-      <div>
-        <label htmlFor="fullName" className="block text-sm font-medium text-gray-700">Họ và Tên</label>
-        <input 
-          type="text" 
-          id="fullName" 
-          value={formData.fullName} 
-          onChange={e => setFormData({...formData, fullName: e.target.value})} 
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500" 
-          placeholder="Nguyễn Văn A" 
-        />
+const Step1InfoForm = ({ nextStep, prevStep }) => {
+  const [user, setUser] = useState(null); // full user object from API
+  const [formData, setFormData] = useState({ fullName: "", email: "", phone: "" });
+  const [editMode, setEditMode] = useState(false);
+  const userID = localStorage.getItem("userId"); // get userID from local storage
+
+  // Fetch user data on mount
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const res = await userApi.getUserByID(userID);
+        setUser(res);
+        setFormData({
+          fullName: res.fullName || "",
+          email: res.email || "",
+          phone: res.phone || "",
+        });
+      } catch (error) {
+        console.error("Error fetching user:", error);
+        message.error("Không thể tải thông tin người dùng.");
+      }
+    };
+    fetchUser();
+  }, [userID]);
+
+  // Handle saving updated info
+  const handleSave = async () => {
+    if (!editMode) {
+      nextStep(); // if not editing, just continue
+      return;
+    }
+
+    try {
+      const updatedUser = {
+        ...user,
+        fullName: formData.fullName,
+        email: formData.email,
+        phone: formData.phone,
+      };
+      await userApi.putUser(updatedUser);
+      message.success("Cập nhật thông tin thành công!");
+      setUser(updatedUser);
+      setEditMode(false);
+      nextStep();
+    } catch (error) {
+      console.error("Update failed:", error);
+      message.error("Cập nhật thông tin thất bại.");
+    }
+  };
+
+  if (!user) return <p>Đang tải thông tin...</p>;
+
+  return (
+    <div className="space-y-6 p-6 bg-white rounded-lg shadow-md max-w-md mx-auto">
+      <h2 className="text-xl font-bold mb-4">Thông tin cá nhân</h2>
+
+      <div className="flex items-center justify-between">
+        <span>Có muốn thay đổi thông tin?</span>
+        <Switch checked={editMode} onChange={setEditMode} />
       </div>
-      <div>
-        <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email</label>
-        <input 
-          type="email" 
-          id="email" 
-          value={formData.email} 
-          onChange={e => setFormData({...formData, email: e.target.value})} 
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500" 
-          placeholder="email@example.com" 
-        />
+      <div className="gap-4 flex flex-col">
+      <Input
+        placeholder="Họ và tên"
+        value={formData.fullName}
+        disabled={!editMode}
+        onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+        size="large"
+      />
+
+      <Input
+        placeholder="Email"
+        value={formData.email}
+        disabled={!editMode}
+        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+        size="large"
+      />
+
+      <Input
+        placeholder="Số điện thoại"
+        value={formData.phone}
+        disabled={!editMode}
+        onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+        size="large"
+      />
+
+        
       </div>
-      <div>
-        <label htmlFor="phone" className="block text-sm font-medium text-gray-700">Số điện thoại</label>
-        <input 
-          type="tel" 
-          id="phone" 
-          value={formData.phone} 
-          onChange={e => setFormData({...formData, phone: e.target.value})} 
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500" 
-          placeholder="09xxxxxxxx" 
-        />
+      
+      <div className="flex justify-between mt-6">
+        <Button onClick={prevStep}>Quay lại</Button>
+        <Button type="primary" onClick={handleSave}>
+          {editMode ? "Lưu & Tiếp tục" : "Tiếp tục"}
+        </Button>
       </div>
     </div>
-    <div className="mt-8 flex justify-end">
-      <button onClick={nextStep} className="bg-green-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-green-700 transition-colors">Tiếp theo</button>
-    </div>
-  </div>
-);
+  );
+};
 
-export default Step1_PersonalInfo;
+export default Step1InfoForm;

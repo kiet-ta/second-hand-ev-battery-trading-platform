@@ -1,122 +1,142 @@
-import { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { jwtDecode } from 'jwt-decode';
+import Logo from './Logo';
+import walletApi from '../api/walletApi';
+import NotificationDropdown from './NotificationDropdown';
+import ProfileDropDown from './ProfileDropDown';
 import { IoMdHome } from "react-icons/io";
 import { RiAuctionFill } from "react-icons/ri";
-import Logo from '../components/Logo';
-import ProfileDropDown from './ProfileDropDown';
-import { FaShoppingCart } from "react-icons/fa";
-import { FaSuitcase } from "react-icons/fa6";
-import { LuShoppingBag } from "react-icons/lu";
-import { jwtDecode } from 'jwt-decode';
-import walletApi from '../api/walletApi';
-import NotificationDropDown from './NotificationDropdown'
+import { FaShoppingCart, FaSuitcase } from "react-icons/fa";
+import { FiHeart } from "react-icons/fi";
 
-function Navbar(data) {
-  const navigate = useNavigate()
-  const [walletBalance,setWalletBalance] = useState(null)
-  useEffect(() => {
-    const fetchData = async () => {
-        const walletBalance = await walletApi.getWalletByUser(localStorage.getItem("userId"))
-  setWalletBalance(walletBalance.balance)
-    }
-    fetchData()
-  },[])
-  const handleSellerClick = (e) =>{
-    e.preventDefault();
-    e.stopPropagation();
-    const jwt = localStorage.getItem("token")
-    const decodeJWT = jwtDecode(jwt)
-    if(decodeJWT.role == "buyer") {
-      navigate('/seller-registration')
-    }
-    else {
-      navigate('/seller')
-    }
-  }
-  const leftmenu = [
-    { name: 'Home', link: '/', icon: <IoMdHome /> },
-    { name: 'Auction', link: '/auctions', icon: <RiAuctionFill /> }
-  ]
-  return (
+function Navbar({ data }) {
+    const navigate = useNavigate();
+    const [walletBalance, setWalletBalance] = useState(null);
 
-    <div>
-      <div className="w-full flex flex-col items-center justify-between p-4 bg-maincolor text-white left-0">
-        <div className="flex items-center w-full justify-around h-5">
-          <div className="left-header flex w-full" >
-            {leftmenu.map((item, index) => (
-              <Link to={item.link} key={index} className="mx-4 hover:text-green-300 flex items-center">
-                {item.icon}
-                <span className="ml-2">{item.name}</span>
-              </Link>
-            ))}
-            {data.data && data.data.role == "Manager" ? (
-              <Link to="/manage" className="mx-4 hover:text-green-300 flex items-center">
-                <FaSuitcase />
-                <span className="ml-2">Manager</span>
-              </Link>
-            ) : (
-              <Link onClick={handleSellerClick} className="mx-4 hover:text-green-300 flex items-center">
-                <FaSuitcase />
-                <span className="ml-2">Seller</span>
-              </Link>
-            )
+    useEffect(() => {
+        const fetchData = async () => {
+            const userId = localStorage.getItem("userId");
+            if (userId && data) { // Only fetch if user is logged in
+                try {
+                    const walletData = await walletApi.getWalletByUser(userId);
+                    setWalletBalance(walletData.balance);
+                } catch (error) {
+                    console.error("Lỗi khi tải số dư ví:", error);
+                }
+            } else {
+                setWalletBalance(null); // Clear balance if user logs out
             }
+        };
+        fetchData();
+    }, [data]); // Refetch when user data (login state) changes
 
-          </div>
-          <div className="right-header flex w-full justify-end h-5" >
-            {data.data ? (
-              <div className="flex justify-center">
-              <div className="ml-5">
-                <NotificationDropDown userId={localStorage.getItem("userId")} />
-              </div>
-              <div className="ml-5">
-                <ProfileDropDown users={data.data} walletBalance={walletBalance} />
-              </div>
+    const handleSellerClick = (e) => {
+        e.preventDefault();
+        const jwt = localStorage.getItem("token");
+        if (!jwt) {
+            navigate('/login');
+            return;
+        }
+        try {
+            const decodeJWT = jwtDecode(jwt);
+            if (decodeJWT.role === "buyer") {
+                navigate('/seller-registration');
+            } else {
+                // Navigate to manager page if role is Manager
+                if (decodeJWT.role === "Manager") {
+                    navigate('/manage');
+                } else {
+                    navigate('/seller');
+                }
+            }
+        } catch (error) {
+            console.error("Invalid token:", error);
+            // Clear potentially invalid token/userId and redirect
+            localStorage.removeItem('token');
+            localStorage.removeItem('userId');
+            navigate('/login');
+        }
+    };
 
-              </div>
-            )
-              : (
-                <div className="flex">
-                  <Link to="/login" className="mx-4 hover:text-green-300 flex items-center">
-                    Login
-                  </Link>
-                  <Link to="/register" className="mx-4 hover:text-green-300 flex items-center">
-                    Register
-                  </Link>
+    const leftmenu = [
+        { name: 'Trang Chủ', link: '/', icon: <IoMdHome /> },
+        { name: 'Đấu Giá', link: '/auctions', icon: <RiAuctionFill /> }
+    ];
+
+    const navBg = 'bg-[#FAF8F3]';
+    const textPrimary = 'text-[#2C2C2C]';
+    const textHover = 'hover:text-[#B8860B]';
+    const borderColor = 'border-[#C4B5A0]';
+
+    return (
+        <header className={`${navBg} ${textPrimary} w-full shadow-sm border-b-2 ${borderColor}`}>
+            <div className="max-w-7xl mx-auto px-4 flex flex-col"> {/* Use px-4 consistent with footer/homepage */}
+                <div className="flex items-center justify-between w-full h-10 py-2"> {/* Adjusted height and padding */}
+                    <div className="flex items-center">
+                        {leftmenu.map((item) => (
+                            <Link key={item.name} to={item.link} className={`mr-6 ${textHover} flex items-center font-medium transition-colors text-sm`}> {/* Adjusted font size/spacing */}
+                                {item.icon}
+                                <span className="ml-1.5">{item.name}</span> {/* Adjusted margin */}
+                            </Link>
+                        ))}
+                         <a href="#" onClick={handleSellerClick} className={`ml-4 ${textHover} flex items-center font-medium transition-colors text-sm`}> {/* Adjusted spacing/size */}
+                            <FaSuitcase />
+                            <span className="ml-1.5">{data?.role === "Manager" ? "Quản Lý" : "Kênh Người Bán"}</span>
+                        </a>
+                    </div>
+                    <div className="flex items-center mt-5">
+                        {data ? (
+                            <>
+                                <NotificationDropdown userId={data.userId} />
+                                <div className="ml-5">
+                                    <ProfileDropDown users={data} walletBalance={walletBalance} />
+                                </div>
+                            </>
+                        ) : (
+                            <>
+                                <Link to="/login" className={`mx-3 ${textHover} font-medium transition-colors text-sm`}> {/* Adjusted spacing/size */}
+                                    Đăng Nhập
+                                </Link>
+                                <Link to="/register" className={`mx-3 ${textHover} font-medium transition-colors text-sm`}> {/* Adjusted spacing/size */}
+                                    Đăng Ký
+                                </Link>
+                            </>
+                        )}
+                    </div>
                 </div>
-              )
-            }
-          </div>
-        </div>
-        <div className="w-full flex h-20 items-center align-middle content-center">
-          <div className="w-1/4 h-full flex justify-start"><Logo></Logo></div>
-          <div className="content-center align-middle w-2/4">
-            <form action='/search' method='GET' className="w-full rounded-lg text-black bg-white relative">
-                <input type="text" name="query" placeholder="Search..." className="w-5/6 text-2xl"/>
-                <select className="bg-maincolor-darker w-1/6 absolute right-0 top-0 h-full align-middle text-center font-bold border-1" name="itemType">
-                <option value="All">All</option>
-                <option value="EV">Vehicle</option>
-                <option value="Battery">Battery</option>
-                </select>
-              <button type="submit" className="hidden">Search</button>
-            </form>
-          </div>
-          <div className="w-1/4 flex justify-end">
-            <Link to={'/cart'} className="mx-4 hover:text-green-300 flex items-center">
-              {<FaShoppingCart />}
-              <span className="ml-2">Cart</span>
-            </Link>
-            <Link to={'/favourite'} className="mx-4 hover:text-green-300 flex items-center">
-              {<LuShoppingBag />}
-              <span className="ml-2">Favourite</span>
-            </Link>
-          </div>
-        </div>
-      </div>
 
-
-    </div>
-  )
+                <div className="w-full flex h-20 items-center">
+                    <div className="w-1/4">
+                        <Logo />
+                    </div>
+                    <div className="w-2/4 px-4">
+                        <form action='/search' method='GET' className="w-full rounded-lg bg-white relative shadow-md border border-[#E8E4DC]">
+                            <input type="text" name="query" placeholder="Tìm kiếm xe điện & pin cao cấp..." className="w-full text-lg p-3 rounded-lg border-none focus:ring-2 focus:ring-[#D4AF37] text-[#2C2C2C] pr-[100px]" /> {/* Adjusted padding */}
+                            <div className="absolute right-0 top-0 h-full flex items-center"> {/* Use flex for vertical centering */}
+                                <select name="itemType" className="h-full bg-[#D4AF37] text-[#2C2C2C] text-center font-bold border-none rounded-r-lg hover:bg-[#B8860B] transition-colors cursor-pointer px-4 appearance-none"> {/* Added appearance-none */}
+                                    <option value="All">Tất cả</option>
+                                    <option value="EV">Xe</option>
+                                    <option value="Battery">Pin</option>
+                                </select>
+                            </div>
+                            <button type="submit" className="hidden">Tìm</button>
+                        </form>
+                    </div>
+                    <div className="w-1/4 flex justify-end items-center">
+                        <Link to={'/cart'} className={`mx-4 ${textHover} flex items-center font-medium transition-colors`}>
+                            <FaShoppingCart className="text-xl" />
+                            <span className="ml-2 text-lg">Giỏ Hàng</span>
+                        </Link>
+                        <Link to={'/favourite'} className={`mx-4 ${textHover} flex items-center font-medium transition-colors`}>
+                            <FiHeart className="text-xl" />
+                            <span className="ml-2 text-lg">Yêu Thích</span>
+                        </Link>
+                    </div>
+                </div>
+            </div>
+        </header>
+    );
 }
 
-export default Navbar
+export default Navbar;

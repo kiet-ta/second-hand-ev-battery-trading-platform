@@ -1,22 +1,21 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
-import { Spin, Alert, message, Card } from 'antd'; // Using Ant Design for feedback
-import { FiMessageSquare, FiPhone, FiMapPin, FiCalendar, FiTrendingUp } from 'react-icons/fi';
+import { useLocation, useNavigate, Link } from 'react-router-dom';
+import { Spin, Card } from 'antd';
+import {
+  FiMessageSquare,
+  FiPhone,
+  FiMapPin,
+  FiCalendar,
+  FiTrendingUp
+} from 'react-icons/fi';
 import { FaStar, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import { GiGemChain } from "react-icons/gi";
-
-// API Hooks (Adjust paths as necessary for your project structure)
 import itemApi from '../api/itemApi';
 import userApi from '../api/userApi';
 import chatApi from '../api/chatApi';
 import reviewApi from '../api/reviewApi';
-import { Link } from "react-router-dom";
 
-// ====================================================================
-// 1. Reusable Components
-// ====================================================================
-
-// Star Rating Component
+// ⭐ Star Rating Component
 const StarRating = ({ rating }) => (
   <div className="flex items-center">
     {Array.from({ length: 5 }).map((_, i) => (
@@ -25,54 +24,49 @@ const StarRating = ({ rating }) => (
   </div>
 );
 
-// Verified Check Component
-const VerifiedCheck = ({ className = "" }) => (
-  <div className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 ${className}`}>
-    <svg className="-ml-0.5 mr-1.5 h-3 w-3 text-green-500 fill-current" viewBox="0 0 20 20">
-      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+// ✅ Verified Check
+const VerifiedCheck = () => (
+  <div className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800">
+    <svg className="w-3 h-3 mr-1 text-green-500" viewBox="0 0 20 20" fill="currentColor">
+      <path fillRule="evenodd"
+        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+        clipRule="evenodd" />
     </svg>
-    Đã Duyệt
+    Đã duyệt
   </div>
 );
 
-
-// ====================================================================
-// 2. Main EVDetails Component
-// ====================================================================
-
 function EVDetails() {
   const location = useLocation();
-  // Retrieve itemId from location.state
-  const itemId = location.state;
   const navigate = useNavigate();
+  const itemId = location.state;
 
-  // --- State Management ---
   const [item, setItem] = useState(null);
   const [sellerProfile, setSellerProfile] = useState(null);
-  const [reviews, setReviews] = useState([]); // Dynamic reviews
+  const [reviews, setReviews] = useState([]);
   const [isPhoneVisible, setIsPhoneVisible] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [feedback, setFeedback] = useState(null);
   const [isVerified, setIsVerified] = useState(false);
-  const [selectedImage, setSelectedImage] = useState(0); // Carousel state
+  const [selectedImage, setSelectedImage] = useState(0);
 
-  // --- Carousel Handlers ---
+  // Carousel controls
   const handlePrev = useCallback(() => {
-    if (!item || !item.itemImage) return;
+    if (!item?.itemImage) return;
     const count = item.itemImage.length;
     setSelectedImage(prev => (prev - 1 + count) % count);
   }, [item]);
 
   const handleNext = useCallback(() => {
-    if (!item || !item.itemImage) return;
+    if (!item?.itemImage) return;
     const count = item.itemImage.length;
     setSelectedImage(prev => (prev + 1) % count);
   }, [item]);
 
-  // --- Data Fetching Effect ---
+  // Fetch data
   useEffect(() => {
     if (!itemId) {
-      setError("No item ID provided. Please navigate from a product card.");
+      setFeedback({ type: "error", msg: "Không tìm thấy sản phẩm." });
       setLoading(false);
       return;
     }
@@ -80,42 +74,33 @@ function EVDetails() {
     const fetchItemData = async () => {
       try {
         setLoading(true);
-
-        // 1. Fetch Item Data & Check Verification
         const itemData = await itemApi.getItemDetailByID(itemId);
         setItem(itemData);
         setIsVerified(itemData.moderation === 'approved_tag');
 
-        // 2. Fetch Seller Profile
-        const sellerId = itemData.updatedBy;
-        if (sellerId) {
-          const userData = await userApi.getUserByID(sellerId);
-          setSellerProfile(userData);
-        }
+        const seller = await userApi.getUserByID(itemData.updatedBy);
+        setSellerProfile(seller);
 
-        // 3. Fetch and Enrich Reviews
-        try {
-          const reviewResponse = await reviewApi.getReviewByItemID(itemId);
-          const rawReviews = reviewResponse.exists || [];
+        const reviewRes = await reviewApi.getReviewByItemID(itemId);
+        const rawReviews = reviewRes.exists || [];
 
-          const enrichedReviews = await Promise.all(
-            rawReviews.map(async (review) => {
-              const reviewerData = await userApi.getUserByID(review.reviewerId);
-              return {
-                ...review,
-                name: reviewerData.fullName,
-                picture: reviewerData.avatarProfile || 'https://via.placeholder.com/48',
-              };
-            })
-          );
-          setReviews(enrichedReviews);
-        } catch (e) {
-          setReviews([]);
-        }
+        const enriched = await Promise.all(rawReviews.map(async r => {
+          try {
+            const user = await userApi.getUserByID(r.reviewerId);
+            return {
+              ...r,
+              name: user.fullName,
+              picture: user.avatarProfile || 'https://via.placeholder.com/48'
+            };
+          } catch {
+            return { ...r, name: 'Người dùng ẩn danh', picture: 'https://via.placeholder.com/48' };
+          }
+        }));
 
+        setReviews(enriched);
       } catch (err) {
-        console.error("Error fetching EV details:", err);
-        setError("Failed to load vehicle details. Please check your API.");
+        console.error(err);
+        setFeedback({ type: "error", msg: "Không thể tải chi tiết sản phẩm." });
       } finally {
         setLoading(false);
       }
@@ -124,240 +109,233 @@ function EVDetails() {
     fetchItemData();
   }, [itemId]);
 
-  // --- Action Handlers ---
-  const checkLoginAndExecute = (callback) => {
+  const checkLogin = (action) => {
     const userId = parseInt(localStorage.getItem("userId"), 10);
     if (isNaN(userId)) {
-      message.error("Please log in to perform this action.");
-      navigate('/login');
-      return false;
+      setFeedback({ type: "error", msg: "Vui lòng đăng nhập để tiếp tục." });
+      navigate("/login");
+      return;
     }
-    callback(userId);
-    return true;
-  }
+    action(userId);
+  };
 
   const handleChatWithSeller = async () => {
-    checkLoginAndExecute(async (buyerId) => {
+    checkLogin(async (buyerId) => {
       const sellerId = item?.updatedBy;
-
       if (!sellerId || buyerId === sellerId) {
-        message.error("Cannot chat with self.");
+        setFeedback({ type: "error", msg: "Không thể nhắn tin cho chính mình." });
         return;
       }
 
       try {
-        message.loading('Starting chat...', 0);
+        setFeedback({ type: "loading", msg: "Đang tạo cuộc trò chuyện..." });
         const room = await chatApi.createChatRoom(buyerId, sellerId);
-        message.destroy();
-        message.success(`Chat room ${room.cid} is ready!`);
-        navigate('/profile', { state: { activeSection: 'chat', chatRoomId: room.cid, receiverId: sellerId } });
-      } catch (error) {
-        message.destroy();
-        message.error("Failed to start chat. Check network.");
+        setFeedback({ type: "success", msg: "Đã mở cuộc trò chuyện với người bán!" });
+        setTimeout(() => {
+          navigate('/profile/chats', {
+            state: {
+              activeSection: 'chat',
+              chatRoomId: room.cid,
+              receiverId: sellerId
+            }
+          });
+        }, 1200);
+      } catch {
+        setFeedback({ type: "error", msg: "Không thể bắt đầu trò chuyện. Kiểm tra kết nối mạng." });
       }
     });
   };
 
-  // ********************************************************************
-  // MODIFICATION 2: Add handleShowPhone for the phone button
-  // ********************************************************************
-  const handleShowPhone = () => {
-    checkLoginAndExecute(() => {
-      // If logged in, toggle phone visibility
-      setIsPhoneVisible(prev => !prev);
-    });
-  };
-  // --- Conditional Renders (Loading/Error) ---
+  const handleShowPhone = () => checkLogin(() => setIsPhoneVisible(prev => !prev));
+
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-screen bg-gray-50">
+      <div className="flex justify-center items-center h-screen bg-[#FAF8F3]">
         <Spin size="large" />
       </div>
     );
   }
 
-  if (error) {
+  if (!item) {
     return (
-      <div className="p-8">
-        <Alert message="Error" description={error} type="error" showIcon />
+      <div className="text-center text-gray-700 py-10">
+        Không tìm thấy thông tin sản phẩm.
       </div>
     );
   }
 
-  if (!item) {
-    return null;
-  }
-
   const { evDetail } = item;
+  const imageUrls = item.itemImage?.map(i => i.imageUrl) || [];
+  const displayImage = imageUrls[selectedImage] || 'https://placehold.co/1200x800/eee/999?text=EV+Image';
+  const price = item.price?.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' }) || "N/A";
 
-  // --- Render Variables ---
-  const itemImages = item.itemImage || [];
-  const imageUrls = itemImages.map(img => img.imageUrl);
-  const placeholderImage = 'https://placehold.co/1200x800/374151/d1d5db?text=EV+Image';
-  const displayImage = imageUrls[selectedImage] || placeholderImage;
-  const formattedPrice = item.price ? item.price.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' }) : 'N/A';
-
-
-  // Key Specifications for easy mapping
   const keySpecs = [
-    { label: 'Brand', value: evDetail?.brand },
-    { label: 'Model', value: evDetail?.model },
-    { label: 'Body Style', value: evDetail?.bodyStyle },
-    { label: 'Color', value: evDetail?.color },
-    { label: 'License Plate', value: evDetail?.licensePlate }
+    { label: 'Thương hiệu', value: evDetail?.brand },
+    { label: 'Mẫu xe', value: evDetail?.model },
+    { label: 'Kiểu dáng', value: evDetail?.bodyStyle },
+    { label: 'Màu sắc', value: evDetail?.color },
+    { label: 'Biển số', value: evDetail?.licensePlate },
   ];
 
   return (
-    <div className="bg-gray-50 min-h-screen p-4 sm:p-6 lg:p-8">
+    <div className="bg-[#FAF8F3] min-h-screen p-6 lg:p-12">
       <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-5 gap-8">
 
-        {/* Left Column: Image, Specs, Description */}
+        {/* LEFT: Image + Specs + Description */}
         <div className="lg:col-span-3 flex flex-col gap-8">
-          <Card className="shadow-lg p-0">
 
+          <Card className="p-0 rounded-2xl overflow-hidden shadow-md border border-[#EAE6DA]">
             <div className="relative">
               <img
                 src={displayImage}
-                alt={`${item.title} image`}
-                onError={(e) => { e.currentTarget.src = placeholderImage; }}
-                className="w-full object-cover rounded-t-lg aspect-[3/2]"
+                alt={item.title}
+                className="w-full object-cover aspect-[3/2]"
               />
-
-              {/* Carousel Navigation */}
               {imageUrls.length > 1 && (
                 <>
-                  <button onClick={handlePrev} className="absolute top-1/2 left-4 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 p-3 rounded-full text-white transition-all z-10" aria-label="Previous image"><FaChevronLeft /></button>
-                  <button onClick={handleNext} className="absolute top-1/2 right-4 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 p-3 rounded-full text-white transition-all z-10" aria-label="Next image"><FaChevronRight /></button>
+                  <button
+                    onClick={handlePrev}
+                    className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-[#FFF7E5]/70 p-3 rounded-full hover:bg-[#FBE6A2]/90 transition-all">
+                    <FaChevronLeft className="text-[#B8860B]" />
+                  </button>
+                  <button
+                    onClick={handleNext}
+                    className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-[#FFF7E5]/70 p-3 rounded-full hover:bg-[#FBE6A2]/90 transition-all">
+                    <FaChevronRight className="text-[#B8860B]" />
+                  </button>
                 </>
               )}
             </div>
-
-            {/* Thumbnails */}
-            <div className="flex gap-3 p-4 overflow-x-auto justify-start bg-gray-50 rounded-b-lg border-t">
-              {imageUrls.map((url, index) => (
+            <div className="flex gap-3 p-4 bg-[#FFFDF9] border-t">
+              {imageUrls.map((url, i) => (
                 <img
-                  key={index}
+                  key={i}
                   src={url}
-                  alt={`Thumbnail ${index + 1}`}
-                  onClick={() => setSelectedImage(index)}
-                  className={`w-20 h-20 object-cover rounded-md cursor-pointer transition-shadow duration-200 ${selectedImage === index ? 'ring-4 ring-indigo-500 shadow-lg' : 'ring-2 ring-gray-200'}`}
+                  onClick={() => setSelectedImage(i)}
+                  className={`w-20 h-20 rounded-lg object-cover cursor-pointer border-2 ${selectedImage === i
+                    ? "border-[#B8860B]"
+                    : "border-[#EAE6DA]"}`}
                 />
               ))}
             </div>
           </Card>
 
-
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <h2 className="text-2xl font-bold border-b pb-4 mb-4">Key Specifications</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
-              {keySpecs.map(spec => (
-                spec.value && <div key={spec.label}>
-                  <p className="text-sm text-gray-500">{spec.label}</p>
-                  <p className="font-semibold">{spec.value}</p>
+          <Card className="p-6 shadow-md border border-[#EAE6DA] rounded-2xl bg-white/90">
+            <h2 className="text-2xl font-bold text-[#B8860B] mb-4 border-b border-[#EAE6DA] pb-2">
+              Thông số kỹ thuật
+            </h2>
+            <div className="grid sm:grid-cols-2 gap-4">
+              {keySpecs.map((s) => s.value && (
+                <div key={s.label}>
+                  <p className="text-sm text-gray-500">{s.label}</p>
+                  <p className="font-semibold text-gray-800">{s.value}</p>
                 </div>
               ))}
             </div>
-          </div>
+          </Card>
 
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <h2 className="text-2xl font-bold border-b pb-4 mb-4">Description</h2>
+          <Card className="p-6 shadow-md border border-[#EAE6DA] rounded-2xl bg-white/90">
+            <h2 className="text-2xl font-bold text-[#B8860B] mb-4 border-b border-[#EAE6DA] pb-2">
+              Mô tả xe
+            </h2>
             <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
               {item.description}
             </p>
-          </div>
+          </Card>
         </div>
 
-        {/* Right Column: Main Info, Seller, Reviews */}
+        {/* RIGHT: Info + Seller + Reviews */}
         <div className="lg:col-span-2 flex flex-col gap-8">
-          <div className="bg-white rounded-lg shadow-md p-6 flex flex-col gap-4">
-            {/* TITLE and VERIFIED CHECK */}
+
+          <Card className="p-6 rounded-2xl shadow-md border border-[#EAE6DA] bg-white/90">
             <div className="flex items-center gap-3">
-              <h1 className="text-3xl font-bold text-gray-900 leading-tight">
-                {item.title}
-              </h1>
+              <h1 className="text-3xl font-bold text-[#3A3A3A]">{item.title}</h1>
               {isVerified && <VerifiedCheck />}
             </div>
 
-
             {evDetail && (
-              <div className="flex flex-wrap gap-x-4 gap-y-2 text-gray-600 items-center">
-                <div className="flex items-center gap-2"><FiCalendar /><span>{evDetail.year}</span></div>
-                <div className="flex items-center gap-2"><FiTrendingUp /><span>{evDetail.mileage} km</span></div>
-                <div className="flex items-center gap-2"><FiMapPin /><span>{evDetail.location || 'N/A'}</span></div>
-              </div>
-            )}
-            {evDetail?.hasAccessories && (
-              <div className="bg-teal-100 text-teal-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded-full inline-flex items-center gap-1 self-start">
-                <GiGemChain /> Includes Accessories
+              <div className="flex flex-wrap gap-x-4 gap-y-2 text-gray-600 mt-2">
+                <div className="flex items-center gap-2"><FiCalendar />{evDetail.year}</div>
+                <div className="flex items-center gap-2"><FiTrendingUp />{evDetail.mileage} km</div>
+                <div className="flex items-center gap-2"><FiMapPin />{evDetail.location || 'N/A'}</div>
               </div>
             )}
 
-            <div className="bg-gray-100 p-4 rounded-lg my-2">
-              <span className="text-4xl font-extrabold text-indigo-600">{formattedPrice}</span>
+            {evDetail?.hasAccessories && (
+              <div className="bg-emerald-100 text-emerald-800 px-3 py-1 mt-3 inline-flex items-center gap-2 rounded-full text-sm font-medium">
+                <GiGemChain /> Bao gồm phụ kiện
+              </div>
+            )}
+
+            <div className="bg-[#FFF7E5] p-4 mt-4 rounded-lg text-center shadow-inner">
+              <span className="text-4xl font-bold text-[#B8860B]">{price}</span>
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-3 mt-2">
+            {feedback && (
+              <div
+                className={`mt-4 px-4 py-3 rounded-lg text-sm font-semibold ${
+                  feedback.type === "success"
+                    ? "bg-green-100 text-green-800"
+                    : feedback.type === "loading"
+                    ? "bg-yellow-100 text-yellow-800"
+                    : "bg-red-100 text-red-700"
+                }`}
+              >
+                {feedback.msg}
+              </div>
+            )}
+
+            <div className="flex flex-col sm:flex-row gap-3 mt-6">
               <button
                 onClick={handleChatWithSeller}
-                className="flex-1 bg-blue-500 text-white font-bold py-3 px-6 rounded-lg flex items-center justify-center gap-2 hover:bg-blue-600 transition-colors">
-                <FiMessageSquare /> Chat with Seller
-              </button>       <button
+                className="flex-1 bg-[#B8860B] text-white font-bold py-3 px-6 rounded-lg hover:bg-[#A47500] transition">
+                <FiMessageSquare className="inline mr-2" />
+               Liên hệ người bán
+              </button>
+              <button
                 onClick={handleShowPhone}
-                className="flex-1 bg-green-500 text-white font-bold py-3 px-6 rounded-lg flex items-center justify-center gap-2 hover:bg-green-600 transition-colors"
-              >
-                <FiPhone />
-                {isPhoneVisible && (sellerProfile?.phone || 'Show Phone')}
+                className="flex-1 bg-green-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-green-700 transition">
+                <FiPhone className="inline mr-2" />
+                {isPhoneVisible ? sellerProfile?.phone || 'Không có số' : 'Hiện số điện thoại'}
               </button>
             </div>
-          </div>
+          </Card>
 
           {sellerProfile && (
-            <div className="bg-white rounded-lg shadow-md p-6 flex items-center gap-4">
+            <Card className="p-6 rounded-2xl shadow-md border border-[#EAE6DA] bg-white/90 flex items-center gap-4">
               <img
-                className="w-16 h-16 rounded-full object-cover"
-                src={sellerProfile.avatarProfile || 'https://via.placeholder.com/64'}
+                src={sellerProfile.avatarProfile || "https://upload.wikimedia.org/wikipedia/commons/8/89/Portrait_Placeholder.png"}
                 alt={sellerProfile.fullName}
+                className="w-16 h-16 rounded-full object-cover"
               />
-              <div className="flex-1">
+              <div className="flex-1 mb-5">
                 <p className="font-bold text-lg">{sellerProfile.fullName}</p>
-                <p className="text-sm text-gray-500">Active recently</p>
+                <p className="text-sm text-green-600">Đang hoạt động</p>
               </div>
               <Link
-                to={`/seller/${item?.updatedBy}`}
-                className="border border-indigo-600 !text-[#4F39F6] font-semibold py-2 px-4 rounded-lg hover:bg-indigo-50 transition-colors"
-              >
-                View Profile
+                to={`/seller/${item.updatedBy}`}
+                className="border border-[#B8860B] text-[#B8860B] font-semibold py-2 px-4 rounded-lg hover:bg-[#FFF7E5] transition">
+                Xem hồ sơ
               </Link>
-
-            </div>
+            </Card>
           )}
 
-          {/* Reviews Section (Dynamic data source) */}
-          <Card className="bg-white rounded-lg shadow-md p-6">
-            <h2 className="text-2xl font-bold border-b pb-4 mb-4">Reviews ({reviews.length})</h2>
-            <div className="flex flex-col gap-6 max-h-96 overflow-y-auto pr-2">
+          <Card className="p-6 rounded-2xl shadow-md border border-[#EAE6DA] bg-white/90">
+            <h2 className="text-2xl font-bold text-[#B8860B] mb-4">Đánh giá ({reviews.length})</h2>
+            <div className="flex flex-col gap-6 max-h-96 overflow-y-auto">
               {reviews.length > 0 ? (
-                reviews.map((review, index) => (
-                  <div key={review.reviewId || index} className="flex gap-4 border-b border-gray-100 pb-4 last:border-b-0">
-                    <img
-                      src={review.picture}
-                      alt={review.name}
-                      className="w-12 h-12 rounded-full object-cover flex-shrink-0"
-                    />
-                    <div className="flex-1">
-                      <div className="flex justify-between items-center">
-                        <p className="font-bold">{review.name}</p>
-                        <p className="text-xs text-gray-500">{new Date(review.createdAt).toLocaleDateString()}</p>
-                      </div>
-                      <div className="my-1">
-                        <StarRating rating={review.rating} />
-                      </div>
-                      <p className="text-gray-800">{review.comment}</p>
+                reviews.map((r, i) => (
+                  <div key={r.reviewId || i} className="flex gap-4 border-b pb-4">
+                    <img src={r.picture} alt={r.name} className="w-12 h-12 rounded-full object-cover" />
+                    <div>
+                      <p className="font-bold">{r.name}</p>
+                      <StarRating rating={r.rating} />
+                      <p className="text-gray-700 mt-1">{r.comment}</p>
                     </div>
                   </div>
                 ))
               ) : (
-                <p className="text-gray-500 text-center py-4">No reviews for this product yet.</p>
+                <p className="text-gray-500 text-center">Chưa có đánh giá cho sản phẩm này.</p>
               )}
             </div>
           </Card>

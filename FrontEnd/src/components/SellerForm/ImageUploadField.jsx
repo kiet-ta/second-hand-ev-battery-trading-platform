@@ -1,49 +1,84 @@
-// ImageUploadField.js
 import React, { useState } from 'react';
+import { UploadOutlined, DeleteOutlined, LoadingOutlined } from '@ant-design/icons';
+import { message, Spin } from 'antd';
 
 const ImageUploadField = ({ label, imageUrl, onUpload }) => {
+  const [previewUrl, setPreviewUrl] = useState(imageUrl || null);
   const [uploading, setUploading] = useState(false);
 
-  const handleFileChange = (e) => {
+  const handleFileChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
+    if (!file.type.startsWith("image/")) {
+      message.error("Vui lòng chọn tệp hình ảnh hợp lệ!");
+      return;
+    }
+
     setUploading(true);
 
-    // --- MÔ PHỎNG TẢI LÊN ---
-    // Trong ứng dụng thực tế, bạn sẽ tải file lên cloud (S3, Firebase Storage, Cloudinary)
-    // và nhận lại một URL.
-    setTimeout(() => {
-      // Tạo một URL giả lập từ placeholder.com
-      const fakeUrl = `https://via.placeholder.com/400x300.png?text=${encodeURIComponent(file.name)}`;
-      
-      onUpload(fakeUrl); // Gọi callback với URL đã tải lên
+    try {
+      // Giả lập upload delay (thay bằng API thật nếu có)
+      await new Promise((resolve) => setTimeout(resolve, 1200));
+
+      // Tạo URL preview từ local file (để hiển thị ngay)
+      const fakeUrl = URL.createObjectURL(file);
+      setPreviewUrl(fakeUrl);
+      onUpload(fakeUrl);
+
+      message.success("Tải ảnh thành công!");
+    } catch (err) {
+      message.error("Tải ảnh thất bại, vui lòng thử lại.");
+    } finally {
       setUploading(false);
-    }, 1000); // Giả lập độ trễ mạng 1 giây
-    // --- KẾT THÚC MÔ PHỎNG ---
+      e.target.value = null; // reset file input
+    }
+  };
+
+  const handleRemove = () => {
+    setPreviewUrl(null);
+    onUpload(null);
+    message.info("Đã xóa ảnh.");
   };
 
   return (
-    <div>
-      <label className="block text-sm font-medium text-gray-700">{label}</label>
-      <div className="mt-1 flex items-center space-x-4">
-        <div className="flex-shrink-0 w-32 h-24 rounded-md border border-gray-300 flex items-center justify-center bg-gray-50">
-          {imageUrl ? (
-            <img src={imageUrl} alt={label} className="w-full h-full object-cover rounded-md" />
-          ) : (
-            <span className="text-xs text-gray-500">Chưa có ảnh</span>
-          )}
-        </div>
-        <label className="relative cursor-pointer bg-white rounded-md border border-gray-300 py-2 px-3 shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50">
-          <span>{uploading ? 'Đang tải lên...' : 'Chọn ảnh'}</span>
-          <input 
-            type="file" 
-            className="sr-only" 
-            accept="image/*"
-            onChange={handleFileChange} 
-            disabled={uploading}
+    <div className="flex flex-col bg-white p-4 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200">
+      <label className="block text-sm font-semibold text-gray-700 mb-2">{label}</label>
+
+      <div className="relative w-full h-44 border border-dashed border-gray-300 rounded-lg flex items-center justify-center overflow-hidden bg-gray-50 hover:bg-gray-100 transition">
+        {uploading ? (
+          <Spin
+            indicator={<LoadingOutlined style={{ fontSize: 24, color: "#16a34a" }} spin />}
           />
-        </label>
+        ) : previewUrl ? (
+          <>
+            <img
+              src={previewUrl}
+              alt={label}
+              className="absolute inset-0 w-full h-full object-cover rounded-lg transition-transform duration-200 hover:scale-105"
+            />
+            <button
+              type="button"
+              onClick={handleRemove}
+              className="absolute top-2 right-2 bg-white/90 hover:bg-red-500 hover:text-white p-2 rounded-full shadow transition-all duration-200"
+              title="Xóa ảnh"
+            >
+              <DeleteOutlined />
+            </button>
+          </>
+        ) : (
+          <label className="flex flex-col items-center justify-center cursor-pointer">
+            <UploadOutlined className="text-gray-500 text-xl mb-1" />
+            <span className="text-gray-600 text-sm font-medium">Chọn ảnh</span>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleFileChange}
+              disabled={uploading}
+              className="hidden"
+            />
+          </label>
+        )}
       </div>
     </div>
   );

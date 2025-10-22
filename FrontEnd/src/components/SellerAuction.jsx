@@ -59,7 +59,6 @@ export default function SellerAuctionPage({ onClose }) {
             });
 
             const text = await itemRes.text();
-            console.log("📩 Item raw:", text);
 
             if (!itemRes.ok) throw new Error("Không thể tạo xe mới! " + text);
 
@@ -70,9 +69,6 @@ export default function SellerAuctionPage({ onClose }) {
                 console.error("❌ Không parse được JSON:", e);
             }
 
-            console.log("✅ Parsed itemData:", itemData);
-            console.log("🆔 itemId nhận được:", itemData?.itemId);
-
 
             // 🧩 Bước 2: Tạo phiên đấu giá cho xe vừa tạo
             const auctionBody = {
@@ -82,7 +78,6 @@ export default function SellerAuctionPage({ onClose }) {
                 endTime: new Date(formData.endTime).toISOString(),
             };
 
-            console.log("📦 AUCTION BODY:", auctionBody);
 
             const auctionRes = await fetch("https://localhost:7272/api/auction", {
                 method: "POST",

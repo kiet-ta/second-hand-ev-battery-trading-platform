@@ -36,8 +36,6 @@ export default function HistorySold() {
                 );
                 if (!res.ok) throw new Error("Không thể tải dữ liệu");
                 const data = await res.json();
-                console.log("Dữ liệu lịch sử bán hàng từ API:", data);
-                console.log("Các status nhận được:", data.map(x => x.status));
                 setSales(data);
             } catch (err) {
                 console.error("Lỗi khi tải lịch sử bán:", err);
