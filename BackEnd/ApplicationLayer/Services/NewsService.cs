@@ -16,6 +16,9 @@ namespace Application.Services
 
         public async Task<bool> ApproveNewsAsync(int newsId)
         {
+            var result = await _newsRepository.SetApprovedStatusAsync(newsId);
+            if (!result)
+                throw new Exception($"Failed to approve news with ID {newsId}");
             if (newsId <= 0)
                 throw new ArgumentException("Invalid news ID.");
 
@@ -28,6 +31,9 @@ namespace Application.Services
 
         public async Task<bool> CancelNewsAsync(int newsId)
         {
+            var result = await _newsRepository.SetCanclledStatusAsync(newsId);
+            if (!result)
+                throw new Exception($"Failed to cancel news with ID {newsId}");
             if (newsId <= 0)
                 throw new ArgumentException("Invalid news ID.");
 
