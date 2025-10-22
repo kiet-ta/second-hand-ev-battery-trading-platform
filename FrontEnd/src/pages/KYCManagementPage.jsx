@@ -42,17 +42,17 @@ const KycManagementPage = () => {
     const payload = {
       note: note || "Tài liệu hợp lệ.", // Ghi chú mặc định nếu rỗng
       verifiedAt: new Date().toISOString(),
-      verifiedBy: localStorage.getItem("userId") 
+      verifiedBy: localStorage.getItem("userId")
     };
 
     try {
       await kycApi.putApprovedKYC(docId, payload);
       alert(`Đã duyệt thành công tài liệu #${docId}`);
-      
+
       // <-- THAY ĐỔI: Tải lại danh sách từ server
       // thay vì chỉ lọc state cục bộ
       fetchDocuments();
-      
+
     } catch (err) {
       console.error("Lỗi khi duyệt:", err);
       alert("Đã xảy ra lỗi khi duyệt.");
@@ -70,13 +70,13 @@ const KycManagementPage = () => {
       note: note, // Ghi chú từ component con
       verifiedAt: new Date().toISOString(),
       // <-- THAY ĐỔI: Dùng localStorage giống như handleApprove
-      verifiedBy: localStorage.getItem("userId") 
+      verifiedBy: localStorage.getItem("userId")
     };
 
     try {
       await kycApi.putRejectedKYC(docId, payload);
       alert(`Đã từ chối tài liệu #${docId}`);
-      
+
       // <-- THAY ĐỔI: Tải lại danh sách từ server
       // thay vì chỉ lọc state cục bộ
       fetchDocuments();
@@ -125,7 +125,7 @@ const KycManagementPage = () => {
       <div>
         {loading && <p className="text-center text-gray-500">Đang tải...</p>}
         {error && <p className="text-center text-red-500">{error}</p>}
-        
+
         {!loading && !error && documents.length === 0 && (
           <p className="text-center text-gray-500">Không có tài liệu nào.</p>
         )}
