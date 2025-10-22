@@ -16,7 +16,6 @@ namespace Application.Services
             _mapper = mapper;
         }
 
-        // ================= 1. Manage User (Ban, Warning, Active) =================
         public async Task BanUserAsync(int userId)
         {
             var user = await _kycRepo.GetByIdAsync(userId)
@@ -55,7 +54,6 @@ namespace Application.Services
                 await _kycRepo.UpdateAccountStatusAsync(user.UserId, "warning1");
         }
 
-        // ================= 2. Manage KYC Status =================
         public async Task ApproveKycAsync(int kycId, ApproveKyc_DocumentDTO dto)
         {
             var kycDoc = await _kycRepo.GetKYC_DocumentByIdAsync(kycId)
@@ -69,14 +67,12 @@ namespace Application.Services
             if (kycDoc.Status == "rejected" || user.KycStatus == "rejected")
                 throw new InvalidOperationException("Cannot approve a rejected KYC");
 
-            // Update KYC doc via repo
             await _kycRepo.UpdateKYC_StatusAsync(kycDoc.DocId, "approved", dto.Note ?? "");
 
-            // Update verified info
             kycDoc.VerifiedAt = dto.VerifiedAt ?? DateTime.Now;
             kycDoc.VerifiedBy = dto.VerifiedBy;
 
-            // Update user status
+  
             await _kycRepo.SetUserKYCStatusAsync(user.UserId, "approved", "seller");
         }
 
@@ -93,14 +89,11 @@ namespace Application.Services
             if (kycDoc.Status == "approved")
                 throw new InvalidOperationException("Cannot reject an approved KYC");
 
-            // Update KYC doc via repo
             await _kycRepo.UpdateKYC_StatusAsync(kycDoc.DocId, "rejected", dto.Note ?? "");
 
-            // Update verified info
             kycDoc.VerifiedAt = dto.VerifiedAt ?? DateTime.Now;
             kycDoc.VerifiedBy = dto.VerifiedBy;
 
-            // Update user status
             await _kycRepo.SetUserKYCStatusAsync(user.UserId, "rejected", "buyer");
 
         }
@@ -110,7 +103,6 @@ namespace Application.Services
             await _kycRepo.SetUserKYCStatusAsync(user.UserId, "pending", "buyer");
         }
 
-        // ================= 3. Get KYC Lists =================
         public async Task<IEnumerable<KycDocument>> GetPendingKycAsync()
             => await _kycRepo.GetKYC_DocumentsByStatusAsync("pending");
 
@@ -120,7 +112,6 @@ namespace Application.Services
         public async Task<IEnumerable<KycDocument>> GetRejectedKycAsync()
             => await _kycRepo.GetKYC_DocumentsByStatusAsync("rejected");
 
-        // ================= 4. Create =================
         public async Task CreateKycDocumentAsync(KycDocument kyc, int userId)
         {
             var user = await _kycRepo.GetByIdAsync(userId)
