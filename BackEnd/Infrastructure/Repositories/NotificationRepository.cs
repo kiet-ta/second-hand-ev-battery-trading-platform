@@ -65,13 +65,14 @@ namespace Infrastructure.Repositories
                 .OrderByDescending(n => n.CreatedAt)
                 .ToListAsync();
         }
-        public async Task<List<Notification>> GetNotificationById(int id)
+        public async Task<Notification?> GetNotificationByIdAsync(int id)
         {
-            return await _context.Notifications
-                .Where(n => n.Id == id)
-                .OrderByDescending(n => n.CreatedAt)
-                .ToListAsync();
+            var notification = await _context.Notifications
+                .FirstOrDefaultAsync(n => n.Id == id);
+
+            return notification;
         }
+
         public async Task<List<Notification>> GetAllNotificationsAsync()
         {
             return await _context.Notifications
@@ -88,6 +89,29 @@ namespace Infrastructure.Repositories
             await _context.SaveChangesAsync();
             return true;
         }
+
+        public async Task<bool> MarkNotificationAsReadAsync(int id)
+        {
+            var notification = await _context.Notifications.FindAsync(id);
+            if (notification == null)
+                throw new Exception($"Notification with ID {id} not found.");
+
+            notification.IsRead = true;
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<List<Notification>> GetNotificationsByReadStatusAsync(bool isRead)
+        {
+            var notifications = await _context.Notifications
+                .Where(n => n.IsRead == isRead)
+                .OrderByDescending(n => n.CreatedAt)
+                .ToListAsync();
+
+            return notifications;
+        }
+
+
 
         public async Task AddNotificationById(CreateNotificationDTO noti, int receiverId)
         {

@@ -9,6 +9,7 @@ namespace Application.DTOs
     public class BatteryItemDto
     {
         public int ItemId { get; set; }
+        public string ItemType { get; set; }
         public string? Brand { get; set; }
         public int? Capacity { get; set; }
         public decimal? Voltage { get; set; }

@@ -54,7 +54,7 @@ import TransactionsContent from "../components/Manager/TransactionContent";
 import SellerApprovalsContent from "../components/Manager/SellerApprovalContent";
 import ReportsContent from "../components/Manager/ReportContent";
 import SettingsContent from "../components/Manager/SettingContent";
-import ProductModeration from "../components/ProductModeration";
+import ProductModeration from "../components/Manager/ProductModeration";
 import NotificationCreator from "../components/Notifications/NotificationCreation";
 import ProtectedRoute from "../components/ProtectedRoute";
 import KycManagementPage from "../pages/KYCManagementPage";
@@ -71,7 +71,7 @@ import ContactPage from "../pages/ContactPage";
 const ProfileNestedFormsPlaceholder = () => (
   <div className="profile-main">
     {/* ProfileContent handles which form is shown here */}
-    <div>Profile/Account Forms Placeholder</div> 
+    <div>Profile/Account Forms Placeholder</div>
   </div>
 );
 
@@ -131,7 +131,7 @@ export const router = createBrowserRouter([
       },
       { path: "purchase", element: <PurchaseSection /> },
       { path: "settings", element: <SettingsSection /> },
-      { path: "chats", element: <ChatRoomWrapper />}
+      { path: "chats", element: <ChatRoomWrapper /> }
     ],
   },
 
@@ -148,7 +148,7 @@ export const router = createBrowserRouter([
           { path: "bidding", element: <SellerBiddingPage /> },
           { path: "orders", element: <SellerOrdersPage /> },
           { path: "history", element: <SellerHistoryPage /> },
-          { path: "chat", element: <ChatRoomWrapper/>},
+          { path: "chat", element: <ChatRoomWrapper /> },
           { path: "settings", element: <SellerSettingsPage /> },
         ],
       },

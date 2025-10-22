@@ -37,7 +37,7 @@ namespace Application.IServices
 
         Task<ItemWithDetailDto?> GetItemWithDetailsAsync(int id);
         Task<IEnumerable<ItemWithDetailDto>> GetAllItemsWithDetailsAsync();
-        Task<IEnumerable<ItemBoughtDto>> GetBoughtItemsWithDetailsAsync(int userId);
+        Task<PagedResultBought<ItemBoughtDto>> GetBoughtItemsWithDetailsAsync(int userId, PaginationParams paginationParams);   
         Task<IEnumerable<ItemSellerDto>> GetSellerItemsAsync(int sellerId);
         Task<UserItemDetailDto?> GetItemDetailByIdAsync(int itemId);
         Task<bool> SetApprovedItemTagAsync(int itemId);

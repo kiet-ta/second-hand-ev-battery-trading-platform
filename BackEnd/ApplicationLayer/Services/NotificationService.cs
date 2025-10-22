@@ -26,31 +26,23 @@ namespace Application.Services
             public void Dispose() => _action?.Invoke();
         }
 
-
         public async Task RegisterClientAsync(HttpResponse response, CancellationToken token, string userId)
         {
-            // 🚨 Headers are now assumed to be set correctly in the Controller.
-
-            // 1. Client registration and initial message
             _clients[userId] = response;
             Console.WriteLine($"[DEBUG-C#] User {userId} registered. Total clients: {_clients.Count}");
 
             await response.WriteAsync($": connected\n\n");
             await response.Body.FlushAsync();
 
-            // 2. Setup TaskCompletionSource (Robust persistence signal)
             var completionSource = new TaskCompletionSource<bool>();
 
-            // 3. Register Cleanup logic on token cancellation (client disconnects)
             token.Register(() =>
             {
                 _clients.TryRemove(userId, out _);
                 Console.WriteLine($"[DEBUG-C#] Client {userId} removed by cancellation.");
-                // Signal the completion source that the connection is done
                 completionSource.TrySetResult(true);
             });
 
-            // 4. Handle HTTP context disposal cleanup (e.g., Kestrel closing pipe)
             response.HttpContext.Response.RegisterForDispose(new DisposableAction(() =>
             {
                 if (_clients.TryRemove(userId, out _))
@@ -60,29 +52,18 @@ namespace Application.Services
                 completionSource.TrySetResult(true);
             }));
 
-            // 5. Pending messages (processing logic remains the same)
             while (_pendingMessages.TryDequeue(out var pending))
             {
-                // (omitted pending message dispatch logic for brevity)
                 if (pending.userId == userId || string.IsNullOrEmpty(pending.userId))
                 {
-                    try
-                    {
-                        await response.WriteAsync($"data: {pending.message}\n\n");
-                        await response.Body.FlushAsync();
-                    }
-                    catch
-                    {
-                        _pendingMessages.Enqueue(pending);
-                    }
+                    await response.WriteAsync($"data: {pending.message}\n\n");
+                    await response.Body.FlushAsync();
                 }
             }
 
-
-            // 6. Await the signal, effectively keeping the HTTP connection alive
-            // The Task will only complete when the TrySetResult is called via cancellation/disposal.
             await completionSource.Task;
         }
+
         public async Task UnRegisterClientAsync(HttpResponse response)
         {
             var client = _clients.FirstOrDefault(c => c.Value == response);
@@ -108,88 +89,138 @@ namespace Application.Services
                 ? _clients
                 : _clients.Where(c => c.Key == targetUserId);
 
-
             var tasks = targets.Select(async client =>
             {
-                try
-                {
-                    await client.Value.WriteAsync($"data: {message}\n\n");
-                    await client.Value.Body.FlushAsync();
-                    Console.WriteLine($"Sent message to user {client.Key}: {message}");
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"Failed to send to {client.Key}: {ex.Message}");
-                    _clients.TryRemove(client.Key, out _);
-                    _pendingMessages.Enqueue((client.Key, message));
-                }
+                await client.Value.WriteAsync($"data: {message}\n\n");
+                await client.Value.Body.FlushAsync();
+                Console.WriteLine($"Sent message to user {client.Key}: {message}");
             });
 
             await Task.WhenAll(tasks);
         }
 
-        // ------------------------------------------------------------------
-        // Standard Service Methods (No changes needed)
-        // ------------------------------------------------------------------
         public async Task<bool> AddNewNotification(CreateNotificationDTO noti)
         {
             using var scope = _scopeFactory.CreateScope();
             var repo = scope.ServiceProvider.GetRequiredService<INotificationRepository>();
 
-            try
-            {
-                await repo.AddNotificationAsync(noti);
+            await repo.AddNotificationAsync(noti);
 
-                Console.WriteLine($"Notification saved to DB: {noti.Title} - {noti.Message}");
-                Console.WriteLine($"Target ID used for persistence: {noti.TargetUserId ?? "BROADCAST"}");
+            Console.WriteLine($"Notification saved to DB: {noti.Title} - {noti.Message}");
+            Console.WriteLine($"Target ID used for persistence: {noti.TargetUserId ?? "BROADCAST"}");
 
-                return true;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error saving notification to DB: {ex.Message}");
-                return false;
-            }
+            return true;
         }
+
         public async Task<bool> DeleteNotificationAsync(int id)
         {
             using var scope = _scopeFactory.CreateScope();
             var repo = scope.ServiceProvider.GetRequiredService<INotificationRepository>();
-            return await repo.DeleteNotificationAsync(id);
+
+            var result = await repo.DeleteNotificationAsync(id);
+            if (!result)
+                throw new Exception("Failed to delete notification.");
+
+            return true;
         }
+
         public async Task<List<Notification>> GetNotificationsByReceiverIdAsync(int receiverId)
         {
             using var scope = _scopeFactory.CreateScope();
             var repo = scope.ServiceProvider.GetRequiredService<INotificationRepository>();
-            return await repo.GetNotificationsByUserIdAsync(receiverId);
+
+            var result = await repo.GetNotificationsByUserIdAsync(receiverId);
+            if (result == null)
+                throw new KeyNotFoundException("No notifications found for this user.");
+
+            return result;
         }
 
         public async Task<List<Notification>> GetNotificationByNotiTypeAsync(string notiType)
         {
             using var scope = _scopeFactory.CreateScope();
             var repo = scope.ServiceProvider.GetRequiredService<INotificationRepository>();
-            return await repo.GetNotificationByNotiTypeAsync(notiType);
+
+            var result = await repo.GetNotificationByNotiTypeAsync(notiType);
+            if (result == null)
+                throw new KeyNotFoundException("No notifications found for this type.");
+
+            return result;
         }
 
         public async Task<List<Notification>> GetNotificationBySenderIdAsync(int senderId)
         {
             using var scope = _scopeFactory.CreateScope();
             var repo = scope.ServiceProvider.GetRequiredService<INotificationRepository>();
-            return await repo.GetNotificationBySenderIdAsync(senderId);
+
+            var result = await repo.GetNotificationBySenderIdAsync(senderId);
+            if (result == null)
+                throw new KeyNotFoundException("No notifications found for this sender.");
+
+            return result;
         }
 
-        public async Task<List<Notification>> GetNotificationByIdAsync(int id)
+        public async Task<Notification> GetNotificationByIdAsync(int id)
         {
             using var scope = _scopeFactory.CreateScope();
             var repo = scope.ServiceProvider.GetRequiredService<INotificationRepository>();
-            return await repo.GetNotificationById(id);
+
+            var result = await repo.GetNotificationByIdAsync(id);
+            if (result == null)
+                throw new KeyNotFoundException("Notification not found.");
+
+            return result;
+        }
+        public async Task<bool> AddNotificationByIdAsync(CreateNotificationDTO noti, int receiverId)
+        {
+            using var scope = _scopeFactory.CreateScope();
+            var repo = scope.ServiceProvider.GetRequiredService<INotificationRepository>();
+
+            if (noti == null)
+                throw new ArgumentNullException(nameof(noti));
+
+            await repo.AddNotificationById(noti, receiverId);
+            return true;
         }
 
         public async Task<List<Notification>> GetAllNotificationsAsync()
         {
             using var scope = _scopeFactory.CreateScope();
             var repo = scope.ServiceProvider.GetRequiredService<INotificationRepository>();
-            return await repo.GetAllNotificationsAsync();
+
+            var result = await repo.GetAllNotificationsAsync();
+            if (result == null)
+                throw new Exception("Failed to retrieve all notifications.");
+
+            return result;
         }
+        public async Task<bool> MarkNotificationAsReadAsync(int id)
+        {
+            using var scope = _scopeFactory.CreateScope();
+            var repo = scope.ServiceProvider.GetRequiredService<INotificationRepository>();
+
+            var notification = await repo.GetNotificationByIdAsync(id);
+            if (notification == null)
+                throw new Exception($"Notification with ID {id} not found.");
+
+            var result = await repo.MarkNotificationAsReadAsync(id);
+            if (!result)
+                throw new Exception("Failed to update notification status.");
+
+            return true;
+        }
+
+        public async Task<List<Notification>> GetNotificationsByReadStatusAsync(bool isRead)
+        {
+            using var scope = _scopeFactory.CreateScope();
+            var repo = scope.ServiceProvider.GetRequiredService<INotificationRepository>();
+            var notifications = await repo.GetNotificationsByReadStatusAsync(isRead);
+
+            if (notifications == null || notifications.Count == 0)
+                throw new Exception($"No {(isRead ? "read" : "unread")} notifications found.");
+
+            return notifications;
+        }
+
     }
 }

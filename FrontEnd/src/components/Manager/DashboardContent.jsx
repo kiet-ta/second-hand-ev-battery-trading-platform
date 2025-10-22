@@ -14,7 +14,7 @@ import CardHeader from "../../components/Manager/CardHeader";
 import StatTile from "../../components/Manager/StatTile";
 import { managerAPI } from "../../hooks/managerApi";
 
-// Utility: format VND currency
+// 🪙 Hàm định dạng tiền VND
 function currencyVND(x) {
     try {
         return x.toLocaleString("vi-VN", { style: "currency", currency: "VND" });
@@ -35,9 +35,7 @@ export default function DashboardContent() {
         async function fetchAll() {
             try {
                 setLoading(true);
-                const [
-                    m, r, o, d, t
-                ] = await Promise.all([
+                const [m, r, o, d, t] = await Promise.all([
                     managerAPI.getMetrics(),
                     managerAPI.getRevenueByMonth(),
                     managerAPI.getOrdersByMonth(),
@@ -50,7 +48,7 @@ export default function DashboardContent() {
                 setDistribution(d);
                 setTransactions(t);
             } catch (err) {
-                console.error("❌ Lỗi tải dashboard:", err);
+                console.error("❌ Lỗi tải dữ liệu bảng điều khiển:", err);
             } finally {
                 setLoading(false);
             }
@@ -87,42 +85,42 @@ export default function DashboardContent() {
             transition={{ duration: 0.35 }}
             className="space-y-6"
         >
-            {/* === KPI SECTION === */}
+            {/* === KHU VỰC CHỈ SỐ KPI === */}
             <div className="grid sm:grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
                 <StatTile
                     icon={<DollarSign size={18} className="text-slate-800" />}
-                    label="Revenue (Month)"
+                    label="Doanh thu (tháng)"
                     value={currencyVND(metrics.revenueThisMonth)}
-                    hint={`YTD: ${currencyVND(revenueTotal)}`}
+                    hint={`Tổng năm: ${currencyVND(revenueTotal)}`}
                     trend={metrics?.growth ?? 0}
                 />
                 <StatTile
                     icon={<Users size={18} className="text-slate-800" />}
-                    label="Total Users"
+                    label="Tổng người dùng"
                     value={metrics.totalUsers.toLocaleString("vi-VN")}
-                    hint="Buyer / Seller / Staff"
+                    hint="Người mua / Người bán / Nhân viên"
                 />
                 <StatTile
                     icon={<PackageSearch size={18} className="text-slate-800" />}
-                    label="Active Listings"
+                    label="Sản phẩm đang hoạt động"
                     value={metrics.activeListings.toLocaleString("vi-VN")}
-                    hint="EV & Battery"
+                    hint="Xe điện & Pin"
                 />
                 <StatTile
                     icon={<TrendingUp size={18} className="text-slate-800" />}
-                    label="Growth MoM"
+                    label="Tăng trưởng theo tháng"
                     value={`${metrics.growth}%`}
-                    hint="vs last month"
+                    hint="So với tháng trước"
                     trend={metrics?.growth ?? 0}
                 />
             </div>
 
-            {/* === CHART SECTION === */}
+            {/* === BIỂU ĐỒ DOANH THU / ĐƠN HÀNG === */}
             <div className="grid lg:grid-cols-5 gap-4">
-                {/* Revenue Chart */}
+                {/* Biểu đồ doanh thu theo tháng */}
                 <Card className="lg:col-span-3">
                     <CardHeader
-                        title="Revenue by Month"
+                        title="Doanh thu theo tháng"
                         icon={<FileChartColumn size={18} className="text-slate-700" />}
                     />
                     <div className="p-4 h-72">
@@ -144,10 +142,10 @@ export default function DashboardContent() {
                     </div>
                 </Card>
 
-                {/* Orders Chart */}
+                {/* Biểu đồ đơn hàng theo tháng */}
                 <Card className="lg:col-span-2">
                     <CardHeader
-                        title="Orders by Month"
+                        title="Số đơn hàng theo tháng"
                         icon={<BarChart3 size={18} className="text-slate-700" />}
                     />
                     <div className="p-4 h-72">
@@ -164,12 +162,12 @@ export default function DashboardContent() {
                 </Card>
             </div>
 
-            {/* === DISTRIBUTION + TRANSACTION === */}
+            {/* === PHÂN BỔ SẢN PHẨM & GIAO DỊCH GẦN NHẤT === */}
             <div className="grid lg:grid-cols-5 gap-4">
-                {/* Product Distribution */}
+                {/* Phân bổ sản phẩm */}
                 <Card className="lg:col-span-2">
                     <CardHeader
-                        title="Product Distribution"
+                        title="Tỷ lệ phân bổ sản phẩm"
                         icon={<PackageSearch size={18} className="text-slate-700" />}
                     />
                     <div className="p-4 h-72">
@@ -196,22 +194,22 @@ export default function DashboardContent() {
                     </div>
                 </Card>
 
-                {/* Latest Transactions */}
+                {/* Giao dịch gần nhất */}
                 <Card className="lg:col-span-3">
                     <CardHeader
-                        title="Latest Transactions"
+                        title="Giao dịch gần đây"
                         icon={<ClipboardList size={18} className="text-slate-700" />}
                     />
                     <div className="p-4 overflow-auto">
                         <table className="min-w-full text-sm">
                             <thead>
                                 <tr className="text-left text-slate-500 border-b">
-                                    <th className="py-2">Code</th>
-                                    <th className="py-2">Item</th>
-                                    <th className="py-2">Buyer</th>
-                                    <th className="py-2">Seller</th>
-                                    <th className="py-2">Price</th>
-                                    <th className="py-2">Status</th>
+                                    <th className="py-2">Mã GD</th>
+                                    <th className="py-2">Sản phẩm</th>
+                                    <th className="py-2">Người mua</th>
+                                    <th className="py-2">Người bán</th>
+                                    <th className="py-2">Giá</th>
+                                    <th className="py-2">Trạng thái</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -228,7 +226,11 @@ export default function DashboardContent() {
                                         <td className="py-2">{t.sellerName}</td>
                                         <td className="py-2">{currencyVND(t.totalAmount)}</td>
                                         <td className="py-2 capitalize text-slate-700">
-                                            {t.status}
+                                            {t.status === "completed"
+                                                ? "Hoàn tất"
+                                                : t.status === "pending"
+                                                    ? "Đang xử lý"
+                                                    : "Đã hủy"}
                                         </td>
                                     </tr>
                                 ))}
@@ -238,6 +240,5 @@ export default function DashboardContent() {
                 </Card>
             </div>
         </motion.div>
-
     );
 }
