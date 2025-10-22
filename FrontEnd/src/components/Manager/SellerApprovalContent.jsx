@@ -1,15 +1,38 @@
 import React, { useEffect, useState } from "react";
-import { Table, Button, Dropdown, Menu, Spin, Tag, message } from "antd";
-import { MoreHorizontal, Check, XCircle } from "lucide-react";
+import {
+    Table,
+    Button,
+    Dropdown,
+    Menu,
+    Spin,
+    Tag,
+    message,
+    Input,
+    Select,
+    Space,
+} from "antd";
+import {
+    MoreHorizontal,
+    Check,
+    XCircle,
+    Search,
+    Download,
+    ClipboardList,
+} from "lucide-react";
 import { motion } from "framer-motion";
 import { managerAPI } from "../../hooks/managerApi";
 import Card from "../../components/Manager/Card";
 import CardHeader from "../../components/Manager/CardHeader";
 
+const { Option } = Select;
+
 export default function SellerApprovalContent() {
     const [approvals, setApprovals] = useState([]);
+    const [filteredApprovals, setFilteredApprovals] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [searchQuery, setSearchQuery] = useState("");
 
+    // 📥 Lấy danh sách seller chờ duyệt
     const fetchApprovals = async () => {
         try {
             setLoading(true);
@@ -27,6 +50,22 @@ export default function SellerApprovalContent() {
         fetchApprovals();
     }, []);
 
+    // 🔎 Lọc và tìm kiếm
+    useEffect(() => {
+        let result = [...approvals];
+
+        if (searchQuery.trim() !== "") {
+            const q = searchQuery.toLowerCase();
+            result = result.filter(
+                (a) =>
+                    a.seller.toLowerCase().includes(q)
+            );
+        }
+
+        setFilteredApprovals(result);
+    }, [approvals, searchQuery]);
+
+    // ⚙️ Duyệt / từ chối seller
     const handleAction = async (id, action) => {
         try {
             if (action === "approve") {
@@ -36,13 +75,16 @@ export default function SellerApprovalContent() {
                 await managerAPI.rejectSeller(id);
                 message.info("🚫 Đã từ chối seller");
             }
-            await fetchApprovals(); // 🔁 refresh danh sách
+            await fetchApprovals();
         } catch (err) {
             console.error(err);
             message.error("❌ Xử lý thất bại");
         }
     };
 
+
+
+    // 📋 Cấu hình bảng
     const columns = [
         {
             title: "ID",
@@ -55,6 +97,7 @@ export default function SellerApprovalContent() {
             title: "Người bán",
             dataIndex: "seller",
             key: "seller",
+            render: (text) => <span className="font-medium text-slate-800">{text}</span>,
         },
         {
             title: "Khu vực",
@@ -127,10 +170,32 @@ export default function SellerApprovalContent() {
         >
             <Card>
                 <CardHeader
-                    title="📋 Seller Approvals Pending"
-                    icon={<Check size={18} />}
+                    title={` Seller Approvals Pending `}
+                    icon={<ClipboardList size={18} />}
                 />
+
                 <div className="p-4">
+                    {/* Bộ lọc và xuất CSV */}
+                    <div className="flex justify-between items-center mb-4 flex-wrap gap-3">
+                        <Space wrap>
+                            <Input
+                                prefix={<Search size={16} className="text-slate-400" />}
+                                placeholder="Tìm theo tên ..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                allowClear
+                                style={{ width: 240 }}
+                            />
+
+                        </Space>
+                    </div>
+
+                    {/* Đếm số lượng */}
+                    <div className="text-sm text-slate-600 mb-3">
+                        Hiển thị <b>{filteredApprovals.length}</b> yêu cầu chờ duyệt
+                        {searchQuery && `, tìm kiếm: “${searchQuery}”`}
+                    </div>
+
                     {loading ? (
                         <div className="flex justify-center items-center h-[50vh]">
                             <Spin size="large" />
@@ -139,9 +204,10 @@ export default function SellerApprovalContent() {
                         <Table
                             rowKey="id"
                             columns={columns}
-                            dataSource={approvals}
+                            dataSource={filteredApprovals}
                             bordered
-                            pagination={false}
+                            pagination={{ pageSize: 10 }}
+                            scroll={{ x: true }}
                         />
                     )}
                 </div>
