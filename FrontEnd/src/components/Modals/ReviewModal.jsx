@@ -1,8 +1,8 @@
 import React, { useState } from "react";
-import StarRating from "./StarRatting"; // Import the star component
-import ImageUploader from "./ImageUploader"; // Assuming this is your uploader component's path
+import StarRating from "../StarRatting"; // Import the star component
+import ImageUploader from "../ImageUploader"; // Assuming this is your uploader component's path
 import { X } from "lucide-react";
-import reviewApi from "../api/reviewApi";
+import reviewApi from "../../api/reviewApi";
 
 export default function ReviewModal({ order, isOpen, onClose, onReviewSubmit }) {
     const [rating, setRating] = useState(0);

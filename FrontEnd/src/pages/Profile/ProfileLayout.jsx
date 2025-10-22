@@ -6,7 +6,7 @@ import { IoSettingsOutline } from "react-icons/io5";
 import { IoCartOutline, IoChatboxOutline } from "react-icons/io5";
 import { IoLogOutOutline } from "react-icons/io5";
 import { MdLogout } from "react-icons/md";
-import NotificationDropdown from "../../components/NotificationDropdown";
+import NotificationDropdown from "../../components/DropDowns/NotificationDropdown";
 import Logo from "../../components/Logo";
 import "../../assets/styles/ProfileLayout.css";
 

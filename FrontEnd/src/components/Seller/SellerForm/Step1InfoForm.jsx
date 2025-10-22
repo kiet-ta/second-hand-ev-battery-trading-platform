@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Input, Button, Switch, message } from "antd";
-import userApi from "../../api/userApi"; // adjust your import
+import userApi from "../../../api/userApi"; // adjust your import
 
 const Step1InfoForm = ({ nextStep, prevStep }) => {
   const [user, setUser] = useState(null); // full user object from API
@@ -21,7 +21,6 @@ const Step1InfoForm = ({ nextStep, prevStep }) => {
         });
       } catch (error) {
         console.error("Error fetching user:", error);
-        message.error("Không thể tải thông tin người dùng.");
       }
     };
     fetchUser();
@@ -42,13 +41,11 @@ const Step1InfoForm = ({ nextStep, prevStep }) => {
         phone: formData.phone,
       };
       await userApi.putUser(updatedUser);
-      message.success("Cập nhật thông tin thành công!");
       setUser(updatedUser);
       setEditMode(false);
       nextStep();
     } catch (error) {
       console.error("Update failed:", error);
-      message.error("Cập nhật thông tin thất bại.");
     }
   };
 

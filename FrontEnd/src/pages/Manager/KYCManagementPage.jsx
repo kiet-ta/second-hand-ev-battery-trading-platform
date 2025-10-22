@@ -1,7 +1,7 @@
 // KycManagementPage.js
 import React, { useState, useEffect, useCallback } from 'react';
-import kycApi from '../api/kycApi'; // Import API đã sửa
-import KycDocumentCard from '../components/Cards/KYCCard'; // Import component con
+import kycApi from '../../api/kycApi'; // Import API đã sửa
+import KycDocumentCard from '../../components/Cards/KYCCard'; // Import component con
 
 const KycManagementPage = () => {
   const [currentTab, setCurrentTab] = useState('pending'); // 'pending', 'approved', 'rejected'

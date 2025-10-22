@@ -1,9 +1,9 @@
 import React, { useEffect, useState, useMemo } from "react";
-import CardCart from "../components/Cards/CardCart";
+import CardCart from "../../components/Cards/CardCart";
 import { Link, useLocation } from "react-router-dom";
-import orderItemApi from "../api/orderItemApi";
-import itemApi from "../api/itemApi";
-import addressApi from "../api/addressLocalApi";
+import orderItemApi from "../../api/orderItemApi";
+import itemApi from "../../api/itemApi";
+import addressApi from "../../api/addressLocalApi";
 import { message, Spin } from "antd";
 import { FiMapPin } from "react-icons/fi";
 
@@ -91,6 +91,7 @@ function CartPage() {
                     }).filter(Boolean);
 
                 setCartItems(combinedCartData);
+
             } else {
                 setCartItems([]);
             }
@@ -113,7 +114,6 @@ function CartPage() {
             setSelectedItemIds(validSelectedIds);
 
         } catch (error) {
-            console.error("Lỗi khi tải dữ liệu trang:", error);
             setCartItems([]);
             setAddresses([]);
         } finally {
@@ -155,7 +155,6 @@ function CartPage() {
             prev.map((item) => {
                 if (item.id === id) {
                     if (newQuantity > item.stock) {
-                        message.warning(`Đã đạt số lượng tối đa cho ${item.name}. Tồn kho: ${item.stock}.`);
                         return item;
                     }
                     if (newQuantity < 1) {
@@ -188,6 +187,7 @@ function CartPage() {
 
     const handleDeleteSelected = async () => {
         if (selectedItemIds.length === 0) {
+            message.warning("Vui lòng chọn sản phẩm để xóa.");
             return;
         }
 

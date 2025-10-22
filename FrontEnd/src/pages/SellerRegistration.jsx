@@ -1,12 +1,12 @@
 import React, { useState } from "react";
 import kycApi from "../api/kycApi";
 
-import StepIndicator from "../components/SellerForm/SellerIndicator";
-import Step0_AccountType from "../components/SellerForm/Step0AccountType";
-import Step1_PersonalInfo from "../components/SellerForm/Step1InfoForm";
-import Step2_KYC from "../components/SellerForm/Step2IDVerification";
-import Step3_StoreInfo from "../components/SellerForm/Step3BusinessInfo";
-import Step4_Confirmation from "../components/SellerForm/Step4Confirmation";
+import StepIndicator from "../components/Seller/SellerForm/SellerIndicator";
+import Step0_AccountType from "../components/Seller/SellerForm/Step0AccountType";
+import Step1_PersonalInfo from "../components/Seller/SellerForm/Step1InfoForm";
+import Step2_KYC from "../components/Seller/SellerForm/Step2IDVerification";
+import Step3_StoreInfo from "../components/Seller/SellerForm/Step3BusinessInfo";
+import Step4_Confirmation from "../components/Seller/SellerForm/Step4Confirmation";
 
 const SellerRegistrationForm = () => {
   const [userId] = useState(localStorage.getItem("userId"));

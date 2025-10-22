@@ -10,10 +10,10 @@ import {
 } from 'react-icons/fi';
 import { FaStar, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import { GiGemChain } from "react-icons/gi";
-import itemApi from '../api/itemApi';
-import userApi from '../api/userApi';
-import chatApi from '../api/chatApi';
-import reviewApi from '../api/reviewApi';
+import itemApi from '../../api/itemApi';
+import userApi from '../../api/userApi';
+import chatApi from '../../api/chatApi';
+import reviewApi from '../../api/reviewApi';
 
 // ⭐ Star Rating Component
 const StarRating = ({ rating }) => (

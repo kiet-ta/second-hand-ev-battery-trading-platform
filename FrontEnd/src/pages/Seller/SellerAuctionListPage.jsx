@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Clock, Eye, Edit, Trash2, Loader2 } from "lucide-react";
-import SellerAuction from "../components/SellerAuction";
+import SellerAuction from "../../components/Seller/SellerAuction";
 
 export default function SellerAuctionListPage() {
     const [auctions, setAuctions] = useState([]);

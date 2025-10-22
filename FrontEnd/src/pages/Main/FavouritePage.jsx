@@ -1,8 +1,8 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { Spin } from 'antd';
 import { FiHeart } from 'react-icons/fi';
-import favouriteApi from '../api/favouriteApi';
-import FavoriteItemCard from '../components/Cards/FavoriteItemCard';
+import favouriteApi from '../../api/favouriteApi';
+import FavoriteItemCard from '../../components/Cards/FavoriteItemCard';
 
 function FavouritePage() {
     const [favorites, setFavorites] = useState([]);

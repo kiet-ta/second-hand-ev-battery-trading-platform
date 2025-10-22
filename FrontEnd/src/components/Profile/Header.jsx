@@ -1,5 +1,5 @@
 import { useState } from "react"
-import anhtao from "../assets/images/anhtao.png"
+import anhtao from "../assets/images/Logo.png"
 
 const Header = () => {
     const [searchQuery, setSearchQuery] = useState("")

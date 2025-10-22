@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { Calendar, Package, Star, Zap, GaugeCircle, Palette, Car } from "lucide-react";
 import { message } from "antd";
-import ReviewModal from "../components/ReviewModal";
-import reviewApi from "../api/reviewApi";
+import ReviewModal from "../Modals/ReviewModal";
+import reviewApi from "../../api/reviewApi";
 
 export default function HistoryBought() {
   const [orders, setOrders] = useState([]);

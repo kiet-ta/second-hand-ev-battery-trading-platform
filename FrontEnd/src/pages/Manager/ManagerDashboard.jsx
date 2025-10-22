@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
-import ManagerLayout from "../layout/ManagerLayout";
-import AddStaff from "../components/Manager/AddStaff";
+import ManagerLayout from "../../layout/ManagerLayout";
+import AddStaff from "../../components/Manager/AddStaff";
 
 function LogoutConfirmationModal({ onCancel, onConfirm }) {
     return (

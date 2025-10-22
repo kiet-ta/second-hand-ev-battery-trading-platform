@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import "../assets/styles/AddressManagement.css";
-import addressApi from "../hooks/services/addressApi";
+import "../../assets/styles/AddressManagement.css";
+import addressApi from "../../hooks/services/addressApi";
 import { motion, AnimatePresence } from "framer-motion";
 
 

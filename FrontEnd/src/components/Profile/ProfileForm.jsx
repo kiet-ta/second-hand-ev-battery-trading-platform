@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import "../assets/styles/ProfileForm.css";
+import "../../assets/styles/ProfileForm.css";
 import { FaCamera } from "react-icons/fa";
 import { FaRegEye, FaRegEyeSlash } from "react-icons/fa";
 

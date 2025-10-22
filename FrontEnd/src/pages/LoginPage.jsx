@@ -4,6 +4,7 @@ import { message, Popover } from "antd";
 import authApi from "../api/authApi";
 import Logo from "../components/Logo";
 import LoginPicture from "../assets/images/LoginPicture.jpg";
+import { jwtDecode } from "jwt-decode";
 
 export default function LoginPage() {
     const navigate = useNavigate();
@@ -65,14 +66,12 @@ export default function LoginPage() {
             localStorage.setItem("token", userData.token);
             localStorage.setItem("userId", userData.userId);
             localStorage.setItem("user", JSON.stringify(userData));
-            message.success("Đăng nhập bằng Google thành công!");
             const role = userData.role?.toLowerCase();
             if (role === "manager" || role === "staff") navigate("/manage");
             else if (role === "seller") navigate("/seller");
             else navigate("/");
         } catch (err) {
             console.error("Google Login Error:", err);
-            message.error("Đăng nhập Google thất bại!");
         }
     }
 
@@ -93,8 +92,11 @@ export default function LoginPage() {
             localStorage.setItem("userId", res.userId);
             localStorage.setItem("token", res.token);
             setUser(newUser);
-            message.success("Đăng nhập thành công!");
-            navigate("/");
+            const role = jwtDecode(res.token).role.toLowerCase();
+            if (role === "manager" || role === "staff") navigate("/manage");
+            else if (role === "seller") navigate("/seller");
+            else navigate("/");
+            
         } catch (err) {
             console.error("Login error:", err);
             setError("Thông tin đăng nhập không chính xác.");

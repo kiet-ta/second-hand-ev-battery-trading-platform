@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { useCompare } from '../hooks/useCompare';
-import itemApi from '../api/itemApi';
+import { useCompare } from '../../hooks/useCompare';
+import itemApi from '../../api/itemApi';
 import { Modal, Spin, Table, Image, Button } from 'antd';
 import { FiX } from 'react-icons/fi';
 

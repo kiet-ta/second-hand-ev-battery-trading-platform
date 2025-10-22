@@ -1,7 +1,7 @@
 // src/pages/BlogList.jsx
 import React, { useEffect, useState } from "react";
-import BlogHeader from "../components/BlogHeader";
-import BlogCard from "../components/BlogCard";
+import BlogHeader from "../../components/BlogHeader";
+import BlogCard from "../../components/Cards/BlogCard";
 
 const MOCK_BLOGS = [
     {

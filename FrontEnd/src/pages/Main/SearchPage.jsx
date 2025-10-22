@@ -1,8 +1,8 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import itemApi from '../api/itemApi';
-import CardComponent from '../components/Cards/Card';
-import CardSkeleton from '../components/Cards/CardSkeleton'; // Import Skeleton
+import itemApi from '../../api/itemApi';
+import CardComponent from '../../components/Cards/Card';
+import CardSkeleton from '../../components/Cards/CardSkeleton'; // Import Skeleton
 import { Spin } from 'antd'; // Use Spin for loading indicator
 
 const priceRanges = [

@@ -8,10 +8,10 @@ import {
 } from "react-icons/fi";
 import { FaStar, FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import { GiBatteryPack } from "react-icons/gi";
-import itemApi from "../api/itemApi";
-import userApi from "../api/userApi";
-import orderItemApi from "../api/orderItemApi";
-import reviewApi from "../api/reviewApi";
+import itemApi from "../../api/itemApi";
+import userApi from "../../api/userApi";
+import orderItemApi from "../../api/orderItemApi";
+import reviewApi from "../../api/reviewApi";
 
 // ⭐ Star rating component
 const StarRating = ({ rating }) => (

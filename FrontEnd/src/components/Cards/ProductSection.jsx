@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import CardComponent from './Cards/Card';
-import CardSkeleton from './Cards/CardSkeleton';
+import CardComponent from './Card';
+import CardSkeleton from './CardSkeleton';
 import { FiArrowRight } from 'react-icons/fi';
 
 const ProductSection = ({

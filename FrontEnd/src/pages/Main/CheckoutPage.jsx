@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import paymentApi from "../api/paymentApi";
-import orderApi from "../api/orderApi";
+import paymentApi from "../../api/paymentApi";
+import orderApi from "../../api/orderApi";
 import { FiMapPin, FiX } from "react-icons/fi";
 
 // Helper component for the Address Selection Modal

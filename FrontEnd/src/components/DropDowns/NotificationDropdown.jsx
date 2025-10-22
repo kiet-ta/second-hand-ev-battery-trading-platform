@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { Bell, Filter } from "lucide-react";
-import SSEListener from "./Notifications/SSEListener";
-import notificationApi from "../api/notificationApi";
+import SSEListener from "../Notifications/SSEListener";
+import notificationApi from "../../api/notificationApi";
 
 // ✅ Helper to format relative time
 const formatTimeAgo = (isoDate) => {

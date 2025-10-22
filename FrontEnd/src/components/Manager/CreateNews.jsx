@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import ImageUploader from './ImageUploader'; 
-import TextEditor from "./Editor/TextEditor"; 
+import ImageUploader from '../ImageUploader'; 
+import TextEditor from "../Editor/TextEditor"; 
 import {
     Pencil,
     ClipboardList,

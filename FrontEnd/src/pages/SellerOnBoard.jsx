@@ -1,5 +1,6 @@
 import React, { memo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import FrogRegistration from '../assets/images/registration.png';
 
 function SellerOnBoard() {

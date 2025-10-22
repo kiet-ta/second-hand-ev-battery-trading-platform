@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Clock, Tag, CheckCircle, XCircle } from "lucide-react";
-import ProductCreationModal from "./ItemForm/ProductCreationModal";
+import ProductCreationModal from "../ItemForm/ProductCreationModal";
 
 export default function MyProducts() {
     const [products, setProducts] = useState([]);
