@@ -5,17 +5,15 @@ import banner1 from '../assets/images/banner1.png';
 import banner2 from '../assets/images/banner2.png';
 import banner3 from '../assets/images/banner3.png';
 import { Link, useNavigate } from 'react-router-dom';
-import { Popover } from 'antd';
+import { message, Popover } from "antd";
 import authApi from '../api/authApi'
-import { Modal } from "antd";
 import Swal from "sweetalert2";
 import { FaRegEyeSlash, FaRegEye } from "react-icons/fa";
 import PasswordInput from '../components/PasswordInput';
 
 export default function RegisterPage() {
     const clientId =
-        import.meta.env.VITE_GOOGLE_CLIENT_ID ||
-        '301055344643-gel1moqvoq9flgf8978aje7j9frtci79.apps.googleusercontent.com';
+        import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
     const [user, setUser] = useState(null);
     const [username, setUsername] = useState('');
@@ -107,16 +105,44 @@ export default function RegisterPage() {
         }
     }
 
-    function handleCredentialResponse(response) {
-        const profile = parseJwt(response.credential);
-        if (profile) {
-            setUser({
-                id: profile.sub,
-                email: profile.email,
-                name: profile.name,
-                picture: profile.picture,
-                token: response.credential,
+    async function handleCredentialResponse(response) {
+        const googleToken = response.credential;
+
+        try {
+            const res = await fetch("https://localhost:7272/api/Auth/google", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ credential: googleToken }),
             });
+
+            if (!res.ok) {
+                const errText = await res.text();
+                throw new Error(`Google login failed: ${errText}`);
+            }
+
+            const data = await res.json();
+            if (!data.success || !data.data) {
+                throw new Error(data.message || "Invalid Google login response");
+            }
+
+            const userData = data.data;
+
+            // Lưu thông tin user vào localStorage
+            localStorage.setItem("token", userData.token);
+            localStorage.setItem("userId", userData.userId);
+            localStorage.setItem("user", JSON.stringify(userData));
+
+            message.success("Đăng nhập Google thành công!");
+
+            // Chuyển hướng theo vai trò
+            const role = userData.role?.toLowerCase();
+            if (role === "manager" || role === "staff") navigate("/manage");
+            else if (role === "seller") navigate("/seller");
+            else navigate("/");
+
+        } catch (err) {
+            console.error("Google Login Error:", err);
+            message.error("Đăng nhập Google thất bại. Vui lòng thử lại!");
         }
     }
 
@@ -309,9 +335,9 @@ export default function RegisterPage() {
                                     <span>OR</span>
                                 </div>
 
-                                {/* <div className="social-login">
+                                <div className="social-login">
                                     <div ref={googleButtonRef} />
-                                </div> */}
+                                </div>
 
 
                             </>

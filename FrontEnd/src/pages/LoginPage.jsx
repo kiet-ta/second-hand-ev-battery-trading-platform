@@ -1,34 +1,32 @@
-import React, { useEffect, useState, useRef } from 'react';
-import Logo from '../components/Logo';
-import '../assets/styles/LoginPage.css';
-import banner1 from '../assets/images/banner1.png';
-import banner2 from '../assets/images/banner2.png';
-import banner3 from '../assets/images/banner3.png';
-import authApi from '../api/authApi';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useEffect, useState, useRef } from "react";
+import Logo from "../components/Logo";
+import "../assets/styles/LoginPage.css";
+import banner1 from "../assets/images/banner1.png";
+import banner2 from "../assets/images/banner2.png";
+import banner3 from "../assets/images/banner3.png";
+import authApi from "../api/authApi";
+import { Link, useNavigate } from "react-router-dom";
 import { message, Popover } from "antd";
 
 export default function LoginPage() {
     const navigate = useNavigate();
     const clientId =
-        import.meta.env.VITE_GOOGLE_CLIENT_ID ||
-        '301055344643-gel1moqvoq9flgf8978aje7j9frtci79.apps.googleusercontent.com';
+        import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
     const [user, setUser] = useState(null);
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [error, setError] = useState('');
-
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+    const [error, setError] = useState("");
     const [currentSlide, setCurrentSlide] = useState(0);
     const googleButtonRef = useRef(null);
 
     const slides = [
         { id: 1, image: banner1, alt: "Xe điện nhập khẩu chính hãng" },
         { id: 2, image: banner2, alt: "VinFast electric vehicles" },
-        { id: 3, image: banner3, alt: "Xe đạp - Xe điện Vĩnh Trường" }
+        { id: 3, image: banner3, alt: "Xe đạp - Xe điện Vĩnh Trường" },
     ];
 
-    // Banner slider
+    // Banner auto slide
     useEffect(() => {
         const slideInterval = setInterval(() => {
             setCurrentSlide((prev) => (prev + 1) % slides.length);
@@ -36,15 +34,15 @@ export default function LoginPage() {
         return () => clearInterval(slideInterval);
     }, [slides.length]);
 
-    // Load Google script
+    // Load Google Identity script
     useEffect(() => {
-        const id = 'google-identity-script';
+        const id = "google-identity-script";
         if (document.getElementById(id)) {
             initGSI();
             return;
         }
-        const script = document.createElement('script');
-        script.src = 'https://accounts.google.com/gsi/client?hl=en';
+        const script = document.createElement("script");
+        script.src = "https://accounts.google.com/gsi/client?hl=en";
         script.async = true;
         script.id = id;
         script.onload = () => initGSI();
@@ -57,18 +55,19 @@ export default function LoginPage() {
         }
     }, [user]);
 
+    // Parse JWT (dành cho local login)
     function parseJwt(token) {
         try {
-            const payload = token.split('.')[1];
-            const base64 = payload.replace(/-/g, '+').replace(/_/g, '/');
+            const payload = token.split(".")[1];
+            const base64 = payload.replace(/-/g, "+").replace(/_/g, "/");
             const jsonPayload = decodeURIComponent(
                 atob(base64)
-                    .split('')
+                    .split("")
                     .map(
                         (c) =>
-                            '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
+                            "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2)
                     )
-                    .join('')
+                    .join("")
             );
             return JSON.parse(jsonPayload);
         } catch (e) {
@@ -77,6 +76,7 @@ export default function LoginPage() {
         }
     }
 
+    // Initialize Google Identity Services
     function initGSI() {
         if (!window.google?.accounts?.id) return;
         window.google.accounts.id.initialize({
@@ -85,30 +85,59 @@ export default function LoginPage() {
         });
         if (googleButtonRef.current) {
             window.google.accounts.id.renderButton(googleButtonRef.current, {
-                theme: 'outline',
-                size: 'large',
-                text: 'signin_with',
-                hl: 'en',
+                theme: "outline",
+                size: "large",
+                text: "signin_with",
+                shape: "rectangular",
+                logo_alignment: "center",
+                width: "280",
             });
         }
     }
 
-    function handleCredentialResponse(response) {
-        const profile = parseJwt(response.credential);
-        if (profile) {
-            const newUser = {
-                id: profile.sub,
-                email: profile.email,
-                name: profile.name,
-                picture: profile.picture,
-                token: response.credential,
-            };
-            setUser(newUser);
-            localStorage.setItem("user", JSON.stringify(newUser));
+    // ✅ Handle Google Login success
+    async function handleCredentialResponse(response) {
+        const googleToken = response.credential;
+
+        try {
+            const res = await fetch("https://localhost:7272/api/Auth/google", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ credential: googleToken }),
+            });
+
+            if (!res.ok) {
+                const errText = await res.text();
+                throw new Error(`Google login failed: ${errText}`);
+            }
+
+            const data = await res.json();
+            if (!data.success || !data.data) {
+                throw new Error(data.message || "Invalid Google login response");
+            }
+
+            const userData = data.data;
+
+            // Lưu thông tin user vào localStorage
+            localStorage.setItem("token", userData.token);
+            localStorage.setItem("userId", userData.userId);
+            localStorage.setItem("user", JSON.stringify(userData));
+
+            message.success("Đăng nhập Google thành công!");
+
+            // Chuyển hướng theo vai trò
+            const role = userData.role?.toLowerCase();
+            if (role === "manager" || role === "staff") navigate("/manage");
+            else if (role === "seller") navigate("/seller");
+            else navigate("/");
+
+        } catch (err) {
+            console.error("Google Login Error:", err);
+            message.error("Đăng nhập Google thất bại. Vui lòng thử lại!");
         }
     }
 
-    // 👇 FIX: The previously missing logic is completed here
+    // Local login (email/password)
     const handleLocalLogin = async (e) => {
         e.preventDefault();
         setError("");
@@ -132,38 +161,25 @@ export default function LoginPage() {
         }
 
         try {
-            // 1. Call API login
             const data = await authApi.login(trimmedEmail, trimmedPassword);
             const res = data.data;
+
             const newUser = {
                 ...res.user,
                 userId: res.userId,
                 token: res.token,
             };
 
-
             localStorage.setItem("userId", res.userId);
             localStorage.setItem("token", res.token);
             setUser(newUser);
             message.success("Login successful!");
 
-            // 2. Decode the JWT to check the role and navigate
             const decodedToken = parseJwt(res.token);
-            if (decodedToken && decodedToken.role) {
-                const role = decodedToken.role.toLowerCase();
-
-                if (role === 'manager' || role === 'staff') {
-                    navigate('/manage');
-                } else if (role === 'seller') {
-                    navigate('/seller');
-                } else {
-                    // Default to buyer, check for seller registration status if possible (assuming res.isSellerRegistered exists)
-                    // If not registered as a full seller, push them to the onboarding page first.
-                    navigate('/');
-                }
-            } else {
-                navigate('/'); // Default to homepage if role is missing
-            }
+            const role = decodedToken?.role?.toLowerCase();
+            if (role === "manager" || role === "staff") navigate("/manage");
+            else if (role === "seller") navigate("/seller");
+            else navigate("/");
 
         } catch (err) {
             console.error("Login error:", err);
@@ -171,13 +187,13 @@ export default function LoginPage() {
         }
     };
 
-
+    // Đăng xuất
     function signOut() {
         if (user?.token) {
             fetch(`https://oauth2.googleapis.com/revoke?token=${user.token}`, {
-                method: 'POST',
+                method: "POST",
                 headers: {
-                    'Content-type': 'application/x-www-form-urlencoded',
+                    "Content-type": "application/x-www-form-urlencoded",
                 },
             }).finally(() => {
                 setUser(null);
@@ -195,10 +211,12 @@ export default function LoginPage() {
         <div className="login-container">
             {/* Header */}
             <header className="bg-maincolor">
-                <div className="w-1/4 h-full flex justify-start"><Logo></Logo></div>
+                <div className="w-1/4 h-full flex justify-start">
+                    <Logo />
+                </div>
             </header>
 
-            {/* Nội dung chính: banner + form */}
+            {/* Nội dung chính */}
             <div className="login-main">
                 {/* Banner bên trái */}
                 <div className="banner-container">
@@ -206,7 +224,8 @@ export default function LoginPage() {
                         {slides.map((slide, index) => (
                             <div
                                 key={slide.id}
-                                className={`banner-slide ${index === currentSlide ? 'active' : ''}`}
+                                className={`banner-slide ${index === currentSlide ? "active" : ""
+                                    }`}
                             >
                                 <img src={slide.image} alt={slide.alt} />
                             </div>
@@ -220,7 +239,8 @@ export default function LoginPage() {
                         {!user ? (
                             <>
                                 <form onSubmit={handleLocalLogin}>
-                                    <p className='header-login'>Sign In</p>
+                                    <p className="header-login">Sign In</p>
+
                                     <input
                                         type="text"
                                         placeholder="Phone number / Username / Email"
@@ -235,6 +255,7 @@ export default function LoginPage() {
                                         onChange={(e) => setPassword(e.target.value)}
                                         className="login-input"
                                     />
+
                                     <Popover
                                         content={error}
                                         trigger="click"
@@ -247,28 +268,32 @@ export default function LoginPage() {
                                             SIGN IN
                                         </button>
                                     </Popover>
-
                                 </form>
-
-                                {/* <a href="#" className="forgot-password">
-                                    Forgot Password
-                                </a> */}
 
                                 <div className="divider">
                                     <span>OR</span>
                                 </div>
 
-                                {/* <div className="social-login">
+                                {/* Nút Google Login */}
+                                <div className="social-login">
                                     <div ref={googleButtonRef} />
-                                </div> */}
+                                </div>
 
                                 <p className="signup-link">
-                                    Are you new? <Link to="/register">Create an account</Link>
+                                    Are you new?{" "}
+                                    <Link to="/register">Create an account</Link>
                                 </p>
                             </>
                         ) : (
                             <div className="user-info">
-                                <img src={user.picture || "https://via.placeholder.com/50"} alt="avatar" className="avatar" />
+                                <img
+                                    src={
+                                        user.picture ||
+                                        "https://via.placeholder.com/50"
+                                    }
+                                    alt="avatar"
+                                    className="avatar"
+                                />
                                 <div>
                                     <strong>{user.name}</strong>
                                     <p>{user.email}</p>
