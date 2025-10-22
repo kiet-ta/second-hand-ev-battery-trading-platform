@@ -1,13 +1,19 @@
 import React, { useEffect, useState } from "react";
-import { Table, Tag, Button, Dropdown, Menu, Spin, message } from "antd";
-import { MoreHorizontal, UserCheck, Ban, AlertTriangle } from "lucide-react";
+import { Table, Tag, Button, Dropdown, Menu, Spin, message, Select, Space, Input } from "antd";
+import { MoreHorizontal, UserCheck, Ban, AlertTriangle, Search, Download } from "lucide-react";
 import { managerAPI } from "../../hooks/managerApi";
+
+const { Option } = Select;
 
 export default function UserContent() {
     const [users, setUsers] = useState([]);
+    const [filteredUsers, setFilteredUsers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
+    const [roleFilter, setRoleFilter] = useState("all");
+    const [statusFilter, setStatusFilter] = useState("all");
+    const [searchQuery, setSearchQuery] = useState("");
 
     const currentUserId = parseInt(localStorage.getItem("userId"));
 
@@ -30,6 +36,24 @@ export default function UserContent() {
         fetchUsers(page);
     }, [page]);
 
+    // 🎯 Áp dụng lọc & tìm kiếm
+    useEffect(() => {
+        let filtered = [...users];
+
+        if (roleFilter !== "all") filtered = filtered.filter((u) => u.role === roleFilter);
+        if (statusFilter !== "all") filtered = filtered.filter((u) => u.accountStatus === statusFilter);
+        if (searchQuery.trim() !== "") {
+            const q = searchQuery.toLowerCase();
+            filtered = filtered.filter(
+                (u) =>
+                    u.fullName.toLowerCase().includes(q) ||
+                    (u.email && u.email.toLowerCase().includes(q))
+            );
+        }
+
+        setFilteredUsers(filtered);
+    }, [users, roleFilter, statusFilter, searchQuery]);
+
     // ⚙️ Cập nhật trạng thái người dùng
     const handleStatusChange = async (userId, status) => {
         if (userId === currentUserId) {
@@ -38,10 +62,7 @@ export default function UserContent() {
         }
         try {
             await managerAPI.updateUserStatus(userId, status);
-
-            // Sau khi update thành công → gọi lại danh sách user
             await fetchUsers(page);
-
             message.success("✅ Trạng thái người dùng đã được cập nhật!");
         } catch (err) {
             console.error("Lỗi cập nhật:", err);
@@ -49,6 +70,35 @@ export default function UserContent() {
         }
     };
 
+    // 📤 Xuất CSV
+    const exportToCSV = () => {
+        if (filteredUsers.length === 0) {
+            message.info("Không có dữ liệu để xuất.");
+            return;
+        }
+
+        const headers = ["ID", "Họ và tên", "Email", "Số điện thoại", "Vai trò", "Trạng thái"];
+        const rows = filteredUsers.map((u) => [
+            u.userId,
+            u.fullName,
+            u.email,
+            u.phone,
+            u.role,
+            u.accountStatus,
+        ]);
+
+        const csvContent =
+            "data:text/csv;charset=utf-8," +
+            [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");
+
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", `users_export_${new Date().toISOString().slice(0, 10)}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
 
     const columns = [
         {
@@ -160,9 +210,53 @@ export default function UserContent() {
 
     return (
         <div className="bg-white p-4 rounded-xl shadow-sm">
-            <h2 className="text-xl font-semibold mb-4">
-                👥 Danh sách người dùng
-            </h2>
+            {/* Bộ lọc + tìm kiếm */}
+            <div className="flex justify-between items-center mb-4 flex-wrap gap-3">
+                <h2 className="text-xl font-semibold">👥 Danh sách người dùng</h2>
+
+                <Space wrap>
+                    <Input
+                        prefix={<Search size={16} className="text-slate-400" />}
+                        placeholder="Tìm theo tên hoặc email..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        allowClear
+                        style={{ width: 220 }}
+                    />
+
+                    <Select value={roleFilter} onChange={setRoleFilter} style={{ width: 160 }}>
+                        <Option value="all">Tất cả vai trò</Option>
+                        <Option value="buyer">Người mua</Option>
+                        <Option value="seller">Người bán</Option>
+                        <Option value="staff">Nhân viên</Option>
+                        <Option value="manager">Quản lý</Option>
+                    </Select>
+
+                    <Select value={statusFilter} onChange={setStatusFilter} style={{ width: 180 }}>
+                        <Option value="all">Tất cả trạng thái</Option>
+                        <Option value="active">Đang hoạt động</Option>
+                        <Option value="warning1">Cảnh cáo 1</Option>
+                        <Option value="warning2">Cảnh cáo 2</Option>
+                        <Option value="ban">Bị cấm</Option>
+                    </Select>
+
+                    <Button
+                        type="default"
+                        icon={<Download size={16} />}
+                        onClick={exportToCSV}
+                    >
+                        Xuất CSV
+                    </Button>
+                </Space>
+            </div>
+
+            {/* Đếm số lượng kết quả */}
+            <div className="text-sm text-slate-600 mb-3">
+                Hiển thị <b>{filteredUsers.length}</b> người dùng
+                {roleFilter !== "all" && ` (vai trò: ${roleFilter})`}
+                {statusFilter !== "all" && `, trạng thái: ${statusFilter}`}
+                {searchQuery && `, tìm kiếm: “${searchQuery}”`}
+            </div>
 
             {loading ? (
                 <div className="flex justify-center items-center h-[50vh]">
@@ -172,7 +266,7 @@ export default function UserContent() {
                 <Table
                     rowKey="userId"
                     columns={columns}
-                    dataSource={users}
+                    dataSource={filteredUsers}
                     pagination={{
                         current: page,
                         total: totalPages * 20,

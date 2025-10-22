@@ -129,19 +129,10 @@ namespace PresentationLayer.Controllers
         [HttpPost("detail")]
         public async Task<IActionResult> CreateEv([FromBody] CreateEvDetailDto dto, CancellationToken ct)
         {
-            try
-            {
-                var created = await _evService.CreateAsync(dto, ct);
-                return CreatedAtAction(nameof(GetItem), new { id = created.ItemId }, created);
-            }
-            catch (ArgumentException aex)
-            {
-                return BadRequest(aex.Message);
-            }
-            catch (InvalidOperationException dbEx)
-            {
-                return Conflict(dbEx.Message);
-            }
+
+            var created = await _evService.CreateAsync(dto, ct);
+            return CreatedAtAction(nameof(GetItem), new { id = created.ItemId }, created);
+
         }
 
         [HttpPut("detail/{id:int}")]
@@ -178,19 +169,9 @@ namespace PresentationLayer.Controllers
         [HttpPost("detail/battery")]
         public async Task<IActionResult> CreateBattery(CreateBatteryDetailDto dto)
         {
-            try
-            {
-                var created = await _batteryService.CreateAsync(dto);
-                return CreatedAtAction(nameof(GetItem), new { id = created.ItemId }, created);
-            }
-            catch (ArgumentException aex)
-            {
-                return BadRequest(aex.Message);
-            }
-            catch (InvalidOperationException dbEx)
-            {
-                return Conflict(dbEx.Message);
-            }
+            var created = await _batteryService.CreateAsync(dto);
+            return CreatedAtAction(nameof(GetItem), new { id = created.ItemId }, created);
+
         }
 
         [HttpPut("detail/battery/{itemId}")]
@@ -220,35 +201,25 @@ namespace PresentationLayer.Controllers
         [HttpPut("{itemId}/approve")]
         public async Task<IActionResult> ApproveItem(int itemId)
         {
-            try
-            {
-                var result = await _service.SetApprovedItemTagAsync(itemId);
-                if (!result)
-                    return BadRequest("Item not found or not in 'pending' state.");
 
-                return Ok(new { message = "Item approved successfully." });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = $"Error approving item: {ex.Message}" });
-            }
+            var result = await _service.SetApprovedItemTagAsync(itemId);
+            if (!result)
+                return BadRequest("Item not found or not in 'pending' state.");
+
+            return Ok(new { message = "Item approved successfully." });
+
         }
 
         [HttpPut("{itemId}/reject")]
         public async Task<IActionResult> RejectItem(int itemId)
         {
-            try
-            {
-                var result = await _service.SetRejectedItemTagAsync(itemId);
-                if (!result)
-                    return BadRequest("Item not found or not in 'pending' state.");
 
-                return Ok(new { message = "Item rejected successfully." });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = $"Error rejecting item: {ex.Message}" });
-            }
+            var result = await _service.SetRejectedItemTagAsync(itemId);
+            if (!result)
+                return BadRequest("Item not found or not in 'pending' state.");
+
+            return Ok(new { message = "Item rejected successfully." });
+
         }
     }
 }

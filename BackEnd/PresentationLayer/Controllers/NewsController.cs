@@ -59,16 +59,14 @@ namespace PresentationLayer.Controllers
             await _notificationService.RegisterClientAsync(Response, ct, userId);
             Console.WriteLine($"User {userId} subscribed for SSE.");
 
-           
-                while (!ct.IsCancellationRequested)
-                {
-                    await Task.Delay(TimeSpan.FromSeconds(15), ct);
-                    await Response.WriteAsync(":\n\n"); 
-                    await Response.Body.FlushAsync();
-                }
-            
-           
-            
+
+            while (!ct.IsCancellationRequested)
+            {
+                await Task.Delay(TimeSpan.FromSeconds(15), ct);
+                await Response.WriteAsync(":\n\n");
+                await Response.Body.FlushAsync();
+            }
+
         }
         [HttpPost]
         public async Task<IActionResult> AddNews([FromBody] CreateNewsDto dto)
