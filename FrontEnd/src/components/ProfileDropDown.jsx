@@ -13,7 +13,7 @@ const ProfileDropDown = ({users,walletBalance}) => (
             },
             {type: 'divider'},
             {
-            key: '2', label: (<div className="flex gap-2">Wallet:<div className='font-semibold'>{walletBalance} VND</div> </div>)
+            key: '2', label: (<a href='/wallet' className="flex gap-2">Wallet:<div className='font-semibold'>{walletBalance} VND</div> </a>)
             },
             {
                 key: '3', label: (<a href="/profile">Profile</a>)

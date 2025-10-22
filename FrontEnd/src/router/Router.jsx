@@ -66,6 +66,7 @@ import TermsOfServicePage from "../pages/TermsOfService";
 import FaqPage from "../pages/FaqPage";
 import BuyingGuidePage from "../pages/BuyingGuidePage";
 import ContactPage from "../pages/ContactPage";
+import WalletTransactionPage from "../pages/WalletTransactionPage";
 
 // Placeholder component for Profile Index Route content (since complex state was removed)
 const ProfileNestedFormsPlaceholder = () => (
@@ -106,7 +107,7 @@ export const router = createBrowserRouter([
       { path: "/faq", element: <FaqPage/>},
       { path: "/buying-guide", element: <BuyingGuidePage/>},
       { path: "/contact", element: <ContactPage/>},
-      
+      { path: "/wallet", element: <WalletTransactionPage/>}
     ],
   },
   // --- AUTHENTICATION ROUTES ---
