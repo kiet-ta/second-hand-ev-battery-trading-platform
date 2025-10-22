@@ -1,7 +1,9 @@
-﻿using Application.IServices;
+﻿using Application.DTOs.ItemDtos;
+using Application.IServices;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Text.Json;
 
 namespace PresentationLayer.Controllers
 {
@@ -20,7 +22,7 @@ namespace PresentationLayer.Controllers
 
         [HttpGet("bought")]
         [Authorize] // user login
-        public async Task<IActionResult> GetBoughtItems()
+        public async Task<IActionResult> GetBoughtItems([FromQuery] PaginationParams paginationParams)
         {
             // get claim user_id safe
             var userIdClaim = User.FindFirst("user_id")?.Value;
@@ -31,23 +33,31 @@ namespace PresentationLayer.Controllers
             if (!int.TryParse(userIdClaim, out var userId))
                 return BadRequest("user_id in token invalid.");
 
-            var result = await _itemService.GetBoughtItemsWithDetailsAsync(userId);
+            var result = await _itemService.GetBoughtItemsWithDetailsAsync(userId, paginationParams);
             return Ok(result);
         }
 
 
 
         [HttpGet("{sellerId}")]
-        public async Task<IActionResult> GetAllHistory(int sellerId)
+        public async Task<IActionResult> GetAllHistory(int sellerId, [FromQuery] PaginationParams pagination)
         {
            
-                var seller = await _historySoldService.GetAllSellerItemsAsync(sellerId);
-                if (seller == null || seller.Count == 0)
+                var seller = await _historySoldService.GetAllSellerItemsAsync(sellerId, pagination);
+                if (seller == null || seller.TotalCount == 0)
                     return NotFound(new { Message = "Seller không tồn tại hoặc chưa có item nào." });
 
-                return Ok(seller);
-           
-            
+            Response.Headers.Append("X-Pagination", JsonSerializer.Serialize(new
+            {
+                seller.TotalCount,
+                seller.PageSize,
+                seller.CurrentPage,
+                seller.TotalPages
+            }));
+
+            return Ok(seller);
+
+
         }
     }
 }
