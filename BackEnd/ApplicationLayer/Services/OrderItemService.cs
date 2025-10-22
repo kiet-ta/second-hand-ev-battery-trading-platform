@@ -2,6 +2,10 @@
 using Application.DTOs.ItemDtos;
 using Application.IRepositories;
 using Application.IServices;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Application.Services
 {
@@ -16,12 +20,15 @@ namespace Application.Services
 
         public async Task<OrderItemDto> CreateOrderItemAsync(CreateOrderItemRequest request)
         {
-            return await _orderItemRepository.CreateOrderItemAsync(request);
+            var result = await _orderItemRepository.CreateOrderItemAsync(request)
+                ?? throw new Exception("Failed to create order item.");
+            return result;
         }
 
         public async Task<IEnumerable<OrderItemDto>> GetCartItemsByBuyerIdAsync(int buyerId)
         {
-            var items = await _orderItemRepository.GetCartItemsByBuyerIdAsync(buyerId);
+            var items = await _orderItemRepository.GetCartItemsByBuyerIdAsync(buyerId)
+                ?? throw new Exception("Failed to retrieve cart items.");
 
             return items.Select(o => new OrderItemDto
             {
@@ -31,11 +38,14 @@ namespace Application.Services
                 Price = o.Price
             });
         }
+
         public async Task<bool> UpdateOrderItemAsync(int id, UpdateOrderItemDto dto)
         {
-            var orderItem = await _orderItemRepository.GetByIdAsync(id);
-            if (orderItem == null || orderItem.IsDeleted)
-                return false;
+            var orderItem = await _orderItemRepository.GetByIdAsync(id)
+                ?? throw new Exception("Order item not found.");
+
+            if (orderItem.IsDeleted)
+                throw new Exception("Order item already deleted.");
 
             orderItem.Quantity = dto.Quantity;
             orderItem.Price = dto.Price;
@@ -46,9 +56,11 @@ namespace Application.Services
 
         public async Task<bool> DeleteOrderItemAsync(int id)
         {
-            var orderItem = await _orderItemRepository.GetByIdAsync(id);
-            if (orderItem == null || orderItem.IsDeleted)
-                return false;
+            var orderItem = await _orderItemRepository.GetByIdAsync(id)
+                ?? throw new Exception("Order item not found.");
+
+            if (orderItem.IsDeleted)
+                throw new Exception("Order item already deleted.");
 
             orderItem.IsDeleted = true;
             await _orderItemRepository.UpdateAsync(orderItem);

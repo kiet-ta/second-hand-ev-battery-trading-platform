@@ -25,7 +25,9 @@ namespace Application.Services
         public async Task<OrderDto> GetOrderByIdAsync(int id)
         {
             var order = await _orderRepository.GetByIdAsync(id);
-            if (order == null) return null;
+            if (order == null)
+                throw new Exception($"Order with ID {id} not found.");
+
 
             return new OrderDto
             {
@@ -46,6 +48,8 @@ namespace Application.Services
         public async Task<IEnumerable<OrderDto>> GetAllOrdersAsync()
         {
             var orders = await _orderRepository.GetAllAsync();
+            if (orders == null || !orders.Any())
+                throw new Exception("No orders found.");
             return orders.Select(order => new OrderDto
             {
                 OrderId = order.OrderId,
@@ -58,6 +62,8 @@ namespace Application.Services
 
         public async Task<int> CreateOrderAsync(OrderDto dto)
         {
+            if (dto == null)
+                throw new Exception("Order data cannot be null.");
             var order = new Order
             {
                 BuyerId = dto.BuyerId,
@@ -72,15 +78,18 @@ namespace Application.Services
                 //    Price = i.Price
                 //}).ToList()
             };
-
             await _orderRepository.AddAsync(order);
+            if (order.OrderId <= 0)
+                throw new Exception("Failed to create new order.");
+            
             return order.OrderId;
         }
 
         public async Task<bool> UpdateOrderAsync(OrderDto dto)
         {
             var order = await _orderRepository.GetByIdAsync(dto.OrderId);
-            if (order == null) return false;
+            if (order == null)
+                throw new Exception($"Order with ID {dto.OrderId} not found.");
 
             order.Status = dto.Status;
             order.UpdatedAt = DateTime.Now;
@@ -90,20 +99,32 @@ namespace Application.Services
 
         public async Task<bool> DeleteOrderAsync(int id)
         {
+             var order = await _orderRepository.GetByIdAsync(id);
+            if (order == null)
+                throw new Exception($"Order with ID {id} not found.");
             await _orderRepository.DeleteAsync(id);
             return true;
         }
         public async Task<List<OrderDto>> GetOrdersByUserIdAsync(int userId)
         {
-            return await _orderRepository.GetOrdersByUserIdAsync(userId);
+
+            var orders = await _orderRepository.GetOrdersByUserIdAsync(userId);
+            if (orders == null || orders.Count == 0)
+                throw new Exception($"No orders found for user ID {userId}.");
+            return orders;
+
         }
 
         public async Task<OrderResponseDto> CreateOrderAsync(CreateOrderRequestDto request)
         {
+            if (request == null)
+                throw new Exception("Order request cannot be null.");
+
             // Step 1: Validate items
             var orderItems = await _orderItemRepository.GetItemsByIdsAsync(request.OrderItemIds);
             if (!orderItems.Any())
-                throw new Exception("No valid order items found");
+                throw new InvalidOperationException("No valid order items found");
+
 
             // Step 2: Create order
             var order = new Order
@@ -113,9 +134,11 @@ namespace Application.Services
                 Status = "pending",
                 CreatedAt = request.CreatedAt,
                 UpdatedAt = request.UpdatedAt
-                
+
             };
             var createdOrder = await _orderRepository.AddOrderAsync(order);
+            if (createdOrder == null)
+                throw new Exception("Failed to create order.");
 
             // Step 3: Update order items
             foreach (var item in orderItems)
