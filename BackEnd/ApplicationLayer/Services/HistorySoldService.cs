@@ -15,33 +15,36 @@ namespace Application.Services
 
         public HistorySoldService(IHistorySoldRepository repository)
         {
-            _repository = repository;
+            _repository = repository ?? throw new ArgumentNullException(nameof(repository));
         }
+
         public async Task<List<object>> GetAllSellerItemsAsync(int sellerId)
         {
+            if (sellerId <= 0)
+                throw new ArgumentException("Invalid seller ID");
+
             var seller = await _repository.GetSellerByIdAsync(sellerId);
             if (seller == null)
-                return new List<object>();
+                throw new KeyNotFoundException($"Seller with ID {sellerId} not found");
 
             var sold = await GetSoldItemsAsync(sellerId);
             var pending = await GetPendingPaymentItemsAsync(sellerId);
             var processing = await GetProcessingItemsAsync(sellerId);
             var canceled = await GetCanceledItemsAsync(sellerId);
 
-
             var allItems = await _repository.GetAllSellerItemsAsync(sellerId);
+            if (allItems == null)
+                throw new Exception("Failed to fetch seller items");
 
             var takenIds = new HashSet<int>(
-    sold.Select(i => (int)((dynamic)i).ItemId)
-        .Concat(pending.Select(i => (int)((dynamic)i).ItemId))
-        .Concat(processing.Select(i => (int)((dynamic)i).ItemId))
-        .Concat(canceled.Select(i => (int)((dynamic)i).ItemId))
-);
-
+                sold.Select(i => (int)((dynamic)i).ItemId)
+                    .Concat(pending.Select(i => (int)((dynamic)i).ItemId))
+                    .Concat(processing.Select(i => (int)((dynamic)i).ItemId))
+                    .Concat(canceled.Select(i => (int)((dynamic)i).ItemId))
+            );
 
             var availableItems = allItems.Where(i => !takenIds.Contains(i.ItemId)).ToList();
             var mappedAvailable = await MapItemsAsync(availableItems);
-
 
             foreach (var obj in mappedAvailable)
             {
@@ -50,7 +53,6 @@ namespace Application.Services
                 else if (obj is EVItemDto ev)
                     ev.Status = "available";
             }
-
 
             var finalList = new List<object>();
             finalList.AddRange(sold);
@@ -62,16 +64,15 @@ namespace Application.Services
             return finalList;
         }
 
-
         public async Task<List<object>> GetProcessingItemsAsync(int sellerId)
         {
             var seller = await _repository.GetSellerByIdAsync(sellerId);
             if (seller == null)
-                throw new KeyNotFoundException("Seller not found");
+                throw new KeyNotFoundException($"Seller with ID {sellerId} not found");
 
             var items = await _repository.GetProcessingItemsAsync(sellerId);
-            if (items == null || !items.Any())
-                return new List<object>();
+            if (items == null)
+                throw new Exception("Failed to fetch processing items");
 
             var mappedItems = await MapItemsAsync(items);
 
@@ -90,11 +91,11 @@ namespace Application.Services
         {
             var seller = await _repository.GetSellerByIdAsync(sellerId);
             if (seller == null)
-                throw new KeyNotFoundException("Seller not found");
+                throw new KeyNotFoundException($"Seller with ID {sellerId} not found");
 
             var items = await _repository.GetPendingPaymentItemsAsync(sellerId);
-            if (items == null || !items.Any())
-                return new List<object>();
+            if (items == null)
+                throw new Exception("Failed to fetch pending payment items");
 
             var mappedItems = await MapItemsAsync(items);
 
@@ -113,11 +114,11 @@ namespace Application.Services
         {
             var seller = await _repository.GetSellerByIdAsync(sellerId);
             if (seller == null)
-                throw new KeyNotFoundException("Seller not found");
+                throw new KeyNotFoundException($"Seller with ID {sellerId} not found");
 
             var items = await _repository.GetSoldItemsAsync(sellerId);
-            if (items == null || !items.Any())
-                return new List<object>();
+            if (items == null)
+                throw new Exception("Failed to fetch sold items");
 
             var mappedItems = await MapItemsAsync(items);
 
@@ -131,15 +132,16 @@ namespace Application.Services
 
             return mappedItems;
         }
+
         public async Task<List<object>> GetCanceledItemsAsync(int sellerId)
         {
             var seller = await _repository.GetSellerByIdAsync(sellerId);
             if (seller == null)
-                throw new KeyNotFoundException("Seller not found");
+                throw new KeyNotFoundException($"Seller with ID {sellerId} not found");
 
             var items = await _repository.GetCanceledItemsAsync(sellerId);
-            if (items == null || !items.Any())
-                return new List<object>();
+            if (items == null)
+                throw new Exception("Failed to fetch canceled items");
 
             var mappedItems = await MapItemsAsync(items);
 
@@ -156,26 +158,30 @@ namespace Application.Services
 
         private async Task<List<object>> MapItemsAsync(List<Item> items)
         {
+            if (items == null)
+                throw new ArgumentNullException(nameof(items), "Item list cannot be null");
+
             var result = new List<object>();
 
             var batteryItems = items.Where(i => i.ItemType == "battery").ToList();
             if (batteryItems.Any())
             {
                 var mappedBatteryItems = await _repository.MapToBatteryItemsAsync(batteryItems);
-                if (mappedBatteryItems != null && mappedBatteryItems.Any())
-                    result.AddRange(mappedBatteryItems);
+                if (mappedBatteryItems == null)
+                    throw new Exception("Failed to map battery items");
+                result.AddRange(mappedBatteryItems);
             }
 
             var evItems = items.Where(i => i.ItemType == "ev").ToList();
             if (evItems.Any())
             {
                 var mappedEVItems = await _repository.MapToEVItemsAsync(evItems);
-                if (mappedEVItems != null && mappedEVItems.Any())
-                    result.AddRange(mappedEVItems);
+                if (mappedEVItems == null)
+                    throw new Exception("Failed to map EV items");
+                result.AddRange(mappedEVItems);
             }
 
             return result;
         }
     }
 }
-
