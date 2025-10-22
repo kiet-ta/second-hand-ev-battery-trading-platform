@@ -10,6 +10,7 @@ import itemApi from '../api/itemApi';
 import userApi from '../api/userApi';
 import chatApi from '../api/chatApi';
 import reviewApi from '../api/reviewApi';
+import { Link } from "react-router-dom";
 
 // ====================================================================
 // 1. Reusable Components
@@ -321,9 +322,13 @@ function EVDetails() {
                 <p className="font-bold text-lg">{sellerProfile.fullName}</p>
                 <p className="text-sm text-gray-500">Active recently</p>
               </div>
-              {/* <button className="border border-indigo-600 text-indigo-600 font-semibold py-2 px-4 rounded-lg hover:bg-indigo-50 transition-colors">
-        View Profile
-       </button> */}
+              <Link
+                to={`/seller/${item?.updatedBy}`}
+                className="border border-indigo-600 !text-[#4F39F6] font-semibold py-2 px-4 rounded-lg hover:bg-indigo-50 transition-colors"
+              >
+                View Profile
+              </Link>
+
             </div>
           )}
 

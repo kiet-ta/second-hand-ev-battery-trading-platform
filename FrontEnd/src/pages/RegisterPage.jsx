@@ -7,6 +7,8 @@ import banner3 from '../assets/images/banner3.png';
 import { Link, useNavigate } from 'react-router-dom';
 import { Popover } from 'antd';
 import authApi from '../api/authApi'
+import { Modal } from "antd";
+import Swal from "sweetalert2";
 import { FaRegEyeSlash, FaRegEye } from "react-icons/fa";
 import PasswordInput from '../components/PasswordInput';
 
@@ -142,16 +144,19 @@ export default function RegisterPage() {
             setError("Please enter complete information!");
             return;
         }
+
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(email)) {
             setError("Email is not valid!");
             return;
         }
+
         const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$/;
         if (!passwordRegex.test(password)) {
             setError("Password must be ≥8 characters, contain uppercase, lowercase, numbers and special characters!");
             return;
         }
+
         if (password !== confirmPassword) {
             setError("Re-entered password does not match!");
             return;
@@ -161,21 +166,60 @@ export default function RegisterPage() {
         setLoading(true);
 
         try {
+            // 🟩 1️⃣ Gọi API đăng ký
             const newUser = {
-                username,
+                userId: 0,
+                fullName: fullname,
                 email,
                 password,
                 confirmPassword,
-                fullname
             };
 
             const res = await authApi.register(newUser);
-            console.log("Register success:", res);
-            navigate(`/login`)
-            alert("Đăng ký thành công ✅");
+            console.log("✅ Register success:", res);
+
+            const { success, data } = res;
+
+            if (!success || !data?.token) {
+                throw new Error("Register failed: No token returned");
+            }
+
+            // 🟩 2️⃣ Lưu token và user info vào localStorage
+            localStorage.setItem("token", data.token);
+            localStorage.setItem("userId", data.userId);
+            localStorage.setItem("fullname", data.fullName);
+            localStorage.setItem("email", data.email);
+            localStorage.setItem("role", data.role);
+            localStorage.setItem("expiresAt", data.expiresAt);
+
+            // 🟩 3️⃣ Hiển thị popup cực đẹp
+            Swal.fire({
+                icon: "success",
+                title: "🎉 Đăng ký & đăng nhập thành công!",
+                html: `
+                <p style="font-size: 16px; color: #444;">Chào mừng <b>${data.fullName}</b> đến với <b style="color:#4F39F6;">Cóc Mua Xe</b>!</p>
+                <p style="color:#666;">Hệ thống đang chuyển bạn đến trang chủ...</p>
+            `,
+                background: "#fff",
+                color: "#333",
+                confirmButtonColor: "#4F39F6",
+                confirmButtonText: "Vào trang chủ ngay",
+                showConfirmButton: false,
+                timer: 2500,
+                timerProgressBar: true,
+            });
+
+            // 🟩 4️⃣ Tự động chuyển sang trang chủ
+            setTimeout(() => navigate("/"), 2500);
         } catch (err) {
-            console.error("Register error:", err);
-            setError("Register failed, please try again!");
+            console.error("❌ Register error:", err);
+
+            Swal.fire({
+                icon: "error",
+                title: "Đăng ký thất bại 😥",
+                html: `<p style="color:#555;">${err.message || "Vui lòng kiểm tra lại thông tin hoặc thử lại sau."}</p>`,
+                confirmButtonColor: "#4F39F6",
+            });
         } finally {
             setLoading(false);
         }

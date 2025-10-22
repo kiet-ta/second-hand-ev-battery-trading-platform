@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import {
     Mail,
     Phone,
@@ -13,7 +14,8 @@ import {
 } from "lucide-react";
 
 export default function BuyerViewSeller() {
-    const sellerId = 2;
+
+    const { sellerId } = useParams();
     const token = localStorage.getItem("token");
     const [seller, setSeller] = useState(null);
     const [items, setItems] = useState([]);
