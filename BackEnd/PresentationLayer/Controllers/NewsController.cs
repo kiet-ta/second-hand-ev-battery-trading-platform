@@ -59,23 +59,15 @@ namespace PresentationLayer.Controllers
             await _notificationService.RegisterClientAsync(Response, ct, userId);
             Console.WriteLine($"User {userId} subscribed for SSE.");
 
-            try
-            {
+           
                 while (!ct.IsCancellationRequested)
                 {
                     await Task.Delay(TimeSpan.FromSeconds(15), ct);
                     await Response.WriteAsync(":\n\n"); 
                     await Response.Body.FlushAsync();
                 }
-            }
-            catch (TaskCanceledException)
-            {
-            }
-            finally
-            {
-                await _notificationService.UnRegisterClientAsync(Response);
-                Console.WriteLine($"User {userId} unsubscribed.");
-            }
+            
+           
             
         }
         [HttpPost]

@@ -12,6 +12,7 @@ namespace Application.Services
     public class NewsService : INewsService
     {
         private readonly INewsRepository _newsRepository;
+
         public NewsService(INewsRepository newsRepository)
         {
             _newsRepository = newsRepository;
@@ -19,27 +20,42 @@ namespace Application.Services
 
         public async Task<bool> ApproveNewsAsync(int newsId)
         {
-            return await _newsRepository.SetApprovedStatusAsync(newsId);
+            var result = await _newsRepository.SetApprovedStatusAsync(newsId);
+            if (!result)
+                throw new Exception($"Failed to approve news with ID {newsId}");
+            return true;
         }
+
         public async Task<bool> CancelNewsAsync(int newsId)
         {
-            return await _newsRepository.SetCanclledStatusAsync(newsId);
+            var result = await _newsRepository.SetCanclledStatusAsync(newsId);
+            if (!result)
+                throw new Exception($"Failed to cancel news with ID {newsId}");
+            return true;
         }
+
         public async Task<bool> AddNewsAsync(CreateNewsDto dto)
         {
+            if (dto == null)
+                throw new ArgumentNullException(nameof(dto), "News data cannot be null");
+
             await _newsRepository.CreateNews(dto);
             return true;
         }
+
         public async Task DeleteNewsAsync(int newsId)
         {
-            await _newsRepository.DeleteNewsById(newsId);
+            var success = await _newsRepository.DeleteNewsById(newsId);
+            if (!success)
+                throw new Exception($"Failed to delete news with ID {newsId}");
         }
 
         public async Task<bool> RejectNewsAsync(int newsId)
         {
-            return await _newsRepository.UpdateNewsStatusAsync(newsId, "cancelled");
+            var result = await _newsRepository.UpdateNewsStatusAsync(newsId, "cancelled");
+            if (!result)
+                throw new Exception($"Failed to reject news with ID {newsId}");
+            return true;
         }
-
-
     }
 }

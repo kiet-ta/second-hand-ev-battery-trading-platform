@@ -16,7 +16,7 @@ using static System.Net.Mime.MediaTypeNames;
 
 namespace Application.Services
 {
-    public class ItemService : IItemService  
+    public class ItemService : IItemService
     {
         private readonly IItemRepository _itemRepository;
 
@@ -28,8 +28,8 @@ namespace Application.Services
         public async Task<ItemDto?> GetByIdAsync(int id)
         {
             var item = await _itemRepository.GetByIdAsync(id);
-            if (item == null) return null;
-
+            if (item == null)
+                throw new KeyNotFoundException($"Item with ID {id} not found.");
             var images = await _itemRepository.GetByItemIdAsync(id);
 
             return new ItemDto
@@ -59,7 +59,10 @@ namespace Application.Services
         public async Task<IEnumerable<ItemDto>> GetAllAsync()
         {
             var items = await _itemRepository.GetAllAsync();
+            if (items == null)
+                throw new Exception("No items found.");
             var result = new List<ItemDto>();
+
 
             foreach (var item in items)
             {
@@ -95,6 +98,8 @@ namespace Application.Services
 
         public async Task<ItemDto> CreateAsync(ItemDto dto)
         {
+            if (dto == null)
+                throw new ArgumentNullException(nameof(dto));
             var entity = new Item
             {
                 ItemType = dto.ItemType,
@@ -134,7 +139,8 @@ namespace Application.Services
         public async Task<bool> UpdateAsync(int id, ItemDto dto)
         {
             var item = await _itemRepository.GetByIdAsync(id);
-            if (item == null) return false;
+            if (item == null)
+                throw new KeyNotFoundException($"Item with ID {id} not found."); if (item == null) return false;
 
             item.Title = dto.Title;
             item.Description = dto.Description;
@@ -154,7 +160,8 @@ namespace Application.Services
         public async Task<bool> DeleteAsync(int id)
         {
             var item = await _itemRepository.GetByIdAsync(id);
-            if (item == null) return false;
+            if (item == null)
+                throw new KeyNotFoundException($"Item with ID {id} not found.");
 
             _itemRepository.Delete(item);
             await _itemRepository.SaveChangesAsync();
@@ -163,6 +170,8 @@ namespace Application.Services
         public async Task<IEnumerable<ItemDto>> GetLatestEVsAsync(int count)
         {
             var items = await _itemRepository.GetLatestEVsAsync(count);
+            if (items == null)
+                throw new Exception("No EV items found.");
 
             var result = new List<ItemDto>();
 
@@ -199,7 +208,8 @@ namespace Application.Services
         public async Task<IEnumerable<ItemDto>> GetLatestBatteriesAsync(int count)
         {
             var items = await _itemRepository.GetLatestBatteriesAsync(count);
-
+            if (items == null)
+                throw new Exception("No battery items found.");
             var result = new List<ItemDto>();
 
             foreach (var item in items)
@@ -259,28 +269,42 @@ namespace Application.Services
 
         public async Task<ItemWithDetailDto?> GetItemWithDetailsAsync(int id)
         {
-            return await _itemRepository.GetItemWithDetailsAsync(id);
+            var item = await _itemRepository.GetItemWithDetailsAsync(id);
+            if (item == null)
+                throw new KeyNotFoundException($"Item with ID {id} not found.");
+            return item;
         }
+
 
         public async Task<IEnumerable<ItemWithDetailDto>> GetAllItemsWithDetailsAsync()
         {
-            return await _itemRepository.GetAllItemsWithDetailsAsync();
+            var items = await _itemRepository.GetAllItemsWithDetailsAsync();
+            if (items == null)
+                throw new Exception("No detailed items found.");
+            return items;
         }
 
         public async Task<IEnumerable<ItemBoughtDto>> GetBoughtItemsWithDetailsAsync(int userId)
         {
-            return await _itemRepository.GetBoughtItemsWithDetailsAsync(userId);
+            var items = await _itemRepository.GetBoughtItemsWithDetailsAsync(userId);
+            if (items == null)
+                throw new KeyNotFoundException($"No bought items found for user ID {userId}.");
+            return items;
         }
 
         public async Task<IEnumerable<ItemSellerDto>> GetSellerItemsAsync(int sellerId)
         {
-            return await _itemRepository.GetItemsBySellerIdAsync(sellerId);
+            var items = await _itemRepository.GetItemsBySellerIdAsync(sellerId);
+            if (items == null)
+                throw new KeyNotFoundException($"No items found for seller ID {sellerId}.");
+            return items;
         }
 
         public async Task<UserItemDetailDto?> GetItemDetailByIdAsync(int itemId)
         {
-            // có thể thêm logic xử lý domain hoặc business rules tại đây
             var result = await _itemRepository.GetItemWithSellerByItemIdAsync(itemId);
+            if (result == null)
+                throw new KeyNotFoundException($"Item with ID {itemId} not found.");
             return result;
         }
 
@@ -288,8 +312,10 @@ namespace Application.Services
         public async Task<bool> SetApprovedItemTagAsync(int itemId)
         {
             var item = await _itemRepository.GetByIdAsync(itemId);
-            if (item == null || item.Moderation != "pending")
-                return false;
+            if (item == null)
+                throw new KeyNotFoundException($"Item with ID {itemId} not found.");
+            if (item.Moderation != "pending")
+                throw new InvalidOperationException("Only pending items can be approved.");
 
             return await _itemRepository.SetItemTagAsync(itemId, "approved_tag");
         }
@@ -297,12 +323,13 @@ namespace Application.Services
         public async Task<bool> SetRejectedItemTagAsync(int itemId)
         {
             var item = await _itemRepository.GetByIdAsync(itemId);
-            if (item == null || item.Moderation != "pending")
-                return false;
+            if (item == null)
+                throw new KeyNotFoundException($"Item with ID {itemId} not found.");
+            if (item.Moderation != "pending")
+                throw new InvalidOperationException("Only pending items can be rejected.");
 
             return await _itemRepository.SetItemTagAsync(itemId, "reject_tag");
         }
-
 
     }
 }
