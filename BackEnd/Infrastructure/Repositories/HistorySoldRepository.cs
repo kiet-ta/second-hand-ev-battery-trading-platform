@@ -169,7 +169,7 @@ namespace Infrastructure.Repositories
                         select new BatteryItemDto
                         {
                             ItemId = item.ItemId,
-
+                            ItemType = item.ItemType,
                             Brand = battery.Brand,
                             Capacity = battery.Capacity,
                             Voltage = battery.Voltage,
@@ -217,6 +217,7 @@ namespace Infrastructure.Repositories
                         select new EVItemDto
                         {
                             ItemId = item.ItemId,
+                            ItemType = item.ItemType,
                             Title = item.Title,
                             LicensePlate = ev.LicensePlate,
                             Mileage = ev.Mileage,

@@ -324,7 +324,7 @@ namespace BackEnd.Application.Tests
             var itemService = new ItemService(repoMock.Object);
 
             // Act
-            var result = await itemService.SearchItemsAsync("EV", "", null, null);
+            var result = await itemService.SearchItemsAsync("EV", "", null, null, 1, 20, "Price", "asc");
 
             // Assert
             Assert.Equal(2, result.TotalCount);
@@ -358,7 +358,7 @@ namespace BackEnd.Application.Tests
             var itemService = new ItemService(repoMock.Object);
 
             // Act
-            var result = await itemService.SearchItemsAsync("", "Tesla", null, null);
+            var result = await itemService.SearchItemsAsync("", "Tesla", null, null, 1, 20, "Price", "asc");
 
             // Assert
             Assert.Equal(2, result.TotalCount);
@@ -393,7 +393,7 @@ namespace BackEnd.Application.Tests
             var itemService = new ItemService(repoMock.Object);
 
             // Act
-            var result = await itemService.SearchItemsAsync("", "", 2000, 3000);
+            var result = await itemService.SearchItemsAsync("", "", 2000, 3000, 1, 20, "Price", "asc");
 
             // Assert
             Assert.Equal(2, result.TotalCount);
@@ -429,7 +429,7 @@ namespace BackEnd.Application.Tests
             var itemService = new ItemService(repoMock.Object);
 
             // Act
-            var result = await itemService.SearchItemsAsync("", "", null, null, 2, 10);
+            var result = await itemService.SearchItemsAsync("", "", null, null, 2, 10, "Price", "asc");
 
             // Assert
             Assert.Equal(25, result.TotalCount);
