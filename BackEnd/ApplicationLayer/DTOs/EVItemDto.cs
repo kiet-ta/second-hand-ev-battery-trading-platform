@@ -11,6 +11,7 @@ namespace Application.DTOs
         public class EVItemDto
         {
             public int ItemId { get; set; }
+            public string ItemType { get; set; }
             public string Title { get; set; }
             public string LicensePlate { get; set; }
             public int? Mileage { get; set; }
