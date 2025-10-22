@@ -197,7 +197,7 @@ namespace Infrastructure.Repositories
         {
             // I fixed here because Update() will mark the whole entity as Modified → if the service only has IsDeleted = true set then it's OK, but if the entity is being tracked, it might override other fields.
             //item.IsDeleted = true;
-            //_context.Items.Update(item); // xóa mềm
+            //_context.Items.Update(item); // soft delete
 
             item.IsDeleted = true;
             _context.Entry(item).Property(x => x.IsDeleted).IsModified = true;
@@ -318,74 +318,79 @@ namespace Infrastructure.Repositories
             return await query.AsNoTracking().ToListAsync();
         }
 
-        public async Task<IEnumerable<ItemBoughtDto>> GetBoughtItemsWithDetailsAsync(int userId)
+        public async Task<PagedResultBought<ItemBoughtDto>> GetBoughtItemsWithDetailsAsync(int userId, PaginationParams paginationParams)
         {
-            // Query original
-            var query = from payment in _context.Payments
-                        join pd in _context.PaymentDetails on payment.PaymentId equals pd.PaymentId
-                        join item in _context.Items on pd.ItemId equals item.ItemId
-                        where payment.UserId == userId && payment.Status == "completed"
-                        select new
+            var baseQuery = from payment in _context.Payments
+                            join pd in _context.PaymentDetails on payment.PaymentId equals pd.PaymentId
+                            join item in _context.Items on pd.ItemId equals item.ItemId
+                            where payment.UserId == userId && payment.Status == "completed"
+                            // Left Join EV_Detail
+                            join ev in _context.EVDetails on item.ItemId equals ev.ItemId into evJoin
+                            from ev in evJoin.DefaultIfEmpty()
+                                // Left Join Battery_Detail
+                            join bat in _context.BatteryDetails on item.ItemId equals bat.ItemId into batJoin
+                            from bat in batJoin.DefaultIfEmpty()
+                            select new { payment, pd, item, ev, bat };
+
+            var totalCount = await baseQuery.CountAsync();
+
+            var pagedItems = await baseQuery
+                .Skip((paginationParams.PageNumber - 1) * paginationParams.PageSize)
+                .Take(paginationParams.PageSize)
+                .Select(x => new ItemBoughtDto
+                {
+                    ItemId = x.item.ItemId,
+                    ItemType = x.item.ItemType,
+                    Title = x.item.Title,
+                    Description = x.item.Description,
+                    Price = x.item.Price,
+                    PaymentId = x.payment.PaymentId,
+                    OrderCode = x.payment.OrderCode,
+                    TotalAmount = x.payment.TotalAmount,
+                    Method = x.payment.Method,
+                    Status = x.payment.Status,
+                    PaymentCreatedAt = x.payment.CreatedAt,
+                    Brand = x.ev.Brand, 
+                    Model = x.ev.Model,
+                    Version = x.ev.Version,
+                    Year = x.ev.Year,
+                    Color = x.ev.Color,
+                    Mileage = x.ev.Mileage,
+                    Capacity = x.bat.Capacity, 
+                    Voltage = x.bat.Voltage,
+                    ChargeCycles = x.bat.ChargeCycles,
+                    ItemAmount = x.pd.Amount,
+                    ItemImage = new List<ItemImage>() 
+                })
+                .ToListAsync(); 
+
+            if (pagedItems.Any())
+            {
+                var itemIds = pagedItems.Select(p => p.ItemId).Distinct().ToList();
+
+                var allImages = await _context.ItemImages
+                    .Where(img => itemIds.Contains(img.ItemId))
+                    .Select(img => new { img.ItemId, img.ImageId, img.ImageUrl })
+                    .ToListAsync();
+
+                var imageLookup = allImages.GroupBy(img => img.ItemId);
+
+                foreach (var item in pagedItems)
+                {
+                    var itemImages = imageLookup.FirstOrDefault(g => g.Key == item.ItemId);
+                    if (itemImages != null)
+                    {
+                        item.ItemImage = itemImages.Select(img => new ItemImage
                         {
-                            payment,
-                            pd,
-                            item
-                        };
+                            ImageId = img.ImageId,
+                            ItemId = img.ItemId,
+                            ImageUrl = img.ImageUrl
+                        }).ToList();
+                    }
+                }
+            }
 
-            // build result detail (join EV & Battery)
-            var result = await (from q in query
-                                    // left join EV_Detail
-                                join ev in _context.EVDetails
-                                    on q.item.ItemId equals ev.ItemId into evJoin
-                                from ev in evJoin.DefaultIfEmpty()
-                                    // left join Battery_Detail
-                                join bat in _context.BatteryDetails
-                                    on q.item.ItemId equals bat.ItemId into batJoin
-                                from bat in batJoin.DefaultIfEmpty()
-                                //join im in _context.ItemImages
-                                //    on q.item.ItemId equals im.ItemId into imJoin
-                                //from im in imJoin.DefaultIfEmpty()
-                                select new ItemBoughtDto
-                                {
-                                    ItemId = q.item.ItemId,
-                                    ItemType = q.item.ItemType,
-                                    Title = q.item.Title,
-                                    Description = q.item.Description,
-                                    Price = q.item.Price,
-
-                                    PaymentId = q.payment.PaymentId,
-                                    OrderCode = q.payment.OrderCode,
-                                    TotalAmount = q.payment.TotalAmount,
-                                    Method = q.payment.Method,
-                                    Status = q.payment.Status,
-                                    PaymentCreatedAt = q.payment.CreatedAt,
-
-                                    // EV
-                                    Brand = ev.Brand,
-                                    Model = ev.Model,
-                                    Version = ev.Version,
-                                    Year = ev.Year,
-                                    Color = ev.Color,
-                                    Mileage = ev.Mileage,
-
-                                    // Battery
-                                    Capacity = bat.Capacity,
-                                    Voltage = bat.Voltage,
-                                    ChargeCycles = bat.ChargeCycles,
-
-                                    // Amount of item
-                                    ItemAmount = q.pd.Amount,
-
-                                    ItemImage = _context.ItemImages
-                                        .Where(img => img.ItemId == q.item.ItemId)
-                                        .Select(img => new ItemImage
-                                        {
-                                            ImageId = img.ImageId,
-                                            ImageUrl = img.ImageUrl
-                                        }).ToList()
-                                }).ToListAsync();
-
-            return result;
+            return new PagedResultBought<ItemBoughtDto>(pagedItems, totalCount, paginationParams.PageNumber, paginationParams.PageSize);
         }
 
         //Feature: Seller Dashboard
