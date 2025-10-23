@@ -75,6 +75,11 @@ export default function ChangePassword() {
             }
 
             toast.success("✅ Mật khẩu đã được thay đổi thành công!");
+            const rememberEmail = localStorage.getItem("rememberEmail");
+            if (rememberEmail) {
+                // ⚠️ Cập nhật lại mật khẩu mới cho rememberPassword
+                localStorage.setItem("rememberPassword", formData.newPassword);
+            }
             setFormData({ oldPassword: "", newPassword: "", confirmPassword: "" });
             setStrength({ label: "", color: "" });
         } catch (error) {

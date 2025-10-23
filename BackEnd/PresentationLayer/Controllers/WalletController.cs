@@ -42,18 +42,14 @@ public class WalletController : ControllerBase
             return BadRequest(new { message = "Invalid deposit information." });
         }
 
-        try
-        {
+        
             var success = await _walletService.DepositAsync(request.UserId, request.Amount);
             if (success)
             {
                 return Ok(new { message = "Deposit successful." });
             }
             return StatusCode(500, new { message = "An error occurred while depositing money." });
-        }
-        catch (System.Exception ex)
-        {
-            return BadRequest(new { message = ex.Message });
-        }
+        
+        
     }
 }

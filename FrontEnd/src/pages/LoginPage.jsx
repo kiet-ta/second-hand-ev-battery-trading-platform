@@ -4,7 +4,6 @@ import { message, Popover } from "antd";
 import authApi from "../api/authApi";
 import Logo from "../components/Logo";
 import LoginPicture from "../assets/images/LoginPicture.jpg";
-import { jwtDecode } from "jwt-decode";
 
 export default function LoginPage() {
     const navigate = useNavigate();
@@ -12,8 +11,20 @@ export default function LoginPage() {
     const [user, setUser] = useState(null);
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [remember, setRemember] = useState(false);
     const [error, setError] = useState("");
     const googleButtonRef = useRef(null);
+
+    // 🧠 Khi load lại trang, nếu có remember data thì tự điền
+    useEffect(() => {
+        const savedEmail = localStorage.getItem("rememberEmail");
+        const savedPassword = localStorage.getItem("rememberPassword");
+        if (savedEmail && savedPassword) {
+            setEmail(savedEmail);
+            setPassword(savedPassword);
+            setRemember(true);
+        }
+    }, []);
 
     // Load script Google
     useEffect(() => {
@@ -52,6 +63,7 @@ export default function LoginPage() {
         }
     }
 
+    // 🔹 Login bằng Google
     async function handleCredentialResponse(response) {
         const googleToken = response.credential;
         try {
@@ -63,19 +75,23 @@ export default function LoginPage() {
             if (!res.ok) throw new Error(await res.text());
             const data = await res.json();
             const userData = data.data;
+
             localStorage.setItem("token", userData.token);
             localStorage.setItem("userId", userData.userId);
             localStorage.setItem("user", JSON.stringify(userData));
+            message.success("Đăng nhập bằng Google thành công!");
+
             const role = userData.role?.toLowerCase();
             if (role === "manager" || role === "staff") navigate("/manage");
             else if (role === "seller") navigate("/seller");
             else navigate("/");
         } catch (err) {
             console.error("Google Login Error:", err);
+            message.error("Đăng nhập Google thất bại!");
         }
     }
 
-    // Đăng nhập thủ công
+    // 🔹 Login thủ công
     const handleLocalLogin = async (e) => {
         e.preventDefault();
         setError("");
@@ -88,15 +104,28 @@ export default function LoginPage() {
         try {
             const data = await authApi.login(email.trim(), password.trim());
             const res = data.data;
-            const newUser = { ...res.user, userId: res.userId, token: res.token };
+
+            const newUser = { ...res, token: res.token };
             localStorage.setItem("userId", res.userId);
             localStorage.setItem("token", res.token);
+            localStorage.setItem("user", JSON.stringify(newUser));
             setUser(newUser);
-            const role = jwtDecode(res.token).role.toLowerCase();
+            message.success("Đăng nhập thành công!");
+
+            // ✅ Lưu remember info
+            if (remember) {
+                localStorage.setItem("rememberEmail", email);
+                localStorage.setItem("rememberPassword", password);
+            } else {
+                localStorage.removeItem("rememberEmail");
+                localStorage.removeItem("rememberPassword");
+            }
+
+            // ✅ Phân quyền
+            const role = res.role?.toLowerCase();
             if (role === "manager" || role === "staff") navigate("/manage");
             else if (role === "seller") navigate("/seller");
             else navigate("/");
-            
         } catch (err) {
             console.error("Login error:", err);
             setError("Thông tin đăng nhập không chính xác.");
@@ -105,9 +134,7 @@ export default function LoginPage() {
 
     return (
         <div className="min-h-screen flex flex-col items-center justify-center bg-[#FFF8E7] px-4">
-            {/* Thẻ đăng nhập */}
             <div className="relative bg-white rounded-3xl shadow-xl flex flex-col lg:flex-row items-center justify-between w-full max-w-4xl overflow-hidden">
-
                 {/* Form đăng nhập */}
                 <div className="w-full lg:w-1/2 p-10">
                     {!user ? (
@@ -134,7 +161,16 @@ export default function LoginPage() {
                             />
 
                             <div className="flex justify-between items-center text-sm">
-                                <span></span>
+                                <label className="flex items-center gap-2 text-gray-600">
+                                    <input
+                                        type="checkbox"
+                                        checked={remember}
+                                        onChange={(e) => setRemember(e.target.checked)}
+                                        className="accent-[#D4AF37]"
+                                    />
+                                    Ghi nhớ đăng nhập
+                                </label>
+
                                 <Link
                                     to="#"
                                     className="text-gray-500 hover:text-[#D4AF37] transition-colors"
@@ -179,7 +215,7 @@ export default function LoginPage() {
                         </form>
                     ) : (
                         <div className="text-center">
-                            <p>Xin chào, {user.name}</p>
+                            <p>Xin chào, {user.fullName}</p>
                         </div>
                     )}
                 </div>

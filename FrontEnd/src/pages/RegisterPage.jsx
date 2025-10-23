@@ -67,9 +67,11 @@ export default function RegisterPage() {
             localStorage.setItem("token", userData.token);
             localStorage.setItem("userId", userData.userId);
             localStorage.setItem("user", JSON.stringify(userData));
+            message.success("Đăng ký bằng Google thành công!");
             navigate("/");
         } catch (err) {
             console.error("Google Register Error:", err);
+            message.error("Đăng ký Google thất bại!");
         }
     }
 
@@ -89,6 +91,7 @@ export default function RegisterPage() {
                 password,
                 confirmPassword,
             });
+            message.success("Đăng ký thành công!");
             navigate("/login");
         } catch (err) {
             console.error("Register error:", err);

@@ -25,9 +25,20 @@ export default function SellerDashboardLayout() {
     ];
 
     const handleLogout = () => {
-        localStorage.clear();
-        window.location.href = "/login";
+        // ⚠️ Giữ lại thông tin remember
+        const rememberEmail = localStorage.getItem("rememberEmail");
+        const rememberPassword = localStorage.getItem("rememberPassword");
+
+        localStorage.clear(); // Xoá mọi thứ
+        // ✅ Ghi lại thông tin remember
+        if (rememberEmail && rememberPassword) {
+            localStorage.setItem("rememberEmail", rememberEmail);
+            localStorage.setItem("rememberPassword", rememberPassword);
+        }
+
+        navigate("/login");
     };
+
 
     return (
         <div className="flex h-screen bg-gray-50">

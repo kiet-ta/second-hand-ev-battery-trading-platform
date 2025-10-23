@@ -1,4 +1,4 @@
-import HistoryBought from "../../components/Profile/HistoryBought";
+import HistoryBought from "../../components/HistoryBought";
 
 export default function PurchaseSection() {
     return (

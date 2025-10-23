@@ -14,8 +14,10 @@ namespace Application.Services
 
         public ProfanityFilterService()
         {
-            var filePath = Path.Combine(AppContext.BaseDirectory, "Resources", "badwords.txt");
-
+            var rootPath = Directory.GetParent(AppContext.BaseDirectory)?.Parent?.Parent?.Parent?.Parent?.FullName;
+            var filePath = Path.Combine(rootPath!, "badwords.txt");
+            Console.WriteLine(rootPath);
+            Console.WriteLine(filePath);
             if (File.Exists(filePath))
             {
                 _badWords = File.ReadAllLines(filePath)
@@ -23,13 +25,10 @@ namespace Application.Services
                                 .Select(line => line.Trim().ToLower())
                                 .Distinct()
                                 .ToList();
-                Console.WriteLine($"✅ Loaded bad words file successfully: {_badWords.Count} words loaded from {filePath}");
             }
             else
             {
-                Console.WriteLine("fallback nếu file không tồn tại");
-                // fallback nếu file không tồn tại
-                _badWords = new List<string> { "địt", "cặc", "lồn", "đụ", "mẹ mày", "đm", "dm" };
+                throw new Exception("cannot load file");
             }
         }
 
