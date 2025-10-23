@@ -1,8 +1,6 @@
 ﻿using Application.IServices;
 using Microsoft.AspNetCore.Mvc;
-using System;
 using System.Threading.Tasks;
-using System.Collections.Generic;
 using Application.DTOs.ReviewDtos;
 
 namespace PresentationLayer.Controllers
@@ -18,7 +16,6 @@ namespace PresentationLayer.Controllers
             _reviewService = reviewService;
         }
 
-
         [HttpPost]
         public async Task<IActionResult> CreateReview([FromBody] CreateReviewDto dto)
         {
@@ -28,50 +25,27 @@ namespace PresentationLayer.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            try
-            {
-                var review = await _reviewService.CreateReviewAsync(dto);
+            var review = await _reviewService.CreateReviewAsync(dto);
 
-                return CreatedAtAction(nameof(GetReviewsByTargetUser),
-                    new { targetUserId = review.TargetUserId }, review);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"An error occurred while creating the review: {ex.Message}");
-            }
+            return CreatedAtAction(
+                nameof(GetReviewsByTargetUser),
+                new { targetUserId = review.TargetUserId },
+                review
+            );
         }
 
-        [HttpGet("target/{targetUserId}")]
+        [HttpGet("target/{targetUserId:int}")]
         public async Task<IActionResult> GetReviewsByTargetUser(int targetUserId)
         {
-            try
-            {
-                var reviews = await _reviewService.GetReviewsByTargetUserIdAsync(targetUserId);
-
-                if (reviews == null || reviews.Count == 0)
-                    return NotFound("No reviews found for this user.");
-
-                return Ok(reviews);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"An error occurred while fetching reviews: {ex.Message}");
-            }
+            var reviews = await _reviewService.GetReviewsByTargetUserIdAsync(targetUserId);
+            return Ok(reviews);
         }
-        [HttpGet("exists/item/{itemId}")]
-        public async Task<IActionResult> ReviewExists(int itemId)
+
+        [HttpGet("item/{itemId:int}")]
+        public async Task<IActionResult> GetReviewsByItem(int itemId)
         {
-            try
-            {
-                var exists = await _reviewService.GetReviewAsync(itemId);
-
-                return Ok(new { ItemId = itemId, Exists = exists });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"An error occurred while checking review existence: {ex.Message}");
-            }
+            var reviews = await _reviewService.GetReviewAsync(itemId);
+            return Ok(reviews);
         }
-
     }
 }
