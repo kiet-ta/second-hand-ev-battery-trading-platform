@@ -35,7 +35,7 @@ namespace Infrastructure.Repositories
             var complaint = new Complaint
             {
                 UserId = dto.UserId,
-                AssignTo = dto.AssignTo, 
+                AssignTo = null, 
                 Reason = dto.Reason,
                 Description = dto.Description,
                 Status = dto.Status ?? "pending",
