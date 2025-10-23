@@ -40,28 +40,25 @@ namespace Application.Services
             _kycRepo = kycRepo;
         }
 
-        public async Task<ManagerDashboardMetricsDto> GetMetricsAsync()
-        {
-            var now = DateTime.UtcNow;
+        //public async Task<ManagerDashboardMetricsDto> GetMetricsAsync()
+        //{
+        //    var now = DateTime.UtcNow;
 
-            var revenueThisMonth = await _orderRepo.GetRevenueThisMonthAsync(now);
-            var totalUsers = await _userRepo.CountAsync();
-            var activeListings = await _itemRepo.CountActiveAsync();
-            var complaintRate = await _complaintRepo.GetComplaintRateAsync();
-            var growth = await _userRepo.GetMonthlyGrowthAsync();
-            if (totalUsers < 0 || activeListings < 0)
-                throw new Exception("Invalid metric data retrieved.");
+        //    var revenueThisMonth = await _orderRepo.GetRevenueThisMonthAsync(now);
+        //    var totalUsers = await _userRepo.CountAsync();
+        //    var activeListings = await _itemRepo.CountActiveAsync();
+        //    var complaintRate = await _complaintRepo.GetComplaintRateAsync();
+        //    var growth = await _userRepo.GetMonthlyGrowthAsync();
 
-
-            return new ManagerDashboardMetricsDto
-            {
-                RevenueThisMonth = revenueThisMonth,
-                TotalUsers = totalUsers,
-                ActiveListings = activeListings,
-                ComplaintRate = complaintRate,
-                Growth = growth
-            };
-        }
+        //    return new ManagerDashboardMetricsDto
+        //    {
+        //        RevenueThisMonth = revenueThisMonth,
+        //        TotalUsers = totalUsers,
+        //        ActiveListings = activeListings,
+        //        ComplaintRate = complaintRate,
+        //        Growth = growth
+        //    };
+        //}
 
         public async Task<IEnumerable<RevenueByMonthDto>> GetRevenueByMonthAsync(string range)
         {

@@ -24,6 +24,7 @@ using Infrastructure.Ulties;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -45,6 +46,7 @@ namespace PresentationLayer
             builder.Services.AddDbContext<EvBatteryTradingContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
             builder.Services.Configure<AppSetting>(builder.Configuration.GetSection("Google"));
             builder.Services.Configure<FirebaseOptions>(builder.Configuration.GetSection("Firebase"));
+
             // DI for Repository + Service
             //---Services
             builder.Services.AddScoped<IAuthService, AuthService>();
@@ -226,6 +228,14 @@ namespace PresentationLayer
             builder.Services.AddScoped<INewsService, NewsService>();
             builder.Services.AddSingleton<INotificationService, NotificationService>();
             builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
+
+            //Complaint
+            builder.Services.AddScoped<IComplaintService, ComplaintService>();
+            builder.Services.AddScoped<IComplaintRepository, ComplaintRepository>();
+            // Trong Program.cs hoặc Startup.cs
+
+
+
 
             builder.Services.AddSwaggerGen(c =>
             {
