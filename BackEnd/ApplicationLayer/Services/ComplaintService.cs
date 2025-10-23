@@ -17,13 +17,18 @@ namespace Application.Services
             _complaintRepository = complaintRepository;
         }
 
-        public async Task<Complaint> AddNewComplaint(CreateComplaintDto dto)
+        public async Task<Complaint> AddNewComplaint(CreateComplaintDto dto, int userId)
         {
-            if (dto == null) throw new ArgumentNullException(nameof(dto));
-            if (string.IsNullOrWhiteSpace(dto.Reason))
-                throw new ArgumentException("Reason is required.");
+            if (dto == null)
+                throw new ArgumentNullException(nameof(dto), "Complaint data must not be null.");
 
-            return await _complaintRepository.AddNewComplaint(dto);
+            if (string.IsNullOrWhiteSpace(dto.Reason))
+                throw new ArgumentException("Reason is required.", nameof(dto.Reason));
+
+            if (userId <= 0)
+                throw new ArgumentException("Invalid user ID.", nameof(userId));
+
+            return await _complaintRepository.AddNewComplaint(dto, userId);
         }
 
         public async Task<Complaint> GetComplaintById(int id)
@@ -62,31 +67,52 @@ namespace Application.Services
             return list;
         }
 
-        public async Task<bool> UpdateStatusComplaint(int complaintId, string status, int? assignTo = null)
+        public async Task<bool> UpdateStatusComplaint(int complaintId, string status, int userId)
         {
+            if (complaintId <= 0)
+                throw new ArgumentException("Invalid complaint ID.");
+
             if (string.IsNullOrWhiteSpace(status))
                 throw new ArgumentException("Status is required.");
 
-            var success = await _complaintRepository.UpdateStatusComplaint(complaintId, status, assignTo);
-            if (!success) throw new KeyNotFoundException($"Complaint ID {complaintId} not found.");
+            var updated = await _complaintRepository.UpdateStatusComplaint(complaintId, status, userId);
+
+            if (!updated)
+                throw new KeyNotFoundException($"Complaint with ID {complaintId} not found or already deleted.");
+
             return true;
         }
 
-        public async Task<bool> UpdateLevelComplaint(int complaintId, string level, int? assignTo = null)
+
+        public async Task<bool> UpdateLevelComplaint(int complaintId, string level, int userId)
         {
+            if (complaintId <= 0)
+                throw new ArgumentException("Invalid complaint ID.");
+
             if (string.IsNullOrWhiteSpace(level))
                 throw new ArgumentException("Severity level is required.");
 
-            var success = await _complaintRepository.UpdateLevelComplaint(complaintId, level, assignTo);
-            if (!success) throw new KeyNotFoundException($"Complaint ID {complaintId} not found.");
+            var updated = await _complaintRepository.UpdateLevelComplaint(complaintId, level, userId);
+
+            if (!updated)
+                throw new KeyNotFoundException($"Complaint with ID {complaintId} not found or already deleted.");
+
             return true;
         }
 
-        public async Task<bool> DeleteComplaint(int complaintId)
+
+        public async Task<bool> DeleteComplaint(int complaintId, int userId)
         {
-            var success = await _complaintRepository.DeleteComplaint(complaintId);
-            if (!success) throw new KeyNotFoundException($"Complaint ID {complaintId} not found.");
+            if (complaintId <= 0)
+                throw new ArgumentException("Invalid complaint ID.");
+
+            var deleted = await _complaintRepository.DeleteComplaint(complaintId, userId);
+
+            if (!deleted)
+                throw new KeyNotFoundException($"Complaint with ID {complaintId} not found or already deleted.");
+
             return true;
         }
+
     }
 }
