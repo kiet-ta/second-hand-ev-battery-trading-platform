@@ -10,6 +10,7 @@ import {
     Clock,
 } from "lucide-react";
 import { IoLogOutOutline } from "react-icons/io5";
+import Logo from "../../components/Logo"
 
 export default function SellerDashboardLayout() {
     const navigate = useNavigate();
@@ -45,12 +46,7 @@ export default function SellerDashboardLayout() {
             {/* Sidebar */}
             <aside className="w-64 bg-white border-r border-gray-200 flex flex-col">
                 <div className="p-6 border-b border-gray-200">
-                    <h1
-                        className="text-sm font-bold text-gray-900 cursor-pointer"
-                        onClick={() => navigate("/")}
-                    >
-                        Seller Dashboard
-                    </h1>
+                    <Logo />
                 </div>
 
                 {/* Menu chính */}

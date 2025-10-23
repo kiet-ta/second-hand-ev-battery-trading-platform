@@ -4,6 +4,7 @@ import { message, Popover } from "antd";
 import authApi from "../api/authApi";
 import Logo from "../components/Logo";
 import LoginPicture from "../assets/images/LoginPicture.jpg";
+import { jwtDecode } from "jwt-decode";
 
 export default function LoginPage() {
     const navigate = useNavigate();
@@ -87,7 +88,6 @@ export default function LoginPage() {
             else navigate("/");
         } catch (err) {
             console.error("Google Login Error:", err);
-            message.error("Đăng nhập Google thất bại!");
         }
     }
 
