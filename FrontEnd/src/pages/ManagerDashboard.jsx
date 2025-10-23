@@ -24,9 +24,20 @@ export default function ManagerDashboard() {
     const [showAddStaffModal, setShowAddStaffModal] = useState(false);
 
     const handleLogoutConfirm = () => {
-        localStorage.clear();
+        // ⚠️ Giữ lại thông tin remember
+        const rememberEmail = localStorage.getItem("rememberEmail");
+        const rememberPassword = localStorage.getItem("rememberPassword");
+
+        localStorage.clear(); // Xoá mọi thứ
+        // ✅ Ghi lại thông tin remember
+        if (rememberEmail && rememberPassword) {
+            localStorage.setItem("rememberEmail", rememberEmail);
+            localStorage.setItem("rememberPassword", rememberPassword);
+        }
+
         navigate("/login");
     };
+
 
     const handleAddStaff = () => setShowAddStaffModal(true);
     const handleCloseAddStaff = () => setShowAddStaffModal(false);
