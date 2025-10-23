@@ -13,13 +13,17 @@ const ProfileDropDown = ({users,walletBalance}) => (
             },
             {type: 'divider'},
             {
-            key: '2', label: (<a href='/wallet' className="flex gap-2">Wallet:<div className='font-semibold'>{walletBalance} VND</div> </a>)
+            key: '2', label: (<a href='/wallet' className="flex gap-2">Ví:<div className='font-semibold'>{walletBalance} VND</div> </a>)
             },
             {
                 key: '3', label: (<a href="/profile">Profile</a>)
             },
-            {key: '4', label: (<a href="/login" onClick={handleLogout}>Logout</a>)
+                        {
+                key: '4', label: (<a href="/complaint"> Gửi yêu cầu</a>)
+            },
+            {key: '5', label: (<a href="/login" onClick={handleLogout}>Đăng xuất</a>)
             }
+
         ]
 }}>
         <a onClick={e => e.preventDefault()}>
