@@ -52,14 +52,9 @@ public class StaffManagementController : ControllerBase
     [HttpGet("staff/{staffId}/permissions")]
     public async Task<IActionResult> GetStaffPermissions(int staffId)
     {
-        try
-        {
-            var permissions = await _staffManagementService.GetPermissionsByStaffIdAsync(staffId);
+           var permissions = await _staffManagementService.GetPermissionsByStaffIdAsync(staffId);
             return Ok(permissions);
-        }
-        catch (Exception ex)
-        {
-            return NotFound(new { message = ex.Message });
-        }
+        
+        
     }
 }
