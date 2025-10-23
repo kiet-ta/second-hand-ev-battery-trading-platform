@@ -10,5 +10,6 @@ namespace Application.IServices
         Task<Address?> GetAddressByIdAsync(int addressId);
         Task<List<Address>> GetAllAddressesAsync();
         Task UpdateAddressAsync(Address address);
+        Task<Address> GetAddressDefaultByUserId(int userId);
     }
 }

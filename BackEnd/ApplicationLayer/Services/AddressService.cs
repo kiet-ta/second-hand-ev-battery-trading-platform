@@ -65,6 +65,16 @@ namespace Application.Services
 
             await _addressRepository.UpdateAddressAsync(address);
         }
+        public async Task<Address> GetAddressDefaultByUserId(int userId)
+        {
+            var address = await _addressRepository.GetAddressDefaultByUserId(userId);
 
+            if (address == null)
+            {
+                throw new Exception($"No default address found for user with ID {userId}.");
+            }
+
+            return address;
+        }
     }
 }
