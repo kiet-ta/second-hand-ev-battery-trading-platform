@@ -43,16 +43,11 @@ public class PaymentController : ControllerBase
         }
 
         WebhookType? webhook = null;
-        try
-        {
+        
             webhook = JsonSerializer.Deserialize<WebhookType>(rawBody,
                 new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"[Webhook] JSON parse error: {ex.Message}");
-            return Ok(new { status = "ok" });
-        }
+        
+       
 
         if (webhook == null)
         {
@@ -60,17 +55,12 @@ public class PaymentController : ControllerBase
             return Ok(new { status = "ok" });
         }
 
-        try
-        {
+        
             await _paymentService.HandleWebhookAsync(webhook);
             Console.WriteLine("[Webhook] Processed successfully");
             return Ok(new { status = "ok" });
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"[Webhook Error] {ex}");
-            return Ok(new { status = "ok" });
-        }
+        
+        
     }
 
     [HttpPost("create-payment-link")]
