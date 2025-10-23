@@ -10,11 +10,11 @@ const itemApi = {
         return response.data;
     },
     getItemByLatestEV: async () => {
-        const response = await axios.get(baseURL + "/latest-evs",10)
+        const response = await axios.get(baseURL + "/latest-evs")
         return response.data;
     },
     getItemByLatestBattery: async () => {
-        const response = await axios.get(baseURL + "/latest-batterys",10)
+        const response = await axios.get(baseURL + "/latest-batterys")
         return response.data;
     },
     getItemBySearch: async (itemType, title, minPrice, maxPrice, page, pageSize, sortBy, sortDir) => {

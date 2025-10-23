@@ -17,18 +17,6 @@ const walletApi = {
             }
         )
         return response.data;
-    },
-    getWalletTransactions: async (walletId) => {
-        const token = localStorage.getItem('token');
-        const response = await axios.get(`${baseURL}/${walletId}/transactions`,
-            {
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                }       
-            }
-        )
-        return response.data;
     }
 };
 export default walletApi;
