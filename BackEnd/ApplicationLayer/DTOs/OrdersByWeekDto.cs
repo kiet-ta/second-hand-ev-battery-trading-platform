@@ -6,9 +6,10 @@ using System.Threading.Tasks;
 
 namespace Application.DTOs
 {
-    public class RevenueByMonthDto
+    public class OrdersByWeekDto
     {
-        public int Month { get; set; }
+        public int Year { get; set; }
+        public int WeekNumber { get; set; }
         public decimal Total { get; set; }
     }
 }

@@ -20,7 +20,7 @@ namespace Application.IRepositories
         //Feature: Seller Dashboard
         Task<int> CountBySellerAsync(int sellerId);
         Task<int> CountByStatusAsync(int sellerId, string status);
-        Task<List<OrdersByMonthDto>> GetOrdersByMonthAsync(int sellerId);
+        Task<List<OrdersByWeekDto>> GetOrdersByWeekAsync(int sellerId);
         Task<List<OrderDto>> GetOrdersByUserIdAsync(int userId);
         Task<Order> AddOrderAsync(Order order);
         Task<decimal> GetRevenueThisMonthAsync(DateTime now);
