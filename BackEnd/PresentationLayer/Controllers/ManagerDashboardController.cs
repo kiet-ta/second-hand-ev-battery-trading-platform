@@ -19,12 +19,12 @@ namespace PresentationLayer.Controllers
             _dashboardService = dashboardService;
         }
 
-        //[HttpGet("metrics")]
-        //public async Task<IActionResult> GetMetrics()
-        //{
-        //    var result = await _dashboardService.GetMetricsAsync();
-        //    return Ok(result);
-        //}
+        [HttpGet("metrics")]
+        public async Task<IActionResult> GetMetrics()
+        {
+            var result = await _dashboardService.GetMetricsAsync();
+            return Ok(result);
+        }
 
         [HttpGet("revenue-by-month")]
         public async Task<IActionResult> GetRevenueByMonth([FromQuery] string range = "12m")

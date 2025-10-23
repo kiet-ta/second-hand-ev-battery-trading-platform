@@ -56,12 +56,12 @@ namespace Application.Services
                     Cancelled = await _orderRepo.CountByStatusAsync(sellerId, "canceled")
                 };
 
-                var revenueByMonth = await _paymentRepo.GetRevenueByMonthAsync(sellerId);
-                if (revenueByMonth == null)
+                var revenueByWeek = await _paymentRepo.GetRevenueByWeekAsync(sellerId);
+                if (revenueByWeek == null)
                     throw new Exception("Failed to retrieve revenue by month.");
 
-                var ordersByMonth = await _orderRepo.GetOrdersByMonthAsync(sellerId);
-                if (ordersByMonth == null)
+                var ordersByWeek = await _orderRepo.GetOrdersByWeekAsync(sellerId);
+                if (ordersByWeek == null)
                     throw new Exception("Failed to retrieve orders by month.");
 
                 return new SellerDashboardDto
@@ -72,8 +72,8 @@ namespace Application.Services
                     Revenue = revenue,
                     ProductStatistics = productStats,
                     OrderStatistics = orderStats,
-                    RevenueByMonth = revenueByMonth,
-                    OrdersByMonth = ordersByMonth
+                    RevenueByWeek = revenueByWeek,
+                    OrdersByWeek = ordersByWeek
                 };
             }
             catch (Exception ex)
