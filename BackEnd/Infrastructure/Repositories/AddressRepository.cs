@@ -20,6 +20,14 @@ namespace Infrastructure.Repositories
             await _context.SaveChangesAsync();
         }
 
+        public async Task<Address?> GetAddressDefaultByUserId(int userId)
+        {
+            return await _context.Addresses
+                .Where(a => a.UserId == userId && (a.IsDeleted == false) && (a.IsDefault == true))
+                .FirstOrDefaultAsync();
+        }
+
+
         public async Task<List<Address>> GetAddressesByUserIdAsync(int userId)
         {
             return await _context.Addresses
