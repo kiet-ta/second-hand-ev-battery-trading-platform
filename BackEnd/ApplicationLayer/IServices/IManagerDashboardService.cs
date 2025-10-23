@@ -9,7 +9,7 @@ namespace Application.IServices
 {
     public interface IManagerDashboardService
     {
-        Task<ManagerDashboardMetricsDto> GetMetricsAsync();
+        //Task<ManagerDashboardMetricsDto> GetMetricsAsync();
         Task<IEnumerable<RevenueByMonthDto>> GetRevenueByMonthAsync(string range);
         Task<IEnumerable<OrdersByMonthDto>> GetOrdersByMonthAsync(int monthsRange);
         Task<IEnumerable<ProductDistributionDto>> GetProductDistributionAsync();

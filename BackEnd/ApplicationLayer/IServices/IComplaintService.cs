@@ -3,18 +3,18 @@ using Domain.Entities;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace Application.IRepositories
+namespace Application.IServices
 {
-    public interface IComplaintRepository
+    public interface IComplaintService
     {
         Task<Complaint> AddNewComplaint(CreateComplaintDto dto);
-        Task<Complaint?> GetComplaintById(int id);
+        Task<Complaint> GetComplaintById(int id);
         Task<List<Complaint>> GetComplaintsByStatus(string status);
         Task<List<Complaint>> GetComplaintsByLevel(string level);
         Task<List<Complaint>> GetComplaintsByAssignee(int assignTo);
-        Task<List<Complaint>> GetComplaintsByUserId(int userId);
+        Task<List<Complaint>> GetComplaintsByUser(int userId);
         Task<bool> UpdateStatusComplaint(int complaintId, string status, int? assignTo = null);
         Task<bool> UpdateLevelComplaint(int complaintId, string level, int? assignTo = null);
-        Task<bool> DeleteComplaint(int complaintId); 
+        Task<bool> DeleteComplaint(int complaintId);
     }
 }
