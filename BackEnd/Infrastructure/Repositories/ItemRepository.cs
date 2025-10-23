@@ -403,6 +403,24 @@ namespace Infrastructure.Repositories
         {
             return await _context.Items.CountAsync(i => i.UpdatedBy == sellerId && i.Status == status && !(i.IsDeleted == true));
         }
+        //Update Processing...
+        public async Task<int> GetTotalItemsSoldBySellerAsync(int sellerId)
+        {
+            var productLinesQuery = from i in _context.Items
+                                    join oi in _context.OrderItems on i.ItemId equals oi.ItemId
+                                    join o in _context.Orders on oi.OrderId equals o.OrderId
+                                    join pd in _context.PaymentDetails on o.OrderId equals pd.OrderId
+                                    join p in _context.Payments on pd.PaymentId equals p.PaymentId
+                                    where
+                                        i.UpdatedBy == sellerId &&    
+                                        //o.Status == "completed" //&& 
+                                        p.Status == "completed" 
+                                    select pd.PaymentDetailId; 
+
+            var totalProductLinesSold = await productLinesQuery.CountAsync();
+
+            return totalProductLinesSold;
+        }
 
         public async Task<decimal> GetTotalRevenueAsync(int sellerId)
         {

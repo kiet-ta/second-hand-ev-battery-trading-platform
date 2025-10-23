@@ -19,15 +19,16 @@ namespace Application.Services
 
         public EVDetailService(IItemRepository itemRepo, IEVDetailRepository evRepo) //, IUnitOfWork uow)
         {
-            _itemRepo = itemRepo;
-            _evRepo = evRepo;
+            _itemRepo = itemRepo ?? throw new ArgumentNullException(nameof(itemRepo));
+            _evRepo = evRepo ?? throw new ArgumentNullException(nameof(evRepo));
             //_uow = uow;
         }
 
         public async Task<EVDetailDto> CreateAsync(CreateEvDetailDto dto, CancellationToken ct = default)
         {
             // basic validation (add more as needed)
-            if (string.IsNullOrWhiteSpace(dto.Title)) throw new ArgumentException("Title required");
+            if (dto == null) throw new ArgumentNullException(nameof(dto));
+            if (string.IsNullOrWhiteSpace(dto.Title)) throw new ArgumentException("Title required", nameof(dto.Title));
 
             var item = new Item
             {
@@ -45,6 +46,9 @@ namespace Application.Services
 
             await _itemRepo.AddAsync(item, ct);
             await _itemRepo.SaveChangesAsync(); // Save to get ItemId if DB generates it
+            if (item.ItemId <= 0)
+                throw new InvalidOperationException("Failed to generate ItemId."); // giữ logic note về DB identity
+
             var ev = new EVDetail
             {
                 ItemId = item.ItemId, // IMPORTANT: if using DB identity, ItemId won't be populated until SaveChanges.
@@ -83,7 +87,8 @@ namespace Application.Services
 
         public async Task<bool> DeleteAsync(int itemId, CancellationToken ct = default)
         {
-            if (!await _evRepo.ExistsAsync(itemId, ct)) return false;
+            if (!await _evRepo.ExistsAsync(itemId, ct))
+                throw new InvalidOperationException("EV detail not found."); // thêm throw giữ nguyên logic
 
             await _evRepo.DeleteAsync(itemId, ct);
             await _itemRepo.SaveChangesAsync();
@@ -92,11 +97,14 @@ namespace Application.Services
 
         public async Task<IEnumerable<EVDetailDto>> GetAllAsync(CancellationToken ct = default)
         {
-            var evs = await _evRepo.GetAllAsync(ct);
+            var evs = await _evRepo.GetAllAsync(ct)
+                ?? throw new InvalidOperationException("Failed to retrieve EV details."); // throw nếu null
+
             var result = new List<EVDetailDto>();
             foreach (var e in evs)
             {
-                var item = await _itemRepo.GetByIdAsync(e.ItemId, ct);
+                var item = await _itemRepo.GetByIdAsync(e.ItemId, ct)
+                    ?? throw new InvalidOperationException($"Item not found for ItemId {e.ItemId}"); // throw nếu không tìm thấy
                 result.Add(MapToDto(e, item));
             }
             return result;
@@ -106,14 +114,16 @@ namespace Application.Services
         {
             var e = await _evRepo.GetByIdAsync(itemId, ct);
             if (e == null) return null;
-            var item = await _itemRepo.GetByIdAsync(itemId, ct);
+            var item = await _itemRepo.GetByIdAsync(itemId, ct)
+                ?? throw new InvalidOperationException($"Item not found for ItemId {itemId}");
             return MapToDto(e, item);
         }
 
         public async Task<bool> UpdateAsync(int itemId, UpdateEvDetailDto dto, CancellationToken ct = default)
         {
             var existing = await _evRepo.GetByIdAsync(itemId, ct);
-            if (existing == null) return false;
+            if (existing == null)
+                throw new InvalidOperationException("EV detail not found."); // throw nếu không tìm thấy
 
             // update fields that are not null in DTO
             if (dto.Brand != null) existing.Brand = dto.Brand;
@@ -134,16 +144,15 @@ namespace Application.Services
             // update Item fields if supplied
             if (dto.Title != null || dto.Price.HasValue || dto.Quantity.HasValue || dto.Status != null)
             {
-                var item = await _itemRepo.GetByIdAsync(itemId, ct);
-                if (item != null)
-                {
-                    if (dto.Title != null) item.Title = dto.Title;
-                    if (dto.Price.HasValue) item.Price = dto.Price;
-                    if (dto.Quantity.HasValue) item.Quantity = dto.Quantity.Value;
-                    if (dto.Status != null) item.Status = dto.Status;
-                    //item.UpdatedAt = DateTime.UtcNow;
-                    _itemRepo.Update(item);
-                }
+                var item = await _itemRepo.GetByIdAsync(itemId, ct)
+                    ?? throw new InvalidOperationException($"Item not found for ItemId {itemId}");
+
+                if (dto.Title != null) item.Title = dto.Title;
+                if (dto.Price.HasValue) item.Price = dto.Price;
+                if (dto.Quantity.HasValue) item.Quantity = dto.Quantity.Value;
+                if (dto.Status != null) item.Status = dto.Status;
+
+                _itemRepo.Update(item);
             }
 
             try

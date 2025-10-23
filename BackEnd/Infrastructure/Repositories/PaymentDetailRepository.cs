@@ -21,10 +21,17 @@ namespace Infrastructure.Repositories
 
         public async Task<decimal> GetRevenueAsync(int sellerId)
         {
-            return await _context.PaymentDetails
-                .Where(p => _context.Items
-                    .Any(i => i.ItemId == p.ItemId && i.UpdatedBy == sellerId))
-                .SumAsync(p => p.Amount);
+            var totalRevenueQuery = from pd in _context.PaymentDetails
+                                    join p in _context.Payments on pd.PaymentId equals p.PaymentId
+                                    join i in _context.Items on pd.ItemId equals i.ItemId
+                                    where
+                                        p.Status == "completed" && 
+                                        i.UpdatedBy == sellerId   
+                                    select pd.Amount;             
+
+            var totalRevenue = await totalRevenueQuery.SumAsync();
+
+            return totalRevenue;
         }
 
         public async Task<List<RevenueByMonthDto>> GetRevenueByMonthAsync(int sellerId)

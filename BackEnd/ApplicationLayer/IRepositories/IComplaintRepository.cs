@@ -1,13 +1,20 @@
-﻿using System;
+﻿using Application.DTOs;
+using Domain.Entities;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Application.IRepositories
 {
     public interface IComplaintRepository
     {
-        Task<double> GetComplaintRateAsync();
+        Task<Complaint> AddNewComplaint(CreateComplaintDto dto);
+        Task<Complaint?> GetComplaintById(int id);
+        Task<List<Complaint>> GetComplaintsByStatus(string status);
+        Task<List<Complaint>> GetComplaintsByLevel(string level);
+        Task<List<Complaint>> GetComplaintsByAssignee(int assignTo);
+        Task<List<Complaint>> GetComplaintsByUserId(int userId);
+        Task<bool> UpdateStatusComplaint(int complaintId, string status, int? assignTo = null);
+        Task<bool> UpdateLevelComplaint(int complaintId, string level, int? assignTo = null);
+        Task<bool> DeleteComplaint(int complaintId); 
     }
 }

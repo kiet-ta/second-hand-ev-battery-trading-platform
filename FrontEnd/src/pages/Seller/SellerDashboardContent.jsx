@@ -52,6 +52,19 @@ export default function SellerDashboardContent() {
 
     return (
         <div className="space-y-8">
+
+
+            <div className="flex items-center justify-between border border-black/20 bg-gradient-to-r from-white to-[#f8f9ff] text-[#1E1E2F] rounded-xl p-6 shadow-sm">
+                <div>
+                    <h1 className="text-2xl font-semibold text-black">Trang của người bán</h1>
+                    <p className="text-sm text-gray-600">
+                        Quản lý sản phẩm, đơn hàng và theo dõi doanh thu của bạn
+                    </p>
+                </div>
+            </div>
+
+
+
             {/* ✅ Thống kê tổng quan */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                 {[

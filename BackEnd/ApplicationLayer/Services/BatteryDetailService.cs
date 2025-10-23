@@ -18,13 +18,16 @@ namespace Application.Services
 
         public BatteryDetailService(IBatteryDetailRepository repository, IItemRepository itemRepository)
         {
-            _repository = repository;
-            _itemRepository = itemRepository;
+            _repository = repository ?? throw new ArgumentNullException(nameof(repository));
+            _itemRepository = itemRepository ?? throw new ArgumentNullException(nameof(itemRepository));
         }
 
         public async Task<IEnumerable<BatteryDetailDto>> GetAllAsync()
         {
             var list = await _repository.GetAllAsync();
+            if (list == null || !list.Any())
+                throw new InvalidOperationException("No battery details found.");
+
             return list.Select(b => new BatteryDetailDto
             {
                 ItemId = b.ItemId,
@@ -39,7 +42,7 @@ namespace Application.Services
         public async Task<BatteryDetailDto?> GetByIdAsync(int itemId)
         {
             var b = await _repository.GetByIdAsync(itemId);
-            if (b == null) return null;
+            if (b == null) throw new KeyNotFoundException($"Battery detail with ItemId {itemId} not found.");
 
             return new BatteryDetailDto
             {
@@ -51,27 +54,33 @@ namespace Application.Services
                 UpdatedAt = b.UpdatedAt
             };
         }
-        private static BatteryDetailDto MapToDto(BatteryDetail e, Item? item)
-    => new BatteryDetailDto
-    {
-        ItemId = e.ItemId,
-        Brand = e.Brand,
-        Capacity = e.Capacity,
-        Voltage = e.Voltage,
-        ChargeCycles = e.ChargeCycles,
-        Title = item?.Title,
-        Price = item?.Price,
-        Status = item?.Status
-    };
 
+        private static BatteryDetailDto MapToDto(BatteryDetail e, Item? item)
+        {
+            if (e == null) throw new ArgumentNullException(nameof(e));
+
+            return new BatteryDetailDto
+            {
+                ItemId = e.ItemId,
+                Brand = e.Brand,
+                Capacity = e.Capacity,
+                Voltage = e.Voltage,
+                ChargeCycles = e.ChargeCycles,
+                Title = item?.Title,
+                Price = item?.Price,
+                Status = item?.Status
+            };
+        }
 
         public async Task<BatteryDetailDto> CreateAsync(CreateBatteryDetailDto dto)
         {
+            if (dto == null) throw new ArgumentNullException(nameof(dto));
+
             var item = new Item
             {
                 ItemType = "battery",
                 CategoryId = dto.CategoryId,
-                Title = dto.Title,
+                Title = dto.Title ?? throw new ArgumentException("Title cannot be null.", nameof(dto.Title)),
                 Description = dto.Description,
                 Price = dto.Price,
                 Quantity = dto.Quantity,
@@ -81,17 +90,17 @@ namespace Application.Services
                 //UpdatedAt = DateTime.UtcNow
             };
 
+            await _itemRepository.AddAsync(item);
+            await _itemRepository.SaveChangesAsync(); // Save to get ItemId if DB generates it
+
             var entity = new BatteryDetail
             {
                 ItemId = item.ItemId,
-                Brand = dto.Brand,
+                Brand = dto.Brand ?? throw new ArgumentException("Brand cannot be null.", nameof(dto.Brand)),
                 Capacity = dto.Capacity,
                 Voltage = dto.Voltage,
                 ChargeCycles = dto.ChargeCycles,
             };
-            await _itemRepository.AddAsync(item);
-            await _itemRepository.SaveChangesAsync(); // Save to get ItemId if DB generates it
-            entity.ItemId = item.ItemId;
 
             await _repository.AddAsync(entity);
             await _repository.SaveChangesAsync();
@@ -100,10 +109,12 @@ namespace Application.Services
 
         public async Task UpdateAsync(int itemId, UpdateBatteryDetailDto dto)
         {
-            var existing = await _repository.GetByIdAsync(itemId);
-            if (existing == null) return;
+            if (dto == null) throw new ArgumentNullException(nameof(dto));
 
-            existing.Brand = dto.Brand;
+            var existing = await _repository.GetByIdAsync(itemId)
+                ?? throw new KeyNotFoundException($"Battery detail with ItemId {itemId} not found.");
+
+            existing.Brand = dto.Brand ?? throw new ArgumentException("Brand cannot be null.", nameof(dto.Brand));
             existing.Capacity = dto.Capacity;
             existing.Voltage = dto.Voltage;
             existing.ChargeCycles = dto.ChargeCycles;
@@ -115,6 +126,9 @@ namespace Application.Services
 
         public async Task DeleteAsync(int itemId)
         {
+            var existing = await _repository.GetByIdAsync(itemId)
+                ?? throw new KeyNotFoundException($"Battery detail with ItemId {itemId} not found.");
+
             await _repository.DeleteAsync(itemId);
             await _repository.SaveChangesAsync();
         }
