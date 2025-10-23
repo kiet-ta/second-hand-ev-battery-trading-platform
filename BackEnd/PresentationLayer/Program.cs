@@ -18,6 +18,7 @@ using FluentValidation;
 using IdGen;
 using Infrastructure.Data;
 using Infrastructure.Helpers;
+using Infrastructure.Messaging;
 using Infrastructure.Repositories;
 using Infrastructure.Repositories.ChatRepositories;
 using Infrastructure.Repositories.ManageStaffRepositories;
@@ -27,6 +28,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Net.payOS;
@@ -240,7 +242,28 @@ namespace PresentationLayer
             builder.Services.AddScoped<INewsService, NewsService>();
             builder.Services.AddSingleton<INotificationService, NotificationService>();
             builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
-
+            builder.Services.Configure<RabbitMQSettings>(builder.Configuration.GetSection("RabbitMQSettings"));
+            builder.Services.AddSingleton<IMessagePublisher>(sp =>
+            {
+                var settings = sp.GetRequiredService<IOptions<RabbitMQSettings>>().Value;
+                if (string.IsNullOrEmpty(settings.ConnectionString))
+                {
+                    throw new InvalidOperationException("RabbitMQ ConnectionString is not configured.");
+                }
+                //  inject connection string into constructor
+                return new RabbitMQPublisher(settings);
+            });
+            builder.Services.AddHostedService<ReleaseFundsWorker>(sp =>
+            {
+                var logger = sp.GetRequiredService<ILogger<ReleaseFundsWorker>>();
+                var serviceProvider = sp.GetRequiredService<IServiceProvider>(); // resolve scoped service
+                var settings = sp.GetRequiredService<IOptions<RabbitMQSettings>>().Value; // get config
+                if (string.IsNullOrEmpty(settings.ConnectionString))
+                {
+                    throw new InvalidOperationException("RabbitMQ ConnectionString is not configured for Worker.");
+                }
+                return new ReleaseFundsWorker(logger, serviceProvider, settings);
+            });
             builder.Services.AddSwaggerGen(c =>
             {
                 // Thông tin cơ bản

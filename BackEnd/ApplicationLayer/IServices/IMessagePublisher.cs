@@ -1,6 +1,8 @@
-﻿namespace Application.IServices;
+﻿using Application.DTOs.AuctionDtos;
+
+namespace Application.IServices;
 
 public interface IMessagePublisher
 {
-    void PublistOutbidEvent(OutbidEventDto outbidEvent);
+    void PublishOutbidEvent(OutbidEventDto outbidEvent);
 }

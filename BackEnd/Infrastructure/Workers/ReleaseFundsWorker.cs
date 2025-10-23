@@ -2,6 +2,7 @@
 using Application.IRepositories.IBiddingRepositories;
 using CloudinaryDotNet.Core;
 using Domain.Entities;
+using Infrastructure.Messaging;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -20,31 +21,44 @@ public class ReleaseFundsWorker : BackgroundService
     private readonly string _rabbitMQConnectionString;
     private IConnection _connection;
     private IChannel _channel;
-    private const string QueueName = "release_funds_queue";
-    private const string ExchangeName = "auction_exchange";
-    private const string BindingKey = "bid.outbid";
+    private readonly RabbitMQSettings _settings;
 
-    public ReleaseFundsWorker(ILogger<ReleaseFundsWorker> logger, IServiceProvider serviceProvider, string rabbitMQConnectionString)
+    public ReleaseFundsWorker(ILogger<ReleaseFundsWorker> logger, IServiceProvider serviceProvider, RabbitMQSettings settings)
     {
         _logger = logger;
         _serviceProvider = serviceProvider;
-        _rabbitMQConnectionString = rabbitMQConnectionString;
+        _settings = settings;
     }
 
     public override Task StartAsync(CancellationToken cancellationToken)
     {
-        var factory = new ConnectionFactory() { Uri = new Uri(_rabbitMQConnectionString) };
+        var factory = new ConnectionFactory() { Uri = new Uri(_settings.ConnectionString) };
         _connection = factory.CreateConnectionAsync().GetAwaiter().GetResult();
         _channel = _connection.CreateChannelAsync().GetAwaiter().GetResult();
 
         _channel.ExchangeDeclareAsync(
-            exchange: ExchangeName,
+            exchange: _settings.AuctionExchange,
             type: ExchangeType.Direct,
             durable: true
             );
-        _channel.QueueDeclareAsync(queue: QueueName, durable: true, exclusive: false, autoDelete: false, arguments: null);
-        _channel.QueueBindAsync(queue: QueueName, exchange: ExchangeName, routingKey: BindingKey);
+        _channel.QueueDeclareAsync(queue: _settings.ReleaseFundsDLQ, durable: true, exclusive: false, autoDelete: false, arguments: null);
+        _channel.QueueBindAsync(queue: _settings.ReleaseFundsDLQ, exchange: _settings.ReleaseFundsDLX, routingKey: "");
 
+        var queueArgs = new Dictionary<string, object>
+         {
+             { "x-dead-letter-exchange", _settings.ReleaseFundsDLX }
+             // { "x-dead-letter-routing-key", "dlq_routing_key" }
+         };
+        _channel.QueueDeclareAsync(queue: _settings.ReleaseFundsQueue,
+                              durable: true,
+                              exclusive: false,
+                              autoDelete: false,
+                              arguments: queueArgs);
+
+        _channel.ExchangeDeclareAsync(exchange: _settings.AuctionExchange, type: ExchangeType.Direct, durable: true);
+        _channel.QueueBindAsync(queue: _settings.ReleaseFundsQueue,
+                           exchange: _settings.AuctionExchange,
+                           routingKey: _settings.ReleaseFundsRoutingKey);
         _channel.BasicQosAsync(prefetchSize: 0, prefetchCount: 1, global: false);
         // handle 1 message at a time
 
@@ -101,7 +115,7 @@ public class ReleaseFundsWorker : BackgroundService
             }
         };
 
-        await _channel.BasicConsumeAsync(queue: QueueName, autoAck: false, consumer: consumer); // autoAck: false ->  ack handled manually
+        await _channel.BasicConsumeAsync(queue: _settings.ReleaseFundsQueue, autoAck: false, consumer: consumer); // autoAck: false ->  ack handled manually
 
         await Task.CompletedTask; // worker runs until stopped
     }
@@ -116,12 +130,13 @@ public class ReleaseFundsWorker : BackgroundService
 
         //IMPORTANCE: Check if the hold transaction has been released to avoid double release
         //Example: Check if there is a 'release' transaction for OriginalBidId ?
-        //bool alreadyReleased = await walletTransactionRepository.HasReleaseTransactionForBid(outbidEvent.OriginalBidId);
-        //if (alreadyReleased)
-        //{
-        //    _logger.LogWarning($"Funds for Bid {outbidEvent.OriginalBidId} already released for User {outbidEvent.OutbidUserId}. Skipping.");
-        //    return; // Ack this message because it's already processed
-        //}
+        bool alreadyReleased = await walletTransactionRepository.HasTransactionOfTypeWithRefIdAsync("release", outbidEvent.OriginalBidId);
+        if (alreadyReleased)
+        {
+            _logger.LogWarning("Funds for Bid {OriginalBidId} already released for User {OutbidUserId}. Skipping processing.",
+                outbidEvent.OriginalBidId, outbidEvent.OutbidUserId);
+            return;
+        }
 
         // add amount back to wallet
         bool updateSuccess = await walletRepository.UpdateBalanceAsync(wallet.WalletId, outbidEvent.AmountToRelease);
@@ -136,7 +151,7 @@ public class ReleaseFundsWorker : BackgroundService
         {
             WalletId = wallet.WalletId,
             Amount = outbidEvent.AmountToRelease,
-            Type = "release", //
+            Type = "release",
             CreatedAt = DateTime.Now,
             RefId = outbidEvent.OriginalBidId
         };
