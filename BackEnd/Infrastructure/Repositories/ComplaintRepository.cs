@@ -30,12 +30,12 @@ namespace Infrastructure.Repositories
 
         //    return totalSellers == 0 ? 0 : Math.Round((double)sellersWithComplaints / totalSellers * 100, 2);
         //}
-        public async Task<Complaint> AddNewComplaint(CreateComplaintDto dto)
+        public async Task<Complaint> AddNewComplaint(CreateComplaintDto dto, int userId)
         {
             var complaint = new Complaint
             {
-                UserId = dto.UserId,
-                AssignTo = null, 
+                UserId = userId, 
+                AssignTo = null,
                 Reason = dto.Reason,
                 Description = dto.Description,
                 Status = dto.Status ?? "pending",
@@ -84,43 +84,53 @@ namespace Infrastructure.Repositories
                 .ToListAsync();
         }
 
-        public async Task<bool> UpdateStatusComplaint(int complaintId, string status, int? assignTo = null)
+        public async Task<bool> UpdateStatusComplaint(int complaintId, string status, int assignTo)
         {
-            var complaint = await GetComplaintById(complaintId);
+            var complaint = await _context.Complaints
+                .FirstOrDefaultAsync(c => c.ComplaintId == complaintId && !c.IsDeleted);
+
             if (complaint == null) return false;
 
             complaint.Status = status.ToLower();
             complaint.UpdatedAt = DateTime.UtcNow;
-            if (assignTo.HasValue) complaint.AssignTo = assignTo.Value;
+            complaint.AssignTo = assignTo; 
 
             await _context.SaveChangesAsync();
             return true;
         }
 
-        public async Task<bool> UpdateLevelComplaint(int complaintId, string level, int? assignTo = null)
+       
+        public async Task<bool> UpdateLevelComplaint(int complaintId, string level, int assignTo)
         {
-            var complaint = await GetComplaintById(complaintId);
+            var complaint = await _context.Complaints
+                .FirstOrDefaultAsync(c => c.ComplaintId == complaintId && !c.IsDeleted);
+
             if (complaint == null) return false;
 
             complaint.SeverityLevel = level.ToLower();
             complaint.UpdatedAt = DateTime.UtcNow;
-            if (assignTo.HasValue) complaint.AssignTo = assignTo.Value;
+            complaint.AssignTo = assignTo; 
 
             await _context.SaveChangesAsync();
             return true;
         }
 
-        public async Task<bool> DeleteComplaint(int complaintId)
+        public async Task<bool> DeleteComplaint(int complaintId, int userId)
         {
-            var complaint = await GetComplaintById(complaintId);
+            var complaint = await _context.Complaints
+                .FirstOrDefaultAsync(c => c.ComplaintId == complaintId && !c.IsDeleted);
+
             if (complaint == null) return false;
 
             complaint.IsDeleted = true;
             complaint.UpdatedAt = DateTime.UtcNow;
+            complaint.AssignTo = userId;
 
             await _context.SaveChangesAsync();
             return true;
         }
+
+
     }
 }
 

@@ -8,7 +8,6 @@ namespace Application.DTOs
 {
     public class CreateComplaintDto
     {
-        public int UserId { get; set; }
         public string Reason { get; set; } = null!;
         public string? Description { get; set; }
         public string Status { get; set; } = "pending";
