@@ -93,6 +93,7 @@ import ChatRoomWrapper from "../components/Chats/ChatRoomWrapper";
    Utilities / Guards
    --------------------------- */
 import ProtectedRoute from "../components/ProtectedRoute";
+import ComplaintPage from "../pages/Main/ComplaintPage";
 
 /* ---------------------------
    Router definition
@@ -135,6 +136,7 @@ export const router = createBrowserRouter([
       { path: "buying-guide", element: <BuyingGuidePage /> },
       { path: "contact", element: <ContactPage /> },
       { path: "wallet", element: <WalletTransactionPage /> },
+      { path: "complaint", element: <ComplaintPage /> },
     ],
   },
 

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useRef, memo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import notificationApi from '../../api/notificationApi';
 import auctionApi from '../../api/auctionApi';
+import itemApi from '../../api/itemApi';
 
 // --- SVG ICONS ---
 const ChevronLeft = ({ className }) => (
@@ -90,6 +91,7 @@ const CarAuctionCard = ({
   const [currentSlide, setCurrentSlide] = useState(0);
   const [countdown, setCountdown] = useState(() => formatCountdown(status, startTime, endTime));
   const [bidders, setBidders] = useState([]);
+  const [sellerId, setSellerId] = useState(null);
 
   const endNotiSent = useRef(false);
   const warnNotiSent = useRef(false);
@@ -100,6 +102,13 @@ const CarAuctionCard = ({
     if (!id || status === 'UPCOMING') return;
     auctionApi.getBiddingHistory(auctionID)
       .then(hist => setBidders([...new Set(hist.map(b => b.userId))]))
+      .catch(() => {});
+      itemApi.getItemById(id)
+      .then(item => {
+        if (item?.sellerId) {
+          setBidders(b => [...new Set([...b, item.updatedBy])]);
+        }
+      })
       .catch(() => {});
   }, [auctionID, id, status]);
 
