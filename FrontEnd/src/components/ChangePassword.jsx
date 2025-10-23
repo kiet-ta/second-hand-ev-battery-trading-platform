@@ -1,10 +1,9 @@
 import React, { useState } from "react";
-import { Toaster, toast } from "react-hot-toast"; // 👈 import đầy đủ
-import "../assets/styles/ChangePassword.css"; // CSS form đẹp
+import { Toaster, toast } from "react-hot-toast"; // Thông báo toast
+import "../assets/styles/ChangePassword.css";
 import { CiLock } from "react-icons/ci";
 import { LuSave } from "react-icons/lu";
-import { AiOutlineLoading3Quarters } from "react-icons/ai"; // icon loading xoay
-
+import { AiOutlineLoading3Quarters } from "react-icons/ai"; // Icon loading xoay
 
 export default function ChangePassword() {
     const [formData, setFormData] = useState({
@@ -77,14 +76,14 @@ export default function ChangePassword() {
             toast.success("✅ Mật khẩu đã được thay đổi thành công!");
             const rememberEmail = localStorage.getItem("rememberEmail");
             if (rememberEmail) {
-                // ⚠️ Cập nhật lại mật khẩu mới cho rememberPassword
+                // Cập nhật lại mật khẩu mới cho chức năng “ghi nhớ đăng nhập”
                 localStorage.setItem("rememberPassword", formData.newPassword);
             }
             setFormData({ oldPassword: "", newPassword: "", confirmPassword: "" });
             setStrength({ label: "", color: "" });
         } catch (error) {
-            console.error("Error changing password:", error);
-            toast.error("❌ Có lỗi xảy ra, vui lòng thử lại!");
+            console.error("Lỗi khi đổi mật khẩu:", error);
+            toast.error("❌ Có lỗi xảy ra, vui lòng thử lại sau!");
         } finally {
             setLoading(false);
         }
@@ -92,7 +91,7 @@ export default function ChangePassword() {
 
     return (
         <div className="security-section">
-            {/* 💡 Toaster riêng của component */}
+            {/* Toaster hiển thị thông báo */}
             <Toaster
                 position="top-right"
                 toastOptions={{
@@ -113,31 +112,31 @@ export default function ChangePassword() {
 
             <h2 className="section-title">
                 <CiLock className="lock-icon" />
-                Password & Security
+                Mật khẩu & Bảo mật
             </h2>
-            <p>Change your password below.</p>
+            <p>Thay đổi mật khẩu của bạn bên dưới.</p>
 
             <form className="change-password-form" onSubmit={handleSubmit}>
                 <div className="form-group">
-                    <label>Current Password</label>
+                    <label>Mật khẩu hiện tại</label>
                     <input
                         type="password"
                         name="oldPassword"
                         value={formData.oldPassword}
                         onChange={handleChange}
-                        placeholder="Enter current password"
+                        placeholder="Nhập mật khẩu hiện tại"
                         required
                     />
                 </div>
 
                 <div className="form-group">
-                    <label>New Password</label>
+                    <label>Mật khẩu mới</label>
                     <input
                         type="password"
                         name="newPassword"
                         value={formData.newPassword}
                         onChange={handleChange}
-                        placeholder="Enter new password"
+                        placeholder="Nhập mật khẩu mới"
                         required
                     />
 
@@ -166,13 +165,13 @@ export default function ChangePassword() {
                 </div>
 
                 <div className="form-group">
-                    <label>Confirm New Password</label>
+                    <label>Xác nhận mật khẩu mới</label>
                     <input
                         type="password"
                         name="confirmPassword"
                         value={formData.confirmPassword}
                         onChange={handleChange}
-                        placeholder="Confirm new password"
+                        placeholder="Nhập lại mật khẩu mới"
                         required
                     />
                 </div>
@@ -187,7 +186,7 @@ export default function ChangePassword() {
                     ) : (
                         <>
                             <LuSave className="save-icon" />
-                            <span>Update Password</span>
+                            <span>Cập nhật mật khẩu</span>
                         </>
                     )}
                 </button>

@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, Link } from "react-router-dom";
 import { InputNumber, Spin, Alert, Card } from "antd";
 import {
   FiShoppingCart,
@@ -12,6 +12,7 @@ import itemApi from "../../api/itemApi";
 import userApi from "../../api/userApi";
 import orderItemApi from "../../api/orderItemApi";
 import reviewApi from "../../api/reviewApi";
+
 
 // ⭐ Star rating component
 const StarRating = ({ rating }) => (
@@ -251,11 +252,10 @@ function BatteryDetails() {
                   key={i}
                   src={url}
                   onClick={() => setSelectedImage(i)}
-                  className={`w-20 h-20 rounded-lg object-cover cursor-pointer border-2 ${
-                    selectedImage === i
-                      ? "border-[#B8860B]"
-                      : "border-[#EAE6DA]"
-                  }`}
+                  className={`w-20 h-20 rounded-lg object-cover cursor-pointer border-2 ${selectedImage === i
+                    ? "border-[#B8860B]"
+                    : "border-[#EAE6DA]"
+                    }`}
                 />
               ))}
             </div>
@@ -321,11 +321,10 @@ function BatteryDetails() {
 
             {feedback && (
               <div
-                className={`mt-4 px-4 py-3 rounded-lg text-sm font-semibold ${
-                  feedback.type === "success"
-                    ? "bg-green-100 text-green-800"
-                    : "bg-red-100 text-red-700"
-                }`}
+                className={`mt-4 px-4 py-3 rounded-lg text-sm font-semibold ${feedback.type === "success"
+                  ? "bg-green-100 text-green-800"
+                  : "bg-red-100 text-red-700"
+                  }`}
               >
                 {feedback.msg}
               </div>
@@ -352,16 +351,19 @@ function BatteryDetails() {
           {sellerProfile && (
             <Card className="p-6 rounded-2xl shadow-md border border-[#EAE6DA] bg-white/90 flex items-center gap-4">
               <img
-                src={
-                  sellerProfile.avatarProfile || "https://upload.wikimedia.org/wikipedia/commons/8/89/Portrait_Placeholder.png"
-                }
-                className="w-16 h-16 rounded-full object-cover"
+                src={sellerProfile.avatarProfile || "https://upload.wikimedia.org/wikipedia/commons/8/89/Portrait_Placeholder.png"}
                 alt={sellerProfile.fullName}
+                className="w-16 h-16 rounded-full object-cover"
               />
-              <div>
+              <div className="flex-1 mb-5">
                 <p className="font-bold text-lg">{sellerProfile.fullName}</p>
                 <p className="text-sm text-green-600">Đang hoạt động</p>
               </div>
+              <Link
+                to={`/seller/${item.updatedBy}`}
+                className="border border-[#B8860B] text-[#B8860B] font-semibold py-2 px-4 rounded-lg hover:bg-[#FFF7E5] transition">
+                Xem hồ sơ
+              </Link>
             </Card>
           )}
 

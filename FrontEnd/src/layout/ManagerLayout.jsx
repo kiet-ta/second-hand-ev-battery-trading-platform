@@ -206,7 +206,7 @@ export default function ManagerLayout({ onRefresh, onAddStaff, children }) {
 
                     <div className="text-xs text-slate-500 flex items-center gap-2 py-4">
                         <span>
-                            © {new Date().getFullYear()} EV & Battery Trading — Quản lý
+                            © {new Date().getFullYear()} Cóc Mua Xe. Đã đăng ký bản quyền.
                         </span>
                     </div>
                 </main>
