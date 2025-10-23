@@ -8,10 +8,10 @@ namespace Infrastructure.Ulties
         {
             return $@"
 <!DOCTYPE html>
-<html lang=""en"">
+<html lang=""vi"">
 <head>
     <meta charset=""UTF-8"">
-    <title>Welcome to Coc Mua Xe</title>
+    <title>Chào mừng bạn đến với Cóc Mua Xe</title>
     <style>
         body {{
             font-family: 'Segoe UI', Arial, sans-serif;
@@ -71,7 +71,7 @@ namespace Infrastructure.Ulties
         .btn {{
             display: inline-block;
             background-color: #0048b5;
-            color: #ffffff;
+            color: #ffffff !important;
             padding: 8px 16px;
             text-decoration: none;
             border-radius: 6px;
@@ -100,30 +100,30 @@ namespace Infrastructure.Ulties
 <body>
     <div class=""container"">
         <div class=""header"">
-            <img src=""{logoUrl}"" alt=""Coc Mua Xe "">
-            <h1>Welcome to Coc Mua Xe</h1>
+            <img src=""{logoUrl}"" alt=""Cóc Mua Xe"">
+            <h1>Chào mừng bạn gia nhập Cóc Mua Xe</h1>
         </div>
 
-        <p>Dear <strong>{fullName}</strong>,</p>
+        <p>Xin chào <strong>{fullName}</strong>,</p>
 
-        <p>We’re delighted to welcome you aboard! Your account has been successfully created in our system.</p>
+        <p>Chúng tôi rất vui mừng chào đón bạn gia nhập đội ngũ của Cóc Mua Xe! Tài khoản của bạn đã được tạo thành công trong hệ thống.</p>
 
-        <p><strong>Your account information:</strong></p>
+        <p><strong>Thông tin tài khoản của bạn:</strong></p>
         <ul>
             <li><strong>Email:</strong> {email}</li>
-            <li><strong>Temporary Password:</strong> {temporaryPassword}</li>
+            <li><strong>Mật khẩu tạm thời:</strong> {temporaryPassword}</li>
         </ul>
 
-        <p>Please click below to log in and update your password:</p>
+        <p>Vui lòng nhấp vào nút bên dưới để đăng nhập và đổi mật khẩu:</p>
         <p style=""text-align:center;"">
-            <a class=""btn"" href=""{loginUrl}"">Change Password</a>
+            <a class=""btn"" href=""{loginUrl}"">Đổi mật khẩu</a>
         </p>
 
-        <p>If you didn’t request this account, please contact your manager immediately.</p>
+        <p>Nếu bạn không yêu cầu tạo tài khoản này, vui lòng liên hệ ngay với quản lý của bạn.</p>
 
         <div class=""footer"">
-            <p>This is an automated email. Please do not reply.</p>
-            <p>© 2025 Coc Mua Xe. All Rights Reserved.</p>
+            <p>Đây là email tự động, vui lòng không trả lời.</p>
+            <p>© 2025 Cóc Mua Xe. Mọi quyền được bảo lưu.</p>
         </div>
     </div>
 </body>

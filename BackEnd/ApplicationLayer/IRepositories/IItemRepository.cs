@@ -41,6 +41,7 @@ namespace Application.IRepositories
         //Feature: Seller Dashboard
         Task<int> CountAllBySellerAsync(int sellerId);
         Task<int> CountByStatusAsync(int sellerId, string status);
+        Task<int> GetTotalItemsSoldBySellerAsync(int sellerId);
         Task<decimal> GetTotalRevenueAsync(int sellerId);
         Task AddImageAsync(ItemImage image);
         Task<IEnumerable<ItemImage>> GetByItemIdAsync(int itemId);

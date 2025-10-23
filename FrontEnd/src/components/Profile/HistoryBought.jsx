@@ -12,23 +12,39 @@ export default function HistoryBought() {
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState(null);
+  const [pagination, setPagination] = useState({
+    currentPage: 1,
+    totalPages: 1,
+    totalCount: 0,
+    pageSize: 10,
+  });
 
   const userId = localStorage.getItem("userId");
   const token = localStorage.getItem("token");
 
-  const fetchOrders = async () => {
+  const handlePageChange = (newPage) => {
+    if (newPage < 1 || newPage > pagination.totalPages) return;
+    fetchOrders(newPage, pagination.pageSize);
+  };
+
+
+  const fetchOrders = async (page = 1, pageSize = 10) => {
     setLoading(true);
     try {
-      const res = await fetch(`https://localhost:7272/api/History/bought`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      });
+      const res = await fetch(
+        `https://localhost:7272/api/History/bought?pageNumber=${page}&pageSize=${pageSize}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
       if (!res.ok) throw new Error("Failed to fetch orders");
       const data = await res.json();
 
-      const formattedOrders = data.map((order) => ({
+      // ✅ Lấy danh sách trong data.items
+      const formattedOrders = data.items.map((order) => ({
         orderCode: order.orderCode,
         paymentCreatedAt: order.paymentCreatedAt,
         status: order.status,
@@ -39,7 +55,7 @@ export default function HistoryBought() {
         title: order.title,
         description: order.description,
         image:
-          order.image ||
+          order.itemImage?.[0]?.imageUrl ||
           "https://static.vecteezy.com/system/resources/previews/020/336/975/original/electric-car-icon-on-transparent-background-free-png.png",
         brand: order.brand,
         model: order.model,
@@ -54,6 +70,14 @@ export default function HistoryBought() {
       }));
 
       setOrders(formattedOrders);
+
+      // ✅ Lưu thông tin phân trang để render UI
+      setPagination({
+        currentPage: data.pageNumber,
+        totalPages: Math.ceil(data.totalCount / data.pageSize),
+        totalCount: data.totalCount,
+        pageSize: data.pageSize,
+      });
     } catch (err) {
       console.error(err);
       message.error("Không thể tải lịch sử mua hàng.");
@@ -61,6 +85,7 @@ export default function HistoryBought() {
       setLoading(false);
     }
   };
+
 
   useEffect(() => {
     if (userId && token) fetchOrders();
@@ -95,18 +120,18 @@ export default function HistoryBought() {
   const getStatusColor = (status) => {
     switch (status) {
       case "completed":
-        return "bg-green-100 text-green-800";
+        return "bg-green-100 !text-green-800";
       case "pending":
       case "processing":
-        return "bg-yellow-100 text-yellow-800";
+        return "bg-yellow-100 !text-yellow-800";
       case "failed":
-        return "bg-red-100 text-red-800";
+        return "bg-red-100 !text-red-800";
       case "canceled":
-        return "bg-orange-100 text-orange-800";
+        return "bg-orange-100 !text-orange-800";
       case "expired":
-        return "bg-gray-200 text-gray-800";
+        return "bg-gray-200 !text-gray-800";
       default:
-        return "bg-gray-100 text-gray-800";
+        return "bg-gray-100 !text-gray-800";
     }
   };
 
@@ -229,8 +254,8 @@ export default function HistoryBought() {
                   key={type}
                   onClick={() => setFilter(type)}
                   className={`px-4 py-2 rounded-lg font-medium transition-colors ${filter === type
-                      ? "bg-blue-600 text-white"
-                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                    ? "bg-blue-600 text-white"
+                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                     }`}
                 >
                   {type === "all"
@@ -375,6 +400,37 @@ export default function HistoryBought() {
             ))
           )}
         </div>
+        {/* --- Pagination --- */}
+        {pagination.totalPages > 1 && (
+          <div className="flex justify-center items-center gap-3 mt-8">
+            <button
+              disabled={pagination.currentPage === 1}
+              onClick={() => handlePageChange(pagination.currentPage - 1)}
+              className={`px-4 py-2 rounded-lg border ${pagination.currentPage === 1
+                ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                : "bg-white hover:bg-gray-100 text-gray-700"
+                }`}
+            >
+              ← Trước
+            </button>
+
+            <span className="text-gray-600 text-sm">
+              Trang {pagination.currentPage} / {pagination.totalPages}
+            </span>
+
+            <button
+              disabled={pagination.currentPage === pagination.totalPages}
+              onClick={() => handlePageChange(pagination.currentPage + 1)}
+              className={`px-4 py-2 rounded-lg border ${pagination.currentPage === pagination.totalPages
+                ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                : "bg-white hover:bg-gray-100 text-gray-700"
+                }`}
+            >
+              Sau →
+            </button>
+          </div>
+        )}
+
       </div>
 
       {selectedOrder && (

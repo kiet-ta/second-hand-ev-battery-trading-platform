@@ -34,7 +34,8 @@ export default function HistorySold() {
                 });
                 if (!res.ok) throw new Error("Không thể tải dữ liệu");
                 const data = await res.json();
-                setSales(data);
+                console.log("📦 API trả về:", data);
+                setSales(data?.items || []); // ✅ CHỈ LẤY MẢNG TRONG items
             } catch (err) {
                 console.error("❌ Lỗi khi tải lịch sử bán:", err);
                 message.error("Không thể tải dữ liệu lịch sử bán hàng");
@@ -44,6 +45,7 @@ export default function HistorySold() {
         };
         fetchSales();
     }, [sellerId, token]);
+
 
     // 🧮 Format
     const formatPrice = (price) =>

@@ -8,7 +8,7 @@ namespace Infrastructure.Ulties
         {
             return $@"
 <!DOCTYPE html>
-<html lang='en'>
+<html lang='vi'>
 <head>
   <meta charset='UTF-8'>
   <meta name='viewport' content='width=device-width, initial-scale=1.0'>
@@ -25,15 +25,15 @@ namespace Infrastructure.Ulties
 <body>
   <div class='container'>
     <div class='header'>
-      <h1>Welcome to Cóc Mua Xe, {userName}! 🚗</h1>
+      <h1>Chào mừng bạn đến với Cóc Mua Xe, {userName}! 🚗</h1>
     </div>
     <div class='content'>
-      <p>Welcome to <strong>Cóc Mua Xe</strong> – your journey toward smarter and smoother car buying and selling starts here! ✨</p>
-      <a href='{actionUrl}' class='btn'>Get Started</a>
+      <p>Chào mừng bạn đến với <strong>Cóc Mua Xe</strong> – nơi hành trình mua bán xe của bạn trở nên thông minh và thuận tiện hơn bao giờ hết! ✨</p>
+      <a href='{actionUrl}' class='btn'>Bắt đầu ngay</a>
     </div>
     <div class='footer'>
-      <p>This is an automated email, please do not reply.</p>
-      <p>&copy; 2025 Cóc Mua Xe. All rights reserved.</p>
+      <p>Đây là email tự động, vui lòng không phản hồi lại email này.</p>
+      <p>&copy; 2025 Cóc Mua Xe. Tất cả các quyền được bảo lưu.</p>
     </div>
   </div>
 </body>

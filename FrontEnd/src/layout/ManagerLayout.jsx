@@ -74,9 +74,20 @@ export default function ManagerLayout({ onRefresh, onAddStaff, children }) {
     const activeKey = getActiveKey();
 
     const handleLogout = () => {
-        localStorage.clear();
-        window.location.href = "/login";
+        // ⚠️ Giữ lại thông tin remember
+        const rememberEmail = localStorage.getItem("rememberEmail");
+        const rememberPassword = localStorage.getItem("rememberPassword");
+
+        localStorage.clear(); // Xoá mọi thứ
+        // ✅ Ghi lại thông tin remember
+        if (rememberEmail && rememberPassword) {
+            localStorage.setItem("rememberEmail", rememberEmail);
+            localStorage.setItem("rememberPassword", rememberPassword);
+        }
+
+        navigate("/login");
     };
+
 
     return (
         <div className="min-h-screen bg-slate-50">

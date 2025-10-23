@@ -12,7 +12,7 @@ import Logo from "../components/Logo"
 export default function SellerDashboard() {
     const location = useLocation();
     const navigate = useNavigate();
-    
+
     const [dashboardData, setDashboardData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -22,7 +22,7 @@ export default function SellerDashboard() {
 
     // Fetch dashboard data
     useEffect(() => {
-        if (!token || !sellerId) return; 
+        if (!token || !sellerId) return;
 
         const fetchDashboard = async () => {
             setLoading(true);
@@ -53,13 +53,24 @@ export default function SellerDashboard() {
     }, [sellerId, token]);
 
     const handleLogout = () => {
-        localStorage.clear();
+        // ⚠️ Giữ lại thông tin remember
+        const rememberEmail = localStorage.getItem("rememberEmail");
+        const rememberPassword = localStorage.getItem("rememberPassword");
+
+        localStorage.clear(); // Xoá mọi thứ
+        // ✅ Ghi lại thông tin remember
+        if (rememberEmail && rememberPassword) {
+            localStorage.setItem("rememberEmail", rememberEmail);
+            localStorage.setItem("rememberPassword", rememberPassword);
+        }
+
         navigate("/login");
     };
 
+
     // Menu items define the navigation paths relative to the /seller route
     const menuItems = [
-        { id: "dashboard", icon: LayoutDashboard, label: "Dashboard", path: "" }, 
+        { id: "dashboard", icon: LayoutDashboard, label: "Dashboard", path: "" },
         { id: "bidding", icon: Hammer, label: "Bidding", path: "bidding" },
         { id: "products", icon: ShoppingBag, label: "My Products", path: "products" },
         { id: "history", icon: Clock, label: "History Sold", path: "history" },
@@ -88,7 +99,7 @@ export default function SellerDashboard() {
             {/* Sidebar (Navigation) */}
             <div className="w-64 bg-white border-r border-gray-200 flex flex-col">
                 <div className="p-6 border-b border-gray-200">
-                    <Logo/>
+                    <Logo />
                     <h1 className="text-sm font-bold text-gray-900">Seller Dashboard</h1>
                 </div>
 
@@ -96,7 +107,7 @@ export default function SellerDashboard() {
                     {menuItems.map((item) => {
                         const Icon = item.icon;
                         const active = isActive(item.path);
-                        
+
                         return (
                             <button
                                 key={item.id}

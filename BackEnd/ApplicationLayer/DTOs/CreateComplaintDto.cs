@@ -4,19 +4,15 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Domain.Entities
+namespace Application.DTOs
 {
-    public class Complaint
+    public class CreateComplaintDto
     {
-        public int ComplaintId { get; set; }
-     public int UserId { get; set; }
-        public int? AssignTo { get; set; }
+        public int UserId { get; set; }
         public string Reason { get; set; } = null!;
         public string? Description { get; set; }
         public string Status { get; set; } = "pending";
         public string SeverityLevel { get; set; } = "medium";
         public bool IsDeleted { get; set; }
-        public DateTime CreatedAt { get; set; }
-        public DateTime UpdatedAt { get; set; }
     }
 }

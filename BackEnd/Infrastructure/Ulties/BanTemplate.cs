@@ -8,7 +8,7 @@ namespace Infrastructure.Ulties
         {
             return $@"
 <!DOCTYPE html>
-<html lang='en'>
+<html lang='vi'>
 <head>
   <meta charset='UTF-8'>
   <meta name='viewport' content='width=device-width, initial-scale=1.0'>
@@ -25,17 +25,17 @@ namespace Infrastructure.Ulties
 <body>
   <div class='container'>
     <div class='header'>
-      <h1>Your Account Has Been Suspended</h1>
+      <h1>Tài khoản của bạn đã bị tạm khóa</h1>
     </div>
     <div class='content'>
-      <p>Hello, {userName}.</p>
-      <p>We regret to inform you that your account has been <strong>suspended</strong>.</p>
-      <p><strong>Reason:</strong> {reason}</p>
-      <a href='{actionUrl}' class='btn'>Contact Support</a>
+      <p>Xin chào, {userName}.</p>
+      <p>Chúng tôi rất tiếc phải thông báo rằng tài khoản của bạn đã bị <strong>tạm khóa</strong>.</p>
+      <p><strong>Lý do:</strong> {reason}</p>
+      <a href='{actionUrl}' class='btn'>Liên hệ hỗ trợ</a>
     </div>
     <div class='footer'>
-      <p>This is an automated email, please do not reply.</p>
-      <p>&copy; 2025 Cóc Mua Xe. All rights reserved.</p>
+      <p>Đây là email tự động, vui lòng không trả lời.</p>
+      <p>&copy; 2025 Cóc Mua Xe. Mọi quyền được bảo lưu.</p>
     </div>
   </div>
 </body>
