@@ -27,7 +27,7 @@ namespace Application.Services
         {
             var listings = await _itemRepo.CountAllBySellerAsync(sellerId);
             var orders = await _orderRepo.CountBySellerAsync(sellerId);
-            var sold = await _itemRepo.CountByStatusAsync(sellerId, "sold");
+            var sold = await _itemRepo.GetTotalItemsSoldBySellerAsync(sellerId);
             var revenue = await _paymentRepo.GetRevenueAsync(sellerId);
 
             var productStats = new ProductStatisticsDto
