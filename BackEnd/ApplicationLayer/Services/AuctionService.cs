@@ -17,11 +17,11 @@ public class AuctionService : IAuctionService
     private readonly IWalletRepository _walletRepository;
     private readonly IWalletTransactionRepository _walletTransactionRepository;
     private readonly IItemRepository _itemRepository;
-    private readonly ICategoryRepository _categoryRepository;
     private readonly IItemImageRepository _itemImageRepository;
     private readonly IEVDetailRepository _eVDetailRepository;
     private readonly IBatteryDetailRepository _batteryDetailRepository;
     private readonly IUserRepository _userRepository;
+    private readonly IMessagePublisher _messagePublisher;
 
     public AuctionService(
         IAuctionRepository auctionRepository,
@@ -32,7 +32,8 @@ public class AuctionService : IAuctionService
         IEVDetailRepository eVDetailRepository,
         IBatteryDetailRepository batteryDetailRepository,
         IUserRepository userRepository,
-        IItemImageRepository itemImageRepository)
+        IItemImageRepository itemImageRepository,
+        IMessagePublisher messagePublisher)
     {
         _auctionRepository = auctionRepository;
         _bidRepository = bidRepository;
@@ -43,6 +44,7 @@ public class AuctionService : IAuctionService
         _batteryDetailRepository = batteryDetailRepository;
         _userRepository = userRepository;
         _itemImageRepository = itemImageRepository;
+        _messagePublisher = messagePublisher;
     }
 
     public async Task<IEnumerable<BidderHistoryDto>> GetBidderHistoryAsync(int auctionId)
@@ -175,6 +177,17 @@ public class AuctionService : IAuctionService
             throw new ArgumentException("Bid amount must be higher than the current price.");
         }
 
+        Bid? previousHighestBid = null;
+        if (auction.TotalBids > 0)
+        {
+            previousHighestBid = await _bidRepository.GetHighestBidAsync(auctionId);
+
+            if (previousHighestBid != null && previousHighestBid.UserId == userId)
+            {
+                throw new InvalidOperationException("You are already the highest bidder.");
+            }
+        }
+
         var wallet = await _walletRepository.GetWalletByUserIdAsync(userId);
         if (wallet == null || wallet.Balance < bidAmount)
         {
@@ -182,29 +195,40 @@ public class AuctionService : IAuctionService
             throw new InvalidOperationException("User wallet not found or insufficient funds.");
         }
 
-        // Deduct bid amount from user wallet
-        await _walletRepository.UpdateBalanceAsync(wallet.WalletId, -bidAmount);
-        await _walletTransactionRepository.CreateTransactionAsync(new WalletTransaction()
-        {
-            WalletId = wallet.WalletId,
-            Amount = -bidAmount,
-            Type = "hold",
-            CreatedAt = DateTime.Now
-        });
-
-        // Record the bid
-        await _bidRepository.PlaceBidAsync(new Bid()
+        var newBid = new Bid()
         {
             AuctionId = auctionId,
             UserId = userId,
             BidAmount = bidAmount,
             BidTime = DateTime.Now
-        });
+        };
 
-        // Update current price and total bids
+        var holdTransaction = new WalletTransaction()
+        {
+            WalletId = wallet.WalletId,
+            Amount = -bidAmount,
+            Type = "hold",
+            CreatedAt = DateTime.Now,
+            RefId = newBid.BidId
+        };
+
+        // update current price and total bids
+        await _bidRepository.PlaceBidAsync(newBid);
         auction.CurrentPrice = bidAmount;
         await _auctionRepository.UpdateCurrentPriceAsync(auction);
         await _auctionRepository.UpdateTotalBidsAsync(auctionId);
+
+        if (previousHighestBid != null && previousHighestBid.UserId != userId)
+        {
+            var outbidEvent = new OutbidEventDto
+            {
+                AuctionId = auctionId,
+                OutbidUserId = previousHighestBid.UserId,
+                AmountToRelease = previousHighestBid.BidAmount,
+                OriginalBidId = previousHighestBid.BidId // !help find the hold transaction correctly
+            };
+            _messagePublisher.PublistOutbidEvent(outbidEvent);
+        }
     }
 
     public async Task UpdateAuctionStatusesAsync()
