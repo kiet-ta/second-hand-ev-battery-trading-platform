@@ -25,6 +25,10 @@ namespace Application.Services
 
         public async Task<SellerDashboardDto> GetSellerDashboardAsync(int sellerId)
         {
+            var listings = await _itemRepo.CountAllBySellerAsync(sellerId);
+            var orders = await _orderRepo.CountBySellerAsync(sellerId);
+            var sold = await _itemRepo.GetTotalItemsSoldBySellerAsync(sellerId);
+            var revenue = await _paymentRepo.GetRevenueAsync(sellerId);
             if (sellerId <= 0)
                 throw new ArgumentException("Seller ID must be greater than 0.", nameof(sellerId));
 
