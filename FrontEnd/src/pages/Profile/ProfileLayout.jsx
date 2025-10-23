@@ -6,7 +6,7 @@ import { IoSettingsOutline } from "react-icons/io5";
 import { IoCartOutline, IoChatboxOutline } from "react-icons/io5";
 import { IoLogOutOutline } from "react-icons/io5";
 import { MdLogout } from "react-icons/md";
-import NotificationDropdown from "../../components/DropDowns/NotificationDropdown";
+import NotificationDropdown from "../../components/NotificationDropdown";
 import Logo from "../../components/Logo";
 import "../../assets/styles/ProfileLayout.css";
 
@@ -22,9 +22,20 @@ export default function ProfileLayout() {
     ];
 
     const handleLogoutConfirm = () => {
-        localStorage.clear();
-        window.location.href = "/login";
+        // ⚠️ Giữ lại thông tin remember
+        const rememberEmail = localStorage.getItem("rememberEmail");
+        const rememberPassword = localStorage.getItem("rememberPassword");
+
+        localStorage.clear(); // Xoá mọi thứ
+        // ✅ Ghi lại thông tin remember
+        if (rememberEmail && rememberPassword) {
+            localStorage.setItem("rememberEmail", rememberEmail);
+            localStorage.setItem("rememberPassword", rememberPassword);
+        }
+
+        navigate("/login");
     };
+
 
     const handleCancelLogout = () => {
         setShowLogoutConfirm(false);

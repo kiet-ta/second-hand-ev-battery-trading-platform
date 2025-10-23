@@ -17,19 +17,6 @@ const userApi = {
             }
         )
         return response.data;
-    },
-    putUser: async (id, payload) => {
-        const token = localStorage.getItem('token');
-        const response = await axios.put(baseURL + '/' + id, payload,
-            {
-                headers: {
-                    // This line is essential for authorized endpoints  
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                }
-            }
-        )
-        return response.data;
     }
 };
 export default userApi;
