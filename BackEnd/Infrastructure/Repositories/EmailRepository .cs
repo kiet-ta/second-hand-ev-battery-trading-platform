@@ -67,6 +67,29 @@ namespace Infrastructure.Repositories
             return await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
         }
 
-    }
+        public async Task<string?> GetForgotPasswordTemplate(string email, string to, string otp, string systemUrl)
+        {
+            var user = await GetUserByEmail(email);
+            if (user == null) throw new Exception("User not found");
 
+            return ForgotPasswordTemplate.Build(
+                user.FullName,
+                to,
+                otp: otp,
+                systemUrl: systemUrl
+            );
+        }
+
+        public async Task<string?> GetPasswordChangedTemplate(string email, string to, string loginUrl)
+        {
+            var user = await GetUserByEmail(email);
+            if (user == null) throw new Exception("User not found");
+
+            return PasswordChangedTemplate.Build(
+                user.FullName,
+                to,
+                loginUrl: loginUrl
+            );
+        }
+    }
 }
