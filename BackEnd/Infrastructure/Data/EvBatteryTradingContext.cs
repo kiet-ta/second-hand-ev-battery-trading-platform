@@ -72,6 +72,8 @@ public class EvBatteryTradingContext : DbContext
 
     public DbSet<Complaint> Complaints { get; set; }
 
+    public DbSet<PasswordResetToken> PasswordResetTokens { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(EvBatteryTradingContext).Assembly);
