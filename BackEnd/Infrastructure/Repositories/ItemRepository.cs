@@ -28,9 +28,9 @@ namespace Infrastructure.Repositories
                         join u in _context.Users
                             on i.UpdatedBy equals u.UserId into gj
                         from user in gj.DefaultIfEmpty() // LEFT JOIN
-                        //join im in _context.ItemImages
-                        //    on i.ItemId equals im.ItemId into imj
-                        //from itemImage in imj.DefaultIfEmpty()
+                                                         //join im in _context.ItemImages
+                                                         //    on i.ItemId equals im.ItemId into imj
+                                                         //from itemImage in imj.DefaultIfEmpty()
                         where !(i.IsDeleted == true)   // remove soft deleted items
                         select new ItemDto
                         {
@@ -58,14 +58,14 @@ namespace Infrastructure.Repositories
         }
 
         public async Task<PagedResultItem<ItemDto>> SearchItemsAsync(
-        string itemType,
-        string title,
-        decimal? minPrice,
-        decimal? maxPrice,
-        int page,
-        int pageSize,
-        string sortBy,
-        string sortDir)
+            string itemType,
+            string title,
+            decimal? minPrice,
+            decimal? maxPrice,
+            int page,
+            int pageSize,
+            string sortBy,
+            string sortDir)
         {
             if (page <= 0) page = 1;
             if (pageSize <= 0) pageSize = 20;
@@ -350,19 +350,19 @@ namespace Infrastructure.Repositories
                     Method = x.payment.Method,
                     Status = x.payment.Status,
                     PaymentCreatedAt = x.payment.CreatedAt,
-                    Brand = x.ev.Brand, 
+                    Brand = x.ev.Brand,
                     Model = x.ev.Model,
                     Version = x.ev.Version,
                     Year = x.ev.Year,
                     Color = x.ev.Color,
                     Mileage = x.ev.Mileage,
-                    Capacity = x.bat.Capacity, 
+                    Capacity = x.bat.Capacity,
                     Voltage = x.bat.Voltage,
                     ChargeCycles = x.bat.ChargeCycles,
                     ItemAmount = x.pd.Amount,
-                    ItemImage = new List<ItemImage>() 
+                    ItemImage = new List<ItemImage>()
                 })
-                .ToListAsync(); 
+                .ToListAsync();
 
             if (pagedItems.Any())
             {
@@ -412,10 +412,10 @@ namespace Infrastructure.Repositories
                                     join pd in _context.PaymentDetails on o.OrderId equals pd.OrderId
                                     join p in _context.Payments on pd.PaymentId equals p.PaymentId
                                     where
-                                        i.UpdatedBy == sellerId &&    
+                                        i.UpdatedBy == sellerId &&
                                         //o.Status == "completed" //&& 
-                                        p.Status == "completed" 
-                                    select pd.PaymentDetailId; 
+                                        p.Status == "completed"
+                                    select pd.PaymentDetailId;
 
             var totalProductLinesSold = await productLinesQuery.CountAsync();
 
@@ -594,6 +594,47 @@ namespace Infrastructure.Repositories
             _context.Items.Update(item);
             await _context.SaveChangesAsync();
             return true;
+        }
+
+        public async Task<IEnumerable<EVDetail>> SearchEvDetailAsync(EVSearchRequestDto request)
+        {
+            var query = _context.EVDetails.AsQueryable();
+
+            if (!string.IsNullOrEmpty(request.Brand))
+                query = query.Where(e => e.Brand.Contains(request.Brand));
+
+            if (!string.IsNullOrEmpty(request.Model))
+                query = query.Where(e => e.Model.Contains(request.Model));
+
+            if (request.Year.HasValue)
+                query = query.Where(e => e.Year == request.Year);
+
+            if (!string.IsNullOrEmpty(request.Color))
+                query = query.Where(e => e.Color.Contains(request.Color));
+
+            if (request.IsRegistrationValid.HasValue)
+                query = query.Where(e => e.IsRegistrationValid == request.IsRegistrationValid);
+
+            return await query.ToListAsync();
+        }
+
+        public async Task<IEnumerable<BatteryDetail>> SearchBatteryDetailAsync(BatterySearchRequestDto request)
+        {
+            var query = _context.BatteryDetails.AsQueryable();
+
+            if (!string.IsNullOrEmpty(request.Brand))
+                query = query.Where(b => b.Brand.Contains(request.Brand));
+
+            if (request.Capacity.HasValue)
+                query = query.Where(b => b.Capacity == request.Capacity);
+
+            if (request.Voltage.HasValue)
+                query = query.Where(b => b.Voltage == request.Voltage);
+
+            if (request.ChargeCycles.HasValue)
+                query = query.Where(b => b.ChargeCycles <= request.ChargeCycles);
+
+            return await query.ToListAsync();
         }
     }
 }

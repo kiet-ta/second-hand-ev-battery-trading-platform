@@ -1,4 +1,5 @@
 ﻿using Application.DTOs.ItemDtos;
+using Application.DTOs.ItemDtos.BatteryDto;
 using Application.DTOs.UserDtos;
 using Microsoft.AspNetCore.Http;
 using System;
@@ -42,5 +43,7 @@ namespace Application.IServices
         Task<UserItemDetailDto?> GetItemDetailByIdAsync(int itemId);
         Task<bool> SetApprovedItemTagAsync(int itemId);
         Task<bool> SetRejectedItemTagAsync(int itemId);
+        Task<IEnumerable<EVDetailDto>> SearchEvDetailAsync(EVSearchRequestDto request);
+        Task<IEnumerable<BatteryDetailDto>> SearchBatteryDetailAsync(BatterySearchRequestDto request);
     }
 }
