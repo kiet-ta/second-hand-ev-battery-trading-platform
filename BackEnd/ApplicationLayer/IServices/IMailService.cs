@@ -18,5 +18,8 @@ namespace Application.IServices
 
         Task SendPurchaseFailedMailAsync(PurchaseFailedDto request, string orderId, string reason, string url);
         Task SendResponseComplaintMailAsync(CreateResponseMailDto dto, string staffName, string staffRole);
+
+        Task SendOtpMailAsync(string toEmail, string otp, string systemUrl);
+        Task SendPasswordChangedMailAsync(string toEmail, string loginUrl);
     }
 }

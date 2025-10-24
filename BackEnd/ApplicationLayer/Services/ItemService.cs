@@ -1,4 +1,5 @@
 ﻿using Application.DTOs.ItemDtos;
+using Application.DTOs.ItemDtos.BatteryDto;
 using Application.DTOs.UserDtos;
 using Application.IRepositories;
 using Application.IServices;
@@ -335,5 +336,32 @@ namespace Application.Services
             return await _itemRepository.SetItemTagAsync(itemId, "reject_tag");
         }
 
+        public async Task<IEnumerable<EVDetailDto>> SearchEvDetailAsync(EVSearchRequestDto request)
+        {
+            var result = await _itemRepository.SearchEvDetailAsync(request);
+            return result.Select(e => new EVDetailDto
+            {
+                ItemId = e.ItemId,
+                Brand = e.Brand,
+                Model = e.Model,
+                Year = e.Year,
+                Color = e.Color,
+                LicensePlate = e.LicensePlate,
+                Mileage = e.Mileage
+            });
+        }
+
+        public async Task<IEnumerable<BatteryDetailDto>> SearchBatteryDetailAsync(BatterySearchRequestDto request)
+        {
+            var result = await _itemRepository.SearchBatteryDetailAsync(request);
+            return result.Select(e => new BatteryDetailDto
+            {
+                ItemId = e.ItemId,
+                Brand = e.Brand,
+                Capacity = e.Capacity,
+                Voltage = e.Voltage,
+                ChargeCycles = e.ChargeCycles
+            });
+        }
     }
 }

@@ -77,13 +77,13 @@ namespace PresentationLayer.Controllers
         //[CacheResult(600)]
         public async Task<IActionResult> SearchItem(
             [FromQuery] string itemType = "all",
-        [FromQuery] string title = "",
-        [FromQuery] decimal? minPrice = null,
-        [FromQuery] decimal? maxPrice = null,
-        [FromQuery] int page = 1,
-        [FromQuery] int pageSize = 20,
-        [FromQuery] string sortBy = "UpdatedAt",
-        [FromQuery] string sortDir = "desc")
+            [FromQuery] string title = "",
+            [FromQuery] decimal? minPrice = null,
+            [FromQuery] decimal? maxPrice = null,
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 20,
+            [FromQuery] string sortBy = "UpdatedAt",
+            [FromQuery] string sortDir = "desc")
         {
             var result = await _service.SearchItemsAsync(
             itemType, title, minPrice, maxPrice, page, pageSize, sortBy, sortDir);
@@ -220,6 +220,20 @@ namespace PresentationLayer.Controllers
 
             return Ok(new { message = "Item rejected successfully." });
 
+        }
+
+        [HttpGet("search/ev-detail")]
+        public async Task<IActionResult> SearchEvDetail([FromQuery] EVSearchRequestDto request)
+        {
+            var results = await _service.SearchEvDetailAsync(request);
+            return Ok(results);
+        }
+
+        [HttpGet("search/battery")]
+        public async Task<IActionResult> SearchBattery([FromQuery] BatterySearchRequestDto request)
+        {
+            var results = await _service.SearchBatteryDetailAsync(request);
+            return Ok(results);
         }
     }
 }

@@ -15,7 +15,7 @@ namespace Application.DTOs
 
         public ProductStatisticsDto ProductStatistics { get; set; }
         public OrderStatisticsDto OrderStatistics { get; set; }
-        public List<RevenueByMonthDto> RevenueByMonth { get; set; }
-        public List<OrdersByMonthDto> OrdersByMonth { get; set; }
+        public List<RevenueByWeekDto> RevenueByWeek { get; set; }
+        public List<OrdersByWeekDto> OrdersByWeek { get; set; }
     }
 }

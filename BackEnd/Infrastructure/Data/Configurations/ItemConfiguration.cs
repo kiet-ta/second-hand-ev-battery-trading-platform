@@ -48,6 +48,9 @@ namespace Infrastructure.Data.Configurations
             entity.Property(e => e.Moderation)
                 .HasDefaultValue("reject_tag")
                 .HasColumnName("moderation");
+            entity.Property(e => e.LicenseUrl)
+                .HasMaxLength(200)
+                .HasColumnName("license_url");
 
             entity.HasOne<Category>().WithMany()
                 .HasForeignKey(d => d.CategoryId)
