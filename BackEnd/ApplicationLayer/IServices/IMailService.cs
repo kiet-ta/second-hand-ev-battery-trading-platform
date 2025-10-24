@@ -17,5 +17,6 @@ namespace Application.IServices
         Task SendPurchaseSuccessMailAsync(PurchaseSuccessDto request, string orderId, string url);
 
         Task SendPurchaseFailedMailAsync(PurchaseFailedDto request, string orderId, string reason, string url);
+        Task SendResponseComplaintMailAsync(CreateResponseMailDto dto, string staffName, string staffRole);
     }
 }

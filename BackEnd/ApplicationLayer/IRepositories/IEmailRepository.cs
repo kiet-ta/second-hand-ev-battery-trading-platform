@@ -1,4 +1,5 @@
-﻿using Domain.Entities;
+﻿using Application.DTOs;
+using Domain.Entities;
 using System.Threading.Tasks;
 
 namespace Application.IRepositories
@@ -12,6 +13,8 @@ namespace Application.IRepositories
         Task<string> GetPurchaseSuccessTemplate(string userName, string orderId, string url);
 
         Task<string> GetPurchaseFailedTemplate(string userName, string orderId, string reason, string url);
+        Task<string> SendResponseEmailToUser(CreateResponseMailDto dto, string staffName, string staffRole);
+        
     }
 }
 
