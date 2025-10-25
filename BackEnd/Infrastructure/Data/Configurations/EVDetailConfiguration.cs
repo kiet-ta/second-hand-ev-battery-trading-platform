@@ -57,6 +57,9 @@ namespace Infrastructure.Data.Configurations
             entity.Property(e => e.Version)
                 .HasMaxLength(255)
                 .HasColumnName("version");
+            entity.Property(e => e.LicenseUrl)
+                .HasMaxLength(200)
+                .HasColumnName("license_url");
             entity.Property(e => e.Year).HasColumnName("year");
 
             entity.HasOne<Item>().WithOne()

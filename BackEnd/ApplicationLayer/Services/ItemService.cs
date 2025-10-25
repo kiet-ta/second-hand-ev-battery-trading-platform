@@ -347,7 +347,8 @@ namespace Application.Services
                 Year = e.Year,
                 Color = e.Color,
                 LicensePlate = e.LicensePlate,
-                Mileage = e.Mileage
+                Mileage = e.Mileage,
+                LicenseUrl = e.LicenseUrl
             });
         }
 
