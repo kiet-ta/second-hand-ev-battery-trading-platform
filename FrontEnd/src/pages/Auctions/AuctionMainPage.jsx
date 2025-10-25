@@ -25,13 +25,14 @@ function AuctionMainPage() {
       </h1>
 
       {/* Top Advertisement */}
-      <div className="max-w-6xl mx-auto mb-10">
+      <div className="max-w-6xl mx-auto mb-10 overflow-hidden rounded-2xl shadow-md border border-[#E8E4DC]">
         <img
-          src="https://images4.alphacoders.com/135/thumb-1920-1354676.jpeg"
+          src="https://res.cloudinary.com/cocmuaxe/image/upload/v1761249286/auction3_w2tbnj.png"
           alt="Advertisement"
-          className="w-full h-48 object-cover rounded-2xl shadow-md border border-[#E8E4DC]"
+          className="w-full h-48 object-cover scale-[0.9] hover:scale-100 transform origin-center transition-transform duration-700 ease-in-out"
         />
       </div>
+
 
       <div className="grid md:grid-cols-3 lg:grid-cols-4 gap-8 max-w-7xl mx-auto">
         {items.length > 0 ? (
@@ -58,14 +59,7 @@ function AuctionMainPage() {
         )}
       </div>
 
-      {/* Bottom Advertisement */}
-      <div className="max-w-6xl mx-auto mt-12">
-        <img
-          src="https://images4.alphacoders.com/135/thumb-1920-1354676.jpeg"
-          alt="Advertisement"
-          className="w-full h-48 object-cover rounded-2xl shadow-md border border-[#E8E4DC]"
-        />
-      </div>
+
     </div>
   );
 }
