@@ -18,6 +18,7 @@ export default function HistoryBought() {
     totalCount: 0,
     pageSize: 10,
   });
+  const baseURL = import.meta.env.VITE_API_BASE_URL;
 
   const userId = localStorage.getItem("userId");
   const token = localStorage.getItem("token");
@@ -32,7 +33,7 @@ export default function HistoryBought() {
     setLoading(true);
     try {
       const res = await fetch(
-        `https://localhost:7272/api/History/bought?pageNumber=${page}&pageSize=${pageSize}`,
+        `${baseURL}History/bought?pageNumber=${page}&pageSize=${pageSize}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,

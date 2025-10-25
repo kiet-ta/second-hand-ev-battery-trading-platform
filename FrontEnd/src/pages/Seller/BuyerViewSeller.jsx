@@ -27,6 +27,7 @@ export default function BuyerViewSeller() {
     const [tab, setTab] = useState("active");
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
+    const baseURL = import.meta.env.VITE_API_BASE_URL;
     const carouselSettings = {
         dots: true,
         infinite: true,
@@ -43,9 +44,9 @@ export default function BuyerViewSeller() {
             try {
                 setLoading(true);
                 const [sRes, iRes, rRes] = await Promise.all([
-                    fetch(`https://localhost:7272/api/seller/${sellerId}`),
-                    fetch(`https://localhost:7272/api/item/seller/${sellerId}`),
-                    fetch(`https://localhost:7272/api/${sellerId}/reviews`),
+                    fetch(`${baseURL}seller/${sellerId}`),
+                    fetch(`${baseURL}item/seller/${sellerId}`),
+                    fetch(`${baseURL}${sellerId}/reviews`),
                 ]);
 
                 const sellerData = await sRes.json();

@@ -12,6 +12,7 @@ import Logo from "../components/Logo"
 export default function SellerDashboard() {
     const location = useLocation();
     const navigate = useNavigate();
+    const baseURL = import.meta.env.VITE_API_BASE_URL;
 
     const [dashboardData, setDashboardData] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -30,7 +31,7 @@ export default function SellerDashboard() {
                 // NOTE: This fetch runs whenever the component mounts, ensuring data is ready
                 // for the index route and potentially for the other sub-components if needed.
                 const res = await fetch(
-                    `https://localhost:7272/api/SellerDashboard/${sellerId}`,
+                    `${baseURL}SellerDashboard/${sellerId}`,
                     {
                         headers: {
                             Authorization: `Bearer ${token}`,

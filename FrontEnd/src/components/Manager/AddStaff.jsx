@@ -12,6 +12,8 @@ export default function AddStaff({ isOpen, onClose, onSuccess }) {
         permissions: [],
     });
     const [loading, setLoading] = useState(false);
+    const baseURL = import.meta.env.VITE_API_BASE_URL;
+
 
     if (!isOpen) return null;
 
@@ -25,7 +27,7 @@ export default function AddStaff({ isOpen, onClose, onSuccess }) {
                     return;
                 }
 
-                const res = await fetch("https://localhost:7272/api/management/permissions", {
+                const res = await fetch(`${baseURL}management/permissions`, {
                     headers: {
                         "Authorization": `Bearer ${token}`,
                         "Content-Type": "application/json",
@@ -91,7 +93,7 @@ export default function AddStaff({ isOpen, onClose, onSuccess }) {
                 permissions: formData.permissions,
             };
 
-            const res = await fetch("https://localhost:7272/api/management/staff", {
+            const res = await fetch(`${baseURL}/management/staff`, {
                 method: "POST",
                 headers: {
                     "Authorization": `Bearer ${token}`,

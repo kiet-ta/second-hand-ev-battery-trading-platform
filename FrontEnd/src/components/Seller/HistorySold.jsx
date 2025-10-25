@@ -19,6 +19,7 @@ export default function HistorySold() {
     const [filterType, setFilterType] = useState("all"); // loại sản phẩm: all | ev | battery
     const [selectedSale, setSelectedSale] = useState(null);
     const [loading, setLoading] = useState(true);
+    const baseURL = import.meta.env.VITE_API_BASE_URL;
 
     const sellerId = localStorage.getItem("userId");
     const token = localStorage.getItem("token");
@@ -26,7 +27,7 @@ export default function HistorySold() {
     useEffect(() => {
         const fetchSales = async () => {
             try {
-                const res = await fetch(`https://localhost:7272/api/History/${sellerId}`, {
+                const res = await fetch(`${baseURL}History/${sellerId}`, {
                     headers: {
                         Authorization: `Bearer ${token}`,
                         "Content-Type": "application/json",

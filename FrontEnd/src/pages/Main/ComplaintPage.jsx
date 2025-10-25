@@ -11,6 +11,7 @@ export default function ComplaintPage() {
   const [loading, setLoading] = useState(false);
   const [complaints, setComplaints] = useState([]);
   const [fetching, setFetching] = useState(true);
+  const baseURL = import.meta.env.VITE_API_BASE_URL;
 
   const userId = localStorage.getItem("userId");
   const token = localStorage.getItem("token");
@@ -19,7 +20,7 @@ export default function ComplaintPage() {
   useEffect(() => {
     const fetchComplaints = async () => {
       try {
-        const res = await fetch(`https://localhost:7272/api/Complaint/user/${userId}`, {
+        const res = await fetch(`${baseURL}Complaint/user/${userId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         const data = await res.json();
@@ -43,7 +44,7 @@ export default function ComplaintPage() {
 
     setLoading(true);
     try {
-      const res = await fetch("https://localhost:7272/api/Complaint", {
+      const res = await fetch(`${baseURL}Complaint`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -63,7 +64,7 @@ export default function ComplaintPage() {
       message.success("Gửi khiếu nại thành công!");
       setForm({ reason: "", description: "", severityLevel: "low" });
       // refresh list
-      const updated = await fetch(`https://localhost:7272/api/Complaint/user/${userId}`, {
+      const updated = await fetch(`${baseURL}/Complaint/user/${userId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setComplaints(await updated.json());
