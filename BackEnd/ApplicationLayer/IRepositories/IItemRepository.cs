@@ -38,6 +38,7 @@ namespace Application.IRepositories
         IQueryable<ItemDto> QueryItemsWithSeller();
 
         Task<PagedResultBought<ItemBoughtDto>> GetBoughtItemsWithDetailsAsync(int userId, PaginationParams paginationParams);
+        Task<PagedResultBought<ItemBoughtDto>> GetTransactionItemsWithDetailsAsync(int userId, PaginationParams paginationParams);
 
         //Feature: Seller Dashboard
         Task<int> CountAllBySellerAsync(int sellerId);

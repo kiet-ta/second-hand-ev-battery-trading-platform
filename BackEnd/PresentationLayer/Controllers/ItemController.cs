@@ -104,7 +104,7 @@ namespace PresentationLayer.Controllers
             return Ok(item);
         }
 
-        [HttpGet("detail")]
+        [HttpGet("detail/all")]
         public async Task<IActionResult> GetAllItemsWithDetails()
         {
             var items = await _service.GetAllItemsWithDetailsAsync();
@@ -126,7 +126,7 @@ namespace PresentationLayer.Controllers
         //    return Ok(e);
         //}
 
-        [HttpPost("detail")]
+        [HttpPost("detail/ev")]
         public async Task<IActionResult> CreateEv([FromBody] CreateEvDetailDto dto, CancellationToken ct)
         {
 
@@ -135,7 +135,7 @@ namespace PresentationLayer.Controllers
 
         }
 
-        [HttpPut("detail/{id:int}")]
+        [HttpPut("detail/ev/{id:int}")]
         public async Task<IActionResult> UpdateEv(int id, [FromBody] UpdateEvDetailDto dto, CancellationToken ct)
         {
             var ok = await _evService.UpdateAsync(id, dto, ct);
@@ -143,7 +143,7 @@ namespace PresentationLayer.Controllers
             return NoContent();
         }
 
-        [HttpDelete("detail/{id:int}")]
+        [HttpDelete("detail/ev/{id:int}")]
         public async Task<IActionResult> DeleteEv(int id, CancellationToken ct)
         {
             var ok = await _evService.DeleteAsync(id, ct);
