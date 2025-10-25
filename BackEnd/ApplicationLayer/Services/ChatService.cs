@@ -1,4 +1,5 @@
-﻿using Application.IRepositories.IChatRepositories;
+﻿using Application.DTOs.SignalRDtos;
+using Application.IRepositories.IChatRepositories;
 using Application.IServices;
 using Domain.Entities;
 using System;
@@ -130,6 +131,55 @@ namespace Application.Services
                 m.Text,
                 m.CreatedAt
             )).ToList();
+        }
+
+        public async Task<IEnumerable<ChatRoomSummaryDto>> GetRoomsByUserIdAsync(long userId)
+        {
+            var roomIds = await _repo.GetRoomIdsByUserIdAsync(userId);
+
+            var roomTasks = new List<Task<ChatRoomSummaryDto?>>();
+
+            foreach (var cid in roomIds)
+            {
+                roomTasks.Add(GetRoomSummaryInternalAsync(cid));
+            }
+
+            var summaries = await Task.WhenAll(roomTasks);
+
+            return summaries
+                .Where(s => s != null)
+                .Select(s => s!)
+                .OrderByDescending(s => s.LastMessage?.CreatedAt ?? DateTimeOffset.MinValue);
+        }
+
+        private async Task<ChatRoomSummaryDto?> GetRoomSummaryInternalAsync(long cid)
+        {
+            try
+            {
+                var room = await _repo.GetRoomRawAsync(cid);
+                if (room == null) return null;
+
+                var lastMessage = await _repo.GetLastMessageAsync(cid);
+
+                MessageDto? lastMessageDto = null;
+                if (lastMessage != null)
+                {
+                    lastMessageDto = new MessageDto(
+                        lastMessage.Id,
+                        lastMessage.From,
+                        lastMessage.To,
+                        lastMessage.Text,
+                        lastMessage.CreatedAt
+                    );
+                }
+
+                return new ChatRoomSummaryDto(cid, room.Members.ToArray(), lastMessageDto);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error fetching summary for room {cid}: {ex.Message}");
+                return null;
+            }
         }
 
         private long GenerateCid(long[] sortedMembers)

@@ -1,4 +1,5 @@
-﻿using Domain.Entities;
+﻿using Application.DTOs.SignalRDtos;
+using Domain.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,5 +16,6 @@ namespace Application.IServices
         Task<ChatRoomDto?> GetRoomAsync(long cid);
         Task<IEnumerable<ChatRoomDto>> GetRoomsForUserAsync(long userId);
         Task<IEnumerable<MessageDto>> GetMessagesAsync(long cid, int limit = 50);
+        Task<IEnumerable<ChatRoomSummaryDto>> GetRoomsByUserIdAsync(long userId);
     }
 }
