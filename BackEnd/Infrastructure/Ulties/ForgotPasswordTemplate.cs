@@ -16,7 +16,7 @@ namespace Infrastructure.Ulties
             <body style='font-family: Arial, sans-serif; color: #333;'>
                 <div style='max-width:600px; margin:auto; padding:20px; border:1px solid #ddd; border-radius:8px;'>
                     <h2 style='color:#0066cc;'>Reset your password</h2>
-                    <p>Hi <strong>{to}</strong>,</p>
+                    <p>Hi <strong>{userName}</strong>,</p>
                     <p>We received a request to reset your password for <b>Cóc Mua Xe</b>.</p>
                     <p>Your OTP code is:</p>
                     <h1 style='letter-spacing:5px; background:#f1f1f1; padding:10px; display:inline-block;'>{otp}</h1>

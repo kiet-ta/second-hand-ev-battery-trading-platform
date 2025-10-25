@@ -251,7 +251,7 @@ namespace PresentationLayer.Controllers
             return Ok(new { message = "OTP verified successfully." });
         }
 
-        [HttpPost("reset-password")]
+        [HttpPost("reset-password/otp")]
         public async Task<IActionResult> ResetPassword(ResetPasswordDto dto)
         {
             await _authService.ResetPasswordAsync(dto);
