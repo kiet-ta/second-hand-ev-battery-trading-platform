@@ -26,12 +26,13 @@ export default function SellerDashboardContent() {
     const token = localStorage.getItem("token");
     const [dashboardData, setDashboardData] = useState(null);
     const [loading, setLoading] = useState(true);
+    const baseURL = import.meta.env.VITE_API_BASE_URL;
 
     useEffect(() => {
         const fetchData = async () => {
             try {
                 const res = await fetch(
-                    `https://localhost:7272/api/SellerDashboard/${sellerId}`,
+                    `${baseURL}SellerDashboard/${sellerId}`,
                     {
                         headers: { Authorization: `Bearer ${token}` },
                     }

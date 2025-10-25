@@ -12,7 +12,6 @@ import CartPage from "../pages/Main/CartPage";
 import CheckoutPage from "../pages/Main/CheckoutPage";
 import AuctionMainPage from "../pages/Auctions/AuctionMainPage";
 import AuctionDetailPage from "../pages/Auctions/AuctionDetailPage";
-import ComparePage from "../pages/Main/ComparePage";
 import FavouritePage from "../pages/Main/FavouritePage";
 import BlogList from "../pages/Footers/BlogList";
 import BlogDetail from "../pages/Footers/BlogDetail";
@@ -28,7 +27,7 @@ import BuyerViewSeller from "../pages/Seller/BuyerViewSeller";
 import SellerOnBoard from "../pages/SellerOnBoard";
 import SellerForm from "../pages/SellerRegistration";
 import SuccessPage from "../pages/SellerSuccess";
-import AuctionDetailPageAlias from "../pages/Auctions/AuctionDetailPage"; // alias kept if needed
+import CompareEVPage from "../pages/CompareEVPage"
 
 /* ---------------------------
    Auth Pages
@@ -119,7 +118,6 @@ export const router = createBrowserRouter([
       { path: "checkout", element: <CheckoutPage /> },
       { path: "auctions", element: <AuctionMainPage /> },
       { path: "auction/:id", element: <AuctionDetailPage /> },
-      { path: "compare", element: <ComparePage /> },
       { path: "seller/:sellerId", element: <BuyerViewSeller /> },
       { path: "favourite", element: <FavouritePage /> },
       { path: "seller-registration", element: <SellerOnBoard /> },
@@ -137,6 +135,7 @@ export const router = createBrowserRouter([
       { path: "contact", element: <ContactPage /> },
       { path: "wallet", element: <WalletTransactionPage /> },
       { path: "complaint", element: <ComplaintPage /> },
+      { path: "compare", element: <CompareEVPage /> },
     ],
   },
 

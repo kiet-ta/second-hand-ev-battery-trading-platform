@@ -19,6 +19,7 @@ export default function ComplaintList() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [levelFilter, setLevelFilter] = useState("all");
+  const baseURL = import.meta.env.VITE_API_BASE_URL;
 
   // Modal
   const [modalVisible, setModalVisible] = useState(false);
@@ -34,11 +35,12 @@ export default function ComplaintList() {
 
   const token = localStorage.getItem("token");
 
+
   // 📥 Lấy danh sách complaint
   const fetchComplaints = async () => {
     setLoading(true);
     try {
-      const res = await fetch("https://localhost:7272/api/Complaints/status/pending", {
+      const res = await fetch(`${baseURL}Complaints/status/pending`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (!res.ok) throw new Error("Không thể tải complaint");
@@ -78,7 +80,7 @@ export default function ComplaintList() {
     setModalVisible(true);
     setModalLoading(true);
     try {
-      const res = await fetch(`https://localhost:7272/api/Complaints/${id}`, {
+      const res = await fetch(`${baseURL}/Complaints/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (!res.ok) throw new Error("Không thể lấy chi tiết complaint");
@@ -96,7 +98,7 @@ export default function ComplaintList() {
   // ⚙️ Update status
   const updateStatus = async (id, newStatus) => {
     try {
-      const res = await fetch(`https://localhost:7272/api/Complaints/${id}/status`, {
+      const res = await fetch(`${baseURL}/Complaints/${id}/status`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -116,7 +118,7 @@ export default function ComplaintList() {
   // ⚙️ Update severity level
   const updateLevel = async (id, newLevel) => {
     try {
-      const res = await fetch(`https://localhost:7272/api/Complaints/${id}/level`, {
+      const res = await fetch(`${baseURL}/Complaints/${id}/level`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -135,7 +137,7 @@ export default function ComplaintList() {
   // 👤 Assign complaint cho staff
   const assignToStaff = async (id, staffId) => {
     try {
-      const res = await fetch(`https://localhost:7272/api/Complaints/assignee/${staffId}`, {
+      const res = await fetch(`${baseURL}/Complaints/assignee/${staffId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (!res.ok) throw new Error();

@@ -13,6 +13,7 @@ export default function ChangePassword() {
     });
     const [loading, setLoading] = useState(false);
     const [strength, setStrength] = useState({ label: "", color: "" });
+    const baseURL = import.meta.env.VITE_API_BASE_URL;
 
     // 🔍 Kiểm tra độ mạnh mật khẩu
     const checkPasswordStrength = (password) => {
@@ -55,7 +56,7 @@ export default function ChangePassword() {
 
         setLoading(true);
         try {
-            const res = await fetch("https://localhost:7272/api/Auth/change-password", {
+            const res = await fetch(`${baseURL}Auth/change-password`, {
                 method: "PUT",
                 headers: {
                     "Content-Type": "application/json",

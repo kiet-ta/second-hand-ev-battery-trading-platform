@@ -8,6 +8,7 @@ const AddressManagement = () => {
     const [provinces, setProvinces] = useState([]);
     const [districts, setDistricts] = useState([]);
     const [wards, setWards] = useState([]);
+    const baseURL = import.meta.env.VITE_API_BASE_URL;
 
     const [savedAddresses, setSavedAddresses] = useState([]);
 
@@ -22,7 +23,7 @@ const AddressManagement = () => {
                 if (!userId)
                     return;
 
-                const res = await fetch(`https://localhost:7272/api/User/${userId}`);
+                const res = await fetch(`${baseURL}User/${userId}`);
                 if (!res.ok) throw new Error("Không lấy được thông tin user");
                 const data = await res.json();
                 setCurrentUser(data);

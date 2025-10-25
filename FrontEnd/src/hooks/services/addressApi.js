@@ -1,7 +1,7 @@
 // services/addressApi.js
 import axios from "axios";
 
-const ADDRESS_API_BASE = "https://localhost:7272/api";
+const ADDRESS_API_BASE = import.meta.env.VITE_API_BASE_URL;;
 
 const addressApi = {
     // Lấy danh sách provinces từ GitHub

@@ -14,6 +14,7 @@ export default function LoginPage() {
     const [password, setPassword] = useState("");
     const [remember, setRemember] = useState(false);
     const [error, setError] = useState("");
+    const baseURL = import.meta.env.VITE_API_BASE_URL;
     const googleButtonRef = useRef(null);
 
     // 🧠 Khi load lại trang, nếu có remember data thì tự điền
@@ -68,7 +69,7 @@ export default function LoginPage() {
     async function handleCredentialResponse(response) {
         const googleToken = response.credential;
         try {
-            const res = await fetch("https://localhost:7272/api/Auth/google", {
+            const res = await fetch(`${baseURL}Auth/google`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ credential: googleToken }),

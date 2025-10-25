@@ -2,12 +2,14 @@ import { useState, useEffect } from "react";
 import "../../assets/styles/ProfileForm.css";
 import { FaCamera } from "react-icons/fa";
 import { FaRegEye, FaRegEyeSlash } from "react-icons/fa";
+import { message } from "antd";
 
 const ProfileForm = () => {
     const [formData, setFormData] = useState(null);
     const userId = localStorage.getItem("userId");
     const token = localStorage.getItem("token");
     const [showPhone, setShowPhone] = useState(false);
+    const baseURL = import.meta.env.VITE_API_BASE_URL;
 
     const maskPhone = (phone) => {
         if (!phone) return "";
@@ -20,7 +22,7 @@ const ProfileForm = () => {
     useEffect(() => {
         if (!userId) return;
 
-        fetch(`https://localhost:7272/api/User/${userId}`, {
+        fetch(`${baseURL}User/${userId}`, {
             headers: {
                 "Authorization": `Bearer ${token}`,
                 "Content-Type": "application/json",
@@ -89,23 +91,20 @@ const ProfileForm = () => {
     };
 
     // ✅ Gửi API để cập nhật thông tin người dùng
+
+
     const handleSubmit = (e) => {
         e.preventDefault();
 
         const updatedUser = {
             ...formData,
-            fullName: formData.fullName,
-            email: formData.email,
-            gender: formData.gender,
             yearOfBirth: formData.yearOfBirth
                 ? new Date(formData.yearOfBirth).toISOString().split("T")[0]
                 : null,
-            phone: formData.phone,
-            avatarProfile: formData.avatarProfile,
             updatedAt: new Date().toISOString(),
         };
 
-        fetch(`https://localhost:7272/api/User/${userId}`, {
+        fetch(`${baseURL}/User/${userId}`, {
             method: "PUT",
             headers: {
                 "Authorization": `Bearer ${token}`,
@@ -119,15 +118,18 @@ const ProfileForm = () => {
                 return text ? JSON.parse(text) : null;
             })
             .then((data) => {
-                alert("✅ Cập nhật thông tin thành công!");
+                message.success("✅ Cập nhật thông tin thành công!");
                 console.log("Người dùng đã được cập nhật:", data);
 
-                // ✅ Lưu tạm vào localStorage để header cập nhật ngay
                 localStorage.setItem("userAvatar", updatedUser.avatarProfile);
                 localStorage.setItem("userName", updatedUser.fullName);
             })
-            .catch((err) => console.error("Lỗi khi cập nhật người dùng:", err));
+            .catch((err) => {
+                console.error("Lỗi khi cập nhật người dùng:", err);
+                message.error("❌ Cập nhật thất bại. Vui lòng thử lại.");
+            });
     };
+
 
     return (
         <div className="profile-form-container">
