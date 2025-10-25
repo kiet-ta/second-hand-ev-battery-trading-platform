@@ -29,7 +29,5 @@ public class Item
 
     public string? Moderation { get; set; }
 
-    public string? LicenseUrl { get; set; }
-
     public bool IsDeleted { get; set; }
 }

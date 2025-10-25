@@ -20,6 +20,7 @@ namespace Application.DTOs.ItemDtos
         public int? PreviousOwners { get; set; }
         public bool? IsRegistrationValid { get; set; }
         public int? Mileage { get; set; }
+        public string? LicenseUrl { get; set; }
 
         // optional Item updates
         public string? Title { get; set; }

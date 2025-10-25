@@ -16,7 +16,7 @@ namespace Application.DTOs.ItemDtos
         public string? Description { get; set; }
         public decimal? Price { get; set; }
 
-        // Information thanh toán
+        // Information payment
         public int PaymentId { get; set; }
         public long OrderCode { get; set; }
         public decimal TotalAmount { get; set; }
@@ -31,6 +31,7 @@ namespace Application.DTOs.ItemDtos
         public int? Year { get; set; }
         public string? Color { get; set; }
         public int? Mileage { get; set; }
+        public string LicenseUrl { get; set; }
 
         // Information detail Battery (if any)
         public int? Capacity { get; set; }

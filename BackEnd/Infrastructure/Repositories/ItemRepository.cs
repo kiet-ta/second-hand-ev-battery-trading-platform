@@ -157,7 +157,8 @@ namespace Infrastructure.Repositories
                             HasAccessories = d.HasAccessories,
                             PreviousOwners = d.PreviousOwners,
                             IsRegistrationValid = d.IsRegistrationValid,
-                            Mileage = d.Mileage
+                            Mileage = d.Mileage,
+                            LicenseUrl = d.LicenseUrl
                         })
                         .FirstOrDefaultAsync();
                     item.ItemDetail = detail;
@@ -559,6 +560,7 @@ namespace Infrastructure.Repositories
                                     PreviousOwners = ev.PreviousOwners,
                                     IsRegistrationValid = ev.IsRegistrationValid,
                                     Mileage = ev.Mileage,
+                                    LicenseUrl = ev.LicenseUrl,
                                     Title = i.Title,
                                     Price = i.Price,
                                     Status = i.Status
