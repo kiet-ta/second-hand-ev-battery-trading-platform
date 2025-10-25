@@ -298,28 +298,36 @@ namespace Application.Services
             };
 
             await _otpRepository.CreateAsync(token);
-            await _emailSender.SendOtpMailAsync(dto.Email, "OTP Reset Password", $"Your OTP is {otp}");
+
+            string systemUrl = "https://your-website.com/reset-password"; // Try
+
+            await _emailSender.SendOtpMailAsync(
+                dto.Email,  
+                otp,        
+                systemUrl   
+            );
         }
 
         public async Task<bool> VerifyOtpAsync(VerifyOtpDto dto)
         {
-            var user = await _userRepository.GetByEmailAsync(dto.Email);
-            if (user == null)
-                throw new Exception("Email not found.");
-
-            var token = await _otpRepository.GetValidTokenAsync(user.UserId, dto.OtpCode);
-            if (token == null || token.ExpirationTime < DateTime.UtcNow)
+            try
+            {
+                await ValidateOtpAndGetUserAsync(dto.Email, dto.OtpCode);
+                return true;
+            }
+            catch (Exception)
+            {
                 return false;
-
-            await _otpRepository.MarkAsUsedAsync(token);
-            return true;
+            }
         }
 
         public async Task ResetPasswordAsync(ResetPasswordDto dto)
         {
-            var user = await _userRepository.GetByEmailAsync(dto.Email);
-            if (user == null)
-                throw new Exception("Email not found.");
+            if (dto.NewPassword != dto.ConfirmPassword)
+            {
+                throw new Exception("Passwords do not match. Please try again.");
+            }
+            User user = await ValidateOtpAndGetUserAsync(dto.Email, dto.OtpCode);
 
             user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.NewPassword);
             await _userRepository.UpdateAsync(user);
@@ -332,6 +340,24 @@ namespace Application.Services
             rng.GetBytes(bytes);
             int code = BitConverter.ToInt32(bytes, 0);
             return Math.Abs(code % 1000000).ToString("D6");
+        }
+
+        private async Task<User> ValidateOtpAndGetUserAsync(string email, string otpCode)
+        {
+            var user = await _userRepository.GetByEmailAsync(email);
+            if (user == null)
+                throw new Exception("Email not found.");
+
+            var token = await _otpRepository.GetValidTokenAsync(user.UserId, otpCode);
+            if (token == null)
+                throw new Exception("Invalid OTP code.");
+
+            if (token.ExpirationTime < DateTime.UtcNow)
+                throw new Exception("Your OTP has expired. Please request a new one.");
+
+            await _otpRepository.MarkAsUsedAsync(token);
+
+            return user;
         }
     }
 }
