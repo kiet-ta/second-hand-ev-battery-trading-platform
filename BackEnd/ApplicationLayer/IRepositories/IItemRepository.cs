@@ -1,4 +1,5 @@
 ﻿using Application.DTOs.ItemDtos;
+using Application.DTOs.ItemDtos.BatteryDto;
 using Application.DTOs.UserDtos;
 using Domain.Entities;
 using System;
@@ -55,5 +56,7 @@ namespace Application.IRepositories
         Task<bool> SetItemTagAsync(int itemId, string tag);
 
         Task<PagedResultItem<ItemDto>> SearchItemsAsync(string itemType, string title, decimal? minPrice, decimal? maxPrice, int page, int pageSize, string sortBy, string sortDir);
+        Task<IEnumerable<EVDetail>> SearchEvDetailAsync(EVSearchRequestDto request);
+        Task<IEnumerable<BatteryDetail>> SearchBatteryDetailAsync(BatterySearchRequestDto request);
     }
 }

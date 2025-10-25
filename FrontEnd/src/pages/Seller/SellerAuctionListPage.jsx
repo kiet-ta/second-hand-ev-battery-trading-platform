@@ -8,6 +8,7 @@ export default function SellerAuctionListPage() {
     const [error, setError] = useState(null);
     const [showModal, setShowModal] = useState(false);
     const [fadeState, setFadeState] = useState("in");
+    const baseURL = import.meta.env.VITE_API_BASE_URL;
 
     const token = localStorage.getItem("token");
 
@@ -15,7 +16,7 @@ export default function SellerAuctionListPage() {
     const fetchAuctions = async () => {
         try {
             setLoading(true);
-            const res = await fetch("https://localhost:7272/api/auction", {
+            const res = await fetch(`${baseURL}auction`, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                     "Content-Type": "application/json",

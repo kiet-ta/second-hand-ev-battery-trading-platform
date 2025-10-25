@@ -3,10 +3,11 @@ import "../../assets/styles/ProfileLayout.css";
 
 export default function ProfileMain() {
     const cards = [
-        { id: "account", title: "Account Setting", description: "Details about your Personal information" },
-        { id: "notification", title: "Notification", description: "Manage alerts & updates" },
-        { id: "address", title: "Address", description: "Manage your delivery address" },
-        { id: "security", title: "Password & Security", description: "Change password or delete your account" },
+        { id: "account", title: "Tài khoản", description: "Quản lý thông tin cá nhân của bạn" },
+        { id: "notification", title: "Thông báo", description: "Cài đặt và quản lý các thông báo" },
+        { id: "address", title: "Địa chỉ", description: "Quản lý địa chỉ giao hàng của bạn" },
+        { id: "security", title: "Mật khẩu & Bảo mật", description: "Thay đổi mật khẩu hoặc xóa tài khoản" },
+
     ];
 
     return (

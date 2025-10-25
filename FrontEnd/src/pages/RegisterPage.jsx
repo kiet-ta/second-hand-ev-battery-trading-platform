@@ -6,6 +6,7 @@ import Logo from "../components/Logo";
 import RegisterPicture from "../assets/images/LoginPicture.jpg"; // Hình cóc cưỡi xe vàng
 
 export default function RegisterPage() {
+    const baseURL = import.meta.env.VITE_API_BASE_URL;
     const navigate = useNavigate();
     const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
     const [user, setUser] = useState(null);
@@ -56,7 +57,7 @@ export default function RegisterPage() {
     async function handleCredentialResponse(response) {
         const googleToken = response.credential;
         try {
-            const res = await fetch("https://localhost:7272/api/Auth/google", {
+            const res = await fetch(`${baseURL}Auth/google`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ credential: googleToken }),

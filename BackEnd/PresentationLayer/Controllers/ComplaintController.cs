@@ -19,17 +19,18 @@ namespace PresentationLayer.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateComplaint([FromBody] CreateComplaintDto dto)
+        public async Task<IActionResult> CreateComplaint(CreateComplaintDto dto)
         {
-            var complaint = await _complaintService.AddNewComplaint(dto);
-            return Ok(new
-            {
-                message = $"Complaint (ID: {complaint.ComplaintId}) created successfully.",
-                complaintId = complaint.ComplaintId,
-                status = complaint.Status,
-                level = complaint.SeverityLevel
-            });
+            var userIdClaim = User.FindFirst("user_id")?.Value;
+            if (userIdClaim == null)
+                return Unauthorized("User ID not found in token.");
+
+            int userId = int.Parse(userIdClaim);
+
+            var complaint = await _complaintService.AddNewComplaint(dto, userId);
+            return Ok(complaint);
         }
+
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetComplaintById(int id)
@@ -38,7 +39,7 @@ namespace PresentationLayer.Controllers
             return Ok(complaint);
         }
 
-       [HttpGet("status/{status}")]
+        [HttpGet("status/{status}")]
         public async Task<IActionResult> GetByStatus(string status)
         {
             var complaints = await _complaintService.GetComplaintsByStatus(status);
@@ -67,40 +68,66 @@ namespace PresentationLayer.Controllers
         }
 
         [HttpPatch("{id}/status")]
-        public async Task<IActionResult> UpdateStatus(int id, [FromQuery] string status, [FromQuery] int? assignTo = null)
+        public async Task<IActionResult> UpdateStatus(int id, [FromQuery] string status)
         {
-            await _complaintService.UpdateStatusComplaint(id, status, assignTo);
+            var userIdClaim = User.FindFirst("user_id")?.Value;
+            if (userIdClaim == null)
+                return Unauthorized("User ID not found in token.");
+
+            int userId = int.Parse(userIdClaim);
+            if (string.IsNullOrWhiteSpace(status))
+                return BadRequest("Status cannot be empty.");
+
+            await _complaintService.UpdateStatusComplaint(id, status, userId);
+
             return Ok(new
             {
-                message = $"Complaint ID {id} status updated to '{status}'.",
                 complaintId = id,
                 newStatus = status,
-                assignedTo = assignTo
+                assignedTo = userId
             });
         }
 
-        [HttpPatch("{id}/level")]
-        public async Task<IActionResult> UpdateLevel(int id, [FromQuery] string level, [FromQuery] int? assignTo = null)
+
+        [HttpPut("{complaintId}/level")]
+        public async Task<IActionResult> UpdateLevelComplaint(int complaintId, [FromQuery] string level)
         {
-            await _complaintService.UpdateLevelComplaint(id, level, assignTo);
+            if (string.IsNullOrWhiteSpace(level))
+                return BadRequest("Level cannot be empty.");
+
+            var userIdClaim = User.FindFirst("user_id")?.Value;
+            if (userIdClaim == null)
+                return Unauthorized("User ID not found in token.");
+
+            int userId = int.Parse(userIdClaim);
+            await _complaintService.UpdateLevelComplaint(complaintId, level, userId);
+
             return Ok(new
             {
-                message = $"Complaint ID {id} level updated to '{level}'.",
-                complaintId = id,
+                complaintId,
+                message = $"Complaint #{complaintId} level updated successfully.",
                 newLevel = level,
-                assignedTo = assignTo
+                assignedTo = userId
             });
         }
+
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteComplaint(int id)
         {
-            await _complaintService.DeleteComplaint(id);
+            var userIdClaim = User.FindFirst("user_id")?.Value;
+            if (userIdClaim == null)
+                return Unauthorized("User ID not found in token.");
+
+            int userId = int.Parse(userIdClaim);
+            await _complaintService.DeleteComplaint(id, userId);
+
             return Ok(new
             {
-                message = $"Complaint ID {id} deleted successfully.",
-                complaintId = id
+                complaintId = id,
+                message = $"Complaint #{id} has been deleted successfully."
             });
         }
+
     }
 }

@@ -6,6 +6,7 @@ export default function MyProducts() {
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const baseURL = import.meta.env.VITE_API_BASE_URL;
 
     const sellerId = localStorage.getItem("userId");
 
@@ -19,7 +20,7 @@ export default function MyProducts() {
 
         setLoading(true);
         try {
-            const res = await fetch(`https://localhost:7272/api/item/seller/${sellerId}`);
+            const res = await fetch(`${baseURL}item/seller/${sellerId}`);
             if (!res.ok) throw new Error("Không thể tải danh sách sản phẩm");
             const data = await res.json();
             setProducts(data);
@@ -32,9 +33,9 @@ export default function MyProducts() {
 
     // Fetch products on mount
     useEffect(() => {
-    if (!sellerId) return;
-    fetchProducts();
-}, []);
+        if (!sellerId) return;
+        fetchProducts();
+    }, []);
 
     // Format price
     const formatCurrency = (num) =>
@@ -90,13 +91,12 @@ export default function MyProducts() {
                                     className="w-full h-48 object-cover"
                                 />
                                 <span
-                                    className={`absolute top-2 right-2 text-xs font-semibold px-2 py-1 rounded-full ${
-                                        item.status === "active"
-                                            ? "bg-green-100 text-green-700"
-                                            : item.status === "pending"
+                                    className={`absolute top-2 right-2 text-xs font-semibold px-2 py-1 rounded-full ${item.status === "active"
+                                        ? "bg-green-100 text-green-700"
+                                        : item.status === "pending"
                                             ? "bg-yellow-100 text-yellow-700"
                                             : "bg-gray-100 text-gray-600"
-                                    }`}
+                                        }`}
                                 >
                                     {item.status}
                                 </span>

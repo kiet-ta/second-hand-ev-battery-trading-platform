@@ -18,12 +18,16 @@ namespace Infrastructure.Data.Configurations
             entity.ToTable("kyc_documents");
 
             entity.Property(e => e.DocId).HasColumnName("doc_id");
+            
             entity.Property(e => e.DocUrl)
                 .HasMaxLength(500)
                 .HasColumnName("doc_url");
             entity.Property(e => e.IdCardUrl)
                 .HasMaxLength(500)
                 .HasColumnName("id_card_url");
+            entity.Property(e => e.StoreLogoUrl)
+                .HasMaxLength(500)
+                .HasColumnName("store_logo_url");
             entity.Property(e => e.Note).HasColumnName("note");
             entity.Property(e => e.SelfieUrl)
                 .HasMaxLength(500)
@@ -32,6 +36,10 @@ namespace Infrastructure.Data.Configurations
                 .HasMaxLength(20)
                 .HasDefaultValue("pending")
                 .HasColumnName("status");
+            entity.Property(e => e.StoreName)
+                .HasMaxLength(20)
+                .HasColumnName("store_name");
+            entity.Property(e => e.StorePhone).HasColumnName("store_phone");
             entity.Property(e => e.SubmittedAt)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime")

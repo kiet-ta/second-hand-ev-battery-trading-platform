@@ -96,6 +96,21 @@ namespace Application.Services
             await SendAsync(message);
         }
 
+        public async Task SendResponseComplaintMailAsync(CreateResponseMailDto dto, string staffName, string staffRole)
+        {
+            if (dto == null) throw new ArgumentNullException(nameof(dto));
+            if (string.IsNullOrWhiteSpace(dto.To)) throw new ArgumentException("Recipient email cannot be empty.", nameof(dto.To));
+            if (string.IsNullOrWhiteSpace(staffName)) throw new ArgumentException("Staff name cannot be empty.", nameof(staffName));
+            if (string.IsNullOrWhiteSpace(staffRole)) throw new ArgumentException("Staff role cannot be empty.", nameof(staffRole));
+  
+
+            string htmlContent = await _templateRepository.SendResponseEmailToUser(dto, staffName, staffRole);
+
+            var message = CreateMessage(dto.To, $"Phản hồi khiếu nại #{dto.complaintId}", htmlContent);
+            await SendAsync(message);
+        }
+
+
         private MimeMessage CreateMessage(string toEmail, string subject, string htmlBody)
         {
             if (string.IsNullOrWhiteSpace(toEmail)) throw new ArgumentException("Recipient email cannot be empty.", nameof(toEmail));
@@ -131,6 +146,46 @@ namespace Application.Services
             {
                 await client.DisconnectAsync(true);
             }
+        }
+
+        public async Task SendOtpMailAsync(string toEmail, string otp, string systemUrl)
+        {
+            if (string.IsNullOrWhiteSpace(toEmail))
+                throw new ArgumentException("Recipient email cannot be empty.", nameof(toEmail));
+
+            if (string.IsNullOrWhiteSpace(otp))
+                throw new ArgumentException("OTP cannot be empty.", nameof(otp));
+
+            if (string.IsNullOrWhiteSpace(systemUrl))
+                throw new ArgumentException("System URL cannot be empty.", nameof(systemUrl));
+
+            var template = await _templateRepository.GetForgotPasswordTemplate(
+                email: toEmail,
+                to: toEmail,
+                otp: otp,
+                systemUrl: systemUrl
+            ) ?? throw new InvalidOperationException("Forgot password email template not found.");
+
+            var message = CreateMessage(toEmail, "Reset Your Password - Cóc Mua Xe", template);
+            await SendAsync(message);
+        }
+
+        public async Task SendPasswordChangedMailAsync(string toEmail, string loginUrl)
+        {
+            if (string.IsNullOrWhiteSpace(toEmail))
+                throw new ArgumentException("Recipient email cannot be empty.", nameof(toEmail));
+
+            if (string.IsNullOrWhiteSpace(loginUrl))
+                throw new ArgumentException("Login URL cannot be empty.", nameof(loginUrl));
+
+            var template = await _templateRepository.GetPasswordChangedTemplate(
+                email: toEmail,
+                to: toEmail,
+                loginUrl: loginUrl
+            ) ?? throw new InvalidOperationException("Password changed email template not found.");
+
+            var message = CreateMessage(toEmail, "Your Password Has Been Changed", template);
+            await SendAsync(message);
         }
     }
 }

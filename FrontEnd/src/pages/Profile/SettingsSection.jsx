@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 
 export default function SettingsSection() {
     const [isDarkMode, setIsDarkMode] = useState(false);
+    const baseURL = import.meta.env.VITE_API_BASE_URL;
 
     useEffect(() => {
         document.body.classList.toggle("dark-mode", isDarkMode);
@@ -14,7 +15,7 @@ export default function SettingsSection() {
         if (!window.confirm("⚠️ Bạn có chắc muốn xóa tài khoản này? Hành động này không thể hoàn tác!")) return;
 
         try {
-            const res = await fetch(`https://localhost:7272/api/User/${userId}`, {
+            const res = await fetch(`${baseURL}User/${userId}`, {
                 method: "DELETE",
                 headers: { "Content-Type": "application/json" },
             });

@@ -11,6 +11,12 @@ public class KycDocument
 
     public string? IdCardUrl { get; set; }
 
+    public string? StoreName { get; set; }
+
+    public int? StorePhone { get; set; }
+
+    public string? StoreLogoUrl { get; set; }
+
     public string? VehicleRegistrationUrl { get; set; }
 
     public string? SelfieUrl { get; set; }

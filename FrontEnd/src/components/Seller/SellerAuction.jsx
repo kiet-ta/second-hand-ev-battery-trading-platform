@@ -13,6 +13,8 @@ export default function SellerAuctionPage({ onClose }) {
         imagePreview: null,
     });
 
+    const baseURL = import.meta.env.VITE_API_BASE_URL;
+
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData((prev) => ({ ...prev, [name]: value }));
@@ -49,7 +51,7 @@ export default function SellerAuctionPage({ onClose }) {
                 updatedAt: today,
             };
 
-            const itemRes = await fetch("https://localhost:7272/api/Item", {
+            const itemRes = await fetch(`${baseURL}Item`, {
                 method: "POST",
                 headers: {
                     Authorization: `Bearer ${token}`,
@@ -79,7 +81,7 @@ export default function SellerAuctionPage({ onClose }) {
             };
 
 
-            const auctionRes = await fetch("https://localhost:7272/api/auction", {
+            const auctionRes = await fetch(`${baseURL}/auction`, {
                 method: "POST",
                 headers: {
                     Authorization: `Bearer ${token}`,

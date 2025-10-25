@@ -1,6 +1,6 @@
 class authApi {
     constructor() {
-        this.apiUrl = "https://localhost:7272/api/Auth";
+        this.apiUrl = import.meta.env.VITE_API_BASE_URL + "Auth";
     }
 
     // Gọi API login

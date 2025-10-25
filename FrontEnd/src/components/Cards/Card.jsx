@@ -1,9 +1,28 @@
-import React, { useEffect, useState, useMemo, useCallback, memo } from "react";
+import React, {
+    useEffect,
+    useState,
+    useMemo,
+    useCallback,
+    memo,
+} from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Slider from "react-slick";
-import { FiHeart, FiZap, FiShoppingCart, FiArrowRight } from "react-icons/fi";
+import {
+    FiHeart,
+    FiZap,
+    FiShoppingCart,
+    FiArrowRight,
+    FiBarChart2,
+} from "react-icons/fi";
 import orderItemApi from "../../api/orderItemApi";
 import favouriteApi from "../../api/favouriteApi";
+import {
+    addToCompare,
+    getCompareList,
+    removeFromCompare,
+} from "../../utils/compareUtils";
+import { message } from "antd";
+
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 
@@ -41,9 +60,9 @@ function CardComponent({
     const navigate = useNavigate();
     const [isFavorited, setIsFavorited] = useState(false);
     const [favoriteId, setFavoriteId] = useState(null);
-    const [isProcessing, setIsProcessing] = useState(false); // 🧩 To prevent spam clicking
+    const [isProcessing, setIsProcessing] = useState(false);
+    const [isCompared, setIsCompared] = useState(false);
 
-    // ✅ Derived data (memoized)
     const userId = useMemo(() => localStorage.getItem("userId"), []);
     const displayImages = useMemo(
         () =>
@@ -53,14 +72,27 @@ function CardComponent({
         [itemImages]
     );
 
-    // ✅ Initialize favorite state
+    // ✅ Load favorites & compare state
     useEffect(() => {
-        const favoriteItem = userFavorites.find((fav) => fav.itemId === id);
-        setIsFavorited(!!favoriteItem);
-        setFavoriteId(favoriteItem?.favId ?? null);
+        const fav = userFavorites.find((f) => f.itemId === id);
+        setIsFavorited(!!fav);
+        setFavoriteId(fav?.favId ?? null);
+        setIsCompared(getCompareList().some((x) => x.itemId === id));
     }, [userFavorites, id]);
 
-    // ✅ Shared slider settings
+    useEffect(() => {
+        const sync = () => setIsCompared(getCompareList().some((x) => x.itemId === id));
+        window.addEventListener("compare:added", sync);
+        window.addEventListener("compare:removed", sync);
+        window.addEventListener("compare:cleared", sync);
+        return () => {
+            window.removeEventListener("compare:added", sync);
+            window.removeEventListener("compare:removed", sync);
+            window.removeEventListener("compare:cleared", sync);
+        };
+    }, [id]);
+
+    // ✅ Slider settings
     const carouselSettings = useMemo(
         () => ({
             dots: true,
@@ -74,24 +106,19 @@ function CardComponent({
         []
     );
 
-    // ✅ Add to cart
-    const handleAddToCartClick = useCallback(
+    // ✅ Handle cart actions
+    const handleAddToCart = useCallback(
         async (e) => {
             e.preventDefault();
             e.stopPropagation();
             if (isProcessing) return;
             setIsProcessing(true);
-
             try {
-                const payload = {
-                    buyerId: userId,
-                    itemId: id,
-                    quantity: 1,
-                    price,
-                };
+                const payload = { buyerId: userId, itemId: id, quantity: 1, price };
                 await orderItemApi.postOrderItem(payload);
+                message.success("Đã thêm vào giỏ hàng");
             } catch (err) {
-                console.error("Error adding item to cart", err);
+                console.error("Error adding item:", err);
             } finally {
                 setIsProcessing(false);
             }
@@ -99,56 +126,50 @@ function CardComponent({
         [id, price, userId, isProcessing]
     );
 
-    // ✅ Buy now
-    const handleBuyNowClick = useCallback(
+    const handleBuyNow = useCallback(
         async (e) => {
             e.preventDefault();
             e.stopPropagation();
             if (isProcessing) return;
             setIsProcessing(true);
-
             try {
-                const payload = {
-                    buyerId: userId,
-                    itemId: id,
-                    quantity: 1,
-                    price,
-                };
+                const payload = { buyerId: userId, itemId: id, quantity: 1, price };
                 await orderItemApi.postOrderItem(payload);
                 navigate("/cart", { state: { selectedItemId: id } });
             } catch (err) {
-                console.error("Error adding item to cart", err);
+                console.error("Buy now failed:", err);
             } finally {
                 setIsProcessing(false);
             }
         },
-        [userId, id, price, navigate, isProcessing]
+        [id, price, userId, navigate, isProcessing]
     );
 
-    // ✅ Favorite toggle (prevent spam)
+    // ✅ Handle favorite toggle
     const handleFavoriteClick = useCallback(
         async (e) => {
             e.preventDefault();
             e.stopPropagation();
             if (isProcessing) return;
             setIsProcessing(true);
-
             try {
                 if (isFavorited && favoriteId) {
                     await favouriteApi.deleteFavourite(favoriteId);
                     setIsFavorited(false);
                     setFavoriteId(null);
+                    message.info("❎ Đã xoá khỏi yêu thích");
                 } else {
-                    const newFav = await favouriteApi.postFavourite({
+                    const res = await favouriteApi.postFavourite({
                         userId: parseInt(userId, 10),
                         itemId: id,
                         createdAt: new Date().toISOString(),
                     });
                     setIsFavorited(true);
-                    setFavoriteId(newFav?.favId ?? null);
+                    setFavoriteId(res?.favId ?? null);
+                    message.success("❤️ Đã thêm vào yêu thích");
                 }
             } catch (err) {
-                console.error("Failed to update favorite:", err);
+                console.error("Favourite failed:", err);
             } finally {
                 setIsProcessing(false);
             }
@@ -156,17 +177,63 @@ function CardComponent({
         [isFavorited, favoriteId, userId, id, isProcessing]
     );
 
-    // ✅ Dynamic styling
-    const heartClasses = isFavorited
-        ? "flex items-center justify-center w-10 h-10 rounded-full bg-red-400 text-white hover:bg-red-500 transition-all duration-300 shadow-lg"
-        : "flex items-center justify-center w-10 h-10 rounded-full bg-white text-red-500 hover:bg-red-50 transition-all duration-300 shadow-lg";
+    // ✅ Handle Compare toggle
+    const handleCompareClick = useCallback(
+        (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+
+            const list = getCompareList();
+            const already = list.some((x) => x.itemId === id);
+
+            // 🔄 Nếu đã trong danh sách → xoá
+            if (already) {
+                removeFromCompare(id);
+                setIsCompared(false);
+                return;
+            }
+
+            // 🚫 Nếu danh sách có phần tử khác loại → không cho thêm
+            if (list.length > 0 && list[0].itemType !== type) {
+                message.error(
+                    `❌ Bạn chỉ có thể so sánh các sản phẩm cùng loại (${list[0].itemType.toUpperCase()}).`
+                );
+                return;
+            }
+
+            // 🚫 Giới hạn tối đa 3
+            if (list.length >= 3) {
+                message.warning("⚠️ Chỉ có thể so sánh tối đa 3 sản phẩm.");
+                return;
+            }
+
+            // ✅ OK → thêm vào danh sách
+            const itemData = {
+                itemId: id,
+                name: title,
+                price,
+                imageUrl: itemImages?.[0]?.imageUrl || "https://placehold.co/400x300",
+                itemType: type,
+            };
+            addToCompare(itemData);
+            setIsCompared(true);
+            message.success("✅ Đã thêm vào danh sách so sánh");
+        },
+        [id, title, price, itemImages, type]
+    );
+
+
+    // ✅ Classes
+    const heartClass = isFavorited
+        ? "flex items-center justify-center w-10 h-10 rounded-full bg-red-400 text-white hover:bg-red-500 shadow-lg"
+        : "flex items-center justify-center w-10 h-10 rounded-full bg-white text-red-500 hover:bg-red-50 shadow-lg";
 
     const detailUrl = type === "ev" ? `/ev/${id}` : `/battery/${id}`;
 
     return (
         <Link to={detailUrl} state={id} className="block group">
-            <div className="w-80 h-110 bg-white rounded-xl shadow-md border border-gray-200 transition-all duration-300 group-hover:shadow-xl group-hover:border-yellow-400 group-hover:-translate-y-1">
-                {/* IMAGE */}
+            <div className="w-80 bg-white rounded-xl shadow-md border border-gray-200 transition-all duration-300 group-hover:shadow-xl group-hover:border-yellow-400 group-hover:-translate-y-1">
+                {/* Image */}
                 <div className="relative">
                     <Slider {...carouselSettings}>
                         {displayImages.map((img, i) => (
@@ -185,46 +252,63 @@ function CardComponent({
                         ))}
                     </Slider>
 
-                    {/* ACTION BUTTONS */}
+                    {/* Action buttons */}
                     <div className="absolute top-3 right-3 z-10 flex flex-col items-end space-y-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                        {/* Favorite */}
                         <button
                             onClick={handleFavoriteClick}
                             disabled={isProcessing}
-                            className={`${heartClasses} ${isProcessing ? "opacity-50 cursor-not-allowed" : ""}`}
-                            title={isFavorited ? "Bỏ yêu thích" : "Thêm yêu thích"}
+                            className={`${heartClass} ${isProcessing ? "opacity-50 cursor-not-allowed" : ""
+                                }`}
                         >
-                            <FiHeart className={`w-5 h-5 ${isFavorited ? "fill-white" : ""}`} />
+                            <FiHeart
+                                className={`w-5 h-5 ${isFavorited ? "fill-white" : ""}`}
+                            />
                         </button>
 
+                        {/* Compare */}
+                        <button
+                            onClick={handleCompareClick}
+                            className={`flex items-center justify-center px-4 py-2 rounded-md font-semibold text-xs shadow-md transition-all duration-300 ${isCompared
+                                    ? "bg-green-500 text-white hover:bg-green-600"
+                                    : "bg-white text-gray-900 hover:bg-gray-100"
+                                }`}
+                        >
+                            <FiBarChart2 className="mr-1.5" />
+                            {isCompared ? "Đã thêm" : "So sánh"}
+                        </button>
+
+                        {/* Cart buttons (only for battery) */}
                         {type === "battery" && (
                             <div className="flex flex-col space-y-2">
                                 <button
-                                    onClick={handleBuyNowClick}
+                                    onClick={handleBuyNow}
                                     disabled={isProcessing}
-                                    className={`flex items-center justify-center px-4 py-2 rounded-md font-semibold text-xs bg-yellow-300 text-[#2C2C2C] hover:bg-yellow-400 transition-all duration-300 shadow-md ${isProcessing ? "opacity-50 cursor-not-allowed" : ""
+                                    className={`flex items-center justify-center px-4 py-2 rounded-md font-semibold text-xs bg-yellow-300 text-[#2C2C2C] hover:bg-yellow-400 shadow-md ${isProcessing ? "opacity-50 cursor-not-allowed" : ""
                                         }`}
                                 >
-                                    <FiZap className="mr-1.5" />
-                                    Mua ngay
+                                    <FiZap className="mr-1.5" /> Mua ngay
                                 </button>
                                 <button
-                                    onClick={handleAddToCartClick}
+                                    onClick={handleAddToCart}
                                     disabled={isProcessing}
-                                    className={`flex items-center justify-center px-4 py-2 rounded-md font-semibold text-xs bg-white text-gray-900 hover:bg-gray-100 transition-all duration-300 shadow-md ${isProcessing ? "opacity-50 cursor-not-allowed" : ""
+                                    className={`flex items-center justify-center px-4 py-2 rounded-md font-semibold text-xs bg-white text-gray-900 hover:bg-gray-100 shadow-md ${isProcessing ? "opacity-50 cursor-not-allowed" : ""
                                         }`}
                                 >
-                                    <FiShoppingCart className="mr-1.5" />
-                                    Thêm giỏ hàng
+                                    <FiShoppingCart className="mr-1.5" /> Thêm giỏ hàng
                                 </button>
                             </div>
                         )}
                     </div>
                 </div>
 
-                {/* CONTENT */}
+                {/* Content */}
                 <div className="p-5">
                     <div className="flex items-center">
-                        <h3 className="text-xl font-bold text-gray-900 truncate" title={title}>
+                        <h3
+                            className="text-xl font-bold text-gray-900 truncate"
+                            title={title}
+                        >
                             {title}
                         </h3>
                         {isVerified && <VerifiedCheck className="ml-2" />}
@@ -237,21 +321,19 @@ function CardComponent({
                     </div>
 
                     <div className="flex justify-between items-center mt-4 pt-4 border-t border-gray-100">
-                        {/* Price */}
-                        <div className="">
+                        <div>
                             <p className="text-xs text-gray-500 mb-1">Giá</p>
                             <p className="text-xl font-extrabold text-[#D97706] leading-tight">
-                                {price.toLocaleString("vi-VN")} 
+                                {price.toLocaleString("vi-VN")}
                             </p>
                             <span className="text-base font-bold text-[#D97706]">VND</span>
                         </div>
 
-                        {/* View Details */}
                         <div className="flex items-center text-[#D97706] font-semibold text-sm hover:translate-x-1 transition-transform duration-300">
                             <span>Xem Chi Tiết</span>
                             <FiArrowRight className="ml-2 w-4 h-4" />
                         </div>
-                    </div>        
+                    </div>
                 </div>
             </div>
         </Link>

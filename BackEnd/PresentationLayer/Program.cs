@@ -80,11 +80,10 @@ namespace PresentationLayer
             builder.Services.AddScoped<IBatteryDetailRepository, BatteryDetailRepository>();
             builder.Services.AddScoped<IHistorySoldRepository, HistorySoldRepository>();
             builder.Services.AddScoped<IUserRepository, UserRepository>();
-
+            builder.Services.AddScoped<IPasswordResetTokenRepository, PasswordResetTokenRepository>();
             builder.Services.AddScoped<IBidRepository, BidRepository>();
             builder.Services.AddScoped<IWalletRepository, WalletRepository>();
             builder.Services.AddScoped<IWalletTransactionRepository, WalletTransactionRepository>();
-            builder.Services.AddScoped<IEmailRepository, EmailTemplateRepository>();
             builder.Services.AddScoped<IPaymentDetailRepository, PaymentDetailRepository>();
             builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
             builder.Services.AddScoped<IOrderItemRepository, OrderItemRepository>();
@@ -94,8 +93,7 @@ namespace PresentationLayer
             builder.Services.AddScoped<ICommissionFeeRuleRepository, CommissionFeeRuleRepository>();
             builder.Services.AddScoped<ITransactionRepository, TransactionRepository>();
 
-            builder.Services.Configure<MailSettings>(
-    builder.Configuration.GetSection("MailSettings"));
+    
 
 
             // AddHttp
@@ -203,8 +201,9 @@ namespace PresentationLayer
             builder.Services.AddSwaggerGen();
             builder.Configuration.AddUserSecrets<Program>();
             builder.Services.Configure<MailSettings>(builder.Configuration.GetSection("MailSettings"));
-            builder.Services.AddScoped<IMailService, MailService>();
+       
             builder.Services.AddScoped<IEmailRepository, EmailTemplateRepository>();
+            builder.Services.AddScoped<IMailService, MailService>();
             builder.Services.AddScoped<IValidator<PaymentRequestDto>, PaymentRequestValidator>();
             builder.Services.AddHostedService<PayOSWebhookInitializer>();
             builder.Services.AddScoped<IKYC_DocumentService, KYC_DocumentService>();

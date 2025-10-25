@@ -3,12 +3,15 @@ import { Link } from 'react-router-dom';
 import { Spin, Alert } from 'antd';
 import { FiClock, FiBatteryCharging, FiZap, FiHeart, FiGift } from 'react-icons/fi';
 import itemApi from '../../api/itemApi';
-import favouriteApi from '../../api/favouriteApi'; 
+import favouriteApi from '../../api/favouriteApi';
 import ProductSection from '../../components/Cards/ProductSection';
 import CardComponent from '../../components/Cards/Card';
 import GeminiChatWidget from "../../components/GeminiChatWidget";
 import CardSkeleton from '../../components/Cards/CardSkeleton';
 import SectionHeader from '../../components/SectionHeader';
+import CompareToast from "../../components/CompareToast";
+import CompareModal from "../../components/CompareModal";
+
 
 const FiArrowRight = ({ className }) => (
     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
@@ -31,8 +34,8 @@ const HeroAdvert = ({ imageUrl, title, description, link, ctaText }) => (
             <p className="text-lg md:text-xl text-gray-200 max-w-2xl mb-6 drop-shadow-md">
                 {description}
             </p>
-            <Link 
-                to={link} 
+            <Link
+                to={link}
                 className="inline-flex items-center justify-center px-8 py-3 bg-yellow-600 text-gray-950 font-bold text-lg rounded-full shadow-lg hover:bg-yellow-500 transition-all duration-300 w-fit"
             >
                 {ctaText} <FiArrowRight className="ml-2" />
@@ -46,8 +49,8 @@ function HomePage() {
     const [data, setData] = useState({ firstSale: [], evList: [], batteryList: [] });
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [userFavorites, setUserFavorites] = useState([]); 
-    const userId = localStorage.getItem("userId"); 
+    const [userFavorites, setUserFavorites] = useState([]);
+    const userId = localStorage.getItem("userId");
 
     const isItemVerified = (item) => item.moderation === 'approved_tag';
 
@@ -72,11 +75,11 @@ function HomePage() {
                 ]);
 
                 setData({
-                    firstSale: items.slice(0, 3), 
+                    firstSale: items.slice(0, 3),
                     evList: evs,
                     batteryList: batteries
                 });
-                
+
                 if (userId) {
                     await refetchFavorites();
                 }
@@ -89,7 +92,7 @@ function HomePage() {
             }
         };
         fetchAllItems();
-    }, [refetchFavorites, userId]); 
+    }, [refetchFavorites, userId]);
 
     if (error) {
         return (
@@ -111,27 +114,27 @@ function HomePage() {
                 `}
             </style>
             <div className="HomePage w-full m-0 p-0 min-h-screen overflow-y-auto
-                bg-[#FAF8F3] text-[#2C2C2C] font-['Inter']"> 
-                
+                bg-[#FAF8F3] text-[#2C2C2C] font-['Inter']">
+
                 <GeminiChatWidget />
 
                 <div className="max-w-7xl mx-auto px-4 md:px-8 py-12">
-                    
+
                     {loading ? (
                         <div className="w-full h-[500px] bg-gray-200 rounded-xl shadow-2xl animate-pulse mb-16"></div>
                     ) : (
                         <HeroAdvert
-                            imageUrl="https://excelbattery.com/wp-content/uploads/2023/11/final-banner1.jpg" 
+                            imageUrl="https://excelbattery.com/wp-content/uploads/2023/11/final-banner1.jpg"
                             title="Khai Phá Năng Lượng Tương Lai"
                             description="Khám phá các linh kiện xe điện hiếm và hiệu suất cao. Mỗi sản phẩm đều được tuyển chọn dành cho người sành sỏi."
-                            link="/evs-and-batteries" 
+                            link="/evs-and-batteries"
                             ctaText="Khám Phá Bộ Sưu Tập"
                         />
                     )}
-                    
-                    <SectionHeader 
-                        title="Sản Phẩm Nổi Bật" 
-                        icon={FiZap} 
+
+                    <SectionHeader
+                        title="Sản Phẩm Nổi Bật"
+                        icon={FiZap}
                         description="Được tuyển chọn kỹ lưỡng với giá trị vượt trội và luôn có sẵn. Đừng bỏ lỡ những cơ hội độc đáo này."
                     />
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 mb-16 justify-items-center">
@@ -149,36 +152,36 @@ function HomePage() {
                                     mileage={item.itemDetail?.mileage}
                                     itemImages={item.images}
                                     isVerified={isItemVerified(item)}
-                                    userFavorites={userFavorites} 
-                                    onFavoriteChange={refetchFavorites} 
+                                    userFavorites={userFavorites}
+                                    onFavoriteChange={refetchFavorites}
                                 />
                             ))}
                     </div>
 
-                    <div className="Banner mt-10 mx-auto mb-16 border-2 border-[#C4B5A0]/60 rounded-xl overflow-hidden shadow-lg"> 
-                        <img 
+                    <div className="Banner mt-10 mx-auto mb-16 border-2 border-[#C4B5A0]/60 rounded-xl overflow-hidden shadow-lg">
+                        <img
                             src="https://i.pinimg.com/1200x/fb/85/3e/fb853ef4ce1addf32f60d85bb8b296b2.jpg"
-                            className= "h-40 sm:h-56 w-full object-cover opacity-95 transition-opacity duration-300 hover:opacity-100"
-                            alt="Biểu ngữ quảng cáo" 
+                            className="h-40 sm:h-56 w-full object-cover opacity-95 transition-opacity duration-300 hover:opacity-100"
+                            alt="Biểu ngữ quảng cáo"
                         />
                     </div>
 
-                    <SectionHeader 
-                        title="Xe Điện Cổ Điển" 
-                        icon={FiClock} 
+                    <SectionHeader
+                        title="Xe Điện Cổ Điển"
+                        icon={FiClock}
                         description="Bộ sưu tập các dòng xe điện cổ điển và hiếm, thể hiện thiết kế vượt thời gian và năng lượng bền vững."
                     />
                     <ProductSection
                         items={data.evList.map(item => ({ ...item, isVerified: isItemVerified(item) }))}
                         loading={loading}
-                        userFavorites={userFavorites} 
-                        onFavoriteChange={refetchFavorites} 
+                        userFavorites={userFavorites}
+                        onFavoriteChange={refetchFavorites}
                         itemType="ev"
                     />
 
                     <div className="my-16 text-center border-2 border-[#C4B5A0]/40 rounded-xl overflow-hidden shadow-lg bg-white">
                         <img
-                            src="https://static.vecteezy.com/system/resources/previews/022/479/930/non_2x/3d-li-ion-aa-battery-discharging-and-its-electric-waves-banner-advertisement-designed-on-a-blue-black-background-vector.jpg" 
+                            src="https://static.vecteezy.com/system/resources/previews/022/479/930/non_2x/3d-li-ion-aa-battery-discharging-and-its-electric-waves-banner-advertisement-designed-on-a-blue-black-background-vector.jpg"
                             alt="Công nghệ Pin Tiên tiến"
                             className="w-full max-h-72 object-cover"
                         />
@@ -187,16 +190,16 @@ function HomePage() {
                         </p>
                     </div>
 
-                    <SectionHeader 
-                        title="Pin Chất Lượng Cao" 
-                        icon={FiBatteryCharging} 
+                    <SectionHeader
+                        title="Pin Chất Lượng Cao"
+                        icon={FiBatteryCharging}
                         description="Các lõi pin tinh xảo được chế tạo cho độ bền và hiệu suất vô song trong các ứng dụng đòi hỏi khắt khe nhất."
                     />
                     <ProductSection
                         items={data.batteryList.map(item => ({ ...item, isVerified: isItemVerified(item) }))}
                         loading={loading}
-                        userFavorites={userFavorites} 
-                        onFavoriteChange={refetchFavorites} 
+                        userFavorites={userFavorites}
+                        onFavoriteChange={refetchFavorites}
                         itemType="battery"
                     />
 
@@ -215,6 +218,10 @@ function HomePage() {
 
                 </div>
                 <div className="h-20"></div>
+
+                {/* ⚡️ Compare Components */}
+                <CompareToast />
+                <CompareModal />
             </div>
         </>
     );
