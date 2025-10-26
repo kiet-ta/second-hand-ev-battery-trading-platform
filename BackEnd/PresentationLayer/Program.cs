@@ -36,6 +36,7 @@ using PresentationLayer.Authorization;
 using PresentationLayer.Hubs;
 using PresentationLayer.Middleware;
 using System.Reflection.Emit;
+using System.Runtime;
 using System.Text;
 
 namespace PresentationLayer
@@ -243,6 +244,7 @@ namespace PresentationLayer
             builder.Services.AddSingleton<INotificationService, NotificationService>();
             builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
             builder.Services.Configure<RabbitMQSettings>(builder.Configuration.GetSection("RabbitMQSettings"));
+            builder.Services.AddSingleton(sp => sp.GetRequiredService<IOptions<RabbitMQSettings>>().Value);
             builder.Services.AddSingleton<IMessagePublisher>(sp =>
             {
                 var settings = sp.GetRequiredService<IOptions<RabbitMQSettings>>().Value;
@@ -264,6 +266,7 @@ namespace PresentationLayer
                 }
                 return new ReleaseFundsWorker(logger, serviceProvider, settings);
             });
+            
             builder.Services.AddSwaggerGen(c =>
             {
                 // Thông tin cơ bản

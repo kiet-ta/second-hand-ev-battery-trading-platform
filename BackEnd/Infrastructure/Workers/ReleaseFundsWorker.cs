@@ -18,7 +18,6 @@ public class ReleaseFundsWorker : BackgroundService
 {
     private readonly ILogger<ReleaseFundsWorker> _logger;
     private readonly IServiceProvider _serviceProvider;
-    private readonly string _rabbitMQConnectionString;
     private IConnection _connection;
     private IChannel _channel;
     private readonly RabbitMQSettings _settings;
@@ -32,6 +31,11 @@ public class ReleaseFundsWorker : BackgroundService
 
     public override Task StartAsync(CancellationToken cancellationToken)
     {
+        if (string.IsNullOrEmpty(_settings.ConnectionString))
+        {
+            _logger.LogError("RabbitMQ connection string is empty. Please check configuration.");
+            throw new InvalidOperationException("RabbitMQ connection string is missing.");
+        }
         var factory = new ConnectionFactory() { Uri = new Uri(_settings.ConnectionString) };
         _connection = factory.CreateConnectionAsync().GetAwaiter().GetResult();
         _channel = _connection.CreateChannelAsync().GetAwaiter().GetResult();
@@ -42,6 +46,12 @@ public class ReleaseFundsWorker : BackgroundService
             durable: true
             );
         _channel.QueueDeclareAsync(queue: _settings.ReleaseFundsDLQ, durable: true, exclusive: false, autoDelete: false, arguments: null);
+        _channel.ExchangeDeclareAsync(
+            exchange: _settings.ReleaseFundsDLX,
+            type: ExchangeType.Direct,
+            durable: true
+        );
+
         _channel.QueueBindAsync(queue: _settings.ReleaseFundsDLQ, exchange: _settings.ReleaseFundsDLX, routingKey: "");
 
         var queueArgs = new Dictionary<string, object>

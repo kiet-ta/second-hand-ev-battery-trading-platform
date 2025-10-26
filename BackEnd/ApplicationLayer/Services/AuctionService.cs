@@ -227,7 +227,7 @@ public class AuctionService : IAuctionService
                 AmountToRelease = previousHighestBid.BidAmount,
                 OriginalBidId = previousHighestBid.BidId // !help find the hold transaction correctly
             };
-            _messagePublisher.PublistOutbidEvent(outbidEvent);
+            _messagePublisher.PublishOutbidEvent(outbidEvent);
         }
     }
 
