@@ -24,6 +24,16 @@ const orderApi = {
             }
         })
         return response.data;   
+    },
+    getOrderByUserId: async (userId) => {
+        const response = await axios.get(`${baseURL}/user/${userId}`,
+            {headers: {
+                            // This line is essential for authorized endpoints
+                            'Authorization': `Bearer ${token}`,
+                            'Content-Type': 'application/json'
+                        }}
+        )
+        return response.data;
     }
 };
 export default orderApi;

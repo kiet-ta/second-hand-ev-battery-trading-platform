@@ -1,31 +1,29 @@
-// src/components/Chats/ChatRoomWrapper.jsx (NEW FILE)
-
-import React from 'react';
-import { useLocation } from 'react-router-dom';
-import ChatRoom from './ChatRoom'; // Adjust path if necessary
+// src/components/Chats/ChatRoomWrapper.jsx
+import React from "react";
+import { useLocation } from "react-router-dom";
+import ChatRoom from "./ChatRoom";
 
 const ChatRoomWrapper = () => {
-    // Get User ID from localStorage (or context)
-    const userId = localStorage.getItem("userId");
-    
-    // Get navigation state (passed from EVDetails.jsx)
-    const location = useLocation();
-    const initialRoomId = location.state?.chatRoomId;
+  const userId = localStorage.getItem("userId");
+  const location = useLocation();
+  const initialRoomId = location.state?.chatRoomId || null;
 
-    if (!userId) {
-        // Handle unauthenticated state gracefully (e.g., redirect to login or show a message)
-        return <div className="profile-main">Please log in to view your chats.</div>;
-    }
-
+  if (!userId) {
     return (
-        <div className="profile-main">
-            <ChatRoom 
-                currentUserId={userId} // Pass the ID as a string (will be parsed to number inside ChatRoom)
-                initialRoomId={initialRoomId} // Pass the navigated Room ID
-                // Note: initialReceiverId is derived inside the ChatRoom via handleRoomSelect(initialRoomId)
-            />
-        </div>
+      <div className="flex justify-center items-center w-1/2 h-full text-gray-600">
+        Please log in to view your chats.
+      </div>
     );
+  }
+
+  return (
+    <div className="profile-main w-full">
+      <ChatRoom
+        currentUserId={userId}
+        initialRoomId={initialRoomId}
+      />
+    </div>
+  );
 };
 
 export default ChatRoomWrapper;

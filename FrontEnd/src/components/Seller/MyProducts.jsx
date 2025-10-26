@@ -6,9 +6,9 @@ export default function MyProducts() {
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const baseURL = import.meta.env.VITE_API_BASE_URL;
-
     const sellerId = localStorage.getItem("userId");
+  const baseURL = import.meta.env.VITE_API_BASE_URL;
+
 
     // Fetch all products for this seller
     const fetchProducts = async () => {

@@ -111,10 +111,6 @@ function BatteryDetails() {
         setReviews(enriched);
       } catch (err) {
         console.error(err);
-        setFeedback({
-          type: "error",
-          msg: "Không thể tải chi tiết sản phẩm. Vui lòng thử lại.",
-        });
       } finally {
         setLoading(false);
       }
@@ -359,7 +355,7 @@ function BatteryDetails() {
                 <p className="font-bold text-lg">{sellerProfile.fullName}</p>
                 <p className="text-sm text-green-600">Đang hoạt động</p>
               </div>
-              <Link
+                            <Link
                 to={`/seller/${item.updatedBy}`}
                 className="border border-[#B8860B] text-[#B8860B] font-semibold py-2 px-4 rounded-lg hover:bg-[#FFF7E5] transition">
                 Xem hồ sơ
