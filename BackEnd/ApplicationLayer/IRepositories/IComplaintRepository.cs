@@ -16,5 +16,6 @@ namespace Application.IRepositories
         Task<bool> UpdateLevelComplaint(int complaintId, string level, int assignTo); 
         Task<bool> DeleteComplaint(int complaintId, int userId);
         Task<bool> UpdateStatusComplaint(int complaintId, string level, int assignTo);
+        Task<List<Complaint>> GetallComplaint();
     }
 }

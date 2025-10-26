@@ -34,7 +34,7 @@ namespace Infrastructure.Repositories
         {
             var complaint = new Complaint
             {
-                UserId = userId, 
+                UserId = userId,
                 AssignTo = null,
                 Reason = dto.Reason,
                 Description = dto.Description,
@@ -54,7 +54,7 @@ namespace Infrastructure.Repositories
             return await _context.Complaints.FirstOrDefaultAsync(c => c.ComplaintId == id && !c.IsDeleted);
         }
 
-    
+
 
         public async Task<List<Complaint>> GetComplaintsByStatus(string status)
         {
@@ -93,13 +93,13 @@ namespace Infrastructure.Repositories
 
             complaint.Status = status.ToLower();
             complaint.UpdatedAt = DateTime.UtcNow;
-            complaint.AssignTo = assignTo; 
+            complaint.AssignTo = assignTo;
 
             await _context.SaveChangesAsync();
             return true;
         }
 
-       
+
         public async Task<bool> UpdateLevelComplaint(int complaintId, string level, int assignTo)
         {
             var complaint = await _context.Complaints
@@ -109,7 +109,7 @@ namespace Infrastructure.Repositories
 
             complaint.SeverityLevel = level.ToLower();
             complaint.UpdatedAt = DateTime.UtcNow;
-            complaint.AssignTo = assignTo; 
+            complaint.AssignTo = assignTo;
 
             await _context.SaveChangesAsync();
             return true;
@@ -129,8 +129,13 @@ namespace Infrastructure.Repositories
             await _context.SaveChangesAsync();
             return true;
         }
+        public async Task<List<Complaint>> GetallComplaint()
+        {
+            return await _context.Complaints
+                .Where(c => !c.IsDeleted)
+                .ToListAsync();
 
-
+        }
     }
 }
 
