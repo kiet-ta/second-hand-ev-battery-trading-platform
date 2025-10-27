@@ -10,6 +10,6 @@ namespace Application.IRepositories.IPaymentRepositories
     public interface IPaymentDetailRepository
     {
         Task<decimal> GetRevenueAsync(int sellerId);
-        Task<List<RevenueByMonthDto>> GetRevenueByMonthAsync(int sellerId);
+        Task<List<RevenueByWeekDto>> GetRevenueByWeekAsync(int sellerId);
     }
 }

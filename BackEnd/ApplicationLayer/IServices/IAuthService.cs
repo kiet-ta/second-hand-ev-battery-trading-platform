@@ -17,5 +17,11 @@ namespace Application.IServices
         Task<AuthResponseDto> LoginWithGoogleAsync(string idToken);
 
         Task<bool> ChangePasswordAsync(int userId, ChangePasswordRequestDto request);
+
+        Task SendOtpAsync(ForgotPasswordRequestDto dto);
+
+        Task<bool> VerifyOtpAsync(VerifyOtpDto dto);
+
+        Task ResetPasswordAsync(ResetPasswordDto dto);
     }
 }

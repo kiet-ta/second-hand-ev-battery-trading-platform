@@ -70,31 +70,25 @@ namespace Application.Services
                 throw new ArgumentException("Invalid seller ID");
 
             var seller = await _repository.GetSellerByIdAsync(sellerId);
+
             if (seller == null)
                 throw new KeyNotFoundException($"Seller with ID {sellerId} not found");
 
-            // 1. Lấy IQueryable<Item> cơ sở từ repository
             var allItemsQuery = _repository.GetAllSellerItemsQueryable(sellerId);
 
-            // 2. Lấy tổng số lượng item (để tính toán số trang)
             var totalCount = await allItemsQuery.CountAsync();
             if (totalCount == 0)
             {
-                // Trả về kết quả rỗng nếu không có item
                 return new PagedResultBought<object>(new List<object>(), 0, pagination.PageNumber, pagination.PageSize);
             }
 
-            // 3. Áp dụng sắp xếp VÀ phân trang cho IQueryable<Item>
             var paginatedItemsQuery = allItemsQuery
-                .OrderByDescending(i => i.UpdatedAt) // Phải sắp xếp trước khi Skip/Take
+                .OrderByDescending(i => i.UpdatedAt)
                 .Skip((pagination.PageNumber - 1) * pagination.PageSize)
                 .Take(pagination.PageSize);
 
-            // 4. Truyền IQueryable đã phân trang vào MapItemsAsync
-            // Chỉ những item của trang hiện tại mới được map
             var mappedItems = await MapItemsAsync(paginatedItemsQuery);
 
-            // 5. Tạo và trả về đối tượng PaginatedResponseDto
             return new PagedResultBought<object>(mappedItems, totalCount, pagination.PageNumber, pagination.PageSize);
         }
 

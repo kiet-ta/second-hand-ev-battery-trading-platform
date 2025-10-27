@@ -6,6 +6,7 @@ import Logo from "../components/Logo";
 import RegisterPicture from "../assets/images/LoginPicture.jpg"; // Hình cóc cưỡi xe vàng
 
 export default function RegisterPage() {
+    const baseURL = import.meta.env.VITE_API_BASE_URL;
     const navigate = useNavigate();
     const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
     const [user, setUser] = useState(null);
@@ -56,7 +57,7 @@ export default function RegisterPage() {
     async function handleCredentialResponse(response) {
         const googleToken = response.credential;
         try {
-            const res = await fetch("https://localhost:7272/api/Auth/google", {
+            const res = await fetch(`${baseURL}Auth/google`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ credential: googleToken }),
@@ -67,11 +68,9 @@ export default function RegisterPage() {
             localStorage.setItem("token", userData.token);
             localStorage.setItem("userId", userData.userId);
             localStorage.setItem("user", JSON.stringify(userData));
-            message.success("Đăng ký bằng Google thành công!");
             navigate("/");
         } catch (err) {
             console.error("Google Register Error:", err);
-            message.error("Đăng ký Google thất bại!");
         }
     }
 
@@ -91,7 +90,6 @@ export default function RegisterPage() {
                 password,
                 confirmPassword,
             });
-            message.success("Đăng ký thành công!");
             navigate("/login");
         } catch (err) {
             console.error("Register error:", err);

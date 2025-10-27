@@ -1,16 +1,9 @@
 import React, { useState } from 'react';
-import {
-    Modal,
-    Steps,
-    Spin,
-    Form,
-    message,
-    Button
-} from 'antd';
+import { Modal, Steps, Spin, Form, message, Button } from 'antd';
 import { PlusCircle } from 'lucide-react';
 import itemApi from '../../api/itemApi';
 import auctionApi from '../../api/auctionApi';
-import uploadImageApi from '../../api/uploadImageApi'
+import uploadImageApi from '../../api/uploadImageApi';
 import evData from '../../assets/datas/evData';
 
 // Import step components
@@ -28,14 +21,7 @@ export default function ProductCreationModal({ onSuccess }) {
     const [newItem, setNewItem] = useState(null);
     const [form] = Form.useForm();
 
-    const categoryId = Form.useWatch('categoryId', form);
-    const brand = Form.useWatch('brand', form);
-    const model = Form.useWatch('model', form);
     const createAuction = Form.useWatch('createAuction', form);
-
-    const brands = Object.keys(evData);
-    const models = brand ? Object.keys(evData[brand]) : [];
-    const versions = brand && model ? evData[brand][model] : [];
 
     const showModal = () => setIsOpenModal(true);
 
@@ -46,47 +32,59 @@ export default function ProductCreationModal({ onSuccess }) {
     };
 
     const handleCancel = () => {
-        // 1. Reset all form fields and state
-        handleReset(); 
-        // 2. Close the modal
-        setIsOpenModal(false); 
-        // 3. (Optional) Call onSuccess if the intent is to refresh parent state 
-        //    even on cancellation/close. If onSuccess is only for completion, 
-        //    remove this.
-        if (onSuccess) { 
-            onSuccess();
-        }
+        setIsOpenModal(false);
+        handleReset();
     };
 
-    const nextStep = () => setCurrentStep(prev => prev + 1);
+    const handleDone = () => {
+        setIsOpenModal(false);
+        handleReset();
+        if (onSuccess) onSuccess(); // only after completion
+    };
+
+    const nextStep = () => {
+        if (currentStep === 0 && !createAuction) setCurrentStep(2); // skip auction
+        else setCurrentStep(prev => prev + 1);
+    };
+
     const prevStep = () => {
-        if (currentStep === 2 && !createAuction) {
-            setCurrentStep(0);
-        } else {
-            setCurrentStep(prev => prev - 1);
-        }
+        if (currentStep === 2 && !createAuction) setCurrentStep(0);
+        else setCurrentStep(prev => prev - 1);
     };
 
     const handleStep1Finish = async (values) => {
-        console.log(userID,"UserID")
         setIsLoading(true);
         const apiPayload = {
             categoryId: values.categoryId,
             title: values.title,
             description: values.description || "",
             price: values.price,
-            quantity: 1, // Default quantity
+            quantity: 1,
             status: "active",
             updatedBy: userID,
         };
-        console.log(apiPayload,"PayLoad")
+
         if (values.categoryId === 1) {
             Object.assign(apiPayload, {
-                brand: values.brand, model: values.model, version: values.version, year: values.year, bodyStyle: values.bodyStyle, color: values.color, licensePlate: values.licensePlate, hasAccessories: values.hasAccessories, previousOwners: values.previousOwners, isRegistrationValid: values.isRegistrationValid, mileage: values.miledeage,
+                brand: values.brand,
+                model: values.model,
+                version: values.version,
+                year: values.year,
+                bodyStyle: values.bodyStyle,
+                color: values.color,
+                licensePlate: values.licensePlate,
+                hasAccessories: values.hasAccessories,
+                previousOwners: values.previousOwners,
+                isRegistrationValid: values.isRegistrationValid,
+                mileage: values.miledeage,
             });
         } else {
             Object.assign(apiPayload, {
-                quantity: values.quantity || 1, brand: values.battery_brand, capacity: values.capacity, voltage: values.voltage, chargeCycles: values.chargeCycle,
+                quantity: values.quantity || 1,
+                brand: values.battery_brand,
+                capacity: values.capacity,
+                voltage: values.voltage,
+                chargeCycles: values.chargeCycle,
             });
         }
 
@@ -94,15 +92,10 @@ export default function ProductCreationModal({ onSuccess }) {
             const createdItem = values.categoryId === 1
                 ? await itemApi.postItemEV(apiPayload)
                 : await itemApi.postItemBattery(apiPayload);
-            
+
             message.success("Item details saved successfully!");
             setNewItem(createdItem);
-            
-            if (values.createAuction) {
-                nextStep();
-            } else {
-                setCurrentStep(2); // Skip to Image Upload
-            }
+            nextStep();
         } catch (error) {
             console.error("Error creating item:", error);
             message.error("Failed to save item details.");
@@ -113,16 +106,15 @@ export default function ProductCreationModal({ onSuccess }) {
 
     const handleStep2Finish = async (values) => {
         setIsLoading(true);
-        const auctionPayload = {
-            itemId: newItem.itemId,
-            startingPrice: values.startingPrice,
-            startTime: values.auctionTime[0].toISOString(),
-            endTime: values.auctionTime[1].toISOString(),
-        };
         try {
-            await auctionApi.postAuction(auctionPayload);
+            await auctionApi.postAuction({
+                itemId: newItem.itemId,
+                startingPrice: values.startingPrice,
+                startTime: values.auctionTime[0].toISOString(),
+                endTime: values.auctionTime[1].toISOString(),
+            });
             message.success("Auction details saved!");
-            nextStep(); // Move to image upload
+            nextStep();
         } catch (error) {
             console.error("Error creating auction:", error);
             message.error("Failed to save auction details.");
@@ -133,15 +125,15 @@ export default function ProductCreationModal({ onSuccess }) {
 
     const handleImageUpload = async (files) => {
         if (!files || files.length === 0) {
-            message.info("No images were selected, skipping upload.");
-            nextStep(); // Go to final step
+            message.info("No images selected. Skipping upload.");
+            nextStep();
             return;
         }
         setIsLoading(true);
         try {
             await uploadImageApi.uploadItemImage(newItem.itemId, files);
             message.success("Images uploaded successfully!");
-            nextStep(); // Go to final step
+            nextStep();
         } catch (error) {
             console.error("Error uploading images:", error);
             message.error("Failed to upload images.");
@@ -166,7 +158,7 @@ export default function ProductCreationModal({ onSuccess }) {
             case 2:
                 return <Step3ImageUploader onSubmit={handleImageUpload} />;
             case 3:
-                return <Step4Complete onReset={handleReset} onDone={handleCancel} />;
+                return <Step4Complete onReset={handleReset} onDone={handleDone} />;
             default:
                 return <div>Something went wrong.</div>;
         }
@@ -181,35 +173,13 @@ export default function ProductCreationModal({ onSuccess }) {
             </div>
             <div>
                 {currentStep < 2 && (
-                    <Button type="primary" onClick={() => form.submit()}>
-                        Next
-                    </Button>
+                    <Button type="primary" onClick={() => form.submit()}>Next</Button>
                 )}
-                {/* Step 2 (Image Uploader) will need its own 'Next'/'Submit' button inside Step3ImageUploader or a conditional logic here to trigger handleImageUpload */}
                 {currentStep === 2 && (
-                    // In your current setup, Step3ImageUploader component must handle its own submission logic, 
-                    // or you need to pass a submit handler down and trigger it here, which is more complex.
-                    // Assuming Step3ImageUploader has its own way to trigger onSubmit prop.
-                    // If you want a 'Next' button here, you need to adjust Step3ImageUploader.
-                    // For now, let's assume Step3 handles its own flow to call handleImageUpload.
-                    <Button type="primary" onClick={() => {
-                        // This is a placeholder. A real implementation would trigger the submission 
-                        // logic inside Step3ImageUploader to call handleImageUpload.
-                        // Since we don't have the Step3 code, we'll leave it to its internal logic for now, 
-                        // or you can add a manual call to proceed if there are no files to upload.
-                        // For a quick fix assuming no files skips upload:
-                         if (newItem && currentStep === 2) {
-                             handleImageUpload([]); // Manually proceed if user wants to skip
-                         }
-                    }}>
-                        {/* If Step3 is mandatory, change this */}
-                        Skip & Finish
-                    </Button>
+                    <Button type="primary" onClick={() => handleImageUpload([])}>Skip & Finish</Button>
                 )}
                 {currentStep === 3 && (
-                     <Button type="primary" onClick={handleCancel}>
-                         Done
-                     </Button>
+                    <Button type="primary" onClick={handleDone}>Done</Button>
                 )}
             </div>
         </div>
@@ -219,7 +189,8 @@ export default function ProductCreationModal({ onSuccess }) {
         <>
             <button
                 onClick={showModal}
-                className="flex items-center bg-blue-500 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-600 transition-colors"
+                disabled={isOpenModal}
+                className={`flex items-center bg-blue-500 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-600 transition-colors ${isOpenModal ? "opacity-50 cursor-not-allowed" : ""}`}
             >
                 <PlusCircle className="w-5 h-5 mr-2" />
                 Add New Product
@@ -230,7 +201,6 @@ export default function ProductCreationModal({ onSuccess }) {
                 onCancel={handleCancel}
                 width={800}
                 footer={renderFooter()}
-                // Removed destroyOnClose to resolve deprecation warning.
             >
                 <Spin spinning={isLoading}>
                     <Steps current={currentStep} items={steps} className="mb-8" />

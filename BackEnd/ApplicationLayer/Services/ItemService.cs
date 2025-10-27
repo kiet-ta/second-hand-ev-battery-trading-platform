@@ -1,4 +1,5 @@
 ﻿using Application.DTOs.ItemDtos;
+using Application.DTOs.ItemDtos.BatteryDto;
 using Application.DTOs.UserDtos;
 using Application.IRepositories;
 using Application.IServices;
@@ -296,6 +297,18 @@ namespace Application.Services
             return items;
         }
 
+        public async Task<PagedResultBought<ItemBoughtDto>> GetTransactionItemsWithDetailsAsync(int userId, PaginationParams paginationParams)
+        {
+            var items = await _itemRepository.GetTransactionItemsWithDetailsAsync(userId, paginationParams);
+
+            if (items == null || items.TotalCount == 0)
+            {
+                throw new KeyNotFoundException($"No Transaction items found for user ID {userId}.");
+            }
+
+            return items;
+        }
+
         public async Task<IEnumerable<ItemSellerDto>> GetSellerItemsAsync(int sellerId)
         {
             var items = await _itemRepository.GetItemsBySellerIdAsync(sellerId);
@@ -335,5 +348,33 @@ namespace Application.Services
             return await _itemRepository.SetItemTagAsync(itemId, "reject_tag");
         }
 
+        public async Task<IEnumerable<EVDetailDto>> SearchEvDetailAsync(EVSearchRequestDto request)
+        {
+            var result = await _itemRepository.SearchEvDetailAsync(request);
+            return result.Select(e => new EVDetailDto
+            {
+                ItemId = e.ItemId,
+                Brand = e.Brand,
+                Model = e.Model,
+                Year = e.Year,
+                Color = e.Color,
+                LicensePlate = e.LicensePlate,
+                Mileage = e.Mileage,
+                LicenseUrl = e.LicenseUrl
+            });
+        }
+
+        public async Task<IEnumerable<BatteryDetailDto>> SearchBatteryDetailAsync(BatterySearchRequestDto request)
+        {
+            var result = await _itemRepository.SearchBatteryDetailAsync(request);
+            return result.Select(e => new BatteryDetailDto
+            {
+                ItemId = e.ItemId,
+                Brand = e.Brand,
+                Capacity = e.Capacity,
+                Voltage = e.Voltage,
+                ChargeCycles = e.ChargeCycles
+            });
+        }
     }
 }

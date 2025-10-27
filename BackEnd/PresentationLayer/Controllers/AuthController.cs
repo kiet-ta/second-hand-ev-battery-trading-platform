@@ -233,5 +233,29 @@ namespace PresentationLayer.Controllers
                 return StatusCode(500, new { success = false, error = "Internal server error" });
             }
         }
+
+        [HttpPost("forgot-password")]
+        public async Task<IActionResult> ForgotPassword(ForgotPasswordRequestDto dto)
+        {
+            await _authService.SendOtpAsync(dto);
+            return Ok(new { message = "OTP sent to your email." });
+        }
+
+        [HttpPost("verify-otp")]
+        public async Task<IActionResult> VerifyOtp(VerifyOtpDto dto)
+        {
+            bool result = await _authService.VerifyOtpAsync(dto);
+            if (!result)
+                return BadRequest("Invalid or expired OTP.");
+
+            return Ok(new { message = "OTP verified successfully." });
+        }
+
+        [HttpPost("reset-password/otp")]
+        public async Task<IActionResult> ResetPassword(ResetPasswordDto dto)
+        {
+            await _authService.ResetPasswordAsync(dto);
+            return Ok(new { message = "Password updated successfully." });
+        }
     }
 }

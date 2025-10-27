@@ -15,4 +15,11 @@ export default defineConfig({
     environment: 'jsdom',   
     setupFiles: './src/setupTests.js', 
   },
+    theme: {
+    extend: {
+      fontFamily: {
+        sans: ['Be Vietnam Pro', 'ui-sans-serif', 'system-ui'],
+        serif: ['Merriweather', 'ui-serif', 'Georgia'],
+      },
+    },},
 })

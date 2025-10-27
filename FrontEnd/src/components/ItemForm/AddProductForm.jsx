@@ -8,12 +8,13 @@ export default function MyProductsPage() {
     const [isListLoading, setIsListLoading] = useState(false);
     const userID = localStorage.getItem("userId");
     const token = localStorage.getItem("token");
+    const baseURL = import.meta.env.VITE_API_BASE_URL;
 
     // ✅ Lấy danh sách sản phẩm người bán
     const fetchMyItems = async () => {
         setIsListLoading(true);
         try {
-            const res = await fetch(`https://localhost:7272/api/Item/seller/${userID}`, {
+            const res = await fetch(`${baseURL}Item/seller/${userID}`, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                     "Content-Type": "application/json",

@@ -20,7 +20,7 @@ namespace PresentationLayer.Controllers
             _historySoldService = historySoldService;
         }
 
-        [HttpGet("bought")]
+        [HttpGet("transaction")]
         [Authorize] // user login
         public async Task<IActionResult> GetBoughtItems([FromQuery] PaginationParams paginationParams)
         {
@@ -34,6 +34,22 @@ namespace PresentationLayer.Controllers
                 return BadRequest("user_id in token invalid.");
 
             var result = await _itemService.GetBoughtItemsWithDetailsAsync(userId, paginationParams);
+            return Ok(result);
+        }
+
+        [HttpGet("bought")]
+        [Authorize]
+        public async Task<IActionResult> GetTransactionItems([FromQuery] PaginationParams paginationParams)
+        {
+            var userIdClaim = User.FindFirst("user_id")?.Value;
+
+            if (string.IsNullOrEmpty(userIdClaim))
+                return Unauthorized("Token invalid claim user_id.");
+
+            if (!int.TryParse(userIdClaim, out var userId))
+                return BadRequest("user_id in token invalid.");
+
+            var result = await _itemService.GetTransactionItemsWithDetailsAsync(userId, paginationParams);
             return Ok(result);
         }
 

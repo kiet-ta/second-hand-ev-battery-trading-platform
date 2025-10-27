@@ -105,9 +105,12 @@ namespace PresentationLayer.Controllers
                     VehicleRegistrationUrl = kycDto.VehicleRegistrationUrl,
                     SelfieUrl = kycDto.SelfieUrl,
                     DocUrl = kycDto.DocUrl,
-                    SubmittedAt = DateTime.Now,
-                    VerifiedBy = null,
-                    VerifiedAt = null,
+                    SubmittedAt = kycDto.SubmittedAt,
+                    VerifiedBy = kycDto.VerifiedBy,
+                    VerifiedAt = kycDto.VerifiedAt,
+                    StoreName = kycDto.StoreName,
+                    StorePhone = kycDto.StorePhone,
+                    StoreLogoUrl = kycDto.StoreLogoUrl,
                     Status = "pending",
                 };
 
