@@ -226,7 +226,7 @@ Message Content: ${msg.text || "Image/Item"}
 Created At: ${msg.createdAt || new Date().toISOString()}
 `;
     try {
-      await complaintApi.createComplaint({
+      await complaintApi.postComplaint({
         reason: "Inappropriate content",
         description,
         status: "pending",
