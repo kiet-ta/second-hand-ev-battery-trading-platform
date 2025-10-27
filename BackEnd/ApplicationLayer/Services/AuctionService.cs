@@ -187,10 +187,12 @@ public class AuctionService : IAuctionService
             // Get the current price safely, consider the starting price as the current price if no one has placed a bid yet
             var currentPrice = auction.CurrentPrice ?? auction.StartingPrice;
 
-            if (bidAmount <= currentPrice)
+            //verify step price
+            decimal requiredMinimumBid = currentPrice + auction.StepPrice;
+            if (bidAmount < requiredMinimumBid)
             {
                 await _unitOfWork.RollbackTransactionAsync();
-                throw new ArgumentException("Bid amount must be higher than the current price.");
+                throw new ArgumentException($"Bid amount must be at least {requiredMinimumBid:N0} (current price + step price)."); // 400 Bad Request
             }
 
             Bid? previousHighestBid = null;

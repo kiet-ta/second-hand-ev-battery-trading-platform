@@ -1,6 +1,5 @@
 ﻿using Application.DTOs;
 using Application.IRepositories;
-using Application.IRepositories.IBiddingRepositories;
 using Application.IServices;
 using Domain.Entities;
 using Microsoft.Extensions.Logging;
@@ -12,6 +11,8 @@ public class AuctionFinalizationService : IAuctionFinalizationService
     private readonly IUnitOfWork _unitOfWork;
     private readonly ILogger<AuctionFinalizationService> _logger;
     private readonly INotificationService _notificationService;
+    
+
     private const string AuctionSellerFeeCode = "AUCTION_SELLER_FEE"; // FIXME: mock value
     private const string AuctionNotificationType = "activities";
 
@@ -72,7 +73,7 @@ public class AuctionFinalizationService : IAuctionFinalizationService
             decimal amountToReceive = winningAmount;    // TODO: add commission calculation
             await _unitOfWork.Wallets.UpdateBalanceAsync(sellerWallet.WalletId, amountToReceive);
 
-            var payoutTransaction = new Domain.Entities.WalletTransaction
+            var payoutTransaction = new WalletTransaction
             {
                 WalletId = sellerWallet.WalletId,
                 Amount = amountToReceive,
@@ -92,6 +93,20 @@ public class AuctionFinalizationService : IAuctionFinalizationService
             else _unitOfWork.Items.Update(item);
             _logger.LogInformation($"Updated Item {itemId} status to sold");
 
+            // get default address for winner
+            var winnerAddresses = await _unitOfWork.Address.GetAddressesByUserIdAsync(winnerId);
+            if (winnerAddresses == null || !winnerAddresses.Any() )
+            {
+                _logger.LogWarning($"Winner User {winnerId} has no address configured for Auction {auctionId}. Cannot create order.", winnerId, auctionId);
+                
+                await _unitOfWork.RollbackTransactionAsync();
+                
+                throw new InvalidOperationException($"Winner User {winnerId} does not have any address configured.");
+            }
+            var defaultAddress = winnerAddresses.FirstOrDefault(a => a.IsDefault == true) ?? winnerAddresses.First();
+            int winnerAddressId = defaultAddress.AddressId;
+            _logger.LogInformation("Using AddressId {AddressId} for Order creation.", winnerAddressId);
+
             var newOrder = new Order
             {
                 BuyerId = winnerId,
@@ -102,13 +117,14 @@ public class AuctionFinalizationService : IAuctionFinalizationService
             };
 
             var createdOrder = _unitOfWork.Orders.AddAsync(newOrder);
+            await _unitOfWork.SaveChangesAsync();
             if (createdOrder == null || createdOrder.Id <= 0)
             {
                 throw new InvalidOperationException($"Failed to create order for auction {auctionId}.");
             }
             _logger.LogInformation("Created Order {OrderId} for winner User {WinnerId}", createdOrder.Id, winnerId);
-
             _logger.LogInformation($"Created Order {newOrder.OrderId} for winner User {winnerId}");
+            
             var newOrderItem = new OrderItem
             {
                 OrderId = newOrder.OrderId,

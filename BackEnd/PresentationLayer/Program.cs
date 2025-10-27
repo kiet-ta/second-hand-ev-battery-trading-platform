@@ -245,6 +245,7 @@ namespace PresentationLayer
             builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
             builder.Services.Configure<RabbitMQSettings>(builder.Configuration.GetSection("RabbitMQSettings"));
             builder.Services.AddSingleton(sp => sp.GetRequiredService<IOptions<RabbitMQSettings>>().Value);
+            builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
             builder.Services.AddSingleton<IMessagePublisher>(sp =>
             {
                 var settings = sp.GetRequiredService<IOptions<RabbitMQSettings>>().Value;

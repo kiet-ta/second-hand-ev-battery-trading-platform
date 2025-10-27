@@ -18,6 +18,7 @@ public class UnitOfWork : IUnitOfWork
     public IUserRepository Users { get; }
     public IOrderRepository Orders { get; }
     public IOrderItemRepository OrderItems { get; }
+    public IAddressRepository Address { get; }
 
     public UnitOfWork(
             EvBatteryTradingContext context,
@@ -28,7 +29,8 @@ public class UnitOfWork : IUnitOfWork
             IItemRepository itemRepository,
             IUserRepository userRepository,
             IOrderRepository orderRepository,
-            IOrderItemRepository orderItemRepository
+            IOrderItemRepository orderItemRepository,
+            IAddressRepository addressRepository
         )
     {
         _context = context;
@@ -40,6 +42,7 @@ public class UnitOfWork : IUnitOfWork
         Users = userRepository;
         Orders = orderRepository;
         OrderItems = orderItemRepository;
+        Address = addressRepository;
     }
 
     public async Task BeginTransactionAsync(CancellationToken cancellationToken = default)
