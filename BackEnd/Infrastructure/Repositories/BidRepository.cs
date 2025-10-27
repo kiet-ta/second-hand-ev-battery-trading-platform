@@ -16,7 +16,10 @@ namespace Infrastructure.Repositories
             await _context.Bids.Where(b => b.AuctionId == auctionId).OrderByDescending(b => b.BidTime).ToListAsync();
 
         public async Task<Bid?> GetHighestBidAsync(int auctionId) =>
-            await _context.Bids.Where(b => b.AuctionId == auctionId).OrderByDescending(b => b.BidAmount).FirstOrDefaultAsync();
+            await _context.Bids.Where(b => b.AuctionId == auctionId)
+            .OrderByDescending(b => b.BidAmount)
+            .ThenBy(b => b.BidTime) // prioritize earlier bids in case of tie
+            .FirstOrDefaultAsync();
 
         public async Task<int> PlaceBidAsync(Bid bid)
         {

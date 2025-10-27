@@ -1,5 +1,5 @@
 ﻿using Application;
-﻿using Application.DTOs;
+using Application.DTOs;
 using Application.DTOs.AuthenticationDtos;
 using Application.DTOs.PaymentDtos;
 using Application.IHelpers;
@@ -15,23 +15,29 @@ using Application.Validations;
 using CloudinaryDotNet;
 using Domain.Entities;
 using FluentValidation;
+using IdGen;
 using Infrastructure.Data;
 using Infrastructure.Helpers;
+using Infrastructure.Messaging;
 using Infrastructure.Repositories;
 using Infrastructure.Repositories.ChatRepositories;
 using Infrastructure.Repositories.ManageStaffRepositories;
 using Infrastructure.Ulties;
+using Infrastructure.Workers;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Net.payOS;
 using PresentationLayer.Authorization;
 using PresentationLayer.Hubs;
 using PresentationLayer.Middleware;
+using System.Reflection.Emit;
+using System.Runtime;
 using System.Text;
 
 namespace PresentationLayer
@@ -70,6 +76,17 @@ namespace PresentationLayer
             builder.Services.AddScoped<IReviewService, ReviewService>();
             builder.Services.AddScoped<ICommissionService, CommissionService>();
             builder.Services.AddScoped<IProfanityFilterService, ProfanityFilterService>();
+            builder.Services.AddSingleton<IIdGenerator<long>>(provider =>
+            {
+                var epoch = new DateTime(2020, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+                var structure = new IdStructure(45, 3, 16); // 45 bits timestamp (miliseconds), 3 bits generator-id, 16 bits sequence
+                var options = new IdGeneratorOptions(structure, new DefaultTimeSource(epoch));
+                int generatorId = Environment.CurrentManagedThreadId % 7; // generatorId = 7 = 2^bit - 1
+                var generator = new IdGenerator(generatorId, options);
+
+                return new IdGenerator(1, options);
+            });
+
             //---Repositories
             builder.Services.AddScoped<IAuctionRepository, AuctionRepository>();
             builder.Services.AddScoped<IAddressRepository, AddressRepository>();
@@ -92,8 +109,8 @@ namespace PresentationLayer
             builder.Services.AddScoped<IComplaintRepository, ComplaintRepository>();
             builder.Services.AddScoped<ICommissionFeeRuleRepository, CommissionFeeRuleRepository>();
             builder.Services.AddScoped<ITransactionRepository, TransactionRepository>();
-
-    
+            builder.Services.Configure<MailSettings>(
+            builder.Configuration.GetSection("MailSettings"));
 
 
             // AddHttp
@@ -206,6 +223,7 @@ namespace PresentationLayer
             builder.Services.AddScoped<IMailService, MailService>();
             builder.Services.AddScoped<IValidator<PaymentRequestDto>, PaymentRequestValidator>();
             builder.Services.AddHostedService<PayOSWebhookInitializer>();
+            builder.Services.AddHostedService<ReleaseFundsWorker>();
             builder.Services.AddScoped<IKYC_DocumentService, KYC_DocumentService>();
             builder.Services.AddScoped<IRedisCacheHelper, RedisCacheHelper>();
             builder.Services.AddScoped<IFavoriteRepository, FavoriteRepository>();
@@ -227,15 +245,34 @@ namespace PresentationLayer
             builder.Services.AddScoped<INewsService, NewsService>();
             builder.Services.AddSingleton<INotificationService, NotificationService>();
             builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
-
+            builder.Services.Configure<RabbitMQSettings>(builder.Configuration.GetSection("RabbitMQSettings"));
+            builder.Services.AddSingleton(sp => sp.GetRequiredService<IOptions<RabbitMQSettings>>().Value);
+            builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+            builder.Services.AddSingleton<IMessagePublisher>(sp =>
+            {
+                var settings = sp.GetRequiredService<IOptions<RabbitMQSettings>>().Value;
+                if (string.IsNullOrEmpty(settings.ConnectionString))
+                {
+                    throw new InvalidOperationException("RabbitMQ ConnectionString is not configured.");
+                }
+                //  inject connection string into constructor
+                return new RabbitMQPublisher(settings);
+            });
+            builder.Services.AddHostedService<ReleaseFundsWorker>(sp =>
+            {
+                var logger = sp.GetRequiredService<ILogger<ReleaseFundsWorker>>();
+                var serviceProvider = sp.GetRequiredService<IServiceProvider>(); // resolve scoped service
+                var settings = sp.GetRequiredService<IOptions<RabbitMQSettings>>().Value; // get config
+                if (string.IsNullOrEmpty(settings.ConnectionString))
+                {
+                    throw new InvalidOperationException("RabbitMQ ConnectionString is not configured for Worker.");
+                }
+                return new ReleaseFundsWorker(logger, serviceProvider, settings);
+            });
             //Complaint
             builder.Services.AddScoped<IComplaintService, ComplaintService>();
             builder.Services.AddScoped<IComplaintRepository, ComplaintRepository>();
             // Trong Program.cs hoặc Startup.cs
-
-
-
-
             builder.Services.AddSwaggerGen(c =>
             {
                 // Thông tin cơ bản

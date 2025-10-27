@@ -28,4 +28,6 @@ public interface IAuctionRepository
     Task<int> GetTotalCountAsync();
 
     Task<IEnumerable<Auction>> GetAuctionsByUserIdAsync(int userId);
+
+    Task<IEnumerable<Auction>> GetEndedAuctionsToFinalizeAsync(DateTime currentTime);
 }

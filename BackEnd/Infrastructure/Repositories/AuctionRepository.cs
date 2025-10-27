@@ -133,4 +133,11 @@ public class AuctionRepository : IAuctionRepository
 
         return auctions;
     }
+
+    public async Task<IEnumerable<Auction>> GetEndedAuctionsToFinalizeAsync(DateTime currentTime)
+    {
+        return await _context.Auctions
+                             .Where(a => a.EndTime < currentTime && a.Status == "ongoing")
+                             .ToListAsync();
+    }
 }
