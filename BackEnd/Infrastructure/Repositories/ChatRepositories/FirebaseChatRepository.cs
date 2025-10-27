@@ -1,6 +1,9 @@
 ﻿using Application.IRepositories.IChatRepositories;
 using Domain.Entities;
+using Infrastructure.Data;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using Org.BouncyCastle.Asn1.Pkcs;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -28,6 +31,7 @@ namespace Infrastructure.Repositories.ChatRepositories
         private string NodeUrl(long cid) => $"{BasePath}/{cid}.json?auth={_opts.DatabaseSecret}";
         private string MessagesUrl(long cid) => $"{BasePath}/{cid}/messages.json?auth={_opts.DatabaseSecret}";
         private string AllRoomsUrl => $"{BasePath}.json?auth={_opts.DatabaseSecret}";
+        private string AllRoomsPath() => $"{BasePath}.json?auth={_opts.DatabaseSecret}";
 
         public async Task<ChatRoom?> GetRoomRawAsync(long cid)
         {
@@ -132,7 +136,6 @@ namespace Infrastructure.Repositories.ChatRepositories
         {
             try
             {
-                // Lấy messages, sắp xếp theo createdAt, giới hạn số lượng
                 var url = $"{BasePath}/{cid}/messages.json?auth={_opts.DatabaseSecret}";
 
                 var resp = await _http.GetAsync(url);
@@ -239,6 +242,115 @@ namespace Infrastructure.Repositories.ChatRepositories
                 Console.WriteLine($"QueryRoomsByMemberAsync error: {ex.Message}");
                 return Array.Empty<ChatRoom>();
             }
+        }
+        public async Task<IEnumerable<long>> GetRoomIdsByUserIdAsync(long userId)
+        {
+            string queryUrl = $"{AllRoomsPath()}&select=\"members\"";
+            var matchingRoomIds = new List<long>();
+
+            try
+            {
+                var resp = await _http.GetAsync(queryUrl);
+                if (!resp.IsSuccessStatusCode)
+                {
+                    var error = await resp.Content.ReadAsStringAsync();
+                    Console.WriteLine($"Firebase GET (All Rooms) error: {resp.StatusCode} - {error}");
+                    return matchingRoomIds;
+                }
+
+                var json = await resp.Content.ReadAsStringAsync();
+                if (string.IsNullOrWhiteSpace(json) || json == "null")
+                {
+                    return matchingRoomIds;
+                }
+
+                var allRooms = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(json);
+
+                if (allRooms == null) return matchingRoomIds;
+
+                foreach (var roomPair in allRooms)
+                {
+                    string roomCidString = roomPair.Key;
+                    JsonElement roomElement = roomPair.Value;
+
+                    if (roomElement.TryGetProperty("members", out var membersElement) &&
+                        membersElement.ValueKind == JsonValueKind.Array)
+                    {
+                        foreach (var memberIdElement in membersElement.EnumerateArray())
+                        {
+                            if (memberIdElement.ValueKind == JsonValueKind.Number &&
+                                memberIdElement.GetInt64() == userId)
+                            {
+                                if (long.TryParse(roomCidString, out long cid))
+                                {
+                                    matchingRoomIds.Add(cid);
+                                }
+                                break; 
+                            }
+                        }
+                    }
+                }
+
+                return matchingRoomIds;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"GetRoomIdsByUserIdAsync (Firebase) error: {ex.Message}");
+                return matchingRoomIds;
+            }
+        }
+
+        public async Task<Message?> GetLastMessageAsync(long cid)
+        {
+            string baseUrl = MessagesUrl(cid);
+            string orderByValue = Uri.EscapeDataString("\"createdAt\"");
+            string queryUrl = $"{baseUrl}&orderBy={orderByValue}&limitToLast=1";
+
+            try
+            {
+                var resp = await _http.GetAsync(queryUrl);
+                if (!resp.IsSuccessStatusCode) return null;
+
+                var json = await resp.Content.ReadAsStringAsync();
+                if (string.IsNullOrWhiteSpace(json) || json == "null") return null;
+
+                var doc = JsonSerializer.Deserialize<JsonElement>(json);
+
+                if (doc.ValueKind == JsonValueKind.Object)
+                {
+                    var firstProperty = doc.EnumerateObject().FirstOrDefault();
+                    if (firstProperty.Value.ValueKind != JsonValueKind.Undefined)
+                    {
+                        return DeserializeMessage(firstProperty.Name, firstProperty.Value);
+                    }
+                }
+                return null;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"GetLastMessageAsync error: {ex.Message}");
+                return null;
+            }
+        }
+
+        private Message DeserializeMessage(string id, JsonElement element)
+        {
+            long timestampMs = 0;
+            if (element.TryGetProperty("createdAt", out var tsEl) && tsEl.ValueKind == JsonValueKind.Number)
+            {
+                timestampMs = tsEl.GetInt64();
+            }
+
+            DateTimeOffset createdAt = DateTimeOffset.FromUnixTimeMilliseconds(timestampMs);
+
+            return new Message
+            {
+                Id = id,
+                From = element.TryGetProperty("from", out var fromEl) ? fromEl.GetInt64() : 0,
+                To = element.TryGetProperty("to", out var toEl) ? toEl.GetInt64() : 0,
+                Text = element.TryGetProperty("text", out var textEl) ? textEl.GetString() ?? "" : "",
+                CreatedAt = createdAt
+            };
         }
     }
 }

@@ -38,7 +38,7 @@ namespace Application.Services
             return complaint;
         }
 
-       
+
         public async Task<List<Complaint>> GetComplaintsByStatus(string status)
         {
             var list = await _complaintRepository.GetComplaintsByStatus(status);
@@ -113,6 +113,12 @@ namespace Application.Services
 
             return true;
         }
+        public async Task<List<Complaint>> GetallComplaint()
+        {
+            var list = await _complaintRepository.GetallComplaint();
+            if (list.Count == 0) throw new KeyNotFoundException("No complaints found.");
+            return list;
 
-    }
+        }
+    } 
 }

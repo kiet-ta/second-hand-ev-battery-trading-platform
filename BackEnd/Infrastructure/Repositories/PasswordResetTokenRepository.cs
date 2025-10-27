@@ -25,16 +25,25 @@ namespace Infrastructure.Repositories
             await _context.SaveChangesAsync();
         }
 
-        public async Task<PasswordResetToken?> GetValidTokenAsync(int userId, string otpCode)
-        {
-            return await _context.PasswordResetTokens
-                .FirstOrDefaultAsync(x => x.UserId == userId && x.OtpCode == otpCode && !x.IsUsed);
-        }
+        //public async Task<PasswordResetToken?> GetValidTokenAsync(int userId, string otpCode)
+        //{
+        //    return await _context.PasswordResetTokens
+        //        .FirstOrDefaultAsync(x => x.UserId == userId && x.OtpCode == otpCode && !x.IsUsed);
+        //}
 
         public async Task MarkAsUsedAsync(PasswordResetToken token)
         {
             token.IsUsed = true;
             await _context.SaveChangesAsync();
+        }
+
+        public async Task<PasswordResetToken?> GetValidTokenAsync(int userId, string otpCode)
+        {
+            return await _context.PasswordResetTokens
+              .FirstOrDefaultAsync(x => x.UserId == userId
+                                       && x.OtpCode == otpCode
+                                       && !x.IsUsed
+                                       && x.ExpirationTime > DateTime.UtcNow);
         }
     }
 }

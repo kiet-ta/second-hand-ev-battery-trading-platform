@@ -297,6 +297,18 @@ namespace Application.Services
             return items;
         }
 
+        public async Task<PagedResultBought<ItemBoughtDto>> GetTransactionItemsWithDetailsAsync(int userId, PaginationParams paginationParams)
+        {
+            var items = await _itemRepository.GetTransactionItemsWithDetailsAsync(userId, paginationParams);
+
+            if (items == null || items.TotalCount == 0)
+            {
+                throw new KeyNotFoundException($"No Transaction items found for user ID {userId}.");
+            }
+
+            return items;
+        }
+
         public async Task<IEnumerable<ItemSellerDto>> GetSellerItemsAsync(int sellerId)
         {
             var items = await _itemRepository.GetItemsBySellerIdAsync(sellerId);

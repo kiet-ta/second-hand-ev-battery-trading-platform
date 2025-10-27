@@ -394,6 +394,83 @@ namespace Infrastructure.Repositories
             return new PagedResultBought<ItemBoughtDto>(pagedItems, totalCount, paginationParams.PageNumber, paginationParams.PageSize);
         }
 
+        public async Task<PagedResultBought<ItemBoughtDto>> GetTransactionItemsWithDetailsAsync(int userId, PaginationParams paginationParams)
+        {
+            var baseQuery = from payment in _context.Payments
+                            join pd in _context.PaymentDetails on payment.PaymentId equals pd.PaymentId
+                            join oi in _context.OrderItems on pd.OrderId equals oi.OrderId
+                            join o in _context.Orders on oi.OrderId equals o.OrderId
+                            join item in _context.Items on pd.ItemId equals item.ItemId
+                            where payment.UserId == userId && payment.Status == "completed" && o.Status == "completed"
+                            // Left Join EV_Detail
+                            join ev in _context.EVDetails on item.ItemId equals ev.ItemId into evJoin
+                            from ev in evJoin.DefaultIfEmpty()
+                                // Left Join Battery_Detail
+                            join bat in _context.BatteryDetails on item.ItemId equals bat.ItemId into batJoin
+                            from bat in batJoin.DefaultIfEmpty()
+                            select new { payment, pd, item, ev, bat };
+
+            var totalCount = await baseQuery.CountAsync();
+
+            var pagedItems = await baseQuery
+                .Skip((paginationParams.PageNumber - 1) * paginationParams.PageSize)
+                .Take(paginationParams.PageSize)
+                .Select(x => new ItemBoughtDto
+                {
+                    ItemId = x.item.ItemId,
+                    ItemType = x.item.ItemType,
+                    Title = x.item.Title,
+                    Description = x.item.Description,
+                    Price = x.item.Price,
+                    PaymentId = x.payment.PaymentId,
+                    OrderCode = x.payment.OrderCode,
+                    TotalAmount = x.payment.TotalAmount,
+                    Method = x.payment.Method,
+                    Status = x.payment.Status,
+                    PaymentCreatedAt = x.payment.CreatedAt,
+                    Brand = x.ev.Brand,
+                    Model = x.ev.Model,
+                    Version = x.ev.Version,
+                    Year = x.ev.Year,
+                    Color = x.ev.Color,
+                    Mileage = x.ev.Mileage,
+                    Capacity = x.bat.Capacity,
+                    Voltage = x.bat.Voltage,
+                    ChargeCycles = x.bat.ChargeCycles,
+                    ItemAmount = x.pd.Amount,
+                    ItemImage = new List<ItemImage>()
+                })
+                .ToListAsync();
+
+            if (pagedItems.Any())
+            {
+                var itemIds = pagedItems.Select(p => p.ItemId).Distinct().ToList();
+
+                var allImages = await _context.ItemImages
+                    .Where(img => itemIds.Contains(img.ItemId))
+                    .Select(img => new { img.ItemId, img.ImageId, img.ImageUrl })
+                    .ToListAsync();
+
+                var imageLookup = allImages.GroupBy(img => img.ItemId);
+
+                foreach (var item in pagedItems)
+                {
+                    var itemImages = imageLookup.FirstOrDefault(g => g.Key == item.ItemId);
+                    if (itemImages != null)
+                    {
+                        item.ItemImage = itemImages.Select(img => new ItemImage
+                        {
+                            ImageId = img.ImageId,
+                            ItemId = img.ItemId,
+                            ImageUrl = img.ImageUrl
+                        }).ToList();
+                    }
+                }
+            }
+
+            return new PagedResultBought<ItemBoughtDto>(pagedItems, totalCount, paginationParams.PageNumber, paginationParams.PageSize);
+        }
+
         //Feature: Seller Dashboard
         public async Task<int> CountAllBySellerAsync(int sellerId)
         {
