@@ -8,12 +8,9 @@ using CloudinaryDotNet;
 using IdGen;
 using Infrastructure.Data;
 using Infrastructure.Helpers;
-using Infrastructure.Messaging;
 using Infrastructure.Repositories.ChatRepositories;
 using Infrastructure.Ulties;
-using Infrastructure.Workers;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 using Net.payOS;
 
 namespace PresentationLayer.Extensions;
@@ -43,7 +40,7 @@ public static class InfrastructureExtensions
         config.GetSection("MailSettings");
         services.Configure<MailSettings>(config.GetSection("MailSettings"));
         services.AddScoped<IMailService, MailService>();
-        
+
         // PayOS
         var payosConfig = config.GetSection("PayOS");
         services.AddSingleton(sp => new PayOS(payosConfig["Client_ID"], payosConfig["Api_Key"], payosConfig["ChecksumKey"]));
@@ -66,34 +63,6 @@ public static class InfrastructureExtensions
 
             return new IdGenerator(1, options);
         });
-
-        services.Configure<RabbitMQSettings>(config.GetSection("RabbitMQSettings"));
-        services.AddSingleton(sp => sp.GetRequiredService<IOptions<RabbitMQSettings>>().Value);
-        services.AddSingleton<IMessagePublisher>(sp =>
-        {
-            var settings = sp.GetRequiredService<IOptions<RabbitMQSettings>>().Value;
-            if (string.IsNullOrEmpty(settings.ConnectionString))
-            {
-                throw new InvalidOperationException("RabbitMQ ConnectionString is not configured.");
-            }
-            //  inject connection string into constructor
-            return new RabbitMQPublisher(settings);
-        });
-
-        //  Hosted Services (Background Workers)
-        //services.AddHostedService<ReleaseFundsWorker>(sp =>
-        //{
-        //    var logger = sp.GetRequiredService<ILogger<ReleaseFundsWorker>>();
-        //    var serviceProvider = sp.GetRequiredService<IServiceProvider>(); // resolve scoped service
-        //    var settings = sp.GetRequiredService<IOptions<RabbitMQSettings>>().Value; // get config
-        //    if (string.IsNullOrEmpty(settings.ConnectionString))
-        //    {
-        //        throw new InvalidOperationException("RabbitMQ ConnectionString is not configured for Worker.");
-        //    }
-        //    return new ReleaseFundsWorker(logger, serviceProvider, settings);
-        //});
-
-        //services.AddHostedService<ReleaseFundsWorker>();
 
         return services;
     }
