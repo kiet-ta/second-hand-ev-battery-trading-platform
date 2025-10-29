@@ -262,7 +262,7 @@ public class PaymentService : IPaymentService
     public async Task<PaymentResponseDto> CreateDepositPaymentLinkAsync(int userId, decimal amount)
     {
         //unique id deposit order
-        long depositOrderCode = long.Parse(DateTimeOffset.UtcNow.ToString("sfff") + userId.ToString().PadLeft(4, '0')); // Ensures higher uniqueness
+        long depositOrderCode = _idGenerator.CreateId();
 
         // Create Payment record in DB to track deposit transaction
         var paymentRecord = new Payment
