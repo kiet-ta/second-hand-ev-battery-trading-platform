@@ -74,7 +74,7 @@ namespace Infrastructure.Repositories
                         join u in _context.Users
                             on i.UpdatedBy equals u.UserId into gj
                         from user in gj.DefaultIfEmpty()
-                        where i.IsDeleted == false
+                        where i.IsDeleted == false && i.Status == "active"
                         select new ItemDto
                         {
                             ItemId = i.ItemId,
@@ -88,6 +88,7 @@ namespace Infrastructure.Repositories
                             CreatedAt = i.CreatedAt,
                             UpdatedAt = i.UpdatedAt,
                             SellerName = user != null ? user.FullName : string.Empty,
+                            Moderation = i.Moderation,
                             Images = _context.ItemImages
                                 .Where(img => img.ItemId == i.ItemId)
                                 .Select(img => new ItemImageDto
@@ -224,7 +225,7 @@ namespace Infrastructure.Repositories
         public async Task<IEnumerable<Item>> GetLatestEVsAsync(int count)
         {
             return await _context.Items
-                .Where(x => x.ItemType == "EV" && !(x.IsDeleted == true))
+                .Where(x => x.ItemType == "ev" && !(x.IsDeleted == true) && x.Status == "active")
                 .OrderByDescending(x => x.CreatedAt)
                 .Take(count)
                 .ToListAsync();
@@ -233,7 +234,7 @@ namespace Infrastructure.Repositories
         public async Task<IEnumerable<Item>> GetLatestBatteriesAsync(int count)
         {
             return await _context.Items
-                .Where(x => x.ItemType == "Battery" && !(x.IsDeleted == true))
+                .Where(x => x.ItemType == "battery" && !(x.IsDeleted == true) && x.Status == "active")
                 .OrderByDescending(x => x.CreatedAt)
                 .Take(count)
                 .ToListAsync();
@@ -319,7 +320,7 @@ namespace Infrastructure.Repositories
             return await query.AsNoTracking().ToListAsync();
         }
 
-        public async Task<PagedResultBought<ItemBoughtDto>> GetBoughtItemsWithDetailsAsync(int userId, PaginationParams paginationParams)
+        public async Task<PagedResultBought<ItemBoughtDto>> GetTransactionItemsWithDetailsAsync(int userId, PaginationParams paginationParams)
         {
             var baseQuery = from payment in _context.Payments
                             join pd in _context.PaymentDetails on payment.PaymentId equals pd.PaymentId
@@ -394,7 +395,7 @@ namespace Infrastructure.Repositories
             return new PagedResultBought<ItemBoughtDto>(pagedItems, totalCount, paginationParams.PageNumber, paginationParams.PageSize);
         }
 
-        public async Task<PagedResultBought<ItemBoughtDto>> GetTransactionItemsWithDetailsAsync(int userId, PaginationParams paginationParams)
+        public async Task<PagedResultBought<ItemBoughtDto>> GetBoughtItemsWithDetailsAsync(int userId, PaginationParams paginationParams)
         {
             var baseQuery = from payment in _context.Payments
                             join pd in _context.PaymentDetails on payment.PaymentId equals pd.PaymentId
@@ -542,7 +543,6 @@ namespace Infrastructure.Repositories
                         join c in _context.Categories on i.CategoryId equals c.CategoryId
                         join img in _context.ItemImages on i.ItemId equals img.ItemId into imgGroup
                         where !i.IsDeleted
-                              && i.Status == "active"
                               && i.UpdatedBy == sellerId
                         select new ItemSellerDto
                         {
@@ -660,6 +660,75 @@ namespace Infrastructure.Repositories
                 };
 
             return await query.AsNoTracking().FirstOrDefaultAsync();
+        }
+
+        public async Task<ItemWithSellerResult?> GetItemAndSellerByItemIdAsync(int itemId) 
+        {
+            var query =
+                from i in _context.Items.AsTracking() 
+                where i.ItemId == itemId && !i.IsDeleted
+                join u in _context.Users on i.UpdatedBy equals u.UserId
+                select new ItemWithSellerResult
+                {
+                    Seller = new UserDto 
+                    {
+                        UserId = u.UserId,
+                        FullName = u.FullName,
+                        Email = u.Email,
+                        Phone = u.Phone,
+                        AvatarProfile = u.AvatarProfile,
+                        Bio = u.Bio
+                    },
+
+                    Item = i, 
+
+                    Images = _context.ItemImages
+                            .Where(img => img.ItemId == i.ItemId)
+                            .Select(img => new ItemImageDto
+                            {
+                                ImageId = img.ImageId,
+                                ImageUrl = img.ImageUrl
+                            }).ToList(),
+
+                    EVDetail = (from ev in _context.EVDetails
+                                where ev.ItemId == i.ItemId
+                                select new EVDetailDto
+                                {
+                                    ItemId = ev.ItemId,
+                                    Brand = ev.Brand,
+                                    Model = ev.Model,
+                                    Version = ev.Version,
+                                    Year = ev.Year,
+                                    BodyStyle = ev.BodyStyle,
+                                    Color = ev.Color,
+                                    LicensePlate = ev.LicensePlate,
+                                    HasAccessories = ev.HasAccessories,
+                                    PreviousOwners = ev.PreviousOwners,
+                                    IsRegistrationValid = ev.IsRegistrationValid,
+                                    Mileage = ev.Mileage,
+                                    LicenseUrl = ev.LicenseUrl,
+                                    Title = i.Title, 
+                                    Price = i.Price, 
+                                    Status = i.Status 
+                                }).FirstOrDefault(),
+
+                    BatteryDetail = (from b in _context.BatteryDetails
+                                     where b.ItemId == i.ItemId
+                                     select new BatteryDetailDto
+                                     {
+                                         ItemId = b.ItemId,
+                                         Brand = b.Brand,
+                                         Capacity = b.Capacity,
+                                         Voltage = b.Voltage,
+                                         ChargeCycles = b.ChargeCycles,
+                                         UpdatedAt = b.UpdatedAt,
+                                         Title = i.Title,
+                                         Price = i.Price, 
+                                         Status = i.Status 
+                                     }).FirstOrDefault()
+                };
+
+            return await query.FirstOrDefaultAsync();
         }
 
         public async Task<bool> SetItemTagAsync(int itemId, string tag)

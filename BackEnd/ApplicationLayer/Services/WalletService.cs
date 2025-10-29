@@ -1,7 +1,9 @@
 ﻿using Application.DTOs;
+using Application.DTOs.WalletDtos;
 using Application.IRepositories.IBiddingRepositories;
 using Application.IServices;
 using Domain.Entities;
+using Microsoft.EntityFrameworkCore;
 
 namespace Application.Services;
 
@@ -74,5 +76,57 @@ public class WalletService : IWalletService
         await _walletTransactionRepository.CreateTransactionAsync(transaction);
 
         return true;
+    }
+
+    public async Task<WalletTransactionDto> WithdrawAsync(WithdrawRequestDto request)
+    {
+        if (request.Amount <= 0)
+        {
+            throw new ArgumentException("Withdrawal amount must be greater than 0.");
+        }
+
+        if (request.Type != "withdraw" && request.Type != "payment")
+        {
+            throw new ArgumentException("Invalid transaction type. Must be 'withdraw' or 'payment'.");
+        }
+
+        var wallet = await _walletRepository.GetWalletByUserIdAsync(request.UserId);
+        if (wallet == null)
+        {
+            throw new KeyNotFoundException("User wallet not found.");
+        }
+
+        if (wallet.Balance < request.Amount)
+        {
+            throw new InvalidOperationException("Insufficient wallet balance.");
+        }
+
+        // distract money in wallet
+        var success = await _walletRepository.UpdateBalanceAsync(wallet.WalletId, -request.Amount);
+        if (!success)
+        {
+            throw new Exception("Failed to update wallet balance.");
+        }
+
+        var transaction = new WalletTransaction
+        {
+            WalletId = wallet.WalletId,
+            Amount = -request.Amount, // set negative amount to show subtraction
+            Type = request.Type, // withdraw or payment
+            RefId = request.RefId,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        var transactionId = await _walletTransactionRepository.CreateTransactionAsync(transaction);
+        transaction.TransactionId = transactionId;
+
+        return new WalletTransactionDto
+        {
+            TransactionId = transaction.TransactionId,
+            Amount = transaction.Amount,
+            Type = transaction.Type,
+            ReferenceId = transaction.RefId,
+            CreatedAt = transaction.CreatedAt
+        };
     }
 }

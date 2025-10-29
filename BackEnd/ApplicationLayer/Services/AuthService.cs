@@ -88,7 +88,7 @@ namespace Application.Services
                 FullName = dto.FullName.Trim(),
                 Email = dto.Email.ToLower(),
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
-                Role = "Buyer",
+                Role = "buyer",
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow,
                 IsDeleted = false

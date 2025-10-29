@@ -54,6 +54,7 @@ namespace Application.IRepositories
         Task<int> CountActiveAsync();
         Task<IEnumerable<(string ItemType, int Count)>> GetItemTypeCountsAsync();
         Task<UserItemDetailDto?> GetItemWithSellerByItemIdAsync(int itemId);
+        Task<ItemWithSellerResult?> GetItemAndSellerByItemIdAsync(int itemId);
         Task<bool> SetItemTagAsync(int itemId, string tag);
 
         Task<PagedResultItem<ItemDto>> SearchItemsAsync(string itemType, string title, decimal? minPrice, decimal? maxPrice, int page, int pageSize, string sortBy, string sortDir);

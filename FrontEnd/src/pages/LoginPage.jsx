@@ -2,9 +2,7 @@ import React, { useEffect, useState, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { message, Popover } from "antd";
 import authApi from "../api/authApi";
-import Logo from "../components/Logo";
 import LoginPicture from "../assets/images/LoginPicture.jpg";
-import { jwtDecode } from "jwt-decode";
 
 export default function LoginPage() {
     const navigate = useNavigate();
@@ -17,7 +15,7 @@ export default function LoginPage() {
     const baseURL = import.meta.env.VITE_API_BASE_URL;
     const googleButtonRef = useRef(null);
 
-    // 🧠 Khi load lại trang, nếu có remember data thì tự điền
+    // Khi load lại trang, nếu có remember data thì tự điền
     useEffect(() => {
         const savedEmail = localStorage.getItem("rememberEmail");
         const savedPassword = localStorage.getItem("rememberPassword");
@@ -65,7 +63,7 @@ export default function LoginPage() {
         }
     }
 
-    // 🔹 Login bằng Google
+    // Login bằng Google
     async function handleCredentialResponse(response) {
         const googleToken = response.credential;
         try {
@@ -92,11 +90,10 @@ export default function LoginPage() {
         }
     }
 
-    // 🔹 Login thủ công
+    // Login thủ công
     const handleLocalLogin = async (e) => {
         e.preventDefault();
         setError("");
-
         if (!email || !password)
             return setError("Vui lòng nhập đầy đủ thông tin đăng nhập.");
         if (password.length < 6)
@@ -105,6 +102,7 @@ export default function LoginPage() {
         try {
             const data = await authApi.login(email.trim(), password.trim());
             const res = data.data;
+            console.log("Login response:", res);
 
             const newUser = { ...res, token: res.token };
             localStorage.setItem("userId", res.userId);
@@ -113,7 +111,7 @@ export default function LoginPage() {
             setUser(newUser);
             message.success("Đăng nhập thành công!");
 
-            // ✅ Lưu remember info
+            // Lưu remember info
             if (remember) {
                 localStorage.setItem("rememberEmail", email);
                 localStorage.setItem("rememberPassword", password);
@@ -122,7 +120,7 @@ export default function LoginPage() {
                 localStorage.removeItem("rememberPassword");
             }
 
-            // ✅ Phân quyền
+            // Phân quyền
             const role = res.role?.toLowerCase();
             if (role === "manager" || role === "staff") navigate("/manage");
             else if (role === "seller") navigate("/seller");
@@ -173,7 +171,7 @@ export default function LoginPage() {
                                 </label>
 
                                 <Link
-                                    to="#"
+                                    to="/forgot-password"
                                     className="text-gray-500 hover:text-[#D4AF37] transition-colors"
                                 >
                                     Quên mật khẩu?

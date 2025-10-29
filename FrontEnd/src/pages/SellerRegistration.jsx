@@ -7,10 +7,17 @@ import Step1_PersonalInfo from "../components/Seller/SellerForm/Step1InfoForm";
 import Step2_KYC from "../components/Seller/SellerForm/Step2IDVerification";
 import Step3_StoreInfo from "../components/Seller/SellerForm/Step3BusinessInfo";
 import Step4_Confirmation from "../components/Seller/SellerForm/Step4Confirmation";
+import userApi from "../api/userApi";
+import { useNavigate } from "react-router-dom";
+import useKycRedirect from "../hooks/useKycRedirect";
 
 const SellerRegistrationForm = () => {
+  useKycRedirect();
+  const navigate = useNavigate
+
   const [userId] = useState(localStorage.getItem("userId"));
   const [currentStep, setCurrentStep] = useState(1);
+  const [kycPayload, setKycPayload] = useState(null);
   const [formData, setFormData] = useState({
     accountType: "",
     fullName: "",
@@ -35,26 +42,36 @@ const SellerRegistrationForm = () => {
   const prevStep = () => setCurrentStep((prev) => prev - 1);
 
   const handleSubmit = async () => {
-    const kycPayload = {
+    if (formData.accountType === "store") {
+      const payload = {
+        idCardUrl: `${formData.idCardFrontUrl},${formData.idCardBackUrl}`,
+        selfieUrl: formData.selfieUrl,
+        storeName: formData.storeAddress.recipientName,
+        storePhone: formData.storeAddress.phone,
+        storeLogoUrl: formData.storeAddress.logoUrl
+      };
+      setKycPayload(payload);
+    }
+    else {
+      const payload = {
       idCardUrl: `${formData.idCardFrontUrl},${formData.idCardBackUrl}`,
       selfieUrl: formData.selfieUrl,
-    };
-
-    const storePayload = {
-      fullName: formData.fullName,
-      email: formData.email,
-      phone: formData.phone,
-      bio: formData.bio,
-      storeLogoUrl: formData.storeLogoUrl,
-      storeAddress: formData.storeAddress,
-    };
-
+      };
+      setKycPayload(payload);
+    }
     try {
+      const user = await userApi.getUserByID(userId);
+      const updatedUser = {
+      ...user,
+      bio: formData.bio,
+      updatedAt: new Date().toISOString(),
+    };      
       await kycApi.postKYC(userId, kycPayload);
-      alert("Đăng ký thành công!");
+      await userApi.putUser(userId, updatedUser);
+      navigate("/pending-review");
+
     } catch (error) {
       console.error("Error submitting form:", error);
-      alert("Đã xảy ra lỗi. Vui lòng thử lại.");
     }
   };
 
@@ -113,7 +130,7 @@ const SellerRegistrationForm = () => {
   };
 
   const totalSteps = formData.accountType === "store" ? 5 : 4;
-
+  
   return (
     <div className="max-w-2xl mx-auto p-6 bg-white rounded-xl shadow-lg my-10">
       <StepIndicator

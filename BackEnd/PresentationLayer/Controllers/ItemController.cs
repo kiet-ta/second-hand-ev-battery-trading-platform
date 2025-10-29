@@ -1,5 +1,6 @@
 ﻿using Application.DTOs.ItemDtos;
 using Application.DTOs.ItemDtos.BatteryDto;
+using Application.IRepositories;
 using Application.IServices;
 using Application.Services;
 using Infrastructure.Helpers;
@@ -9,19 +10,17 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace PresentationLayer.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/item")]
     [ApiController]
     public class ItemController : ControllerBase
     {
         private readonly IItemService _service;
-        private readonly IEVDetailService _evService;
-        private readonly IBatteryDetailService _batteryService;
+        private readonly IItemImageService _itemImageService;
 
-        public ItemController(IItemService service, IEVDetailService evService, IBatteryDetailService batteryService)
+        public ItemController(IItemService service, IItemImageService itemImageService)
         {
             _service = service;
-            _evService = evService;
-            _batteryService = batteryService;
+            _itemImageService = itemImageService;
         }
 
         [HttpGet("{id}")]
@@ -41,6 +40,21 @@ namespace PresentationLayer.Controllers
             return CreatedAtAction(nameof(GetItem), new { id = created.ItemId }, created);
         }
 
+        [HttpGet("{itemId}/images")]
+        public async Task<IActionResult> GetItemImages([FromServices] IItemImageRepository repo, int itemId)
+        {
+            var images = await repo.GetByItemIdAsync(itemId);
+            return Ok(images);
+        }
+
+        [HttpPost("{itemId}/images")]
+        [Consumes("multipart/form-data")]
+        public async Task<IActionResult> Upload([FromForm] UploadItemImageRequest request)
+        {
+            var urls = await _itemImageService.UploadItemImagesAsync(request.ItemId, request.Files);
+            return Ok(new { Message = "Upload success", ImageUrls = urls });
+        }
+
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateItem(int id, [FromBody] ItemDto dto)
         {
@@ -53,20 +67,6 @@ namespace PresentationLayer.Controllers
         {
             var deleted = await _service.DeleteAsync(id);
             return deleted ? NoContent() : NotFound();
-        }
-
-        [HttpGet("latest-evs")]
-        public async Task<IActionResult> GetLatestEVs([FromQuery] int count = 4)
-        {
-            var result = await _service.GetLatestEVsAsync(count);
-            return Ok(result);
-        }
-
-        [HttpGet("latest-batterys")]
-        public async Task<IActionResult> GetLatestBatteries([FromQuery] int count = 4)
-        {
-            var result = await _service.GetLatestBatteriesAsync(count);
-            return Ok(result);
         }
 
         /// <summary>
@@ -110,83 +110,10 @@ namespace PresentationLayer.Controllers
             var items = await _service.GetAllItemsWithDetailsAsync();
             return Ok(items);
         }
+        
 
-        //[HttpGet("detail/ev")]
-        //public async Task<IActionResult> GetAll(CancellationToken ct)
-        //{
-        //    var list = await _evService.GetAllAsync(ct);
-        //    return Ok(list);
-        //}
-
-        //[HttpGet("detail/ev/{id:int}")]
-        //public async Task<IActionResult> Get(int id, CancellationToken ct)
-        //{
-        //    var e = await _evService.GetByIdAsync(id, ct);
-        //    if (e == null) return NotFound();
-        //    return Ok(e);
-        //}
-
-        [HttpPost("detail/ev")]
-        public async Task<IActionResult> CreateEv([FromBody] CreateEvDetailDto dto, CancellationToken ct)
-        {
-
-            var created = await _evService.CreateAsync(dto, ct);
-            return CreatedAtAction(nameof(GetItem), new { id = created.ItemId }, created);
-
-        }
-
-        [HttpPut("detail/ev/{id:int}")]
-        public async Task<IActionResult> UpdateEv(int id, [FromBody] UpdateEvDetailDto dto, CancellationToken ct)
-        {
-            var ok = await _evService.UpdateAsync(id, dto, ct);
-            if (!ok) return NotFound();
-            return NoContent();
-        }
-
-        [HttpDelete("detail/ev/{id:int}")]
-        public async Task<IActionResult> DeleteEv(int id, CancellationToken ct)
-        {
-            var ok = await _evService.DeleteAsync(id, ct);
-            if (!ok) return NotFound();
-            return NoContent();
-        }
-
-        //[HttpGet("detail/battery")]
-        //public async Task<IActionResult> GetAll()
-        //{
-        //    var result = await _service.GetAllAsync();
-        //    return Ok(result);
-        //}
-
-        //[HttpGet("detail/{itemId}")]
-        //public async Task<IActionResult> GetById(int itemId)
-        //{
-        //    var result = await _service.GetByIdAsync(itemId);
-        //    if (result == null) return NotFound();
-        //    return Ok(result);
-        //}
-
-        [HttpPost("detail/battery")]
-        public async Task<IActionResult> CreateBattery(CreateBatteryDetailDto dto)
-        {
-            var created = await _batteryService.CreateAsync(dto);
-            return CreatedAtAction(nameof(GetItem), new { id = created.ItemId }, created);
-
-        }
-
-        [HttpPut("detail/battery/{itemId}")]
-        public async Task<IActionResult> UpdateBattery(int itemId, UpdateBatteryDetailDto dto)
-        {
-            await _batteryService.UpdateAsync(itemId, dto);
-            return Ok();
-        }
-
-        [HttpDelete("detail/battery/{itemId}")]
-        public async Task<IActionResult> DeleteBattery(int itemId)
-        {
-            await _batteryService.DeleteAsync(itemId);
-            return Ok();
-        }
+        
+        
 
         [HttpGet("{itemId:int}/Seller")]
         public async Task<IActionResult> GetItemDetail(int itemId)
@@ -220,20 +147,6 @@ namespace PresentationLayer.Controllers
 
             return Ok(new { message = "Item rejected successfully." });
 
-        }
-
-        [HttpGet("search/ev-detail")]
-        public async Task<IActionResult> SearchEvDetail([FromQuery] EVSearchRequestDto request)
-        {
-            var results = await _service.SearchEvDetailAsync(request);
-            return Ok(results);
-        }
-
-        [HttpGet("search/battery")]
-        public async Task<IActionResult> SearchBattery([FromQuery] BatterySearchRequestDto request)
-        {
-            var results = await _service.SearchBatteryDetailAsync(request);
-            return Ok(results);
         }
     }
 }

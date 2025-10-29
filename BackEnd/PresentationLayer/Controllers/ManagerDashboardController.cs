@@ -8,7 +8,7 @@ using System.Security.Claims;
 
 namespace PresentationLayer.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/manager-dashboard")]
     [ApiController]
     public class ManagerDashboardController : ControllerBase
     {
@@ -26,14 +26,14 @@ namespace PresentationLayer.Controllers
             return Ok(result);
         }
 
-        [HttpGet("revenue-by-month")]
+        [HttpGet("revenue-by-week")]
         public async Task<IActionResult> GetRevenueByMonth([FromQuery] string range = "12m")
         {
             var result = await _dashboardService.GetRevenueByMonthAsync(range);
             return Ok(result);
         }
 
-        [HttpGet("orders-by-month")]
+        [HttpGet("orders-by-week")]
         public async Task<IActionResult> GetOrdersByMonth([FromQuery] string range = "12m")
         {
             int months = 12;

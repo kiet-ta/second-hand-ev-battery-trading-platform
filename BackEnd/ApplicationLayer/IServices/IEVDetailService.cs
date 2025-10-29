@@ -14,5 +14,7 @@ namespace Application.IServices
         Task<EVDetailDto> CreateAsync(CreateEvDetailDto dto, CancellationToken ct = default);
         Task<bool> UpdateAsync(int itemId, UpdateEvDetailDto dto, CancellationToken ct = default);
         Task<bool> DeleteAsync(int itemId, CancellationToken ct = default);
+        Task<IEnumerable<ItemDto>> GetLatestEVsAsync(int count);
+        Task<IEnumerable<EVDetailDto>> SearchEvDetailAsync(EVSearchRequestDto request);
     }
 }

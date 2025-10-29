@@ -23,7 +23,7 @@ export default function TransactionContent() {
     const [statusFilter, setStatusFilter] = useState("all");
     const [searchQuery, setSearchQuery] = useState("");
 
-    // 📥 Tải dữ liệu giao dịch
+    // Tải dữ liệu giao dịch
     const fetchTransactions = async () => {
         try {
             setLoading(true);
@@ -41,7 +41,7 @@ export default function TransactionContent() {
         fetchTransactions();
     }, []);
 
-    // 🔎 Lọc và tìm kiếm
+    // Lọc và tìm kiếm
     useEffect(() => {
         let result = [...transactions];
 
@@ -62,7 +62,7 @@ export default function TransactionContent() {
         setFilteredData(result);
     }, [transactions, statusFilter, searchQuery]);
 
-    // 📤 Xuất CSV
+    //  Xuất CSV
     const exportToCSV = () => {
         if (filteredData.length === 0) {
             message.info("Không có dữ liệu để xuất.");

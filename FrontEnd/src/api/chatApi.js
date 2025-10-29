@@ -18,7 +18,14 @@ const chatApi = {
         return response.data
     },
     getRoomByUserIDs: async (userId) => {
-        const response = await axios.get(`${baseURL}/${userId}/rooms`)
+        const response = await axios.get(`${baseURL}/users/${userId}/rooms`, 
+            {
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                    'Content-Type': 'application/json'
+                }
+            }
+        )
         return response.data
     },
     sendChatMessage: async (payload) => {

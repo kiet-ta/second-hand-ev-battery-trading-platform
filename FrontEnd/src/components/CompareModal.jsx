@@ -17,7 +17,7 @@ export default function CompareModal() {
         setList(getCompareList());
     }, []);
 
-    // ✅ Lắng nghe event mở modal
+    // Lắng nghe event mở modal
     useEffect(() => {
         const onOpen = () => {
             if (window.location.pathname === "/compare") return;
@@ -29,14 +29,14 @@ export default function CompareModal() {
         return () => window.removeEventListener("compare:openModal", onOpen);
     }, [refresh]);
 
-    // ✅ Thêm: ẩn modal khi điều hướng sang trang compare (hoặc có event sync)
+    // Thêm: ẩn modal khi điều hướng sang trang compare (hoặc có event sync)
     useEffect(() => {
         const onSync = () => setOpen(false);
         window.addEventListener("compare:sync", onSync);
         return () => window.removeEventListener("compare:sync", onSync);
     }, []);
 
-    // ✅ Không return trước hook
+    // Không return trước hook
     return (
         <AnimatePresence>
             {open && (
@@ -57,7 +57,7 @@ export default function CompareModal() {
                     >
                         {/* header */}
                         <div className="px-6 pt-5 pb-3 flex items-center justify-between">
-                            <h3 className="text-lg font-semibold">Your comparisons</h3>
+                            <h3 className="text-lg font-semibold">So sánh của bạn</h3>
                             <button
                                 className="text-gray-500 hover:text-gray-900"
                                 onClick={() => setOpen(false)}
@@ -121,12 +121,12 @@ export default function CompareModal() {
                                     }}
                                     className="text-sm text-gray-600 hover:text-gray-900"
                                 >
-                                    Close and Clear List
+                                    Đóng và xóa danh sánh
                                 </button>
 
                                 <button
                                     onClick={() => {
-                                        // 🔥 NEW: phát event để trang compare sync dữ liệu
+                                        // NEW: phát event để trang compare sync dữ liệu
                                         window.dispatchEvent(new Event("compare:sync"));
                                         setOpen(false);
                                         setTimeout(() => {
@@ -135,7 +135,7 @@ export default function CompareModal() {
                                     }}
                                     className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-indigo-600 text-white font-semibold hover:bg-indigo-700"
                                 >
-                                    Compare <span>→</span>
+                                    So sánh <span>→</span>
                                 </button>
                             </div>
                         </div>

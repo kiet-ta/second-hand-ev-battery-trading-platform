@@ -7,7 +7,7 @@ import { useNavigate, useLocation, Outlet } from "react-router-dom";
 import { IoLogOutOutline } from "react-icons/io5";
 import Logo from "../components/Logo"
 
-// ✨ ASSUMED CHANGE: Import the Dashboard content from its new file
+// ASSUMED CHANGE: Import the Dashboard content from its new file
 
 export default function SellerDashboard() {
     const location = useLocation();
@@ -54,12 +54,12 @@ export default function SellerDashboard() {
     }, [sellerId, token]);
 
     const handleLogout = () => {
-        // ⚠️ Giữ lại thông tin remember
+        // Giữ lại thông tin remember
         const rememberEmail = localStorage.getItem("rememberEmail");
         const rememberPassword = localStorage.getItem("rememberPassword");
 
         localStorage.clear(); // Xoá mọi thứ
-        // ✅ Ghi lại thông tin remember
+        // Ghi lại thông tin remember
         if (rememberEmail && rememberPassword) {
             localStorage.setItem("rememberEmail", rememberEmail);
             localStorage.setItem("rememberPassword", rememberPassword);
