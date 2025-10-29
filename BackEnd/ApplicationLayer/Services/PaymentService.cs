@@ -258,7 +258,7 @@ public class PaymentService : IPaymentService
     public async Task<PaymentResponseDto> CreateDepositPaymentLinkAsync(int userId, decimal amount)
     {
         //unique id deposit order
-        long depositOrderCode = long.Parse(DateTimeOffset.UtcNow.ToString("yyyyMMddHHmmssfff") + userId.ToString().PadLeft(4, '0')); // Ensures higher uniqueness
+        long depositOrderCode = long.Parse(DateTimeOffset.UtcNow.ToString("sfff") + userId.ToString().PadLeft(4, '0')); // Ensures higher uniqueness
 
         // Create Payment record in DB to track deposit transaction
         var paymentRecord = new Payment
@@ -284,7 +284,7 @@ public class PaymentService : IPaymentService
         };
         await _paymentRepository.AddPaymentDetailsAsync(new List<PaymentDetail> { depositDetail });
 
-        var description = $"Deposit money into the account User ID: {userId}";
+        var description = $"Deposit: {userId}";
         var payOSItem = new ItemData(
             name: "Wallet Deposit",
             quantity: 1,

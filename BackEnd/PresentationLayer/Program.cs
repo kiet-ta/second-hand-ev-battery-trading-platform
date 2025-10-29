@@ -174,7 +174,7 @@ namespace PresentationLayer
                 options.AddPolicy("AllowNgrok",
                     policy =>
                     {
-                        policy.WithOrigins("https://318132ab9f7d.ngrok-free.app")
+                        policy.WithOrigins("https://acf2025dbf0e.ngrok-free.app")
                               .AllowAnyHeader()
                               .AllowAnyMethod();
                     });

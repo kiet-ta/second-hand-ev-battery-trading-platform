@@ -28,7 +28,7 @@ export default function SellerApprovalContent() {
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState("");
 
-    // 📥 Lấy danh sách người bán chờ duyệt
+    // Lấy danh sách người bán chờ duyệt
     const fetchApprovals = async () => {
         try {
             setLoading(true);
@@ -46,7 +46,7 @@ export default function SellerApprovalContent() {
         fetchApprovals();
     }, []);
 
-    // 🔎 Lọc và tìm kiếm
+    // Lọc và tìm kiếm
     useEffect(() => {
         let result = [...approvals];
 
@@ -61,7 +61,7 @@ export default function SellerApprovalContent() {
         setFilteredApprovals(result);
     }, [approvals, searchQuery]);
 
-    // ⚙️ Duyệt / Từ chối người bán
+    // Duyệt / Từ chối người bán
     const handleAction = async (id, action) => {
         try {
             if (action === "approve") {
@@ -78,7 +78,7 @@ export default function SellerApprovalContent() {
         }
     };
 
-    // 📋 Cấu hình bảng
+    // Cấu hình bảng
     const columns = [
         {
             title: "Mã",

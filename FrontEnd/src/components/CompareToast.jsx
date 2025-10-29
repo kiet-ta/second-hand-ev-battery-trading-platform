@@ -11,7 +11,7 @@ export default function CompareToast() {
     const navigate = useNavigate();
     const max = 3;
 
-    // 🧩 Làm mới danh sách
+    // Làm mới danh sách
     const refresh = useCallback(() => {
         const list = getCompareList();
         setCount(list.length);
@@ -26,7 +26,7 @@ export default function CompareToast() {
         setVisible(list.length > 0);
     }, []);
 
-    // ⚙️ Lắng nghe thay đổi compareList
+    // Lắng nghe thay đổi compareList
     useEffect(() => {
         refresh();
         const sync = () => refresh();
@@ -42,7 +42,7 @@ export default function CompareToast() {
         };
     }, [refresh]);
 
-    // 🚫 Nếu không có gì → không render
+    // Nếu không có gì → không render
     if (!visible) return null;
 
     return (
@@ -62,10 +62,10 @@ export default function CompareToast() {
                         </span>
                     </span>
 
-                    {/* 🔹 Nút xem so sánh */}
+                    {/* Nút xem so sánh */}
                     <button
                         onClick={() => {
-                            // 🔥 Gửi event mở modal (CompareModal đã lắng nghe)
+                            // Gửi event mở modal (CompareModal đã lắng nghe)
                             window.dispatchEvent(new CustomEvent("compare:openModal"));
                         }}
                         className="ml-3 text-indigo-400 hover:text-white underline text-sm sm:text-base transition"
@@ -74,7 +74,7 @@ export default function CompareToast() {
                     </button>
                 </div>
 
-                {/* 🔹 Nút xóa toàn bộ */}
+                {/* Nút xóa toàn bộ */}
                 <button
                     onClick={() => {
                         clearCompare();

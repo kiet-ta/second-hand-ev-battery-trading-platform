@@ -16,11 +16,11 @@ export default function ComplaintPage() {
   const userId = localStorage.getItem("userId");
   const token = localStorage.getItem("token");
 
-  // 🧭 Lấy danh sách complaint của user
+  // Lấy danh sách complaint của user
   useEffect(() => {
     const fetchComplaints = async () => {
       try {
-        const res = await fetch(`${baseURL}Complaint/user/${userId}`, {
+        const res = await fetch(`${baseURL}Complaints/user/${userId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         const data = await res.json();
@@ -34,7 +34,7 @@ export default function ComplaintPage() {
     fetchComplaints();
   }, [userId, token]);
 
-  // ✉️ Gửi complaint mới
+  // Gửi complaint mới
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!form.reason || !form.description) {
@@ -44,7 +44,7 @@ export default function ComplaintPage() {
 
     setLoading(true);
     try {
-      const res = await fetch(`${baseURL}Complaint`, {
+      const res = await fetch(`${baseURL}Complaints`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -64,7 +64,7 @@ export default function ComplaintPage() {
       message.success("Gửi khiếu nại thành công!");
       setForm({ reason: "", description: "", severityLevel: "low" });
       // refresh list
-      const updated = await fetch(`${baseURL}/Complaint/user/${userId}`, {
+      const updated = await fetch(`${baseURL}/Complaints/user/${userId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setComplaints(await updated.json());
@@ -75,7 +75,7 @@ export default function ComplaintPage() {
     }
   };
 
-  // 🌈 Gán màu cho status
+  // Gán màu cho status
   const statusTag = (status) => {
     switch (status) {
       case "pending":
@@ -153,7 +153,7 @@ export default function ComplaintPage() {
         </form>
       </div>
 
-      {/* 🧾 Danh sách complaint */}
+      {/* Danh sách complaint */}
       <div className="max-w-5xl w-full bg-white shadow-sm border border-[#E5E4E2] rounded-2xl p-6">
         <h2 className="text-2xl font-semibold mb-6 flex items-center gap-2 text-[#4B3F2F]">
           <Clock className="text-[#D4A017]" />

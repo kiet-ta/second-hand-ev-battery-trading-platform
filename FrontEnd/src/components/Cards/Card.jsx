@@ -22,6 +22,8 @@ import {
     removeFromCompare,
 } from "../../utils/compareUtils";
 import { message } from "antd";
+import addressLocalApi from "../../api/addressLocalApi";
+import orderApi from "../../api/orderApi";
 
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
@@ -126,24 +128,83 @@ function CardComponent({
         [id, price, userId, isProcessing]
     );
 
-    const handleBuyNow = useCallback(
-        async (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            if (isProcessing) return;
-            setIsProcessing(true);
-            try {
-                const payload = { buyerId: userId, itemId: id, quantity: 1, price };
-                await orderItemApi.postOrderItem(payload);
-                navigate("/cart", { state: { selectedItemId: id } });
-            } catch (err) {
-                console.error("Buy now failed:", err);
-            } finally {
-                setIsProcessing(false);
+    const handleBuyNow = async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        const userId = localStorage.getItem("userId");
+        if (!userId) {
+            message.warning("Vui lòng đăng nhập trước khi mua hàng!");
+            navigate("/login");
+            return;
+        }
+
+        setIsProcessing(true);
+        try {
+            // 1️⃣ Tạo OrderItem
+            const orderItemPayload = {
+                buyerId: userId,
+                itemId: id,
+                quantity: 1,
+                price: price,
+            };
+
+            const createdOrderItem = await orderItemApi.postOrderItem(orderItemPayload);
+            if (!createdOrderItem?.orderItemId)
+                throw new Error("Không thể tạo OrderItem.");
+
+            // 2️⃣ Lấy địa chỉ mặc định
+            const allAddresses = await addressLocalApi.getAddressByUserId(userId);
+            const defaultAddress =
+                allAddresses.find((addr) => addr.isDefault) || allAddresses[0];
+
+            if (!defaultAddress) {
+                message.warning("Vui lòng thêm địa chỉ giao hàng trong hồ sơ!");
+                navigate("/profile/address");
+                return;
             }
-        },
-        [id, price, userId, navigate, isProcessing]
-    );
+
+            // 3️⃣ Tạo Order
+            const orderPayload = {
+                buyerId: userId,
+                addressId: defaultAddress.addressId,
+                orderItemIds: [createdOrderItem.orderItemId],
+                createdAt: new Date().toISOString().split("T")[0],
+                updatedAt: new Date().toISOString().split("T")[0],
+            };
+
+            const createdOrder = await orderApi.postOrderNew(orderPayload);
+            if (!createdOrder?.orderId) throw new Error("Không thể tạo Order.");
+
+            // 4️⃣ Chuyển sang trang Checkout
+            navigate("/checkout", {
+                state: {
+                    fromBuyNow: true,
+                    orderId: createdOrder.orderId,
+                    totalAmount: price,
+                    orderItems: [
+                        {
+                            id: id,
+                            name: title || "Sản phẩm",
+                            price: price,
+                            quantity: 1,
+                            image:
+                                itemImages?.[0]?.imageUrl ||
+                                "https://placehold.co/100x100",
+                        },
+                    ],
+                    allAddresses,
+                    selectedAddressId: defaultAddress.addressId,
+                },
+            });
+        } catch (err) {
+            console.error("❌ Lỗi mua ngay:", err);
+            message.error("Không thể mua ngay. Vui lòng thử lại.");
+        } finally {
+            setIsProcessing(false);
+        }
+    };
+
 
     // ✅ Handle favorite toggle
     const handleFavoriteClick = useCallback(
@@ -177,7 +238,7 @@ function CardComponent({
         [isFavorited, favoriteId, userId, id, isProcessing]
     );
 
-    // ✅ Handle Compare toggle
+    // Handle Compare toggle
     const handleCompareClick = useCallback(
         (e) => {
             e.preventDefault();
@@ -186,14 +247,14 @@ function CardComponent({
             const list = getCompareList();
             const already = list.some((x) => x.itemId === id);
 
-            // 🔄 Nếu đã trong danh sách → xoá
+            //Nếu đã có trong danh sách → xoá
             if (already) {
                 removeFromCompare(id);
                 setIsCompared(false);
                 return;
             }
 
-            // 🚫 Nếu danh sách có phần tử khác loại → không cho thêm
+            //Danh sách xe đi với danh sách xe
             if (list.length > 0 && list[0].itemType !== type) {
                 message.error(
                     `❌ Bạn chỉ có thể so sánh các sản phẩm cùng loại (${list[0].itemType.toUpperCase()}).`
@@ -201,13 +262,13 @@ function CardComponent({
                 return;
             }
 
-            // 🚫 Giới hạn tối đa 3
+            // Giới hạn tối đa 3 item
             if (list.length >= 3) {
                 message.warning("⚠️ Chỉ có thể so sánh tối đa 3 sản phẩm.");
                 return;
             }
 
-            // ✅ OK → thêm vào danh sách
+            //Thêm vào danh sách
             const itemData = {
                 itemId: id,
                 name: title,
@@ -223,7 +284,7 @@ function CardComponent({
     );
 
 
-    // ✅ Classes
+    // Classes
     const heartClass = isFavorited
         ? "flex items-center justify-center w-10 h-10 rounded-full bg-red-400 text-white hover:bg-red-500 shadow-lg"
         : "flex items-center justify-center w-10 h-10 rounded-full bg-white text-red-500 hover:bg-red-50 shadow-lg";
@@ -270,8 +331,8 @@ function CardComponent({
                         <button
                             onClick={handleCompareClick}
                             className={`flex items-center justify-center px-4 py-2 rounded-md font-semibold text-xs shadow-md transition-all duration-300 ${isCompared
-                                    ? "bg-green-500 text-white hover:bg-green-600"
-                                    : "bg-white text-gray-900 hover:bg-gray-100"
+                                ? "bg-green-500 text-white hover:bg-green-600"
+                                : "bg-white text-gray-900 hover:bg-gray-100"
                                 }`}
                         >
                             <FiBarChart2 className="mr-1.5" />

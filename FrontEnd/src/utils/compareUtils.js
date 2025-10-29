@@ -10,7 +10,7 @@ export const saveCompareList = (list) => {
 const emit = (event, detail = {}) =>
     window.dispatchEvent(new CustomEvent(event, { detail }));
 
-// 🧩 Thêm sản phẩm vào danh sách so sánh
+// Thêm sản phẩm vào danh sách so sánh
 export const addToCompare = (item) => {
     let list = getCompareList();
 

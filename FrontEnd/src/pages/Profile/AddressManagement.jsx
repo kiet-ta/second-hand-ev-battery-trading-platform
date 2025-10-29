@@ -45,7 +45,7 @@ const AddressManagement = () => {
 
                 // Map DB fields -> UI fields
                 const mapped = res.map(addr => ({
-                    id: addr.addressId,         // <-- map đúng primary key từ DB
+                    id: addr.addressId,
                     street: addr.street,
                     ward: addr.ward,
                     district: addr.district,
