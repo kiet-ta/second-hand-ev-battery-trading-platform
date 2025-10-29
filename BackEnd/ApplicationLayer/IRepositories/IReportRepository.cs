@@ -15,7 +15,7 @@ namespace Application.IRepositories
         Task<List<Report>> GetReportByUserId(int userId);
         Task<List<Report>> GetReportByAssigneeId(int userId);
         Task<List<Report>> GetReportByStatus(string status);
-        Task<Report> UpdateReportStatus(int id, string status, int assigneeId);
+        Task<Report> UpdateReportStatus(int id, string status, int assigneeId, int day);
         Task<Report> CreateReport(CreateReportDto createReportDto, int senderId);
     }
 }

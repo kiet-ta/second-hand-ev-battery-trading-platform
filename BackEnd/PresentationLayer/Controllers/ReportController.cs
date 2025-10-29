@@ -1,7 +1,9 @@
 ﻿using Application.DTOs;
 using Application.IServices;
 using Domain.Entities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace PresentationLayer.Controllers
@@ -12,11 +14,13 @@ namespace PresentationLayer.Controllers
     {
         private readonly IReportService _reportService;
         private readonly INotificationService _notificationService;
+        private readonly IKYC_DocumentService _kycdocumentService;
 
-        public ReportController(IReportService reportService, INotificationService notificationService)
+        public ReportController(IReportService reportService, INotificationService notificationService, IKYC_DocumentService kycdocumentService)
         {
             _reportService = reportService;
             _notificationService = notificationService;
+            _kycdocumentService = kycdocumentService;
         }
 
         [HttpGet]
@@ -70,44 +74,56 @@ namespace PresentationLayer.Controllers
             return CreatedAtAction(nameof(GetReportById), new { id = report.Id }, report);
         }
         [HttpPut("{id}/status")]
-        public async Task<IActionResult> UpdateReportStatus(int id, [FromQuery] string status, [FromBody] CreateNotificationDTO dto)
+        [Authorize(Roles = "staff,manager")]
+        public async Task<IActionResult> UpdateReportStatus(
+           int id,
+           [FromQuery] string status,
+           [FromQuery] int day,
+           [FromBody] CreateNotificationDTO dto)
         {
-            //var userIdClaim = User.FindFirst("user_id")?.Value;
-            //if (string.IsNullOrEmpty(userIdClaim))
-            //    return Unauthorized(new { message = "User ID not found in token." });
+            var userIdClaim = User.FindFirst("user_id")?.Value;
+            if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int senderId))
+                return Unauthorized(new { message = "User ID not found or invalid in token." });
 
-            //if (!int.TryParse(userIdClaim, out int senderId))
-            //    return Unauthorized(new { message = "Invalid User ID in token." });
-            //var roleClaim = User.FindFirst("role")?.Value;
-            //if (string.IsNullOrEmpty(roleClaim))
-            //    return Unauthorized(new { message = "User role not found in token." });
+            var roleClaim = User.FindFirst(ClaimTypes.Role)?.Value;
+            if (string.IsNullOrEmpty(roleClaim))
+                return Unauthorized(new { message = "User role not found in token." });
+            string senderRole = roleClaim;
 
-            //string senderRole = roleClaim;
+            if (day <= 0)
+                return BadRequest(new { message = "Duration (day) must be greater than 0." });
 
-            //var report = await _reportService.UpdateReportStatus(id, status, senderId);
-            //if (report == null)
-            //    return NotFound(new { message = "Report not found." });
+            var report = await _reportService.UpdateReportStatus(id, status, senderId, day);
+            if (report == null)
+                return NotFound(new { message = "Report not found." });
 
             if (dto == null || string.IsNullOrWhiteSpace(dto.Message))
                 return BadRequest(new { message = "Notification content cannot be empty." });
 
-            //var notificationAdded = await _notificationService.AddNewNotification(dto, senderId, senderRole);
-
-            //Console.WriteLine(notificationAdded
-            //    ? $"Notification added to DB: {dto.Title} -> {dto.Message}"
-            //    : "Failed to add notification to the database.");
-
+            var notificationAdded = await _notificationService.AddNewNotification(dto, senderId, senderRole);
+ 
             await _notificationService.SendNotificationAsync(dto.Message);
             Console.WriteLine("Realtime notification sent successfully.");
+            if (status == "approved")
+            {
+                if (!int.TryParse(dto.TargetUserId, out int targetUserId))
+                    return BadRequest(new { message = "TargetUserId must be a valid integer." });
 
+               await _kycdocumentService.WarningUserAsync(targetUserId);
+
+                var reports = await _reportService.GetReportByUserId(targetUserId);
+                if (reports.Count >= 4)
+                    await _kycdocumentService.BanUserAsync(targetUserId);
+            }
             return Ok(new
             {
                 message = "Report status updated successfully and notification sent.",
-                //report,
-                //senderId,
-                //senderRole
+                report,
+                senderId,
+                senderRole
             });
         }
+
 
     }
 }

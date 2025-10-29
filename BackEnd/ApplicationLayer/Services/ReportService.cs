@@ -71,7 +71,7 @@ namespace Application.Services
             return reports;
         }
 
-        public async Task<Report> UpdateReportStatus(int id, string status, int assigneeId)
+        public async Task<Report> UpdateReportStatus(int id, string status, int assigneeId, int day)
         {
             if (id <= 0)
                 throw new ArgumentException("Invalid report ID.");
@@ -82,7 +82,7 @@ namespace Application.Services
             if (assigneeId <= 0)
                 throw new ArgumentException("Invalid assignee ID.");
 
-            var updatedReport = await _reportRepository.UpdateReportStatus(id, status, assigneeId);
+            var updatedReport = await _reportRepository.UpdateReportStatus(id, status, assigneeId, day);
             if (updatedReport == null)
                 throw new Exception($"Failed to update report with ID = {id}. The report may not exist.");
 

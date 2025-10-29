@@ -46,12 +46,18 @@ namespace Application.Services
             if (user.AccountStatus == "ban")
                 throw new InvalidOperationException("Cannot warn a banned user");
 
-            if (user.AccountStatus == "warning1")
-                await _kycRepo.UpdateAccountStatusAsync(user.UserId, "warning2");
-            else if (user.AccountStatus == "warning2")
-                throw new InvalidOperationException("User already has maximum warning");
-            else
-                await _kycRepo.UpdateAccountStatusAsync(user.UserId, "warning1");
+            switch (user.AccountStatus)
+            {
+                case "warning1":
+                    await _kycRepo.UpdateAccountStatusAsync(user.UserId, "warning2");
+                    break;
+                case "warning2":
+                    await _kycRepo.UpdateAccountStatusAsync(user.UserId, "ban");
+                    break;
+                default:
+                    await _kycRepo.UpdateAccountStatusAsync(user.UserId, "warning1");
+                    break;
+            }
         }
 
         public async Task ApproveKycAsync(int kycId, ApproveKyc_DocumentDTO dto)

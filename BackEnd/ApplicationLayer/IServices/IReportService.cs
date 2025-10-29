@@ -15,7 +15,7 @@ namespace Application.IServices
         Task<List<Report>> GetReportByUserId(int userId);
         Task<List<Report>> GetReportByAssigneeId(int assigneeId);
         Task<List<Report>> GetReportByStatus(string status);
-        Task<Report> UpdateReportStatus(int id, string status, int assigneeId);
+        Task<Report> UpdateReportStatus(int id, string status, int assigneeId, int day);
         Task<Report> CreateReport(CreateReportDto dto, int assigneeTo);
     }
 }

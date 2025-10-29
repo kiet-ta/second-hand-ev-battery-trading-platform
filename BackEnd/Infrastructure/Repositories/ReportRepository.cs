@@ -44,33 +44,36 @@ namespace Infrastructure.Repositories
                 .ToListAsync();
         }
 
-        public async Task<Report> UpdateReportStatus(int id, string status, int assigneeId)
+        public async Task<Report> UpdateReportStatus(int id, string status, int assigneeId, int day)
         {
             var report = await _context.Reports.FirstOrDefaultAsync(r => r.Id == id);
-            if (report != null)
-            {
-                report.AssigneeId = assigneeId;
-                report.Status = status;
+            if (report == null) return null;
 
-                if (status == "pending" || status == "rejected")
-                {
+            report.AssigneeId = assigneeId;
+            report.Status = status;
+
+            switch (status.ToLower())
+            {
+                case "pending":
+                case "rejected":
                     report.BanAt = null;
                     report.UnbanAt = null;
                     report.Duration = null;
-                }
-                else if (status == "approved")
-                {
-                    report.BanAt = DateTime.Now;
-
-                    if (report.Duration.HasValue)
-                        report.UnbanAt = report.BanAt.Value.AddDays(report.Duration.Value);
-                }
-
-                await _context.SaveChangesAsync();
+                    break;
+                case "approved":
+                    if (day <= 0) day = 1; 
+                    report.BanAt = DateTime.UtcNow;
+                    report.Duration = day;
+                    report.UnbanAt = report.BanAt.Value.AddDays(report.Duration.Value);
+                    break;
+                default:
+                    break;
             }
 
+            await _context.SaveChangesAsync();
             return report;
         }
+
 
         public async Task<Report> CreateReport(CreateReportDto createReportDto, int senderId)
         {
