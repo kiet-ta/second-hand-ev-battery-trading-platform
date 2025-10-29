@@ -12,7 +12,8 @@ namespace PresentationLayer
         {
             var builder = WebApplication.CreateBuilder(args);
             var config = builder.Configuration;
-
+            //presentation
+            builder.Services.AddPresentationServices();
             // infrastructure third party
             builder.Services.AddInfrastructureServices(config);
 
@@ -21,7 +22,7 @@ namespace PresentationLayer
 
             //document, controller, auth,e.g.
             builder.Services.AddSwaggerAndAuth(config);
-
+            
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
             builder.Configuration.AddUserSecrets<Program>();

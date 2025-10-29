@@ -1,8 +1,6 @@
 ﻿using Application.DTOs.PaymentDtos;
-using Application.IHelpers;
 using Application.IRepositories;
 using Application.IRepositories.IBiddingRepositories;
-using Application.IRepositories.IChatRepositories;
 using Application.IRepositories.IManageStaffRepositories;
 using Application.IRepositories.IPaymentRepositories;
 using Application.IServices;
@@ -11,12 +9,8 @@ using Application.Services;
 using Application.Validations;
 using FluentValidation;
 using Infrastructure.Data;
-using Infrastructure.Helpers;
 using Infrastructure.Repositories;
-using Infrastructure.Repositories.ChatRepositories;
 using Infrastructure.Repositories.ManageStaffRepositories;
-using Infrastructure.Ulties;
-using Infrastructure.Workers;
 
 namespace PresentationLayer.Extensions;
 
@@ -84,7 +78,6 @@ public static class DependencyInjectionExtensions
         services.AddScoped<INewsRepository, NewsRepository>();
         services.AddScoped<INotificationRepository, NotificationRepository>();
         services.AddScoped<IComplaintRepository, ComplaintRepository>();
-
 
         //IUnitOfWork
         services.AddScoped<IUnitOfWork, UnitOfWork>();
