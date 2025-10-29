@@ -6,11 +6,11 @@ const orderItemApi = {
         return response.data;
     },
     postOrderItem: async (data) => {
-        const response = await axios.post(baseURL,data)
+        const response = await axios.post(baseURL, data)
         return response.data;
     },
     deleteOrderItem: async (itemId) => {
         await axios.delete(baseURL + `/${itemId}`)
-    }
+    },
 };
 export default orderItemApi;

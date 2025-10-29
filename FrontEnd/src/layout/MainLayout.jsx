@@ -7,7 +7,7 @@ import userApi from "../api/userApi";
 
 function MainLayout() {
     const [userProfile, setUser] = useState(null);
-    const location = useLocation(); // ✅ Dùng để biết đang ở trang nào
+    const location = useLocation(); // Dùng để biết đang ở trang nào
 
     const fetchUser = async () => {
         const currentUserId = localStorage.getItem("userId");
@@ -46,7 +46,7 @@ function MainLayout() {
 
     const mainRef = useRef(null);
 
-    // ✅ Kiểm tra nếu là trang compare
+    // Kiểm tra nếu là trang compare
     const isComparePage = location.pathname.startsWith("/compare");
 
     return (
@@ -58,8 +58,8 @@ function MainLayout() {
             <main
                 ref={mainRef}
                 className={`flex-grow transition-all duration-300 ${isComparePage
-                        ? "bg-transparent px-0 py-0" // ✅ Full width, bỏ padding & nền
-                        : "container mx-auto px-6 py-8"
+                    ? "bg-transparent px-0 py-0" // Full width, bỏ padding & nền
+                    : "container mx-auto px-6 py-8"
                     }`}
             >
                 <Outlet />

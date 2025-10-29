@@ -10,11 +10,11 @@ const itemApi = {
         return response.data;
     },
     getItemByLatestEV: async () => {
-        const response = await axios.get(baseURL + "/latest-evs",10)
+        const response = await axios.get(baseURL + "/latest-evs", 10)
         return response.data;
     },
     getItemByLatestBattery: async () => {
-        const response = await axios.get(baseURL + "/latest-batterys",10)
+        const response = await axios.get(baseURL + "/latest-batterys", 10)
         return response.data;
     },
     getItemBySearch: async (itemType, title, minPrice, maxPrice, page, pageSize, sortBy, sortDir) => {
@@ -26,11 +26,11 @@ const itemApi = {
         return response.data;
     },
     getItemDetail: async () => {
-        const response = await axios.get(baseURL + "/detail");
+        const response = await axios.get(baseURL + "/detail/all");
         return response.data;
     },
     postItemEV: async (data) => {
-        const response = await axios.post(baseURL + "/detail", data);
+        const response = await axios.post(baseURL + "/detail/ev", data);
         return response.data;
     },
     postItemBattery: async (data) => {
@@ -38,8 +38,8 @@ const itemApi = {
         return response.data;
     },
     putItem: async (itemId, itemData) => {
-        console.log(itemId,itemData)
-        const response = await axios.put(baseURL + `/${itemId}`,itemData)
+        console.log(itemId, itemData)
+        const response = await axios.put(baseURL + `/${itemId}`, itemData)
         return response.data
     },
 

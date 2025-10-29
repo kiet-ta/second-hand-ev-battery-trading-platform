@@ -1,4 +1,3 @@
-// src/layout/SellerDashboardLayout.jsx
 import React, { useState } from "react";
 import { Outlet, NavLink, useNavigate } from "react-router-dom";
 import {
@@ -26,12 +25,12 @@ export default function SellerDashboardLayout() {
     ];
 
     const handleLogout = () => {
-        // ⚠️ Giữ lại thông tin remember
+        // Giữ lại thông tin remember
         const rememberEmail = localStorage.getItem("rememberEmail");
         const rememberPassword = localStorage.getItem("rememberPassword");
 
         localStorage.clear(); // Xoá mọi thứ
-        // ✅ Ghi lại thông tin remember
+        // Ghi lại thông tin remember
         if (rememberEmail && rememberPassword) {
             localStorage.setItem("rememberEmail", rememberEmail);
             localStorage.setItem("rememberPassword", rememberPassword);

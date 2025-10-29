@@ -33,7 +33,7 @@ export default function ProductModeration() {
     const [selectedItem, setSelectedItem] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
 
-    // 📥 Lấy danh sách sản phẩm
+    // Lấy danh sách sản phẩm
     const fetchProducts = async () => {
         try {
             setLoading(true);
@@ -56,7 +56,7 @@ export default function ProductModeration() {
         fetchProducts();
     }, []);
 
-    // 🎯 Lọc & tìm kiếm
+    // Lọc & tìm kiếm
     useEffect(() => {
         let filtered = [...products];
         if (typeFilter !== "all")
@@ -79,7 +79,7 @@ export default function ProductModeration() {
         setFilteredProducts(filtered);
     }, [products, typeFilter, statusFilter, searchQuery]);
 
-    // ⚙️ Duyệt / Từ chối
+    // Duyệt / Từ chối
     const handleAction = async (id, action) => {
         try {
             const item = await itemApi.getItemDetailByID(id);
@@ -104,7 +104,7 @@ export default function ProductModeration() {
         }
     };
 
-    // 📤 Xuất CSV
+    // Xuất CSV
     const exportToCSV = () => {
         if (filteredProducts.length === 0) {
             message.info("Không có dữ liệu để xuất.");
@@ -136,7 +136,7 @@ export default function ProductModeration() {
         document.body.removeChild(link);
     };
 
-    // 🧱 Cấu hình bảng
+    // Cấu hình bảng
     const columns = [
         {
             title: "ID",

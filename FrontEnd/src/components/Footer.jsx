@@ -117,20 +117,6 @@ function Footer() {
                     <p className={`${textSecondary} text-sm`}>
                         &copy; {new Date().getFullYear()} Cóc Mua Xe. Đã đăng ký bản quyền.
                     </p>
-                    <div className="flex space-x-6 mt-4 sm:mt-0">
-                        <a href="#" className={`${textSecondary} ${textHover}`}>
-                            <span className="sr-only">Facebook</span>
-                            <FacebookIcon />
-                        </a>
-                        <a href="#" className={`${textSecondary} ${textHover}`}>
-                            <span className="sr-only">Instagram</span>
-                            <InstagramIcon />
-                        </a>
-                        <a href="#" className={`${textSecondary} ${textHover}`}>
-                            <span className="sr-only">Twitter</span>
-                            <TwitterIcon />
-                        </a>
-                    </div>
                 </div>
             </div>
         </footer>

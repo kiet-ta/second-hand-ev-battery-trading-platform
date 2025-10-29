@@ -3,7 +3,7 @@ import { Bell, Filter } from "lucide-react";
 import SSEListener from "../Notifications/SSEListener";
 import notificationApi from "../../api/notificationApi";
 
-// ✅ Helper to format relative time
+// Helper to format relative time
 const formatTimeAgo = (isoDate) => {
   const now = new Date();
   const past = new Date(isoDate);
@@ -14,7 +14,7 @@ const formatTimeAgo = (isoDate) => {
   return `${Math.floor(diffInMinutes / 1440)} ngày trước`;
 };
 
-// ✅ Convert backend response → UI state
+// Convert backend response → UI state
 const mapApiToState = (apiNoti) => ({
   id: apiNoti.id,
   title: apiNoti.title,
@@ -25,14 +25,13 @@ const mapApiToState = (apiNoti) => ({
   isUnread: !apiNoti.isRead,
 });
 
-// ✅ Separate memoized Notification Item (reduces re-renders)
+// Separate memoized Notification Item (reduces re-renders)
 const NotificationItem = React.memo(({ notification, onClick }) => (
   <div
-    className={`rounded-lg p-3 cursor-pointer border transition ${
-      notification.isUnread
+    className={`rounded-lg p-3 cursor-pointer border transition ${notification.isUnread
         ? "bg-[#EAF3FF] border-blue-100 hover:bg-[#DCEBFF]"
         : "bg-white border-[#ebe7e2] hover:bg-[#f9f6f1]"
-    }`}
+      }`}
     onClick={() => onClick(notification.id)}
   >
     <div className="flex justify-between items-center mb-1">
@@ -45,7 +44,7 @@ const NotificationItem = React.memo(({ notification, onClick }) => (
 
 const activityFilterCategories = [
   ["all", "Tất cả"],
-  ["unread", "Chưa đọc"], // <-- new filter
+  ["unread", "Chưa đọc"],
   ["tai_khoan", "Tài khoản"],
   ["giao_dich", "Giao dịch"],
   ["tin_dang", "Tin đăng"],
@@ -63,12 +62,12 @@ export default function NotificationDropdown({ userId }) {
     [notifications]
   );
 
-  // ✅ Stable callback for SSE
+  // Stable callback for SSE
   const handleNewNotification = useCallback((newNoti) => {
     setNotifications((prev) => [newNoti, ...prev]);
   }, []);
 
-  // ✅ Fetch notifications
+  // Fetch notifications
   useEffect(() => {
     if (!userId) return;
     let isMounted = true;
@@ -86,7 +85,7 @@ export default function NotificationDropdown({ userId }) {
     return () => (isMounted = false);
   }, [userId]);
 
-  // ✅ Close on outside click
+  // Close on outside click
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
@@ -98,7 +97,7 @@ export default function NotificationDropdown({ userId }) {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // ✅ Filtered notifications
+  // Filtered notifications
   const filteredNotifications = useMemo(() => {
     const filteredByTab = notifications.filter((n) => n.category === activeTab);
     let result = filteredByTab;
@@ -114,12 +113,12 @@ export default function NotificationDropdown({ userId }) {
     return result;
   }, [notifications, activeTab, activeFilter]);
 
-  // ✅ Handle individual click
+  // Handle individual click
   const handleItemClick = useCallback((id) => {
     console.log("Navigate to notification:", id);
   }, []);
 
-  // ✅ Mark all as read
+  // Mark all as read
   const handleMarkAllAsRead = async () => {
     try {
       const unreadNotifications = notifications.filter(n => n.isUnread);
@@ -156,7 +155,7 @@ export default function NotificationDropdown({ userId }) {
 
         {isOpen && (
           <div className="absolute right-0 mt-3 w-80 sm:w-96 bg-[#FAF8F4] border border-[#e0d8cf] rounded-xl shadow-[0_8px_24px_rgba(0,0,0,0.1)] p-4 z-50 animate-slide-down will-change-transform">
-            
+
             {/* Header with Mark all as read */}
             <div className="flex justify-between items-center mb-2">
               <h3 className="font-bold text-lg text-gray-800">Thông Báo</h3>
@@ -179,11 +178,10 @@ export default function NotificationDropdown({ userId }) {
                     setActiveTab(tab);
                     setActiveFilter("all");
                   }}
-                  className={`flex-1 py-1.5 text-sm font-medium transition ${
-                    activeTab === tab
+                  className={`flex-1 py-1.5 text-sm font-medium transition ${activeTab === tab
                       ? "text-blue-600 border-b-2 border-blue-600"
                       : "text-gray-500 hover:text-gray-700"
-                  }`}
+                    }`}
                 >
                   {tab === "activities" ? "Hoạt Động" : "Tin Tức"}
                 </button>
@@ -198,11 +196,10 @@ export default function NotificationDropdown({ userId }) {
                   <button
                     key={id}
                     onClick={() => setActiveFilter(id)}
-                    className={`px-3 py-1 text-xs rounded-full border transition ${
-                      activeFilter === id
+                    className={`px-3 py-1 text-xs rounded-full border transition ${activeFilter === id
                         ? "bg-blue-500 text-white border-blue-500"
                         : "border-gray-300 text-gray-600 hover:bg-blue-50"
-                    }`}
+                      }`}
                   >
                     {label}
                   </button>

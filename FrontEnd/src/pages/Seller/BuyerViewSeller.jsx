@@ -89,7 +89,7 @@ export default function BuyerViewSeller() {
 
     return (
         <div className="min-h-screen bg-[#FFF8EE]">
-            {/* 🌿 Breadcrumb */}
+            {/* Breadcrumb */}
             <div className="bg-[#FFF8EE] border-b border-[#FFF8EE] shadow-sm">
                 <div className="max-w-7xl mx-auto px-4 py-3 text-sm flex items-center gap-2">
                     <Link
@@ -105,7 +105,7 @@ export default function BuyerViewSeller() {
                 </div>
             </div>
 
-            {/* 🌟 Layout */}
+            {/* Layout */}
             <div className="max-w-7xl mx-auto px-4 py-10 grid md:grid-cols-3 gap-8">
                 {/* Seller Info */}
                 <div className="md:col-span-1">
@@ -122,7 +122,7 @@ export default function BuyerViewSeller() {
                                 {seller?.bio || "Bán EV & pin chính hãng"}
                             </p>
 
-                            {/* ⭐ Rating */}
+                            {/* Rating */}
                             <div className="flex items-center gap-1 mt-2">
                                 {[...Array(Math.round(seller?.rating || 5))].map((_, i) => (
                                     <Star key={i} size={14} fill="#F1C40F" />
@@ -133,7 +133,7 @@ export default function BuyerViewSeller() {
                             </div>
                         </div>
 
-                        {/* 🧭 Contact info */}
+                        {/* Contact info */}
                         <div className="mt-5 text-sm space-y-3 text-gray-700">
                             <div className="flex items-center gap-2">
                                 <Mail size={16} /> {seller?.email}
@@ -152,7 +152,7 @@ export default function BuyerViewSeller() {
                             </p>
                         </div>
 
-                        {/* 💬 Button */}
+                        {/* Button */}
                         <button className="w-full mt-5 bg-[#C99700] hover:bg-[#B68900] text-white font-semibold py-2.5 rounded-xl flex items-center justify-center gap-2 transition">
                             <MessageCircle size={18} />
                             Nhắn tin cho người bán
@@ -197,7 +197,7 @@ export default function BuyerViewSeller() {
                                         className="group bg-white border border-[#F0E2B6] rounded-xl overflow-hidden hover:shadow-md transition"
                                     >
                                         <div className="relative">
-                                            {/* 🖼 Hiển thị carousel nếu có nhiều ảnh */}
+                                            {/* Hiển thị carousel nếu có nhiều ảnh */}
                                             {Array.isArray(item.images) && item.images.length > 1 ? (
                                                 <Slider {...carouselSettings}>
                                                     {item.images.map((img, index) => (
@@ -213,8 +213,8 @@ export default function BuyerViewSeller() {
                                             ) : (
                                                 <img
                                                     src={
-                                                        item.images?.[0]?.imageUrl || // lấy ảnh đầu tiên trong mảng nếu có
-                                                        item.imageUrl ||               // fallback sang ảnh đơn
+                                                        item.images?.[0]?.imageUrl ||
+                                                        item.imageUrl ||
                                                         "https://via.placeholder.com/300x200?text=No+Image"
                                                     }
                                                     alt={item.title}
@@ -222,7 +222,7 @@ export default function BuyerViewSeller() {
                                                 />
                                             )}
 
-                                            {/* 🟡 Badge trạng thái */}
+                                            {/* Badge trạng thái */}
                                             <span
                                                 className={`absolute top-2 left-2 px-2 py-1 text-xs font-semibold rounded-md text-white shadow-sm ${item.status === "active" ? "bg-[#C99700]" : "bg-gray-500"
                                                     }`}
@@ -233,7 +233,7 @@ export default function BuyerViewSeller() {
 
                                         </div>
 
-                                        {/* 📄 Nội dung */}
+                                        {/* Nội dung */}
                                         <div className="p-3">
                                             <h4 className="font-semibold text-gray-900 text-sm line-clamp-2 group-hover:text-[#C99700] transition">
                                                 {item.title}

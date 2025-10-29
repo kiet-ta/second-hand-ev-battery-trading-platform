@@ -36,11 +36,11 @@ export default function ComplaintList() {
   const token = localStorage.getItem("token");
 
 
-  // 📥 Lấy danh sách complaint
+  // Lấy danh sách complaint
   const fetchComplaints = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`${baseURL}Complaints/status/pending`, {
+      const res = await fetch(`${baseURL}Complaints/all`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (!res.ok) throw new Error("Không thể tải complaint");
@@ -59,7 +59,7 @@ export default function ComplaintList() {
     fetchComplaints();
   }, []);
 
-  // 🔍 Lọc và tìm kiếm
+  // Lọc và tìm kiếm
   useEffect(() => {
     let list = [...complaints];
     if (statusFilter !== "all") list = list.filter((c) => c.status === statusFilter);
@@ -75,12 +75,12 @@ export default function ComplaintList() {
     setFiltered(list);
   }, [complaints, search, statusFilter, levelFilter]);
 
-  // 👁 Xem chi tiết complaint
+  // Xem chi tiết complaint
   const openDetailModal = async (id) => {
     setModalVisible(true);
     setModalLoading(true);
     try {
-      const res = await fetch(`${baseURL}/Complaints/${id}`, {
+      const res = await fetch(`${baseURL}Complaints/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (!res.ok) throw new Error("Không thể lấy chi tiết complaint");
@@ -95,30 +95,29 @@ export default function ComplaintList() {
     }
   };
 
-  // ⚙️ Update status
+  // Update status
   const updateStatus = async (id, newStatus) => {
     try {
-      const res = await fetch(`${baseURL}/Complaints/${id}/status`, {
+      const res = await fetch(`${baseURL}Complaints/${id}/status?status=${newStatus}`, {
         method: "PATCH",
         headers: {
-          "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ status: newStatus }),
       });
       if (!res.ok) throw new Error();
       message.success(`✅ Trạng thái chuyển sang "${newStatus}".`);
       setModalVisible(false);
       fetchComplaints();
     } catch {
-      message.error("Không thể cập nhật trạng thái.");
+      message.error("❌ Không thể cập nhật trạng thái.");
     }
   };
 
-  // ⚙️ Update severity level
+
+  // Update severity level
   const updateLevel = async (id, newLevel) => {
     try {
-      const res = await fetch(`${baseURL}/Complaints/${id}/level`, {
+      const res = await fetch(`${baseURL}Complaints/${id}/level`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -134,10 +133,10 @@ export default function ComplaintList() {
     }
   };
 
-  // 👤 Assign complaint cho staff
+  // Assign complaint cho staff
   const assignToStaff = async (id, staffId) => {
     try {
-      const res = await fetch(`${baseURL}/Complaints/assignee/${staffId}`, {
+      const res = await fetch(`${baseURL}Complaints/assignee/${staffId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (!res.ok) throw new Error();
@@ -148,7 +147,7 @@ export default function ComplaintList() {
     }
   };
 
-  // 🎨 Badge status color
+  // Badge status color
   const statusBadge = (status) => {
     switch (status) {
       case "pending":
