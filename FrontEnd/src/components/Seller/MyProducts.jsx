@@ -7,7 +7,7 @@ export default function MyProducts() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const sellerId = localStorage.getItem("userId");
-  const baseURL = import.meta.env.VITE_API_BASE_URL;
+    const baseURL = import.meta.env.VITE_API_BASE_URL;
 
 
     // Fetch all products for this seller
@@ -59,7 +59,7 @@ export default function MyProducts() {
         <div className="p-6">
             {/* Header */}
             <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-bold text-gray-900">My Products</h2>
+                <h2 className="text-2xl font-bold text-gray-900">Sản phẩm của tôi</h2>
                 {/* Modal to add new product */}
                 <ProductCreationModal onSuccess={fetchProducts} />
             </div>

@@ -14,7 +14,7 @@ import CardHeader from "../../components/Manager/CardHeader";
 import StatTile from "../../components/Manager/StatTile";
 import { managerAPI } from "../../hooks/managerApi";
 
-// 🪙 Hàm định dạng tiền VND
+// Hàm định dạng tiền VND
 function currencyVND(x) {
     try {
         return x.toLocaleString("vi-VN", { style: "currency", currency: "VND" });

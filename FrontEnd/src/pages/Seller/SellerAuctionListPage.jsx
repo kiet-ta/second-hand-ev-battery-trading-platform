@@ -1,18 +1,15 @@
 import React, { useEffect, useState } from "react";
 import { Clock, Eye, Edit, Trash2, Loader2 } from "lucide-react";
-import SellerAuction from "../../components/Seller/SellerAuction";
 
 export default function SellerAuctionListPage() {
     const [auctions, setAuctions] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [showModal, setShowModal] = useState(false);
-    const [fadeState, setFadeState] = useState("in");
     const baseURL = import.meta.env.VITE_API_BASE_URL;
 
     const token = localStorage.getItem("token");
 
-    // ✅ Gọi API lấy danh sách đấu giá
+    // API lấy danh sách đấu giá
     const fetchAuctions = async () => {
         try {
             setLoading(true);
@@ -41,18 +38,6 @@ export default function SellerAuctionListPage() {
         fetchAuctions();
     }, []);
 
-    const openModal = () => {
-        setShowModal(true);
-        setFadeState("in");
-    };
-
-    const closeModal = (refresh = false) => {
-        setFadeState("out");
-        setTimeout(() => {
-            setShowModal(false);
-            if (refresh) fetchAuctions(); // ✅ Làm mới danh sách sau khi tạo mới
-        }, 200);
-    };
 
     const formatPrice = (v) =>
         new Intl.NumberFormat("vi-VN").format(v || 0) + " ₫";
@@ -80,12 +65,6 @@ export default function SellerAuctionListPage() {
                     <h1 className="text-2xl font-semibold text-gray-800">
                         Danh sách phiên đấu giá của tôi
                     </h1>
-                    <button
-                        onClick={openModal}
-                        className="px-5 py-2 rounded bg-indigo-600 text-white hover:bg-indigo-500 transition"
-                    >
-                        + Tạo phiên đấu giá mới
-                    </button>
                 </div>
 
                 {/* Loading & Error */}
@@ -100,7 +79,7 @@ export default function SellerAuctionListPage() {
                         Chưa có phiên đấu giá nào.
                     </p>
                 ) : (
-                    // ✅ Danh sách đấu giá
+                    // Danh sách đấu giá
                     <div className="space-y-4">
                         {auctions.map((a) => (
                             <div
@@ -156,7 +135,7 @@ export default function SellerAuctionListPage() {
                                                 <span className="font-medium">{a.totalBids || 0}</span>
                                             </p>
 
-                                            {/* ✅ Thêm thời gian bắt đầu & kết thúc */}
+                                            {/*Thêm thời gian bắt đầu & kết thúc */}
                                             <div className="flex flex-col text-xs text-gray-400 mt-1 space-y-1">
                                                 <p className="flex items-center justify-end gap-1">
                                                     <Clock className="w-4 h-4 text-gray-500" />
@@ -189,18 +168,7 @@ export default function SellerAuctionListPage() {
                 )}
             </div>
 
-            {/* Modal tạo mới */}
-            {showModal && (
-                <div
-                    className={`fixed inset-0 flex justify-center items-center bg-black/50 backdrop-blur-sm z-50 ${fadeState === "in" ? "animate-fadeIn" : "animate-fadeOut"
-                        }`}
-                    onClick={(e) => {
-                        if (e.target === e.currentTarget) closeModal();
-                    }}
-                >
-                    <SellerAuction onClose={() => closeModal(true)} />
-                </div>
-            )}
+
         </div>
     );
 }

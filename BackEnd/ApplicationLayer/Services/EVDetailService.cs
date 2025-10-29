@@ -169,6 +169,61 @@ namespace Application.Services
             return true;
         }
 
+        public async Task<IEnumerable<ItemDto>> GetLatestEVsAsync(int count)
+        {
+            var items = await _evRepo.GetLatestEVsAsync(count);
+            if (items == null)
+                throw new Exception("No EV items found.");
+
+            var result = new List<ItemDto>();
+
+            foreach (var item in items)
+            {
+                var images = await _itemRepo.GetByItemIdAsync(item.ItemId);
+
+                result.Add(new ItemDto
+                {
+                    ItemId = item.ItemId,
+                    ItemType = item.ItemType,
+                    CategoryId = item.CategoryId,
+                    Title = item.Title,
+                    Description = item.Description,
+                    Price = item.Price,
+                    Moderation = item.Moderation,
+                    Quantity = item.Quantity,
+                    //Status = item.Status,
+                    CreatedAt = item.CreatedAt,
+                    UpdatedAt = item.UpdatedAt,
+                    UpdatedBy = item.UpdatedBy,
+                    //IsVerified = item.IsVerified,
+                    //IsDeleted = item.IsDeleted,
+                    Images = images.Select(img => new ItemImageDto
+                    {
+                        ImageId = img.ImageId,
+                        ImageUrl = img.ImageUrl
+                    }).ToList()
+                });
+            }
+
+            return result;
+        }
+
+        public async Task<IEnumerable<EVDetailDto>> SearchEvDetailAsync(EVSearchRequestDto request)
+        {
+            var result = await _evRepo.SearchEvDetailAsync(request);
+            return result.Select(e => new EVDetailDto
+            {
+                ItemId = e.ItemId,
+                Brand = e.Brand,
+                Model = e.Model,
+                Year = e.Year,
+                Color = e.Color,
+                LicensePlate = e.LicensePlate,
+                Mileage = e.Mileage,
+                LicenseUrl = e.LicenseUrl
+            });
+        }
+
         private static EVDetailDto MapToDto(EVDetail e, Item? item)
             => new EVDetailDto
             {

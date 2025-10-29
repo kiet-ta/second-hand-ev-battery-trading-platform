@@ -1,7 +1,7 @@
 const BASE = import.meta.env.VITE_API_BASE_URL;
 
 export const managerAPI = {
-    // ✅ Dashboard Metrics
+    // Dashboard Metrics
     getMetrics: async () => {
         const res = await fetch(`${BASE}ManagerDashboard/metrics`);
         if (!res.ok) throw new Error("Không thể tải metrics");
@@ -26,14 +26,14 @@ export const managerAPI = {
         return await res.json();
     },
 
-    // ✅ Transactions – giao dịch mới nhất
+    // Transactions – giao dịch mới nhất
     getTransactions: async () => {
         const res = await fetch(`${BASE}ManagerDashboard/latest`);
         if (!res.ok) throw new Error("Không thể tải danh sách giao dịch mới nhất");
         return await res.json();
     },
 
-    // ✅ Seller Approvals – danh sách seller chờ duyệt
+    // Seller Approvals – danh sách seller chờ duyệt
     getPendingSellerApprovals: async () => {
         const token = localStorage.getItem("token"); // 👈 thêm dòng này
 
@@ -49,15 +49,15 @@ export const managerAPI = {
     },
 
 
-    // ✅ Seller Approvals – duyệt seller
+    // Seller Approvals – duyệt seller
     approveSeller: async (id) => {
-        const token = localStorage.getItem("token"); // 🔐 Lấy token JWT đã lưu sau khi đăng nhập
+        const token = localStorage.getItem("token");
 
         const res = await fetch(`${BASE}ManagerDashboard/${id}/approve`, {
             method: "PATCH",
             headers: {
                 "Content-Type": "application/json",
-                "Authorization": `Bearer ${token}`, // ✅ Gửi kèm claim identity
+                "Authorization": `Bearer ${token}`,
             },
         });
 
@@ -69,7 +69,7 @@ export const managerAPI = {
         return await res.json();
     },
 
-    // ✅ Seller Approvals – từ chối seller
+    // Seller Approvals – từ chối seller
     rejectSeller: async (id) => {
         const res = await fetch(`${BASE}ManagerDashboard/${id}/reject`, {
             method: "PATCH",
@@ -78,7 +78,7 @@ export const managerAPI = {
         return await res.json();
     },
 
-    // ✅ Users & Products (giữ nguyên)
+    // Users & Products (giữ nguyên)
     getUsers: async () => {
         const res = await fetch(`${BASE}User`);
         if (!res.ok) throw new Error("Không thể tải danh sách người dùng");

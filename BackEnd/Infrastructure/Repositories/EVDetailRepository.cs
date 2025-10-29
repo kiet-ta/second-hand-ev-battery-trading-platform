@@ -1,4 +1,5 @@
-﻿using Application.IRepositories;
+﻿using Application.DTOs.ItemDtos;
+using Application.IRepositories;
 using Domain.Entities;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -56,6 +57,37 @@ namespace Infrastructure.Repositories
         public void Update(EVDetail evDetail)
         {
             _ctx.EVDetails.Update(evDetail);
+        }
+
+        public async Task<IEnumerable<Item>> GetLatestEVsAsync(int count)
+        {
+            return await _ctx.Items
+                .Where(x => x.ItemType == "EV" && !(x.IsDeleted == true))
+                .OrderByDescending(x => x.CreatedAt)
+                .Take(count)
+                .ToListAsync();
+        }
+
+        public async Task<IEnumerable<EVDetail>> SearchEvDetailAsync(EVSearchRequestDto request)
+        {
+            var query = _ctx.EVDetails.AsQueryable();
+
+            if (!string.IsNullOrEmpty(request.Brand))
+                query = query.Where(e => e.Brand.Contains(request.Brand));
+
+            if (!string.IsNullOrEmpty(request.Model))
+                query = query.Where(e => e.Model.Contains(request.Model));
+
+            if (request.Year.HasValue)
+                query = query.Where(e => e.Year == request.Year);
+
+            if (!string.IsNullOrEmpty(request.Color))
+                query = query.Where(e => e.Color.Contains(request.Color));
+
+            if (request.IsRegistrationValid.HasValue)
+                query = query.Where(e => e.IsRegistrationValid == request.IsRegistrationValid);
+
+            return await query.ToListAsync();
         }
     }
 }

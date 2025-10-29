@@ -1,4 +1,3 @@
-// src/pages/seller/SellerDashboardContent.jsx
 import React, { useEffect, useState } from "react";
 import {
     LayoutDashboard,
@@ -31,16 +30,13 @@ export default function SellerDashboardContent() {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const res = await fetch(
-                    `${baseURL}SellerDashboard/${sellerId}`,
-                    {
-                        headers: { Authorization: `Bearer ${token}` },
-                    }
-                );
+                const res = await fetch(`${baseURL}SellerDashboard/${sellerId}`, {
+                    headers: { Authorization: `Bearer ${token}` },
+                });
                 const data = await res.json();
                 setDashboardData(data);
             } catch (err) {
-                console.error("Lỗi khi tải dữ liệu:", err);
+                console.error("❌ Lỗi khi tải dữ liệu:", err);
             } finally {
                 setLoading(false);
             }
@@ -51,10 +47,22 @@ export default function SellerDashboardContent() {
     if (loading)
         return <div className="text-gray-500 p-8">Đang tải dữ liệu...</div>;
 
+    // Chuyển dữ liệu tuần sang định dạng dễ hiển thị
+    const revenueData =
+        dashboardData?.revenueByWeek?.map((w) => ({
+            weekLabel: `Tuần ${w.weekNumber}/${w.year}`,
+            Tổng: w.total,
+        })) || [];
+
+    const orderData =
+        dashboardData?.ordersByWeek?.map((w) => ({
+            weekLabel: `Tuần ${w.weekNumber}/${w.year}`,
+            Tổng: w.total,
+        })) || [];
+
     return (
         <div className="space-y-8">
-
-
+            {/* Header */}
             <div className="flex items-center justify-between border border-black/20 bg-gradient-to-r from-white to-[#f8f9ff] text-[#1E1E2F] rounded-xl p-6 shadow-sm">
                 <div>
                     <h1 className="text-2xl font-semibold text-black">Trang của người bán</h1>
@@ -64,9 +72,7 @@ export default function SellerDashboardContent() {
                 </div>
             </div>
 
-
-
-            {/* ✅ Thống kê tổng quan */}
+            {/* Thống kê tổng quan */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                 {[
                     { label: "Sản phẩm đăng bán", value: dashboardData?.listings, icon: LayoutDashboard },
@@ -93,9 +99,9 @@ export default function SellerDashboardContent() {
                 ))}
             </div>
 
-            {/* ✅ Thống kê sản phẩm & đơn hàng */}
+            {/* Thống kê sản phẩm & đơn hàng */}
             <div className="grid md:grid-cols-2 gap-6">
-                {/* 🟢 Thống kê sản phẩm */}
+                {/* Thống kê sản phẩm */}
                 <div className="bg-white rounded-xl p-6 border border-gray-200">
                     <h2 className="text-lg font-semibold text-gray-900 mb-6">
                         Thống kê sản phẩm
@@ -143,7 +149,7 @@ export default function SellerDashboardContent() {
                     </div>
                 </div>
 
-                {/* 🟣 Thống kê đơn hàng */}
+                {/* Thống kê đơn hàng */}
                 <div className="bg-white rounded-xl p-6 border border-gray-200">
                     <h2 className="text-lg font-semibold text-gray-900 mb-6">
                         Thống kê đơn hàng
@@ -192,20 +198,36 @@ export default function SellerDashboardContent() {
                 </div>
             </div>
 
-            {/* ✅ Biểu đồ doanh thu & đơn hàng */}
+            {/* Biểu đồ doanh thu & đơn hàng theo tuần */}
             <div className="grid md:grid-cols-2 gap-6">
                 {/* Biểu đồ doanh thu */}
                 <div className="bg-white rounded-xl p-6 border border-gray-200">
                     <h2 className="text-lg font-semibold text-gray-900 mb-6">
-                        Doanh thu theo tháng
+                        Doanh thu theo tuần
                     </h2>
                     <ResponsiveContainer width="100%" height={250}>
-                        <BarChart data={dashboardData?.revenueByMonth || []}>
+                        <BarChart
+                            data={revenueData}
+                            margin={{ top: 20, right: 20, left: 50, bottom: 20 }} // ✅ thêm đệm trái
+                        >
                             <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                            <XAxis dataKey="month" />
-                            <YAxis />
-                            <Tooltip formatter={(v) => v.toLocaleString("vi-VN") + " VND"} />
-                            <Bar dataKey="total" fill="#3b82f6" radius={[8, 8, 0, 0]} />
+                            <XAxis dataKey="weekLabel" />
+                            <YAxis
+                                domain={[0, "dataMax"]}
+                                tickMargin={8}
+                                tickFormatter={(value) => {
+                                    if (value >= 1_000_000_000) return `${(value / 1_000_000_000).toFixed(1)} tỷ`;
+                                    if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(0)} triệu`;
+                                    if (value >= 1_000) return `${(value / 1_000).toFixed(0)} nghìn`;
+                                    return value.toLocaleString("vi-VN");
+                                }}
+                                tick={{ fontSize: 12 }}
+                            />
+                            <Tooltip
+                                formatter={(v) => v.toLocaleString("vi-VN") + " VND"}
+                                labelFormatter={(label) => `📅 ${label}`}
+                            />
+                            <Bar dataKey="Tổng" fill="#3b82f6" radius={[8, 8, 0, 0]} />
                         </BarChart>
                     </ResponsiveContainer>
                 </div>
@@ -213,17 +235,17 @@ export default function SellerDashboardContent() {
                 {/* Biểu đồ đơn hàng */}
                 <div className="bg-white rounded-xl p-6 border border-gray-200">
                     <h2 className="text-lg font-semibold text-gray-900 mb-6">
-                        Đơn hàng theo tháng
+                        Đơn hàng theo tuần
                     </h2>
                     <ResponsiveContainer width="100%" height={250}>
-                        <LineChart data={dashboardData?.ordersByMonth || []}>
+                        <LineChart data={orderData}>
                             <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                            <XAxis dataKey="month" />
+                            <XAxis dataKey="weekLabel" />
                             <YAxis />
                             <Tooltip />
                             <Line
                                 type="monotone"
-                                dataKey="totalOrders"
+                                dataKey="Tổng"
                                 stroke="#3b82f6"
                                 strokeWidth={3}
                                 dot={false}

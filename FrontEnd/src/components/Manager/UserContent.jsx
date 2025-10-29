@@ -17,7 +17,7 @@ export default function UserContent() {
 
     const currentUserId = parseInt(localStorage.getItem("userId"));
 
-    // 📥 Tải danh sách người dùng
+    // Tải danh sách người dùng
     const fetchUsers = async (pageNum = 1) => {
         try {
             setLoading(true);
@@ -36,7 +36,7 @@ export default function UserContent() {
         fetchUsers(page);
     }, [page]);
 
-    // 🎯 Áp dụng lọc & tìm kiếm
+    // Áp dụng lọc & tìm kiếm
     useEffect(() => {
         let filtered = [...users];
 
@@ -54,7 +54,7 @@ export default function UserContent() {
         setFilteredUsers(filtered);
     }, [users, roleFilter, statusFilter, searchQuery]);
 
-    // ⚙️ Cập nhật trạng thái người dùng
+    // Cập nhật trạng thái người dùng
     const handleStatusChange = async (userId, status) => {
         if (userId === currentUserId) {
             message.warning("⚠️ Bạn không thể thay đổi trạng thái của chính mình");
@@ -70,7 +70,7 @@ export default function UserContent() {
         }
     };
 
-    // 📤 Xuất CSV
+    // Xuất CSV
     const exportToCSV = () => {
         if (filteredUsers.length === 0) {
             message.info("Không có dữ liệu để xuất.");

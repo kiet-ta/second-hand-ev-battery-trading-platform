@@ -18,7 +18,7 @@ const ProfileForm = () => {
         return phone.slice(0, 3) + "*".repeat(len - 6) + phone.slice(-3);
     };
 
-    // 🔹 Lấy thông tin người dùng khi load component
+    //Lấy thông tin người dùng khi load component
     useEffect(() => {
         if (!userId) return;
 
@@ -43,7 +43,7 @@ const ProfileForm = () => {
 
     if (!formData) return <p>Đang tải thông tin...</p>;
 
-    // ✅ Upload ảnh đại diện lên Cloudinary
+    //Upload ảnh đại diện lên Cloudinary
     const handleAvatarChange = async (e) => {
         const file = e.target.files[0];
         if (!file) return;
@@ -81,7 +81,7 @@ const ProfileForm = () => {
         }
     };
 
-    // ✅ Khi người dùng thay đổi nội dung form
+    //Khi người dùng thay đổi nội dung form
     const handleInputChange = (e) => {
         const { name, value } = e.target;
         setFormData((prev) => ({
@@ -90,7 +90,7 @@ const ProfileForm = () => {
         }));
     };
 
-    // ✅ Gửi API để cập nhật thông tin người dùng
+    //API để cập nhật thông tin người dùng
 
 
     const handleSubmit = (e) => {
@@ -104,7 +104,7 @@ const ProfileForm = () => {
             updatedAt: new Date().toISOString(),
         };
 
-        fetch(`${baseURL}/User/${userId}`, {
+        fetch(`${baseURL}User/${userId}`, {
             method: "PUT",
             headers: {
                 "Authorization": `Bearer ${token}`,
@@ -118,7 +118,7 @@ const ProfileForm = () => {
                 return text ? JSON.parse(text) : null;
             })
             .then((data) => {
-                message.success("✅ Cập nhật thông tin thành công!");
+                message.success("Cập nhật thông tin thành công!");
                 console.log("Người dùng đã được cập nhật:", data);
 
                 localStorage.setItem("userAvatar", updatedUser.avatarProfile);
@@ -126,7 +126,7 @@ const ProfileForm = () => {
             })
             .catch((err) => {
                 console.error("Lỗi khi cập nhật người dùng:", err);
-                message.error("❌ Cập nhật thất bại. Vui lòng thử lại.");
+                message.error("Cập nhật thất bại. Vui lòng thử lại.");
             });
     };
 

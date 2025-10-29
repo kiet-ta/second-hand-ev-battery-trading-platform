@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace PresentationLayer.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/order-items")]
     [ApiController]
     public class OrderItemsController : ControllerBase
     {
