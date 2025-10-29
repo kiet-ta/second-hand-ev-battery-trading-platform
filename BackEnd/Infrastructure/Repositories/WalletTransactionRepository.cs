@@ -36,4 +36,12 @@ public class WalletTransactionRepository : IWalletTransactionRepository
         return await _context.WalletTransactions
             .AnyAsync(wt => wt.Type == transactionType && wt.RefId == refId.Value);
     }
+    public async Task<WalletTransaction?> FindHoldTransactionByRefIdAsync(int bidId)
+    {
+        // Find the only 'hold' transaction associated with this BidId
+        return await _context.WalletTransactions
+            .Where(wt => wt.Type == "hold" && wt.RefId == bidId)
+            .OrderByDescending(wt => wt.CreatedAt) // ensure to get hold transaction
+            .FirstOrDefaultAsync();
+    }
 }

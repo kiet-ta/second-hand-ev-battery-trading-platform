@@ -13,18 +13,26 @@ public class WalletTransactionConfiguration : IEntityTypeConfiguration<WalletTra
         entity.ToTable("wallet_transactions");
 
         entity.Property(e => e.TransactionId).HasColumnName("transaction_id");
+        
         entity.Property(e => e.Amount)
             .HasColumnType("decimal(18, 2)")
             .HasColumnName("amount");
+        
         entity.Property(e => e.CreatedAt)
             .HasDefaultValueSql("(getdate())")
             .HasColumnType("datetime")
             .HasColumnName("created_at");
+        
         entity.Property(e => e.RefId).HasColumnName("ref_id");
+        
         entity.Property(e => e.Type)
             .HasMaxLength(20)
             .HasColumnName("type");
         entity.Property(e => e.WalletId).HasColumnName("wallet_id");
+
+        entity.Property(e => e.AuctionId)
+              .HasColumnName("auction_id")
+              .IsRequired(false);
 
         entity.HasOne<Wallet>().WithMany()
             .HasForeignKey(d => d.WalletId)

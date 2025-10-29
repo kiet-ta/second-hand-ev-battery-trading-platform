@@ -35,5 +35,7 @@ public class WalletConfiguration : IEntityTypeConfiguration<Wallet>
         entity.HasOne<User>().WithOne()
             .HasForeignKey<Wallet>(d => d.UserId)
             .HasConstraintName("FK__wallets__user_id__160F4887");
+
+        entity.Ignore(e => e.AvailableBalance);
     }
 }
