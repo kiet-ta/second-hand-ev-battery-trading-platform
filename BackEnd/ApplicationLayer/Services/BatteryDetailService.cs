@@ -132,5 +132,44 @@ namespace Application.Services
             await _repository.DeleteAsync(itemId);
             await _repository.SaveChangesAsync();
         }
+
+        public async Task<IEnumerable<ItemDto>> GetLatestBatteriesAsync(int count)
+        {
+            var items = await _repository.GetLatestBatteriesAsync(count);
+            if (items == null)
+                throw new Exception("No battery items found.");
+            var result = new List<ItemDto>();
+
+            foreach (var item in items)
+            {
+                var images = await _itemRepository.GetByItemIdAsync(item.ItemId);
+
+                result.Add(new ItemDto
+                {
+                    ItemId = item.ItemId,
+                    ItemType = item.ItemType,
+                    CategoryId = item.CategoryId,
+                    Title = item.Title,
+                    Description = item.Description,
+                    Price = item.Price,
+                    Moderation = item.Moderation,
+
+                    Quantity = item.Quantity,
+                    //Status = item.Status,
+                    CreatedAt = item.CreatedAt,
+                    UpdatedAt = item.UpdatedAt,
+                    UpdatedBy = item.UpdatedBy,
+                    //IsVerified = item.IsVerified,
+                    //IsDeleted = item.IsDeleted,
+                    Images = images.Select(img => new ItemImageDto
+                    {
+                        ImageId = img.ImageId,
+                        ImageUrl = img.ImageUrl
+                    }).ToList()
+                });
+            }
+
+            return result;
+        }
     }
 }

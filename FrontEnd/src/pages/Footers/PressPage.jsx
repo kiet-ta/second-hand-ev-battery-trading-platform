@@ -19,7 +19,7 @@ function PressPage() {
     return (
         <div className="bg-[#FAF8F3] text-[#2C2C2C] overflow-y-auto">
             <div className="py-20 text-center bg-white border-b border-[#E8E4DC]">
-                <h1 className="text-5xl font-extrabold font-serif tracking-wider">Thông Tin Báo Chí</h1>
+                <h1 className="text-5xl font-extrabold font-roboto tracking-wider">Thông Tin Báo Chí</h1>
                 <p className="mt-4 text-lg text-gray-600">Tin tức, thông cáo và tài nguyên dành cho giới truyền thông.</p>
             </div>
 
@@ -27,7 +27,7 @@ function PressPage() {
                 <div className="grid lg:grid-cols-3 gap-12">
                     {/* Press Releases */}
                     <div className="lg:col-span-2">
-                        <h2 className="text-3xl font-bold font-serif text-[#B8860B] mb-8">Thông Cáo Báo Chí</h2>
+                        <h2 className="text-3xl font-bold font-roboto text-[#B8860B] mb-8">Thông Cáo Báo Chí</h2>
                         <div className="space-y-8">
                             {releases.map(release => (
                                 <PressRelease key={release.title} {...release} />
@@ -38,11 +38,11 @@ function PressPage() {
                     {/* Media Contact */}
                     <div className="lg:col-span-1">
                         <div className="bg-white p-8 rounded-lg shadow-lg border border-[#E8E4DC] sticky top-8">
-                            <h3 className="text-2xl font-bold font-serif mb-6">Liên Hệ Truyền Thông</h3>
+                            <h3 className="text-2xl font-bold font-roboto mb-6">Liên Hệ Truyền Thông</h3>
                             <div className="space-y-4">
                                 <div>
-                                    <h4 className="font-semibold font-serif">Phòng Truyền Thông</h4>
-                                    <p className="text-gray-600 font-serif">Đối với các yêu cầu từ báo chí, vui lòng liên hệ:</p>
+                                    <h4 className="font-semibold font-roboto">Phòng Truyền Thông</h4>
+                                    <p className="text-gray-600 font-roboto">Đối với các yêu cầu từ báo chí, vui lòng liên hệ:</p>
                                 </div>
                                 <div className="flex items-center gap-3">
                                     <FiMail className="w-5 h-5 text-[#B8860B]" />

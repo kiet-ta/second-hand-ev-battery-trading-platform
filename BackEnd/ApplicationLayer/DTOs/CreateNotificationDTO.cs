@@ -9,8 +9,6 @@ namespace Application.DTOs
     public class CreateNotificationDTO
     {
         public string NotiType { get; set; }
-        public int? SenderId { get; set; }
-        public string SenderRole { get; set; }
         public string Title { get; set; }
         public string Message { get; set; }
         public string TargetUserId { get; set; }

@@ -41,7 +41,6 @@ namespace Infrastructure.Repositories
                     AddressId = order.AddressId,
                     Status = order.Status,
                     CreatedAt = order.CreatedAt
-                    // fields other...
                 };
             }
 

@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace PresentationLayer.Controllers
 {
-    [Route("api")]
+    [Route("api/sellers")]
     [ApiController]
     public class SellerController : ControllerBase
     {
@@ -18,7 +18,7 @@ namespace PresentationLayer.Controllers
             _itemService = itemService;
         }
 
-        [HttpGet("seller/{sellerId}")]
+        [HttpGet("{sellerId}")]
         public async Task<IActionResult> GetSellerProfile(int sellerId)
         {
             var result = await _sellerService.GetSellerProfileAsync(sellerId);
@@ -28,7 +28,7 @@ namespace PresentationLayer.Controllers
             return Ok(result);
         }
 
-        [HttpGet("item/seller/{sellerId}")]
+        [HttpGet("{sellerId}/item")]
         public async Task<IActionResult> GetSellerItems(int sellerId)
         {
             var items = await _itemService.GetSellerItemsAsync(sellerId);

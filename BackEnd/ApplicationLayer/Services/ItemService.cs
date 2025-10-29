@@ -147,7 +147,7 @@ namespace Application.Services
             item.Description = dto.Description;
             item.Price = dto.Price;
             item.Quantity = dto.Quantity;
-            item.Status = "pending";
+            item.Status = dto.Status;
             item.CategoryId = dto.CategoryId;
             item.IsDeleted = false;
             item.UpdatedAt = dto.UpdatedAt;

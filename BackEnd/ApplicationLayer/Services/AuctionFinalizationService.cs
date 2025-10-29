@@ -266,12 +266,12 @@ public class AuctionFinalizationService : IAuctionFinalizationService
             var notificationDto = new CreateNotificationDTO
             {
                 NotiType = AuctionNotificationType,
-                SenderId = senderId,
+                //SenderId = senderId,
                 TargetUserId = receiverId.ToString(),
                 Title = title,
                 Message = message
             };
-            await _notificationService.AddNewNotification(notificationDto);
+            await _notificationService.AddNewNotification(notificationDto, 0,"");
         }
         catch (Exception ex)
         {

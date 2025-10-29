@@ -15,7 +15,7 @@ namespace Infrastructure.Repositories
             _context = context;
         }
 
-        public async Task AddNotificationAsync(CreateNotificationDTO noti)
+        public async Task AddNotificationAsync(CreateNotificationDTO noti, int senderId, string role)
         {
             List<string> targetUserIds;
             if (!string.IsNullOrEmpty(noti.TargetUserId))
@@ -39,8 +39,8 @@ namespace Infrastructure.Repositories
             var notifications = targetUserIds.Select(userId => new Notification
             {
                 ReceiverId = int.Parse(userId),
-                SenderId = noti.SenderId,
-                SenderRole = noti.SenderRole,
+                SenderId = senderId,
+                SenderRole = role,
                 NotiType = noti.NotiType,
                 Title = noti.Title,
                 Message = noti.Message,
@@ -121,13 +121,13 @@ namespace Infrastructure.Repositories
 
 
 
-        public async Task AddNotificationById(CreateNotificationDTO noti, int receiverId)
+        public async Task AddNotificationById(CreateNotificationDTO noti, int receiverId, int senderId, string role)
         {
             var notification = new Notification
             {
                 ReceiverId = receiverId,
-                SenderId = noti.SenderId,
-                SenderRole = noti.SenderRole,
+                SenderId = senderId,
+                SenderRole = role,
                 NotiType = noti.NotiType,
                 Title = noti.Title,
                 Message = noti.Message,

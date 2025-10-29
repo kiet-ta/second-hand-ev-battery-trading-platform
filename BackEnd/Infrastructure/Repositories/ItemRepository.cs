@@ -74,7 +74,7 @@ namespace Infrastructure.Repositories
                         join u in _context.Users
                             on i.UpdatedBy equals u.UserId into gj
                         from user in gj.DefaultIfEmpty()
-                        where i.IsDeleted == false
+                        where i.IsDeleted == false && i.Status == "active"
                         select new ItemDto
                         {
                             ItemId = i.ItemId,
@@ -88,6 +88,7 @@ namespace Infrastructure.Repositories
                             CreatedAt = i.CreatedAt,
                             UpdatedAt = i.UpdatedAt,
                             SellerName = user != null ? user.FullName : string.Empty,
+                            Moderation = i.Moderation,
                             Images = _context.ItemImages
                                 .Where(img => img.ItemId == i.ItemId)
                                 .Select(img => new ItemImageDto
@@ -224,7 +225,7 @@ namespace Infrastructure.Repositories
         public async Task<IEnumerable<Item>> GetLatestEVsAsync(int count)
         {
             return await _context.Items
-                .Where(x => x.ItemType == "EV" && !(x.IsDeleted == true))
+                .Where(x => x.ItemType == "ev" && !(x.IsDeleted == true) && x.Status == "active")
                 .OrderByDescending(x => x.CreatedAt)
                 .Take(count)
                 .ToListAsync();
@@ -233,7 +234,7 @@ namespace Infrastructure.Repositories
         public async Task<IEnumerable<Item>> GetLatestBatteriesAsync(int count)
         {
             return await _context.Items
-                .Where(x => x.ItemType == "Battery" && !(x.IsDeleted == true))
+                .Where(x => x.ItemType == "battery" && !(x.IsDeleted == true) && x.Status == "active")
                 .OrderByDescending(x => x.CreatedAt)
                 .Take(count)
                 .ToListAsync();
@@ -319,7 +320,7 @@ namespace Infrastructure.Repositories
             return await query.AsNoTracking().ToListAsync();
         }
 
-        public async Task<PagedResultBought<ItemBoughtDto>> GetBoughtItemsWithDetailsAsync(int userId, PaginationParams paginationParams)
+        public async Task<PagedResultBought<ItemBoughtDto>> GetTransactionItemsWithDetailsAsync(int userId, PaginationParams paginationParams)
         {
             var baseQuery = from payment in _context.Payments
                             join pd in _context.PaymentDetails on payment.PaymentId equals pd.PaymentId
@@ -394,7 +395,7 @@ namespace Infrastructure.Repositories
             return new PagedResultBought<ItemBoughtDto>(pagedItems, totalCount, paginationParams.PageNumber, paginationParams.PageSize);
         }
 
-        public async Task<PagedResultBought<ItemBoughtDto>> GetTransactionItemsWithDetailsAsync(int userId, PaginationParams paginationParams)
+        public async Task<PagedResultBought<ItemBoughtDto>> GetBoughtItemsWithDetailsAsync(int userId, PaginationParams paginationParams)
         {
             var baseQuery = from payment in _context.Payments
                             join pd in _context.PaymentDetails on payment.PaymentId equals pd.PaymentId
@@ -542,7 +543,6 @@ namespace Infrastructure.Repositories
                         join c in _context.Categories on i.CategoryId equals c.CategoryId
                         join img in _context.ItemImages on i.ItemId equals img.ItemId into imgGroup
                         where !i.IsDeleted
-                              && i.Status == "active"
                               && i.UpdatedBy == sellerId
                         select new ItemSellerDto
                         {

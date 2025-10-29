@@ -46,6 +46,15 @@ namespace Infrastructure.Repositories
                 _context.BatteryDetails.Remove(entity);
         }
 
+        public async Task<IEnumerable<Item>> GetLatestBatteriesAsync(int count)
+        {
+            return await _context.Items
+                .Where(x => x.ItemType == "Battery" && !(x.IsDeleted == true))
+                .OrderByDescending(x => x.CreatedAt)
+                .Take(count)
+                .ToListAsync();
+        }
+
         public async Task SaveChangesAsync()
         {
             await _context.SaveChangesAsync();

@@ -10,7 +10,7 @@ export default function MyProductsPage() {
     const token = localStorage.getItem("token");
     const baseURL = import.meta.env.VITE_API_BASE_URL;
 
-    // ✅ Lấy danh sách sản phẩm người bán
+    // Lấy danh sách sản phẩm người bán
     const fetchMyItems = async () => {
         setIsListLoading(true);
         try {
@@ -35,11 +35,11 @@ export default function MyProductsPage() {
         fetchMyItems();
     }, []);
 
-    // 💰 Định dạng tiền tệ
+    // Định dạng tiền tệ
     const formatPrice = (v) =>
         v?.toLocaleString("vi-VN", { style: "currency", currency: "VND" }) || "—";
 
-    // 🎨 Màu trạng thái
+    // Màu trạng thái
     const getStatusTag = (status) => {
         switch (status?.toLowerCase()) {
             case "available":
@@ -55,7 +55,7 @@ export default function MyProductsPage() {
         }
     };
 
-    // 📋 Cột hiển thị
+    // Cột hiển thị
     const columns = [
         {
             title: "Ảnh",

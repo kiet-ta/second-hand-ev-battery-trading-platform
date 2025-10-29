@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace PresentationLayer.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/complaint")]
     [Produces("application/json")]
     public class ComplaintsController : ControllerBase
     {

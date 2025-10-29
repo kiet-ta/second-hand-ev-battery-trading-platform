@@ -20,7 +20,7 @@ function AuctionMainPage() {
 
   return (
     <div className="bg-[#FAF8F3] min-h-screen py-10 px-6">
-      <h1 className="text-4xl font-extrabold text-center mb-8 font-serif text-[#B8860B]">
+      <h1 className="text-4xl font-extrabold text-center mb-8 font-roboto text-[#B8860B]">
         Phiên Đấu Giá Xe
       </h1>
 

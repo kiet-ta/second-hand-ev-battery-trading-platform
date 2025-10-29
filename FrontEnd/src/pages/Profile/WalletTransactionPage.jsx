@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 import walletApi from "../../api/walletApi";
+import { Link } from "react-router-dom";
 
 const formatCurrency = (amount) => {
   return amount.toLocaleString("vi-VN", { style: "currency", currency: "VND" });
@@ -59,9 +60,10 @@ const WalletTransactionPage = () => {
         </div>
         <button
           className="px-4 py-2 bg-[#FFD700] text-white font-medium rounded-lg shadow hover:bg-[#FFC107] transition"
-          onClick={() => alert("Chức năng nạp tiền chưa được cài đặt")}
         >
-          Nạp tiền
+          <Link to="/recharge" className="text-white no-underline">
+            Nạp tiền
+          </Link>
         </button>
       </div>
 
@@ -85,9 +87,8 @@ const WalletTransactionPage = () => {
                   <td className="px-4 py-2">{tx.transactionId}</td>
                   <td className="px-4 py-2 capitalize">{tx.type}</td>
                   <td
-                    className={`px-4 py-2 font-semibold ${
-                      tx.amount > 0 ? "text-green-600" : "text-red-600"
-                    }`}
+                    className={`px-4 py-2 font-semibold ${tx.amount > 0 ? "text-green-600" : "text-red-600"
+                      }`}
                   >
                     {formatCurrency(tx.amount)}
                   </td>
@@ -112,11 +113,10 @@ const WalletTransactionPage = () => {
               <button
                 key={idx}
                 onClick={() => setCurrentPage(idx + 1)}
-                className={`px-3 py-1 border rounded ${
-                  currentPage === idx + 1
-                    ? "bg-[#FFD700] text-white"
-                    : "hover:bg-[#FFEBCD]"
-                }`}
+                className={`px-3 py-1 border rounded ${currentPage === idx + 1
+                  ? "bg-[#FFD700] text-white"
+                  : "hover:bg-[#FFEBCD]"
+                  }`}
               >
                 {idx + 1}
               </button>

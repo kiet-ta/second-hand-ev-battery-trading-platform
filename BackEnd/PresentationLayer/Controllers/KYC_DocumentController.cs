@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace PresentationLayer.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]   
+    [Route("api/kyc-document")]   
     public class KYC_DocumentController : ControllerBase
     {
         private readonly IKYC_DocumentService _kycService;

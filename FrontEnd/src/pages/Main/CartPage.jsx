@@ -308,7 +308,7 @@ function CartPage() {
                 <div className="bg-white mt-6 p-4 shadow-md rounded-lg border border-[#E8E4DC]">
                     <div className="flex justify-between items-center border-b border-[#E8E4DC] pb-3 mb-4">
                         <h2 className="text-lg font-bold text-[#B8860B] flex items-center gap-2"><FiMapPin /> Địa chỉ giao hàng</h2>
-                        <Link to="/profile/addresses" className="text-[#B8860B] font-semibold hover:text-[#D4AF37] transition-colors">Quản lý địa chỉ</Link>
+                        <Link to="/profile/address" className="text-[#B8860B] font-semibold hover:text-[#D4AF37] transition-colors">Quản lý địa chỉ</Link>
                     </div>
                     {addresses.length > 0 ? (
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
