@@ -48,7 +48,7 @@ export default function HistorySold() {
     }, [sellerId, token]);
 
 
-    // 🧮 Format
+    // Format
     const formatPrice = (price) =>
         new Intl.NumberFormat("vi-VN", {
             style: "currency",
@@ -84,7 +84,7 @@ export default function HistorySold() {
         }
     };
 
-    // 📊 Tính toán thống kê theo loại sản phẩm
+    // Tính toán thống kê theo loại sản phẩm
     const totalRevenueEV = sales
         .filter(
             (s) =>
@@ -117,14 +117,14 @@ export default function HistorySold() {
                 s.status?.toLowerCase() === "completed")
     ).length;
 
-    // 🧮 Lọc dữ liệu
+    // Lọc dữ liệu
     const filteredSales = sales.filter((s) => {
         const matchStatus = filter === "all" || s.status?.toLowerCase() === filter;
         const matchType = filterType === "all" || s.itemType === filterType;
         return matchStatus && matchType;
     });
 
-    // 📤 Xuất CSV
+    // Xuất CSV
     const exportToCSV = () => {
         if (sales.length === 0) {
             message.info("Không có dữ liệu để xuất.");
@@ -157,7 +157,7 @@ export default function HistorySold() {
         link.click();
     };
 
-    // 🌀 Loading
+    // Loading
     if (loading) {
         return (
             <div className="p-8 max-w-5xl mx-auto space-y-3">

@@ -11,7 +11,7 @@ namespace Application.DTOs.AuthenticationDtos
         public int UserId { get; set; }
         public string FullName { get; set; } = string.Empty;
         public string Email { get; set; } = null!;
-        public string Role { get; set; } = "Buyer";
+        public string Role { get; set; } = "buyer";
         public string Token { get; set; } = null!;
         public DateTime ExpiresAt { get; set; }
         public string AuthProvider { get; set; } = "local";

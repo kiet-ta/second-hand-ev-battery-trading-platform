@@ -74,12 +74,12 @@ export default function ManagerLayout({ onRefresh, onAddStaff, children }) {
     const activeKey = getActiveKey();
 
     const handleLogout = () => {
-        // ⚠️ Giữ lại thông tin remember
+        // Giữ lại thông tin remember
         const rememberEmail = localStorage.getItem("rememberEmail");
         const rememberPassword = localStorage.getItem("rememberPassword");
 
         localStorage.clear(); // Xoá mọi thứ
-        // ✅ Ghi lại thông tin remember
+        // Ghi lại thông tin remember
         if (rememberEmail && rememberPassword) {
             localStorage.setItem("rememberEmail", rememberEmail);
             localStorage.setItem("rememberPassword", rememberPassword);
@@ -91,7 +91,7 @@ export default function ManagerLayout({ onRefresh, onAddStaff, children }) {
 
     return (
         <div className="min-h-screen bg-slate-50">
-            {/* 🔹 Thanh điều hướng trên cùng */}
+            {/* Thanh điều hướng trên cùng */}
             <div className="sticky top-0 z-30 bg-white/80 backdrop-blur border-b border-slate-200">
                 <div className="max-w-[1600px] mx-auto px-6 py-3 flex items-center justify-between">
                     <div className="flex items-center gap-3">
@@ -100,7 +100,7 @@ export default function ManagerLayout({ onRefresh, onAddStaff, children }) {
                         </div>
                         <div>
                             <p className="text-sm text-slate-500 leading-tight">
-                                Nền tảng giao dịch Xe điện & Pin
+                                Cóc Mua Xe - Nền tảng giao dịch Xe điện & Pin
                             </p>
                             <h1 className="text-lg font-semibold text-slate-800 -mt-0.5">
                                 Quản lý
@@ -129,7 +129,7 @@ export default function ManagerLayout({ onRefresh, onAddStaff, children }) {
                 </div>
             </div>
 
-            {/* 🔹 Bố cục chính */}
+            {/* Bố cục chính */}
             <div className="max-w-[1600px] mx-auto grid grid-cols-12 gap-6 px-6 py-6">
                 {/* Sidebar */}
                 <aside className="col-span-12 lg:col-span-3 xl:col-span-2">
@@ -167,7 +167,7 @@ export default function ManagerLayout({ onRefresh, onAddStaff, children }) {
                             icon={<Settings size={18} className="text-slate-700" />}
                         />
                         <div className="p-4 grid grid-cols-1 gap-2">
-                            {/* ✅ Thêm tài khoản nhân viên */}
+                            {/* Thêm tài khoản nhân viên */}
                             <button
                                 onClick={onAddStaff}
                                 className="flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-200 text-sm text-slate-700 hover:bg-slate-50 text-left"
@@ -176,7 +176,7 @@ export default function ManagerLayout({ onRefresh, onAddStaff, children }) {
                                 Thêm tài khoản nhân viên
                             </button>
 
-                            {/* ✅ Duyệt người bán */}
+                            {/* Duyệt người bán */}
                             <button
                                 onClick={() => navigate("approvals")}
                                 className="flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-200 text-sm text-slate-700 hover:bg-slate-50 text-left"
@@ -185,7 +185,7 @@ export default function ManagerLayout({ onRefresh, onAddStaff, children }) {
                                 Duyệt người bán
                             </button>
 
-                            {/* ✅ Cập nhật quy định hoa hồng */}
+                            {/* Cập nhật quy định hoa hồng */}
                             <button
                                 onClick={() => navigate("settings")}
                                 className="flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-200 text-sm text-slate-700 hover:bg-slate-50 text-left"
@@ -201,12 +201,12 @@ export default function ManagerLayout({ onRefresh, onAddStaff, children }) {
                 <main className="col-span-12 lg:col-span-9 xl:col-span-10 space-y-6 relative overflow-hidden">
                     <Outlet />
 
-                    {/* ✨ Nơi hiển thị children (modal hoặc popup) */}
+                    {/* Nơi hiển thị children (modal hoặc popup) */}
                     {children}
 
                     <div className="text-xs text-slate-500 flex items-center gap-2 py-4">
                         <span>
-                            © {new Date().getFullYear()} Cóc Mua Xe. Đã đăng ký bản quyền.
+                            © {new Date().getFullYear()} Cóc Mua Xe.
                         </span>
                     </div>
                 </main>

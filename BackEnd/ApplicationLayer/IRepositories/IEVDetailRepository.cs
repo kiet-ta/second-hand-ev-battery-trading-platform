@@ -1,4 +1,5 @@
-﻿using Domain.Entities;
+﻿using Application.DTOs.ItemDtos;
+using Domain.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,5 +21,9 @@ namespace Application.IRepositories
         Task DeleteAsync(int itemId, CancellationToken ct = default); // physical delete
 
         Task<bool> ExistsAsync(int itemId, CancellationToken ct = default);
+
+        Task<IEnumerable<Item>> GetLatestEVsAsync(int count);
+
+        Task<IEnumerable<EVDetail>> SearchEvDetailAsync(EVSearchRequestDto request);
     }
 }

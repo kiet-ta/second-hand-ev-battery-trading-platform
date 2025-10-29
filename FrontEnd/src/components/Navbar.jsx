@@ -80,7 +80,7 @@ function Navbar({ data }) {
                                 <span className="ml-1.5">{item.name}</span> {/* Adjusted margin */}
                             </Link>
                         ))}
-                         <a href="#" onClick={handleSellerClick} className={`ml-4 ${textHover} flex items-center font-medium transition-colors text-sm`}> {/* Adjusted spacing/size */}
+                        <a href="#" onClick={handleSellerClick} className={`ml-4 ${textHover} flex items-center font-medium transition-colors text-sm`}> {/* Adjusted spacing/size */}
                             <FaSuitcase />
                             <span className="ml-1.5">{data?.role === "Manager" ? "Quản Lý" : "Kênh Người Bán"}</span>
                         </a>

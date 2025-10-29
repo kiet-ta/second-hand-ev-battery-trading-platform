@@ -59,9 +59,9 @@ public static class InfrastructureExtensions
         services.AddSingleton<IIdGenerator<long>>(provider =>
         {
             var epoch = new DateTime(2020, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-            var structure = new IdStructure(45, 3, 16); // 45 bits timestamp (miliseconds), 3 bits generator-id, 16 bits sequence
+            var structure = new IdStructure(45, 2, 16); // 45 bits timestamp (miliseconds), 2 bits generator-id, 16 bits sequence
             var options = new IdGeneratorOptions(structure, new DefaultTimeSource(epoch));
-            int generatorId = Environment.CurrentManagedThreadId % 7; // generatorId = 7 = 2^bit - 1
+            int generatorId = 1;
             var generator = new IdGenerator(generatorId, options);
 
             return new IdGenerator(1, options);

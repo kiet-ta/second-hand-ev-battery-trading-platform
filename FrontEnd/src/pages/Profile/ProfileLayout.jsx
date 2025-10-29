@@ -6,14 +6,15 @@ import { IoSettingsOutline, IoCartOutline, IoChatboxOutline, IoLogOutOutline } f
 import NotificationDropdown from "../../components/DropDowns/NotificationDropdown";
 import Logo from "../../components/Logo";
 import "../../assets/styles/ProfileLayout.css";
-import { Link } from "react-router-dom";
+import CartIcon from "../../components/DropDowns/CartIcon";
+
 
 
 export default function ProfileLayout() {
     const navigate = useNavigate();
     const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
-    // 🔹 Danh sách menu bên trái
+    // Danh sách menu 
     const menuItems = [
         { to: "/profile", label: "Hồ sơ cá nhân", icon: <FaRegUser /> },
         { to: "/profile/purchase", label: "Đơn hàng của tôi", icon: <LuClipboardList /> },
@@ -21,7 +22,7 @@ export default function ProfileLayout() {
         { to: "/profile/settings", label: "Cài đặt", icon: <IoSettingsOutline /> },
     ];
 
-    // ✅ Xác nhận đăng xuất
+    //Xác nhận đăng xuất
     const handleLogoutConfirm = () => {
         // ⚠️ Giữ lại thông tin remember
         const rememberEmail = localStorage.getItem("rememberEmail");
@@ -43,7 +44,7 @@ export default function ProfileLayout() {
 
     return (
         <div className="profile-layout">
-            {/* 📂 Sidebar trái */}
+            {/* Sidebar trái */}
             <aside className="sidebar">
                 <div
                     className="sidebar-header cursor-pointer flex items-center gap-2"
@@ -75,7 +76,7 @@ export default function ProfileLayout() {
                 </button>
             </aside>
 
-            {/* 📄 Khu vực nội dung chính */}
+            {/* Khu vực nội dung chính */}
             <main className="main-content h-screen overflow-y-auto">
                 <header className="header">
                     <div className="search-container">
@@ -91,19 +92,7 @@ export default function ProfileLayout() {
                         {/* Thông báo */}
                         <NotificationDropdown userId={localStorage.getItem("userId")} />
 
-                        {/* Giỏ hàng */}
-                        {/* Giỏ hàng */}
-                        <div className="relative">
-                            <Link
-                                to="/cart"
-                                className="relative text-gray-700 hover:text-blue-600 transition"
-                            >
-                                <IoCartOutline size={24} />
-                                <span className="absolute -top-1.5 -right-2 bg-blue-500 text-white text-xs rounded-full px-1.5">
-                                    0
-                                </span>
-                            </Link>
-                        </div>
+                        <CartIcon />
                     </div>
                 </header>
 
@@ -111,7 +100,7 @@ export default function ProfileLayout() {
                 <Outlet />
             </main>
 
-            {/* 🧩 Popup xác nhận đăng xuất */}
+            {/* Popup xác nhận đăng xuất */}
             {showLogoutConfirm && (
                 <div className="logout-overlay">
                     <div className="logout-popup">

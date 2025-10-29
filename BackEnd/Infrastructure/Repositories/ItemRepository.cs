@@ -320,7 +320,7 @@ namespace Infrastructure.Repositories
             return await query.AsNoTracking().ToListAsync();
         }
 
-        public async Task<PagedResultBought<ItemBoughtDto>> GetBoughtItemsWithDetailsAsync(int userId, PaginationParams paginationParams)
+        public async Task<PagedResultBought<ItemBoughtDto>> GetTransactionItemsWithDetailsAsync(int userId, PaginationParams paginationParams)
         {
             var baseQuery = from payment in _context.Payments
                             join pd in _context.PaymentDetails on payment.PaymentId equals pd.PaymentId
@@ -395,7 +395,7 @@ namespace Infrastructure.Repositories
             return new PagedResultBought<ItemBoughtDto>(pagedItems, totalCount, paginationParams.PageNumber, paginationParams.PageSize);
         }
 
-        public async Task<PagedResultBought<ItemBoughtDto>> GetTransactionItemsWithDetailsAsync(int userId, PaginationParams paginationParams)
+        public async Task<PagedResultBought<ItemBoughtDto>> GetBoughtItemsWithDetailsAsync(int userId, PaginationParams paginationParams)
         {
             var baseQuery = from payment in _context.Payments
                             join pd in _context.PaymentDetails on payment.PaymentId equals pd.PaymentId

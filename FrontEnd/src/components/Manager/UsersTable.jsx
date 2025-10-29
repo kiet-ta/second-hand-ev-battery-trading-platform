@@ -53,7 +53,7 @@ const UsersTable = ({ users = [], onView, onEdit, onDelete }) => {
                                     className={`role-badge ${user.role === "seller" ? "seller" : "buyer"
                                         }`}
                                 >
-                                    {user.role === "seller" ? "🏪 Người bán" : "🛒 Người mua"}
+                                    {user.role === "seller" ? " Người bán" : " Người mua"}
                                 </span>
                             </td>
 
@@ -63,7 +63,7 @@ const UsersTable = ({ users = [], onView, onEdit, onDelete }) => {
                                     className={`status-badge ${user.status === "active" ? "active" : "inactive"
                                         }`}
                                 >
-                                    {user.status === "active" ? "✅ Hoạt động" : "❌ Không hoạt động"}
+                                    {user.status === "active" ? " Hoạt động" : " Không hoạt động"}
                                 </span>
                             </td>
 

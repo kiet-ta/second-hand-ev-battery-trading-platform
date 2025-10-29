@@ -14,7 +14,7 @@ import userApi from "../../api/userApi";
 import reviewApi from "../../api/reviewApi";
 import ChatWithSellerButton from "../../components/Buttons/ChatWithSellerButton";
 
-// ⭐ Star Rating Component
+// Star Rating Component
 const StarRating = ({ rating }) => (
   <div className="flex items-center">
     {Array.from({ length: 5 }).map((_, i) => (
@@ -26,7 +26,7 @@ const StarRating = ({ rating }) => (
   </div>
 );
 
-// ✅ Verified Tag
+// Verified Tag
 const VerifiedCheck = () => (
   <div className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800">
     <svg
@@ -203,11 +203,10 @@ function EVDetails() {
                   key={i}
                   src={url}
                   onClick={() => setSelectedImage(i)}
-                  className={`w-20 h-20 rounded-lg object-cover cursor-pointer border-2 ${
-                    selectedImage === i
+                  className={`w-20 h-20 rounded-lg object-cover cursor-pointer border-2 ${selectedImage === i
                       ? "border-[#B8860B]"
                       : "border-[#EAE6DA]"
-                  }`}
+                    }`}
                 />
               ))}
             </div>
@@ -282,19 +281,18 @@ function EVDetails() {
 
             {feedback && (
               <div
-                className={`mt-4 px-4 py-3 rounded-lg text-sm font-semibold ${
-                  feedback.type === "success"
+                className={`mt-4 px-4 py-3 rounded-lg text-sm font-semibold ${feedback.type === "success"
                     ? "bg-green-100 text-green-800"
                     : feedback.type === "loading"
-                    ? "bg-yellow-100 text-yellow-800"
-                    : "bg-red-100 text-red-700"
-                }`}
+                      ? "bg-yellow-100 text-yellow-800"
+                      : "bg-red-100 text-red-700"
+                  }`}
               >
                 {feedback.msg}
               </div>
             )}
 
-            {/* 🟡 Chat Buttons */}
+            {/* Chat Buttons */}
             <div className="flex flex-col gap-3 mt-6">
               <ChatWithSellerButton
                 buyerId={userId}

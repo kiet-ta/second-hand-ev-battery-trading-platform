@@ -34,6 +34,7 @@ import CompareEVPage from "../pages/CompareEVPage"
    --------------------------- */
 import LoginPage from "../pages/LoginPage";
 import RegisterPage from "../pages/RegisterPage";
+import ForgotPasswordPage from "../pages/ForgotPasswordPage";
 
 /* ---------------------------
    Checkout / Payment Pages (Standalone)
@@ -95,6 +96,7 @@ import ProtectedRoute from "../components/ProtectedRoute";
 import ComplaintPage from "../pages/Main/ComplaintPage";
 import OrderPage from "../pages/Profile/MyOrderHistory";
 import SellerPendingReview from "../pages/Seller/SellerPendingReview";
+import RechargePage from "../pages/RechargePage";
 
 /* ---------------------------
    Router definition
@@ -140,11 +142,13 @@ export const router = createBrowserRouter([
       { path: "compare", element: <CompareEVPage /> },
       {path: "order-history", element: <OrderPage/>},
       {path: "pending-review", element: <SellerPendingReview />}
+      { path: "recharge", element: <RechargePage /> },
     ],
   },
 
   { path: "/login", element: <LoginPage /> },
   { path: "/register", element: <RegisterPage /> },
+  { path: "/forgot-password", element: <ForgotPasswordPage /> },
 
   {
     path: "/profile",

@@ -14,7 +14,7 @@ export default function CompareEVPage() {
     const [openAddModal, setOpenAddModal] = useState(false);
     const BASE = import.meta.env.VITE_API_BASE_URL;
 
-    // 🧩 Fetch chi tiết từng sản phẩm (EV hoặc Pin)
+    // Fetch chi tiết từng sản phẩm (EV hoặc Pin)
     const fetchCompareItems = async () => {
         try {
             const list = getCompareList();
@@ -47,7 +47,7 @@ export default function CompareEVPage() {
 
             setItems(results.filter(Boolean));
         } catch (err) {
-            console.error("❌ Lỗi fetchCompareItems:", err);
+            console.error("Lỗi fetchCompareItems:", err);
         } finally {
             setLoading(false);
         }
@@ -62,7 +62,7 @@ export default function CompareEVPage() {
         } else setIntroGlow(false);
     }, []);
 
-    // 🔁 Đồng bộ khi compareList thay đổi
+    //Đồng bộ khi compareList thay đổi
     useEffect(() => {
         const sync = () => fetchCompareItems();
         window.addEventListener("compare:removed", sync);
@@ -87,7 +87,7 @@ export default function CompareEVPage() {
         setItems([]);
     };
 
-    // 🧠 Xác định loại sản phẩm (EV / Battery)
+    //Xác định loại sản phẩm (EV / Battery)
     const itemType = items[0]?.itemType || null;
 
     // 🧩 Dữ liệu so sánh động theo loại
@@ -208,7 +208,7 @@ export default function CompareEVPage() {
         return [];
     }, [items, itemType]);
 
-    // 🌀 Loading
+    // Loading
     if (loading)
         return (
             <div className="min-h-[60vh] grid place-items-center text-gray-500">
@@ -224,7 +224,7 @@ export default function CompareEVPage() {
             </div>
         );
 
-    // 🎨 UI chính
+    // UI chính
     return (
         <motion.div
             initial={{ opacity: 0, x: 40 }}
