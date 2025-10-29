@@ -86,7 +86,7 @@ export default function GeminiChatWidget() {
             console.error("Gemini error:", err);
             setMessages((prev) => [
                 ...prev,
-                { role: "model", text: "❌ Lỗi: không thể gửi tin nhắn. Vui lòng thử lại." },
+                { role: "model", text: "Lỗi: không thể gửi tin nhắn. Vui lòng thử lại." },
             ]);
         } finally {
             setIsLoading(false);
@@ -95,7 +95,7 @@ export default function GeminiChatWidget() {
 
     return (
         <>
-            {/* 🔘 Nút mở chat */}
+            {/* Nút mở chat */}
             {!isOpen && (
                 <button
                     onClick={() => setIsOpen(true)}
@@ -105,7 +105,7 @@ export default function GeminiChatWidget() {
                 </button>
             )}
 
-            {/* 💬 Hộp chat */}
+            {/* Hộp chat */}
             {isOpen && (
                 <div className="fixed bottom-6 right-6 w-80 h-[480px] flex flex-col bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden z-[9999]">
                     {/* Header */}

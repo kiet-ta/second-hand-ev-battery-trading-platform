@@ -128,6 +128,12 @@ namespace PresentationLayer.Controllers
                 message = $"Complaint #{id} has been deleted successfully."
             });
         }
+        [HttpGet("all")]
+        public async Task<IActionResult> GetAllComplaints()
+        {
+            var complaints = await _complaintService.GetallComplaint();
+            return Ok(complaints);
 
-    }
+        }
+    } 
 }

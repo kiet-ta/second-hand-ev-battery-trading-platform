@@ -17,6 +17,10 @@ const chatApi = {
         const response = await axios.get(`${baseURL}/rooms/${chatId}`)
         return response.data
     },
+    getRoomByUserIDs: async (userId) => {
+        const response = await axios.get(`${baseURL}/${userId}/rooms`)
+        return response.data
+    },
     sendChatMessage: async (payload) => {
         const token = localStorage.getItem('token');
         const response = await axios.post(`${baseURL}/send`, payload,

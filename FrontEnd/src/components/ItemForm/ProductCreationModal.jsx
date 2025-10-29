@@ -61,7 +61,7 @@ export default function ProductCreationModal({ onSuccess }) {
             price: values.price,
             quantity: 1,
             status: "active",
-            updatedBy: userID,
+            updatedBy: Number(userID),
         };
 
         if (values.categoryId === 1) {
@@ -76,7 +76,7 @@ export default function ProductCreationModal({ onSuccess }) {
                 hasAccessories: values.hasAccessories,
                 previousOwners: values.previousOwners,
                 isRegistrationValid: values.isRegistrationValid,
-                mileage: values.miledeage,
+                mileage: values.mileage,
             });
         } else {
             Object.assign(apiPayload, {
@@ -193,7 +193,7 @@ export default function ProductCreationModal({ onSuccess }) {
                 className={`flex items-center bg-blue-500 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-600 transition-colors ${isOpenModal ? "opacity-50 cursor-not-allowed" : ""}`}
             >
                 <PlusCircle className="w-5 h-5 mr-2" />
-                Add New Product
+                Thêm sản phẩm mới
             </button>
             <Modal
                 title="Create New Product Listing"

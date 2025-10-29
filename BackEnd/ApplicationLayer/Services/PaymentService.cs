@@ -4,6 +4,7 @@ using Application.IRepositories.IBiddingRepositories;
 using Application.IRepositories.IPaymentRepositories;
 using Application.IServices;
 using Domain.Entities;
+using IdGen;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.Extensions.Configuration;
 using Net.payOS;
@@ -20,9 +21,10 @@ public class PaymentService : IPaymentService
     private readonly ICommissionFeeRuleRepository _commissionRuleRepo;
     private readonly IUserRepository _userRepository;
     private readonly IItemRepository _itemRepository;
+    private readonly IIdGenerator<long> _idGenerator;
 
     public PaymentService(PayOS payOS, IPaymentRepository paymentRepository, IWalletRepository walletRepository, IConfiguration config, ICommissionFeeRuleRepository commissionRuleRepo,
-    IUserRepository userRepository, IItemRepository itemRepository)
+    IUserRepository userRepository, IItemRepository itemRepository, IIdGenerator<long> idGenerator)
     {
         _payOS = payOS;
         _paymentRepository = paymentRepository;
@@ -31,6 +33,7 @@ public class PaymentService : IPaymentService
         _commissionRuleRepo = commissionRuleRepo;
         _userRepository = userRepository;
         _itemRepository = itemRepository;
+        _idGenerator = idGenerator;
     }
 
     public async Task<PaymentResponseDto> CreatePaymentAsync(PaymentRequestDto request)
@@ -43,7 +46,8 @@ public class PaymentService : IPaymentService
         if (wallet == null)
             throw new ArgumentException("User or wallet does not exist");
 
-        long orderCode = long.Parse(DateTimeOffset.UtcNow.ToString("ffffff"));
+        // using idGen to avoid duplicate order code
+        long orderCode = _idGenerator.CreateId();
 
         var payment = new Payment
         {
@@ -258,7 +262,7 @@ public class PaymentService : IPaymentService
     public async Task<PaymentResponseDto> CreateDepositPaymentLinkAsync(int userId, decimal amount)
     {
         //unique id deposit order
-        long depositOrderCode = long.Parse(DateTimeOffset.UtcNow.ToString("yyyyMMddHHmmssfff") + userId.ToString().PadLeft(4, '0')); // Ensures higher uniqueness
+        long depositOrderCode = long.Parse(DateTimeOffset.UtcNow.ToString("sfff") + userId.ToString().PadLeft(4, '0')); // Ensures higher uniqueness
 
         // Create Payment record in DB to track deposit transaction
         var paymentRecord = new Payment
@@ -284,7 +288,7 @@ public class PaymentService : IPaymentService
         };
         await _paymentRepository.AddPaymentDetailsAsync(new List<PaymentDetail> { depositDetail });
 
-        var description = $"Deposit money into the account User ID: {userId}";
+        var description = $"Deposit: {userId}";
         var payOSItem = new ItemData(
             name: "Wallet Deposit",
             quantity: 1,

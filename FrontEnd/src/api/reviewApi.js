@@ -7,7 +7,7 @@ const reviewApi = {
         return response.data;
     },
     getReviewByItemID: async (itemID) => {
-        const response = await axios.get(`${baseURL}/exists/item/${itemID}`)
+        const response = await axios.get(`${baseURL}/item/${itemID}`)
         return response.data
     }
     };

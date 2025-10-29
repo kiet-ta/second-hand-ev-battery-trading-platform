@@ -17,20 +17,28 @@ namespace Infrastructure.Repositories
 
         public async Task AddNotificationAsync(CreateNotificationDTO noti)
         {
-            var allUserIds = await _context.Users
+            List<string> targetUserIds;
+            if (!string.IsNullOrEmpty(noti.TargetUserId))
+            {
+                targetUserIds = new List<string> { noti.TargetUserId };
+                Console.WriteLine($"[INFO] Sending notification only to TargetUserId = {noti.TargetUserId}");
+            }
+            else
+            {
+                targetUserIds = await _context.Users
                 .Where(u => (bool)!u.IsDeleted)
-                .Select(u => u.UserId)
+                .Select(u => u.UserId.ToString())
                 .ToListAsync();
-
-            if (!allUserIds.Any())
+            }
+            if (!targetUserIds.Any())
             {
                 Console.WriteLine("No users found to send notification.");
                 return;
             }
 
-            var notifications = allUserIds.Select(userId => new Notification
+            var notifications = targetUserIds.Select(userId => new Notification
             {
-                ReceiverId = userId,
+                ReceiverId = int.Parse(userId),
                 SenderId = noti.SenderId,
                 SenderRole = noti.SenderRole,
                 NotiType = noti.NotiType,

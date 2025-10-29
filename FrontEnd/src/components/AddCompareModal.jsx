@@ -24,7 +24,7 @@ export default function AddCompareModal({ open, onClose, BASE }) {
         if (!open) return;
         const fetchItems = async () => {
             try {
-                const res = await fetch(`${BASE}Item/detail`);
+                const res = await fetch(`${BASE}Item/detail/all`);
                 const data = await res.json();
 
                 // Lọc bỏ item đã có trong compare list

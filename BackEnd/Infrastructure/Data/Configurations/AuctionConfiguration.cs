@@ -21,7 +21,10 @@ public class AuctionConfiguration : IEntityTypeConfiguration<Auction>
         entity.Property(e => e.Status).HasColumnName("status").HasMaxLength(20).HasDefaultValue("upcoming");
         entity.Property(e => e.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("GETDATE()");
         entity.Property(e => e.UpdatedAt).HasColumnName("updated_at").HasDefaultValueSql("GETDATE()");
-
+        entity.Property(e => e.StepPrice)
+              .HasColumnName("step_price")
+              .HasColumnType("decimal(18,2)")
+              .HasDefaultValue(50000m);
         // Foreign key constraint
         entity.HasIndex(e => e.ItemId).IsUnique();
     }

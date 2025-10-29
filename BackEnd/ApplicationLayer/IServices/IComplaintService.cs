@@ -15,5 +15,7 @@ namespace Application.IServices
         Task<List<Complaint>> GetComplaintsByUser(int userId);
         Task<bool> UpdateStatusComplaint(int complaintId, string status, int userId);
         Task<bool> UpdateLevelComplaint(int complaintId, string level, int userId);
-        Task<bool> DeleteComplaint(int complaintId, int userId);    }
+        Task<bool> DeleteComplaint(int complaintId, int userId);
+        Task<List<Complaint>> GetallComplaint();
+    }
 }

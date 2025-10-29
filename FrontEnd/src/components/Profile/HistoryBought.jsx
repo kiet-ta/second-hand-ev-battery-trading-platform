@@ -101,11 +101,11 @@ export default function HistoryBought() {
 
     try {
       await reviewApi.postReview(apiPayload);
-      message.success("🎉 Đánh giá của bạn đã được gửi thành công!");
+      message.success(" Đánh giá của bạn đã được gửi thành công!");
       fetchOrders();
     } catch (error) {
       console.error("Failed to submit review:", error);
-      message.error("❌ Gửi đánh giá thất bại. Vui lòng thử lại.");
+      message.error(" Gửi đánh giá thất bại. Vui lòng thử lại.");
     }
   };
 

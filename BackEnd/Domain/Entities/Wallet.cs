@@ -11,6 +11,8 @@ public class Wallet
 
     public decimal Balance { get; set; }
     public string Currency { get; set; } = "VND";
+    public decimal HeldBalance { get; set; } = 0;
     public string Status { get; set; } = "ACTIVE";
     public DateTime UpdatedAt { get; set; } = DateTime.Now;
+    public decimal AvailableBalance => Balance - HeldBalance;
 }

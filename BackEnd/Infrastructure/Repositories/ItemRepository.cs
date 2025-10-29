@@ -661,6 +661,75 @@ namespace Infrastructure.Repositories
             return await query.AsNoTracking().FirstOrDefaultAsync();
         }
 
+        public async Task<ItemWithSellerResult?> GetItemAndSellerByItemIdAsync(int itemId) 
+        {
+            var query =
+                from i in _context.Items.AsTracking() 
+                where i.ItemId == itemId && !i.IsDeleted
+                join u in _context.Users on i.UpdatedBy equals u.UserId
+                select new ItemWithSellerResult
+                {
+                    Seller = new UserDto 
+                    {
+                        UserId = u.UserId,
+                        FullName = u.FullName,
+                        Email = u.Email,
+                        Phone = u.Phone,
+                        AvatarProfile = u.AvatarProfile,
+                        Bio = u.Bio
+                    },
+
+                    Item = i, 
+
+                    Images = _context.ItemImages
+                            .Where(img => img.ItemId == i.ItemId)
+                            .Select(img => new ItemImageDto
+                            {
+                                ImageId = img.ImageId,
+                                ImageUrl = img.ImageUrl
+                            }).ToList(),
+
+                    EVDetail = (from ev in _context.EVDetails
+                                where ev.ItemId == i.ItemId
+                                select new EVDetailDto
+                                {
+                                    ItemId = ev.ItemId,
+                                    Brand = ev.Brand,
+                                    Model = ev.Model,
+                                    Version = ev.Version,
+                                    Year = ev.Year,
+                                    BodyStyle = ev.BodyStyle,
+                                    Color = ev.Color,
+                                    LicensePlate = ev.LicensePlate,
+                                    HasAccessories = ev.HasAccessories,
+                                    PreviousOwners = ev.PreviousOwners,
+                                    IsRegistrationValid = ev.IsRegistrationValid,
+                                    Mileage = ev.Mileage,
+                                    LicenseUrl = ev.LicenseUrl,
+                                    Title = i.Title, 
+                                    Price = i.Price, 
+                                    Status = i.Status 
+                                }).FirstOrDefault(),
+
+                    BatteryDetail = (from b in _context.BatteryDetails
+                                     where b.ItemId == i.ItemId
+                                     select new BatteryDetailDto
+                                     {
+                                         ItemId = b.ItemId,
+                                         Brand = b.Brand,
+                                         Capacity = b.Capacity,
+                                         Voltage = b.Voltage,
+                                         ChargeCycles = b.ChargeCycles,
+                                         UpdatedAt = b.UpdatedAt,
+                                         Title = i.Title,
+                                         Price = i.Price, 
+                                         Status = i.Status 
+                                     }).FirstOrDefault()
+                };
+
+            return await query.FirstOrDefaultAsync();
+        }
+
         public async Task<bool> SetItemTagAsync(int itemId, string tag)
         {
             var item = await _context.Items.FirstOrDefaultAsync(i => i.ItemId == itemId);

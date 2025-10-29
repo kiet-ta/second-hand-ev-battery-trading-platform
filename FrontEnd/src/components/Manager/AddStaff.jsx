@@ -17,7 +17,7 @@ export default function AddStaff({ isOpen, onClose, onSuccess }) {
 
     if (!isOpen) return null;
 
-    // 🔹 Fetch quyền staff (có token authorize)
+    // Fetch quyền staff có thêm authorized
     useEffect(() => {
         async function fetchPermissions() {
             try {
@@ -49,13 +49,13 @@ export default function AddStaff({ isOpen, onClose, onSuccess }) {
         fetchPermissions();
     }, []);
 
-    // 🔹 Cập nhật dữ liệu form
+    // Cập nhật dữ liệu form
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData((prev) => ({ ...prev, [name]: value }));
     };
 
-    // 🔹 Toggle quyền
+    // Toggle quyền
     const togglePermission = (perm) => {
         setFormData((prev) => {
             const exists = prev.permissions.includes(perm);
@@ -68,7 +68,7 @@ export default function AddStaff({ isOpen, onClose, onSuccess }) {
         });
     };
 
-    // 🔹 Gửi form
+    // Gửi form
     const handleSubmit = async (e) => {
         e.preventDefault();
 
@@ -93,7 +93,7 @@ export default function AddStaff({ isOpen, onClose, onSuccess }) {
                 permissions: formData.permissions,
             };
 
-            const res = await fetch(`${baseURL}/management/staff`, {
+            const res = await fetch(`${baseURL}management/staff`, {
                 method: "POST",
                 headers: {
                     "Authorization": `Bearer ${token}`,

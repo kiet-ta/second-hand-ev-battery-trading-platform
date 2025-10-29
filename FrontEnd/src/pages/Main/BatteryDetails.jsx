@@ -12,9 +12,11 @@ import itemApi from "../../api/itemApi";
 import userApi from "../../api/userApi";
 import orderItemApi from "../../api/orderItemApi";
 import reviewApi from "../../api/reviewApi";
+import { message } from "antd";
+import addressLocalApi from "../../api/addressLocalApi";
+import orderApi from "../../api/orderApi";
 
-
-// ⭐ Star rating component
+// Star rating component
 const StarRating = ({ rating }) => (
   <div className="flex items-center">
     {Array.from({ length: 5 }).map((_, i) => (
@@ -55,6 +57,8 @@ function BatteryDetails() {
   const [loading, setLoading] = useState(true);
   const [feedback, setFeedback] = useState(null);
   const [selectedImage, setSelectedImage] = useState(0);
+  const [isProcessing, setIsProcessing] = useState(false);
+
 
   // Carousel handlers
   const handlePrev = useCallback(() => {
@@ -111,10 +115,6 @@ function BatteryDetails() {
         setReviews(enriched);
       } catch (err) {
         console.error(err);
-        setFeedback({
-          type: "error",
-          msg: "Không thể tải chi tiết sản phẩm. Vui lòng thử lại.",
-        });
       } finally {
         setLoading(false);
       }
@@ -162,38 +162,80 @@ function BatteryDetails() {
     }
   };
 
-  const handleBuyNow = async () => {
-    const buyerId = parseInt(localStorage.getItem("userId"), 10);
-    if (isNaN(buyerId)) {
-      setFeedback({ type: "error", msg: "Vui lòng đăng nhập để mua hàng." });
+  const handleBuyNow = async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const userId = localStorage.getItem("userId");
+    if (!userId) {
+      message.warning("Vui lòng đăng nhập trước khi mua hàng!");
       navigate("/login");
       return;
     }
 
-    if (quantity < 1) {
-      setFeedback({ type: "error", msg: "Số lượng không hợp lệ." });
-      return;
-    }
-
-    const payload = {
-      buyerId,
-      itemId,
-      quantity,
-      price: item.price,
-    };
-
+    setIsProcessing(true);
     try {
-      await orderItemApi.postOrderItem(payload);
-      setFeedback({
-        type: "success",
-        msg: `Đã thêm ${item.title} vào đơn hàng. Đang chuyển đến giỏ hàng...`,
+      // 1️⃣ Tạo OrderItem
+      const orderItemPayload = {
+        buyerId: userId,
+        itemId: itemId,
+        quantity: 1,
+        price: item.price,
+      };
+
+      const createdOrderItem = await orderItemApi.postOrderItem(orderItemPayload);
+      if (!createdOrderItem?.orderItemId)
+        throw new Error("Không thể tạo OrderItem.");
+
+      // 2️⃣ Lấy địa chỉ mặc định
+      const allAddresses = await addressLocalApi.getAddressByUserId(userId);
+      const defaultAddress =
+        allAddresses.find((addr) => addr.isDefault) || allAddresses[0];
+
+      if (!defaultAddress) {
+        message.warning("Vui lòng thêm địa chỉ giao hàng trong hồ sơ!");
+        navigate("/profile/address");
+        return;
+      }
+
+      // 3️⃣ Tạo Order
+      const orderPayload = {
+        buyerId: userId,
+        addressId: defaultAddress.addressId,
+        orderItemIds: [createdOrderItem.orderItemId],
+        createdAt: new Date().toISOString().split("T")[0],
+        updatedAt: new Date().toISOString().split("T")[0],
+      };
+
+      const createdOrder = await orderApi.postOrderNew(orderPayload);
+      if (!createdOrder?.orderId) throw new Error("Không thể tạo Order.");
+
+      // 4️⃣ Chuyển sang trang Checkout
+      navigate("/checkout", {
+        state: {
+          fromBuyNow: true,
+          orderId: createdOrder.orderId,
+          totalAmount: item.price,
+          orderItems: [
+            {
+              id: item.itemId || itemId,
+              name: item.title || "Sản phẩm",
+              price: item.price,
+              quantity: 1,
+              image:
+                imageUrls[selectedImage] ||
+                "https://placehold.co/100x100",
+            },
+          ],
+          allAddresses,
+          selectedAddressId: defaultAddress.addressId,
+        },
       });
-      setTimeout(() => navigate("/cart", { state: { selectedItemId: itemId } }), 1500);
-    } catch (error) {
-      setFeedback({
-        type: "error",
-        msg: "Không thể thực hiện giao dịch. Vui lòng thử lại.",
-      });
+    } catch (err) {
+      console.error("❌ Lỗi mua ngay:", err);
+      message.error("Không thể mua ngay. Vui lòng thử lại.");
+    } finally {
+      setIsProcessing(false);
     }
   };
 

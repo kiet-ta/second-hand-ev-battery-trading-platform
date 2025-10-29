@@ -85,9 +85,26 @@ namespace Application.Services
                 return;
             }
 
-            var targets = string.IsNullOrEmpty(targetUserId)
-                ? _clients
-                : _clients.Where(c => c.Key == targetUserId);
+            IEnumerable<KeyValuePair<string, HttpResponse>> targets;
+
+            if (string.IsNullOrEmpty(targetUserId))
+            {
+                // Broadcast to all
+                targets = _clients.ToArray();
+                Console.WriteLine($"[DEBUG] Broadcasting message to all clients: {message}");
+            }
+            else if (_clients.TryGetValue(targetUserId, out var targetResponse))
+            {
+                // Send to only one user
+                targets = new[] { new KeyValuePair<string, HttpResponse>(targetUserId, targetResponse) };
+                Console.WriteLine($"[DEBUG] Targeted message to user {targetUserId}: {message}");
+            }
+            else
+            {
+                Console.WriteLine($"[DEBUG] Target user {targetUserId} not connected — queuing message.");
+                _pendingMessages.Enqueue((targetUserId, message));
+                return;
+            }
 
             var tasks = targets.Select(async client =>
             {
