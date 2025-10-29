@@ -7,7 +7,7 @@ using System.Text.Json;
 
 namespace PresentationLayer.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/history")]
     [ApiController]
     public class HistoryController : ControllerBase
     {
@@ -20,27 +20,11 @@ namespace PresentationLayer.Controllers
             _historySoldService = historySoldService;
         }
 
-        [HttpGet("transaction")]
-        [Authorize] // user login
-        public async Task<IActionResult> GetBoughtItems([FromQuery] PaginationParams paginationParams)
+        [HttpGet("me/bought/completed")] //get all items that buyer bought with payment = "complete", order = "complete"
+        [Authorize] 
+        public async Task<IActionResult> GetBoughtCompletedItems([FromQuery] PaginationParams paginationParams)
         {
             // get claim user_id safe
-            var userIdClaim = User.FindFirst("user_id")?.Value;
-
-            if (string.IsNullOrEmpty(userIdClaim))
-                return Unauthorized("Token invalid claim user_id.");
-
-            if (!int.TryParse(userIdClaim, out var userId))
-                return BadRequest("user_id in token invalid.");
-
-            var result = await _itemService.GetBoughtItemsWithDetailsAsync(userId, paginationParams);
-            return Ok(result);
-        }
-
-        [HttpGet("bought")]
-        [Authorize]
-        public async Task<IActionResult> GetTransactionItems([FromQuery] PaginationParams paginationParams)
-        {
             var userIdClaim = User.FindFirst("user_id")?.Value;
 
             if (string.IsNullOrEmpty(userIdClaim))
@@ -53,10 +37,26 @@ namespace PresentationLayer.Controllers
             return Ok(result);
         }
 
+        [HttpGet("me/bought")] //get all items that buyer bought with payment = "complete"
+        [Authorize]
+        public async Task<IActionResult> GetBoughtItems([FromQuery] PaginationParams paginationParams)
+        {
+            var userIdClaim = User.FindFirst("user_id")?.Value;
+
+            if (string.IsNullOrEmpty(userIdClaim))
+                return Unauthorized("Token invalid claim user_id.");
+
+            if (!int.TryParse(userIdClaim, out var userId))
+                return BadRequest("user_id in token invalid.");
+
+            var result = await _itemService.GetBoughtItemsWithDetailsAsync(userId, paginationParams);
+            return Ok(result);
+        }
 
 
-        [HttpGet("{sellerId}")]
-        public async Task<IActionResult> GetAllHistory(int sellerId, [FromQuery] PaginationParams pagination)
+
+        [HttpGet]
+        public async Task<IActionResult> GetAllHistorySold([FromQuery] int sellerId, [FromQuery] PaginationParams pagination)
         {
            
                 var seller = await _historySoldService.GetAllSellerItemsAsync(sellerId, pagination);

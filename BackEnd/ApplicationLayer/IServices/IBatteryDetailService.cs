@@ -1,4 +1,5 @@
-﻿using Application.DTOs.ItemDtos.BatteryDto;
+﻿using Application.DTOs.ItemDtos;
+using Application.DTOs.ItemDtos.BatteryDto;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,5 +15,6 @@ namespace Application.IServices
         Task<BatteryDetailDto> CreateAsync(CreateBatteryDetailDto dto);
         Task UpdateAsync(int itemId, UpdateBatteryDetailDto dto);
         Task DeleteAsync(int itemId);
+        Task<IEnumerable<ItemDto>> GetLatestBatteriesAsync(int count);
     }
 }

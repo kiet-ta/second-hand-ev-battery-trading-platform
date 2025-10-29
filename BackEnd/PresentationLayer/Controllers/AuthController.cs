@@ -9,7 +9,7 @@ using System.Security.Claims;
 
 namespace PresentationLayer.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/auth")]
     [ApiController]
     public class AuthController : ControllerBase
     {
@@ -24,8 +24,9 @@ namespace PresentationLayer.Controllers
 
         /// <summary>
         /// Register new user with email and password
+        /// POST /api/auth/register
         /// </summary>
-        [HttpPost("register")]
+        [HttpPost("users")]
         [AllowAnonymous]
         public async Task<IActionResult> Register([FromBody] RegisterDto dto)
         {
@@ -52,8 +53,9 @@ namespace PresentationLayer.Controllers
 
         /// <summary>
         /// Login with email and password
+        /// POST /api/auth/login
         /// </summary>
-        [HttpPost("login")]
+        [HttpPost("tokens")]
         [AllowAnonymous]
         public async Task<IActionResult> Login([FromBody] LoginDto dto)
         {
@@ -80,8 +82,9 @@ namespace PresentationLayer.Controllers
 
         /// <summary>
         /// Login with Google OAuth
+        /// POST /api/auth/google
         /// </summary>
-        [HttpPost("google")]
+        [HttpPost("tokens/google")]
         [AllowAnonymous]
         public async Task<IActionResult> GoogleLogin([FromBody] TokenRequestDto dto)
         {
@@ -140,23 +143,25 @@ namespace PresentationLayer.Controllers
 
         /// <summary>
         /// Test Google configuration (FOR DEVELOPMENT ONLY)
+        /// GET /api/auth/google/config
         /// </summary>
-        [HttpGet("google/config")]
-        [AllowAnonymous]
-        public IActionResult GetGoogleConfig()
-        {
-            var clientId = _logger.GetType().Assembly.GetName().Version; // Placeholder
-            return Ok(new
-            {
-                message = "Check server logs for Google Client ID",
-                note = "Remove this endpoint in production"
-            });
-        }
+        //[HttpGet("providers/google/config")]
+        //[AllowAnonymous]
+        //public IActionResult GetGoogleConfig()
+        //{
+        //    var clientId = _logger.GetType().Assembly.GetName().Version; // Placeholder
+        //    return Ok(new
+        //    {
+        //        message = "Check server logs for Google Client ID",
+        //        note = "Remove this endpoint in production"
+        //    });
+        //}
 
         /// <summary>
         /// Get current user profile
+        /// GET /api/auth/profile
         /// </summary>
-        [HttpGet("profile")]
+        [HttpGet("users/me")]
         [Authorize]
         public IActionResult GetProfile()
         {
@@ -188,8 +193,9 @@ namespace PresentationLayer.Controllers
 
         /// <summary>
         /// Change password for authenticated user
+        /// PUT /api/auth/change-password
         /// </summary>
-        [HttpPut("change-password")]
+        [HttpPut("users/me/password")]
         [Authorize]
         public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequestDto request)
         {
@@ -233,25 +239,35 @@ namespace PresentationLayer.Controllers
                 return StatusCode(500, new { success = false, error = "Internal server error" });
             }
         }
-
-        [HttpPost("forgot-password")]
+        /// <summary>
+        /// POST /api/auth/forgot-password
+        /// </summary>
+        /// <param name="dto"></param>
+        /// <returns></returns>
+        [HttpPost("password-resets")]
         public async Task<IActionResult> ForgotPassword(ForgotPasswordRequestDto dto)
         {
             await _authService.SendOtpAsync(dto);
             return Ok(new { message = "OTP sent to your email." });
         }
 
-        [HttpPost("verify-otp")]
-        public async Task<IActionResult> VerifyOtp(VerifyOtpDto dto)
-        {
-            bool result = await _authService.VerifyOtpAsync(dto);
-            if (!result)
-                return BadRequest("Invalid or expired OTP.");
+        //[HttpPost("verify-otp")]
+        //public async Task<IActionResult> VerifyOtp(VerifyOtpDto dto)
+        //{
+        //    bool result = await _authService.VerifyOtpAsync(dto);
+        //    if (!result)
+        //        return BadRequest("Invalid or expired OTP.");
 
-            return Ok(new { message = "OTP verified successfully." });
-        }
+        //    return Ok(new { message = "OTP verified successfully." });
+        //}
 
-        [HttpPost("reset-password/otp")]
+        /// <summary>
+        /// POST /api/auth/reset-password/otp
+        /// </summary>
+        /// <param name="dto"></param>
+        /// <returns></returns>
+
+        [HttpPost("password")]
         public async Task<IActionResult> ResetPassword(ResetPasswordDto dto)
         {
             await _authService.ResetPasswordAsync(dto);

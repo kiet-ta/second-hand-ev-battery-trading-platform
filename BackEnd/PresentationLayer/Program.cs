@@ -231,7 +231,7 @@ namespace PresentationLayer
             //Complaint
             builder.Services.AddScoped<IComplaintService, ComplaintService>();
             builder.Services.AddScoped<IComplaintRepository, ComplaintRepository>();
-            // Trong Program.cs hoặc Startup.cs
+            
 
 
 

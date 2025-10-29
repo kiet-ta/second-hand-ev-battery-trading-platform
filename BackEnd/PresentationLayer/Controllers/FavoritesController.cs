@@ -6,7 +6,7 @@ using System.Security.Claims;
 
 namespace PresentationLayer.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/favorite")]
     [ApiController]
     public class FavoritesController : ControllerBase
     {

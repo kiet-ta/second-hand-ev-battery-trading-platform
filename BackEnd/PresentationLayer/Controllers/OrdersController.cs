@@ -8,9 +8,8 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace PresentationLayer.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/orders")]
     [ApiController]
-    [Authorize]
     public class OrdersController : ControllerBase
     {
         private readonly IOrderService _orderService;
@@ -35,7 +34,7 @@ namespace PresentationLayer.Controllers
             return Ok(orders);
         }
 
-        [HttpGet("user/{userId}")]
+        [HttpGet("user/{userId}")] //RESTful
         public async Task<IActionResult> GetOrdersByUser(int userId)
         {
             var result = await _orderService.GetOrdersByUserIdAsync(userId);
@@ -70,7 +69,7 @@ namespace PresentationLayer.Controllers
             return NoContent();
         }
 
-        [HttpPost("new")]
+        [HttpPost("new")] //RESTful
         public async Task<IActionResult> CreateOrder([FromBody] CreateOrderRequestDto request)
         {
             var result = await _orderService.CreateOrderAsync(request);
