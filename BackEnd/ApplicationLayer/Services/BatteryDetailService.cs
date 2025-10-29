@@ -171,5 +171,18 @@ namespace Application.Services
 
             return result;
         }
+
+        public async Task<IEnumerable<BatteryDetailDto>> SearchBatteryDetailAsync(BatterySearchRequestDto request)
+        {
+            var result = await _itemRepository.SearchBatteryDetailAsync(request);
+            return result.Select(e => new BatteryDetailDto
+            {
+                ItemId = e.ItemId,
+                Brand = e.Brand,
+                Capacity = e.Capacity,
+                Voltage = e.Voltage,
+                ChargeCycles = e.ChargeCycles
+            });
+        }
     }
 }

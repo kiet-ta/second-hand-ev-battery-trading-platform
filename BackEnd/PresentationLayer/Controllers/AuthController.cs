@@ -142,56 +142,6 @@ namespace PresentationLayer.Controllers
         }
 
         /// <summary>
-        /// Test Google configuration (FOR DEVELOPMENT ONLY)
-        /// GET /api/auth/google/config
-        /// </summary>
-        //[HttpGet("providers/google/config")]
-        //[AllowAnonymous]
-        //public IActionResult GetGoogleConfig()
-        //{
-        //    var clientId = _logger.GetType().Assembly.GetName().Version; // Placeholder
-        //    return Ok(new
-        //    {
-        //        message = "Check server logs for Google Client ID",
-        //        note = "Remove this endpoint in production"
-        //    });
-        //}
-
-        /// <summary>
-        /// Get current user profile
-        /// GET /api/auth/profile
-        /// </summary>
-        [HttpGet("users/me")]
-        [Authorize]
-        public IActionResult GetProfile()
-        {
-            try
-            {
-                var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-                var email = User.FindFirst(ClaimTypes.Email)?.Value;
-                var role = User.FindFirst(ClaimTypes.Role)?.Value;
-                var provider = User.FindFirst("auth_provider")?.Value;
-
-                return Ok(new
-                {
-                    success = true,
-                    data = new
-                    {
-                        userId,
-                        email,
-                        role,
-                        authProvider = provider
-                    }
-                });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error getting profile");
-                return StatusCode(500, new { success = false, error = "Internal server error" });
-            }
-        }
-
-        /// <summary>
         /// Change password for authenticated user
         /// PUT /api/auth/change-password
         /// </summary>
@@ -250,16 +200,6 @@ namespace PresentationLayer.Controllers
             await _authService.SendOtpAsync(dto);
             return Ok(new { message = "OTP sent to your email." });
         }
-
-        //[HttpPost("verify-otp")]
-        //public async Task<IActionResult> VerifyOtp(VerifyOtpDto dto)
-        //{
-        //    bool result = await _authService.VerifyOtpAsync(dto);
-        //    if (!result)
-        //        return BadRequest("Invalid or expired OTP.");
-
-        //    return Ok(new { message = "OTP verified successfully." });
-        //}
 
         /// <summary>
         /// POST /api/auth/reset-password/otp

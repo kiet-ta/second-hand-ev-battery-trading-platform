@@ -14,6 +14,16 @@ namespace PresentationLayer.Controllers
         private readonly IChatService _chat;
         public ChatController(IChatService chat) => _chat = chat;
 
+        private int GetCurrentUserId()
+        {
+            var userIdClaim = User.FindFirst("user_id")?.Value;
+            if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out var userId))
+            {
+                throw new InvalidOperationException("User ID claim is missing or invalid in token.");
+            }
+            return userId;
+        }
+
         [HttpPost("rooms")]
         public async Task<IActionResult> CreateRoom([FromBody] CreateRoomDto dto)
         {
@@ -24,6 +34,7 @@ namespace PresentationLayer.Controllers
         [HttpGet("rooms/{cid}")]
         public async Task<IActionResult> GetRoom(long cid)
         {
+            int userId = GetCurrentUserId();
             var r = await _chat.GetRoomAsync(cid);
             return r == null ? NotFound() : Ok(r);
         }
@@ -54,25 +65,17 @@ namespace PresentationLayer.Controllers
         [HttpGet("rooms/{cid}/messages")]
         public async Task<IActionResult> GetMessages(long cid, [FromQuery] int limit = 50)
         {
-                var messages = await _chat.GetMessagesAsync(cid, limit);
+            int userId = GetCurrentUserId();
+            var messages = await _chat.GetMessagesAsync(cid, limit);
                 return Ok(messages);
         }
 
-        [HttpGet("users/{userId}/rooms")]
-        public async Task<IActionResult> GetRoomsForUser(long userId)
+        [HttpGet("rooms")]
+        public async Task<IActionResult> GetMyRooms()
         {
-            // **Lưu ý bảo mật:**
-            // Thông thường, bạn nên lấy 'userId' từ Claims của user
-            // đã xác thực (HttpContext.User) thay vì tin tưởng vào URL.
-            // var authenticatedUserId = long.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
-            // if (authenticatedUserId != userId)
-            // {
-            //     return Forbid(); // Hoặc Unauthorized
-            // }
-
+            int userId = GetCurrentUserId();
             var rooms = await _chat.GetRoomsByUserIdAsync(userId);
 
-            // 'rooms' lúc này là IEnumerable<ChatRoomSummaryDto>
             return Ok(rooms);
         }
     }

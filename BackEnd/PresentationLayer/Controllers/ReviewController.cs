@@ -6,7 +6,7 @@ using Application.DTOs.ReviewDtos;
 namespace PresentationLayer.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/review")]
     public class ReviewsController : ControllerBase
     {
         private readonly IReviewService _reviewService;

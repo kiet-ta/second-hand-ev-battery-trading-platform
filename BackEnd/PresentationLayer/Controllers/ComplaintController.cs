@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace PresentationLayer.Controllers
 {
     [ApiController]
-    [Route("api/complaint")]
+    [Route("api/complaints")]
     [Produces("application/json")]
     public class ComplaintsController : ControllerBase
     {
@@ -16,6 +16,16 @@ namespace PresentationLayer.Controllers
         public ComplaintsController(IComplaintService complaintService)
         {
             _complaintService = complaintService;
+        }
+
+        private int GetCurrentUserId()
+        {
+            var userIdClaim = User.FindFirst("user_id")?.Value;
+            if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out var userId))
+            {
+                throw new InvalidOperationException("User ID claim is missing or invalid in token.");
+            }
+            return userId;
         }
 
         [HttpPost]
@@ -60,7 +70,7 @@ namespace PresentationLayer.Controllers
             return Ok(complaints);
         }
 
-        [HttpGet("user/{userId}")]
+        [HttpGet("me")]
         public async Task<IActionResult> GetByUser(int userId)
         {
             var complaints = await _complaintService.GetComplaintsByUser(userId);

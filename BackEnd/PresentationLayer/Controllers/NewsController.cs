@@ -7,7 +7,7 @@ using System.Security.Claims;
 namespace PresentationLayer.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/news")]
     public class NewsController : ControllerBase
     {
         private readonly INewsService _newsService;

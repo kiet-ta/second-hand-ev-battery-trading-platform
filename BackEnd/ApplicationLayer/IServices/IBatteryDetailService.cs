@@ -16,5 +16,6 @@ namespace Application.IServices
         Task UpdateAsync(int itemId, UpdateBatteryDetailDto dto);
         Task DeleteAsync(int itemId);
         Task<IEnumerable<ItemDto>> GetLatestBatteriesAsync(int count);
+        Task<IEnumerable<BatteryDetailDto>> SearchBatteryDetailAsync(BatterySearchRequestDto request);
     }
 }

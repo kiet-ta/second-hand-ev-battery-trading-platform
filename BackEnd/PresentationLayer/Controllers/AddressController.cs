@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace PresentationLayer.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/address")]
     public class AddressController : ControllerBase
     {
         private readonly IAddressService _addressService;
@@ -96,8 +96,8 @@ namespace PresentationLayer.Controllers
                 return NotFound(new { ex.Message });
             }
         }
-        [HttpGet("user/{userId}/default")]
-        public async Task<IActionResult> GetDefaultAddressByUserId(int userId)
+        [HttpGet("default")]
+        public async Task<IActionResult> GetDefaultAddressByUserId([FromQuery] int userId)
         {
             var address = await _addressService.GetAddressDefaultByUserId(userId);
             return Ok(address);
