@@ -94,6 +94,7 @@ import ChatRoomWrapper from "../components/Chats/ChatRoomWrapper";
 import ProtectedRoute from "../components/ProtectedRoute";
 import ComplaintPage from "../pages/Main/ComplaintPage";
 import OrderPage from "../pages/Profile/MyOrderHistory";
+import SellerPendingReview from "../pages/Seller/SellerPendingReview";
 
 /* ---------------------------
    Router definition
@@ -137,15 +138,14 @@ export const router = createBrowserRouter([
       { path: "wallet", element: <WalletTransactionPage /> },
       { path: "complaint", element: <ComplaintPage /> },
       { path: "compare", element: <CompareEVPage /> },
-    {path: "order-history", element: <OrderPage/>}
+      {path: "order-history", element: <OrderPage/>},
+      {path: "pending-review", element: <SellerPendingReview />}
     ],
   },
 
-  // AUTH ROUTES
   { path: "/login", element: <LoginPage /> },
   { path: "/register", element: <RegisterPage /> },
 
-  // PROFILE (Buyer account area) - router-based SPA
   {
     path: "/profile",
     element: <ProfileLayout />,
@@ -167,7 +167,6 @@ export const router = createBrowserRouter([
     ],
   },
 
-  // SELLER DASHBOARD (Protected)
   {
     path: "/seller",
     element: <ProtectedRoute allowedRoles={["seller"]} />,

@@ -2,8 +2,11 @@ import React, { memo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import FrogRegistration from '../assets/images/registration.png';
+import useKycRedirect from '../hooks/useKycRedirect';
 
 function SellerOnBoard() {
+    useKycRedirect();
+  
   const navigate = useNavigate();
 
   const handleRegistrationClick = useCallback(() => {
@@ -11,7 +14,7 @@ function SellerOnBoard() {
   }, [navigate]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#FAF8F3] p-6">
+    <div className=" flex items-center justify-center bg-[#FAF8F3] p-6">
       <motion.div
         className="max-w-5xl w-full bg-white rounded-3xl shadow-lg overflow-hidden flex flex-col md:flex-row border border-[#E8E4DC]"
         initial={{ opacity: 0, y: 40 }}

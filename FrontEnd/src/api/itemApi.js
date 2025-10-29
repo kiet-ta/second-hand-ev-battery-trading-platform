@@ -26,11 +26,11 @@ const itemApi = {
         return response.data;
     },
     getItemDetail: async () => {
-        const response = await axios.get(baseURL + "/detail");
+        const response = await axios.get(baseURL + "/detail/all");
         return response.data;
     },
     postItemEV: async (data) => {
-        const response = await axios.post(baseURL + "/detail", data);
+        const response = await axios.post(baseURL + "/detail/ev", data);
         return response.data;
     },
     postItemBattery: async (data) => {
@@ -41,6 +41,18 @@ const itemApi = {
         console.log(itemId,itemData)
         const response = await axios.put(baseURL + `/${itemId}`,itemData)
         return response.data
+    },
+    putItemDetailEV: async (itemId, evData) => {
+        const response = await axios.put(baseURL + `/detail/ev/${itemId}`, evData)
+        return response.data
+    },
+    putItemDetailBattery: async (itemId, batteryData) => {
+        const response = await axios.put(baseURL + `/detail/battery/${itemId}`, batteryData)
+        return response.data
+    },
+    deleteItem: async (itemId) => {
+        const response = await axios.delete(baseURL + `/${itemId}`);
+        return response.data;
     },
 
 };

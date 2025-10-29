@@ -88,6 +88,7 @@ namespace Infrastructure.Repositories
                             CreatedAt = i.CreatedAt,
                             UpdatedAt = i.UpdatedAt,
                             SellerName = user != null ? user.FullName : string.Empty,
+                            Moderation = i.Moderation,
                             Images = _context.ItemImages
                                 .Where(img => img.ItemId == i.ItemId)
                                 .Select(img => new ItemImageDto
@@ -224,7 +225,7 @@ namespace Infrastructure.Repositories
         public async Task<IEnumerable<Item>> GetLatestEVsAsync(int count)
         {
             return await _context.Items
-                .Where(x => x.ItemType == "EV" && !(x.IsDeleted == true))
+                .Where(x => x.ItemType == "ev" && !(x.IsDeleted == true) && x.Status == "active")
                 .OrderByDescending(x => x.CreatedAt)
                 .Take(count)
                 .ToListAsync();
@@ -233,7 +234,7 @@ namespace Infrastructure.Repositories
         public async Task<IEnumerable<Item>> GetLatestBatteriesAsync(int count)
         {
             return await _context.Items
-                .Where(x => x.ItemType == "Battery" && !(x.IsDeleted == true))
+                .Where(x => x.ItemType == "battery" && !(x.IsDeleted == true) && x.Status == "active")
                 .OrderByDescending(x => x.CreatedAt)
                 .Take(count)
                 .ToListAsync();
@@ -542,7 +543,6 @@ namespace Infrastructure.Repositories
                         join c in _context.Categories on i.CategoryId equals c.CategoryId
                         join img in _context.ItemImages on i.ItemId equals img.ItemId into imgGroup
                         where !i.IsDeleted
-                              && i.Status == "active"
                               && i.UpdatedBy == sellerId
                         select new ItemSellerDto
                         {
