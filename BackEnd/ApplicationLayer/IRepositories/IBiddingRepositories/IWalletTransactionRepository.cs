@@ -9,4 +9,5 @@ public interface IWalletTransactionRepository
     Task<IEnumerable<WalletTransaction>> GetTransactionsByWalletIdAsync(int walletId);
 
     Task<bool> HasTransactionOfTypeWithRefIdAsync(string transactionType, int? refId);
+    Task<WalletTransaction?> FindHoldTransactionByRefIdAsync(int bidId);
 }

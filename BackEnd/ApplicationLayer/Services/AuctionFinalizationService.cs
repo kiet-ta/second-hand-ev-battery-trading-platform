@@ -31,180 +31,231 @@ public class AuctionFinalizationService : IAuctionFinalizationService
         try
         {
             var auction = await _unitOfWork.Auctions.GetByIdAsync(auctionId);
-            if (auction == null || auction.Status != "ended")
+            // Validate auction tồn tại và status là 'ended'
+            if (auction == null)
             {
-                _logger.LogWarning("Auction with ID: {AuctionId} not found.", auctionId);
+                _logger.LogWarning("Auction {AuctionId} not found during finalization.", auctionId);
+                await _unitOfWork.RollbackTransactionAsync(); // Rollback vì không có gì để xử lý
+                return; // Hoặc throw nếu cần báo lỗi rõ ràng
+            }
+            if (auction.Status != "ended")
+            {
+                _logger.LogWarning("Attempted to finalize auction {AuctionId} but its status is '{Status}', not 'ended'. Skipping.", auctionId, auction.Status);
                 await _unitOfWork.RollbackTransactionAsync();
-                throw new InvalidOperationException($"Auction with ID {auctionId} not found.");
+                return; // Bỏ qua nếu chưa kết thúc thực sự
             }
 
-            var winningBid = await _unitOfWork.Bids.GetHighestBidAsync(auctionId);
+
+            // Tìm bid cao nhất và đang active (chưa bị outbid bởi chính nó hoặc người khác)
+            var winningBid = await _unitOfWork.Bids.GetHighestActiveBidAsync(auctionId);
+
+            // Xử lý không có ai bid
             if (winningBid == null)
             {
-                _logger.LogInformation($"Auction {auctionId} ended with no bids.");
-                await _unitOfWork.CommitTransactionAsync();
+                _logger.LogInformation($"Auction {auctionId} ended with no winning bids.");
+                // Optional: Cập nhật trạng thái item về lại 'active' nếu cần
+                var itemNoBids = await _unitOfWork.Items.GetByIdAsync(auction.ItemId);
+                if (itemNoBids != null && itemNoBids.Status == "pending_auction") // Giả sử có status này
+                {
+                    itemNoBids.Status = "active";
+                    _unitOfWork.Items.Update(itemNoBids);
+                    await _unitOfWork.SaveChangesAsync(); // Lưu thay đổi status item
+                    _logger.LogInformation($"Updated Item {auction.ItemId} status back to active as auction had no bids.");
+                }
+                await _unitOfWork.CommitTransactionAsync(); // Commit transaction trống
                 return;
             }
 
-            _logger.LogInformation($"Auction {auctionId} winner: User {winningBid.UserId} with amount {winningBid.BidAmount}");
+            // Đánh dấu bid thắng cuộc
+            await _unitOfWork.Bids.UpdateBidStatusAsync(winningBid.BidId, "winner");
+            _logger.LogInformation($"Auction {auctionId} winner: User {winningBid.UserId} with Bid {winningBid.BidId} amount {winningBid.BidAmount}");
 
             var winnerId = winningBid.UserId;
             var winningAmount = winningBid.BidAmount;
             var itemId = auction.ItemId;
 
-            // process seller
-            var item = await _unitOfWork.Items.GetByIdAsync(itemId);
-            if (item == null)
+            // --- Xử lý người bán (Lấy seller, tính phí, chuyển tiền) ---
+            var itemWithSeller = await _unitOfWork.Items.GetItemAndSellerByItemIdAsync(itemId);
+            if (itemWithSeller?.Seller == null || itemWithSeller.Item == null)
             {
-                throw new InvalidOperationException($"Item with ID {itemId} not found.");
+                await _unitOfWork.RollbackTransactionAsync();
+                throw new InvalidOperationException($"Could not find owner for item {itemId}.");
             }
-
-            // get seller id from item
-            var itemWithSeller = await _unitOfWork.Items.GetItemWithSellerByItemIdAsync(itemId);
-            if (itemWithSeller?.Seller == null) throw new InvalidOperationException($"Could not find owner for item {itemId}.");
             int sellerId = itemWithSeller.Seller.UserId;
-
             var sellerWallet = await _unitOfWork.Wallets.GetWalletByUserIdAsync(sellerId);
             if (sellerWallet == null)
             {
+                await _unitOfWork.RollbackTransactionAsync();
                 throw new InvalidOperationException($"Seller wallet for user ID {sellerId} not found.");
             }
 
-            decimal amountToReceive = winningAmount;    // TODO: add commission calculation
-            await _unitOfWork.Wallets.UpdateBalanceAsync(sellerWallet.WalletId, amountToReceive);
+            decimal commissionFee = 0; // TODO: Tính phí hoa hồng dựa trên winningAmount
+            decimal amountToSeller = winningAmount - commissionFee;
 
+            // Cập nhật ví người bán: Cộng tiền vào balance
+            bool updateSellerWalletSuccess = await _unitOfWork.Wallets.UpdateBalanceAndHeldAsync(sellerWallet.WalletId, amountToSeller, 0); // Chỉ cập nhật balance
+            if (!updateSellerWalletSuccess)
+            {
+                await _unitOfWork.RollbackTransactionAsync();
+                throw new Exception($"Failed to update seller wallet {sellerWallet.WalletId}.");
+            }
+
+            // Tạo transaction payout cho người bán
             var payoutTransaction = new WalletTransaction
             {
                 WalletId = sellerWallet.WalletId,
-                Amount = amountToReceive,
+                Amount = amountToSeller,
                 Type = "auction_payout",
                 CreatedAt = DateTime.Now,
-                RefId = winningBid.BidId
+                RefId = winningBid.BidId, // Liên kết với bid thắng
+                AuctionId = auctionId
             };
             await _unitOfWork.WalletTransactions.CreateTransactionAsync(payoutTransaction);
-            _logger.LogInformation($"Credited {amountToReceive} to seller User {sellerId}");
+            _logger.LogInformation($"Credited {amountToSeller} to seller User {sellerId} wallet {sellerWallet.WalletId}.");
+            // --- Kết thúc xử lý người bán ---
 
-            item.Status = "sold";
-            item.UpdatedAt = DateTime.Now;
-            if (item == null)
+            // --- Xử lý người thắng ---
+            var winnerWallet = await _unitOfWork.Wallets.GetWalletByUserIdAsync(winnerId);
+            if (winnerWallet == null)
             {
-                throw new InvalidOperationException($"Item with ID {itemId} not found.");
+                await _unitOfWork.RollbackTransactionAsync();
+                throw new InvalidOperationException($"Winner wallet {winnerId} not found.");
             }
-            else _unitOfWork.Items.Update(item);
+            // Cập nhật ví người thắng: Giảm held_balance (vì tiền đã chuyển đi)
+            bool updateWinnerWalletSuccess = await _unitOfWork.Wallets.UpdateBalanceAndHeldAsync(winnerWallet.WalletId, 0, -winningAmount); // Chỉ giảm held
+            if (!updateWinnerWalletSuccess)
+            {
+                await _unitOfWork.RollbackTransactionAsync();
+                throw new Exception($"Failed to update winner wallet {winnerWallet.WalletId} held balance.");
+            }
+            // Transaction 'payment' hoặc tương tự đã được tạo khi 'hold', không cần tạo thêm transaction trừ tiền ở đây.
+            _logger.LogInformation($"Decreased held balance by {winningAmount} for winner User {winnerId} wallet {winnerWallet.WalletId}.");
+            // --- Kết thúc xử lý người thắng ---
+
+
+            // --- Cập nhật Item Status và Tạo Order (Giữ nguyên logic cũ) ---
+            var itemEntityToUpdate = itemWithSeller.Item; // Lấy Item entity từ kết quả trả về
+            itemEntityToUpdate.Status = "sold";
+            itemEntityToUpdate.UpdatedAt = DateTime.Now;
+            _unitOfWork.Items.Update(itemEntityToUpdate); // Update Item entity
             _logger.LogInformation($"Updated Item {itemId} status to sold");
 
-            // get default address for winner
-            var winnerAddresses = await _unitOfWork.Address.GetAddressesByUserIdAsync(winnerId);
-            if (winnerAddresses == null || !winnerAddresses.Any() )
+            // Tạo Order
+            var winnerAddress = await _unitOfWork.Address.GetAddressDefaultByUserId(winnerId); // Lấy địa chỉ default
+            if (winnerAddress == null)
             {
-                _logger.LogWarning($"Winner User {winnerId} has no address configured for Auction {auctionId}. Cannot create order.", winnerId, auctionId);
-                
-                await _unitOfWork.RollbackTransactionAsync();
-                
-                throw new InvalidOperationException($"Winner User {winnerId} does not have any address configured.");
+                _logger.LogWarning("Winner {WinnerId} does not have a default address.", winnerId);
+                // Có thể lấy địa chỉ đầu tiên hoặc xử lý khác tùy yêu cầu
+                var anyAddress = (await _unitOfWork.Address.GetAddressesByUserIdAsync(winnerId)).FirstOrDefault();
+                if (anyAddress == null)
+                {
+                    await _unitOfWork.RollbackTransactionAsync();
+                    throw new InvalidOperationException($"Winner {winnerId} has no addresses.");
+                }
+                winnerAddress = anyAddress;
             }
-            var defaultAddress = winnerAddresses.FirstOrDefault(a => a.IsDefault == true) ?? winnerAddresses.First();
-            int winnerAddressId = defaultAddress.AddressId;
-            _logger.LogInformation("Using AddressId {AddressId} for Order creation.", winnerAddressId);
 
             var newOrder = new Order
             {
                 BuyerId = winnerId,
-                AddressId = 1, // FIXME: need to get default address
-                Status = "completed",
+                AddressId = winnerAddress.AddressId, // Sử dụng địa chỉ tìm được
+                Status = "paid", // Hoặc 'processing' tùy logic sau đó
                 CreatedAt = DateTime.Now,
                 UpdatedAt = DateTime.Now
             };
+            await _unitOfWork.Orders.AddAsync(newOrder); // AddAsync của repo
+            await _unitOfWork.SaveChangesAsync(); // Save để lấy OrderId
+            _logger.LogInformation("Created Order {OrderId} for winner User {WinnerId}", newOrder.OrderId, winnerId);
 
-            var createdOrder = _unitOfWork.Orders.AddAsync(newOrder);
-            await _unitOfWork.SaveChangesAsync();
-            if (createdOrder == null || createdOrder.Id <= 0)
-            {
-                throw new InvalidOperationException($"Failed to create order for auction {auctionId}.");
-            }
-            _logger.LogInformation("Created Order {OrderId} for winner User {WinnerId}", createdOrder.Id, winnerId);
-            _logger.LogInformation($"Created Order {newOrder.OrderId} for winner User {winnerId}");
-            
+            // Tạo OrderItem
             var newOrderItem = new OrderItem
             {
                 OrderId = newOrder.OrderId,
-                BuyerId = winnerId,
+                BuyerId = winnerId, // Lưu lại buyer_id ở đây nếu cần truy vấn cart/history dễ hơn
                 ItemId = itemId,
-                Quantity = 1, //FIXME: quantity handling
+                Quantity = 1, // Giả định số lượng là 1 cho đấu giá
                 Price = winningAmount,
                 IsDeleted = false
             };
-
-            await _unitOfWork.OrderItems.CreateAsync(newOrderItem);
+            await _unitOfWork.OrderItems.CreateAsync(newOrderItem); // CreateAsync của repo
+            await _unitOfWork.SaveChangesAsync(); // Save OrderItem
             _logger.LogInformation($"Added Item {itemId} to Order {newOrder.OrderId}");
+            // --- Kết thúc cập nhật Item và Order ---
 
-            var allBids = await _unitOfWork.Bids.GetBidsByAuctionIdAsync(auctionId);
-            var loserBids = allBids.Where(b => b.UserId != winnerId)
-                                   .GroupBy(b => b.UserId)
-                                   .Select(g => g.OrderByDescending(b => b.BidAmount).First())
-                                   .ToList();
+
+            // --- Xử lý hoàn tiền cho người thua ---
+            var loserBids = await _unitOfWork.Bids.GetAllLoserActiveOrOutbidBidsAsync(auctionId, winnerId); // Lấy tất cả bid active/outbid không phải của winner
 
             foreach (var loserBid in loserBids)
             {
-                _logger.LogInformation($"Processing release for loser User {loserBid.UserId}, highest bid {loserBid.BidAmount}");
-                var loserWallet = await _unitOfWork.Wallets.GetWalletByUserIdAsync(loserBid.UserId);
-                if (loserWallet == null)
+                // Tìm giao dịch 'hold' tương ứng với bid này
+                var holdTransaction = await _unitOfWork.WalletTransactions.FindHoldTransactionByRefIdAsync(loserBid.BidId); // Cần thêm method này
+                if (holdTransaction == null)
                 {
-                    _logger.LogWarning($"Wallet for loser User {loserBid.UserId} not found. Cannot release funds.");
+                    _logger.LogWarning("Could not find corresponding 'hold' transaction for loser Bid {BidId} (User {UserId}). Skipping release.", loserBid.BidId, loserBid.UserId);
+                    await _unitOfWork.Bids.UpdateBidStatusAsync(loserBid.BidId, "released"); // Đánh dấu đã xử lý để tránh lặp lại
                     continue;
-                }
-                // Important: Check if the corresponding hold transaction has been released
-                bool alreadyReleased = await _unitOfWork.WalletTransactions.HasTransactionOfTypeWithRefIdAsync("release", loserBid.BidId);
-                if (alreadyReleased)
-                {
-                    _logger.LogWarning($"Funds for Bid {loserBid.BidId} already released for User {loserBid.UserId}. Skipping.");
-                    continue;
-                }
-                // Only release if they have active hold trades
-                bool updateLoserSuccess = await _unitOfWork.Wallets.UpdateBalanceAsync(loserWallet.WalletId, loserBid.BidAmount);
-                if (!updateLoserSuccess)
-                {
-                    _logger.LogError($"Failed to update balance for loser Wallet {loserWallet.WalletId}.");
-                    // In transaction, this error will rollback all -> Safer
-                    throw new Exception($"Failed to update balance for loser Wallet {loserWallet.WalletId}.");
                 }
 
+                // Số tiền cần hoàn trả là số tiền đã hold cho bid đó (lấy từ transaction)
+                // Lưu ý: transaction amount là số âm, nên cần lấy giá trị tuyệt đối hoặc *-1
+                decimal amountToRelease = -holdTransaction.Amount;
+
+                // Cập nhật ví người thua: Cộng lại balance, giảm held_balance
+                bool updateLoserWallet = await _unitOfWork.Wallets.UpdateBalanceAndHeldAsync(holdTransaction.WalletId, amountToRelease, -amountToRelease);
+                if (!updateLoserWallet)
+                {
+                    // Ghi log lỗi nghiêm trọng nhưng không nên dừng cả quá trình chỉ vì 1 user lỗi
+                    _logger.LogError("CRITICAL: Failed to release funds for loser Bid {BidId} / User {UserId} / Wallet {WalletId}. Amount: {Amount}. MANUAL INTERVENTION NEEDED.",
+                       loserBid.BidId, loserBid.UserId, holdTransaction.WalletId, amountToRelease);
+                    // Không throw lỗi ở đây, tiếp tục xử lý user khác
+                    continue; // Bỏ qua user này
+                }
+
+                // Tạo transaction 'release'
                 var releaseTransaction = new WalletTransaction
                 {
-                    WalletId = loserWallet.WalletId,
-                    Amount = loserBid.BidAmount,
+                    WalletId = holdTransaction.WalletId,
+                    Amount = amountToRelease, // Số dương
                     Type = "release",
                     CreatedAt = DateTime.Now,
-                    RefId = loserBid.BidId // Link to the highest bid of loser
+                    RefId = loserBid.BidId, // Liên kết với bid thua
+                    AuctionId = auctionId
                 };
                 await _unitOfWork.WalletTransactions.CreateTransactionAsync(releaseTransaction);
-                _logger.LogInformation($"Released {loserBid.BidAmount} for loser User {loserBid.UserId}");
+
+                // Cập nhật status bid thua thành 'released'
+                await _unitOfWork.Bids.UpdateBidStatusAsync(loserBid.BidId, "released");
+                _logger.LogInformation($"Released {amountToRelease} for loser Bid {loserBid.BidId} / User {loserBid.UserId}");
+
+                // Gửi thông báo hoàn tiền
                 await SendNotificationAsync(
-                        senderId: null, // Hệ thống gửi
-                        receiverId: loserBid.UserId,
+                        senderId: null, receiverId: loserBid.UserId,
                         title: $"Đấu giá #{auctionId} kết thúc - Hoàn tiền",
-                        message: $"Số tiền {loserBid.BidAmount:N0}đ đã được hoàn lại vào ví của bạn từ phiên đấu giá cho sản phẩm '{itemWithSeller.Item.Title}'.");
+                        message: $"Số tiền {amountToRelease:N0}đ đã được hoàn lại vào ví của bạn từ phiên đấu giá cho sản phẩm '{itemEntityToUpdate.Title}'.");
             }
-            // If everything succeeds, commit the transaction
+            // --- Kết thúc xử lý người thua ---
+
+
             await _unitOfWork.CommitTransactionAsync();
             _logger.LogInformation("Successfully finalized Auction {AuctionId}", auctionId);
 
+            // Gửi thông báo cho người thắng và người bán (sau khi commit thành công)
             await SendNotificationAsync(
                     senderId: null, receiverId: winnerId,
                     title: $"Chúc mừng! Bạn đã thắng đấu giá #{auctionId}",
-                    message: $"Bạn đã thắng phiên đấu giá cho sản phẩm '{itemWithSeller.Item.Title}' với giá {winningAmount:N0}đ. Đơn hàng #{createdOrder.Id} đã được tạo.");
+                    message: $"Bạn đã thắng phiên đấu giá cho sản phẩm '{itemEntityToUpdate.Title}' với giá {winningAmount:N0}đ. Đơn hàng #{newOrder.OrderId} đã được tạo.");
 
             await SendNotificationAsync(
                 senderId: null, receiverId: sellerId,
-                title: $"Sản phẩm '{itemWithSeller.Item.Title}' đã được bán qua đấu giá #{auctionId}",
-                message: $"Sản phẩm của bạn đã được bán với giá {winningAmount:N0}đ. Số tiền {amountToReceive:N0}đ (sau phí) đã được chuyển vào ví.");
+                title: $"Sản phẩm '{itemEntityToUpdate.Title}' đã được bán qua đấu giá #{auctionId}",
+                message: $"Sản phẩm của bạn đã được bán với giá {winningAmount:N0}đ. Số tiền {amountToSeller:N0}đ (sau phí) đã được chuyển vào ví.");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error finalizing Auction {AuctionId}. Rolling back transaction.", auctionId);
             await _unitOfWork.RollbackTransactionAsync();
-            // Re-throw để báo lỗi cho tiến trình gọi (vd: Scheduled Job)
-            throw;
+            throw; // Ném lại lỗi
         }
     }
 
