@@ -14,21 +14,23 @@ namespace Application.Services
         }
 
 
-        public async Task AddAddressAsync(Address address)
+        public async Task AddAddressAsync(Address address, int currentUserId)
         {
+            if (address.UserId != currentUserId)
+                throw new UnauthorizedAccessException("You are not allowed to add address for other users.");
+
             address.IsDeleted = false;
 
             var existingAddresses = await _addressRepository.GetAddressesByUserIdAsync(address.UserId);
 
-            if (existingAddresses.Any(a => (a.IsDefault == true)))
-            {
+            if (existingAddresses.Any(a => (bool)a.IsDefault))
                 address.IsDefault = false;
-            }
 
             await _addressRepository.AddAddressAsync(address);
         }
 
-     
+
+
         public async Task DeleteAddressAsync(int addressId)
         {
             var existing = await _addressRepository.GetAddressByIdAsync(addressId);

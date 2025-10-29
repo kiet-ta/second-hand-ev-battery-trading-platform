@@ -19,11 +19,14 @@ namespace PresentationLayer.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateAddress([FromBody] CreateAddressDTO dto)
         {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            int userId = int.Parse(User.FindFirst("user_id")?.Value ?? "0");
 
             var address = new Address
             {
-                UserId = dto.UserId,
+                UserId = userId,
                 RecipientName = dto.RecipientName,
                 Phone = dto.Phone,
                 Street = dto.Street,
@@ -35,10 +38,11 @@ namespace PresentationLayer.Controllers
                 IsDeleted = false
             };
 
-            await _addressService.AddAddressAsync(address);
+            await _addressService.AddAddressAsync(address, userId);
 
             return CreatedAtAction(nameof(GetAddressById), new { id = address.AddressId }, address);
         }
+
 
 
         [HttpGet("user/{userId}")]
