@@ -67,11 +67,11 @@ public static class InfrastructureExtensions
             return new IdGenerator(1, options);
         });
 
-        services.Configure<s>(config.GetSection("s"));
-        services.AddSingleton(sp => sp.GetRequiredService<IOptions<s>>().Value);
+        services.Configure<RabbitMQSettings>(config.GetSection("RabbitMQSettings"));
+        services.AddSingleton(sp => sp.GetRequiredService<IOptions<RabbitMQSettings>>().Value);
         services.AddSingleton<IMessagePublisher>(sp =>
         {
-            var settings = sp.GetRequiredService<IOptions<s>>().Value;
+            var settings = sp.GetRequiredService<IOptions<RabbitMQSettings>>().Value;
             if (string.IsNullOrEmpty(settings.ConnectionString))
             {
                 throw new InvalidOperationException("RabbitMQ ConnectionString is not configured.");
