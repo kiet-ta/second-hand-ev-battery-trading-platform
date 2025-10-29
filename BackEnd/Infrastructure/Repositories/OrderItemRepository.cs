@@ -16,6 +16,23 @@ namespace Infrastructure.Repositories
             _context = context;
         }
 
+        public async Task<OrderItem> CreateAsync(OrderItem orderItem)
+        {
+            var entity = new OrderItem
+            {
+                OrderId = null,
+                BuyerId = orderItem.BuyerId,
+                ItemId = orderItem.ItemId,
+                Quantity = orderItem.Quantity,
+                Price = orderItem.Price,
+                IsDeleted = false
+            };
+
+            _context.OrderItems.Add(entity);
+            await _context.SaveChangesAsync();
+            return entity;
+        }
+
         public async Task<OrderItemDto> CreateOrderItemAsync(CreateOrderItemRequest request)
         {
             var entity = new OrderItem

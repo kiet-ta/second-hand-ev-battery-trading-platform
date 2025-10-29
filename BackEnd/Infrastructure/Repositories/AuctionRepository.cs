@@ -68,7 +68,7 @@ public class AuctionRepository : IAuctionRepository
         var auction = await GetByIdAsync(auctionId);
         if (auction != null)
         {
-            auction.TotalBids = await _context.Bids.CountAsync(b => b.AuctionId == auctionId);
+            auction.TotalBids = await _context.Bids.CountAsync(b => b.AuctionId == auctionId && b.Status != "cancelled");
             auction.UpdatedAt = DateTime.Now;
             await _context.SaveChangesAsync();
         }
@@ -95,6 +95,8 @@ public class AuctionRepository : IAuctionRepository
                 CurrentPrice = auction.CurrentPrice,
                 StartTime = auction.StartTime,
                 EndTime = auction.EndTime,
+                Status = auction.Status,
+                TotalBids = auction.TotalBids,
                 Images = imageGroup.Select(img => new ItemImageDto
                 {
                     ImageId = img.ImageId,
@@ -106,6 +108,14 @@ public class AuctionRepository : IAuctionRepository
         .Skip((page - 1) * pageSize)
         .Take(pageSize)
         .ToListAsync();
+
+        // help most accurate display
+        var now = DateTime.UtcNow;
+        foreach (var a in result)
+        {
+            a.Status = now < a.StartTime ? "upcoming" :
+                       now >= a.StartTime && now < a.EndTime ? "ongoing" : "ended";
+        }
         return result;
     }
 
@@ -117,7 +127,7 @@ public class AuctionRepository : IAuctionRepository
     public async Task<IEnumerable<Auction>> GetAuctionsByUserIdAsync(int userId)
     {
         var userItemIds = await _context.Items
-                                    .Where(item => item.UpdatedBy == userId)
+                                    .Where(item => item.UpdatedBy == userId && !item.IsDeleted)
                                     .Select(item => item.ItemId)
                                     .ToListAsync();
 
@@ -132,5 +142,24 @@ public class AuctionRepository : IAuctionRepository
             .ToListAsync();
 
         return auctions;
+    }
+
+    public async Task<IEnumerable<Auction>> GetEndedAuctionsToFinalizeAsync(DateTime currentTime)
+    {
+        return await _context.Auctions
+                             .Where(a => a.EndTime < currentTime && a.Status == "ongoing")
+                             .ToListAsync();
+    }
+
+    public async Task<bool> UpdateCurrentPriceAsync(int auctionId, decimal newPrice)
+    {
+        // using ExecuteUpdateAsync cho hi?u qu?
+        var affectedRows = await _context.Auctions
+            .Where(a => a.AuctionId == auctionId)
+            .ExecuteUpdateAsync(updates => updates
+                .SetProperty(a => a.CurrentPrice, newPrice)
+                .SetProperty(a => a.UpdatedAt, DateTime.UtcNow)); //update timestamp
+
+        return affectedRows > 0;
     }
 }
