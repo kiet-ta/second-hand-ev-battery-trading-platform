@@ -2,6 +2,7 @@
 using Application.IRepositories.IBiddingRepositories;
 using Application.IServices;
 using Domain.Entities;
+using Microsoft.EntityFrameworkCore;
 
 namespace Application.Services;
 
