@@ -29,7 +29,7 @@ namespace PresentationLayer.Controllers
             if (!isApproved)
                 return NotFound(new { message = "News not found." });
 
-            var notificationAdded = await _notificationService.AddNewNotification(dto);
+            var notificationAdded = await _notificationService.AddNewNotification(dto, 0, "");
             Console.WriteLine(notificationAdded
                 ? $"Notification added to DB: {dto.Title} -> {dto.Message}"
                 : "Failed to add notification to the database.");

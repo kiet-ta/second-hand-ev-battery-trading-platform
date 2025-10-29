@@ -89,13 +89,11 @@ namespace Application.Services
 
             if (string.IsNullOrEmpty(targetUserId))
             {
-                // Broadcast to all
                 targets = _clients.ToArray();
                 Console.WriteLine($"[DEBUG] Broadcasting message to all clients: {message}");
             }
             else if (_clients.TryGetValue(targetUserId, out var targetResponse))
             {
-                // Send to only one user
                 targets = new[] { new KeyValuePair<string, HttpResponse>(targetUserId, targetResponse) };
                 Console.WriteLine($"[DEBUG] Targeted message to user {targetUserId}: {message}");
             }
@@ -116,12 +114,12 @@ namespace Application.Services
             await Task.WhenAll(tasks);
         }
 
-        public async Task<bool> AddNewNotification(CreateNotificationDTO noti)
+        public async Task<bool> AddNewNotification(CreateNotificationDTO noti, int senderId, string role)
         {
             using var scope = _scopeFactory.CreateScope();
             var repo = scope.ServiceProvider.GetRequiredService<INotificationRepository>();
 
-            await repo.AddNotificationAsync(noti);
+            await repo.AddNotificationAsync(noti, senderId, role);
 
             Console.WriteLine($"Notification saved to DB: {noti.Title} - {noti.Message}");
             Console.WriteLine($"Target ID used for persistence: {noti.TargetUserId ?? "BROADCAST"}");
@@ -188,7 +186,7 @@ namespace Application.Services
 
             return result;
         }
-        public async Task<bool> AddNotificationByIdAsync(CreateNotificationDTO noti, int receiverId)
+        public async Task<bool> AddNotificationByIdAsync(CreateNotificationDTO noti, int receiverId,int senderId, string role)
         {
             using var scope = _scopeFactory.CreateScope();
             var repo = scope.ServiceProvider.GetRequiredService<INotificationRepository>();
@@ -196,7 +194,7 @@ namespace Application.Services
             if (noti == null)
                 throw new ArgumentNullException(nameof(noti));
 
-            await repo.AddNotificationById(noti, receiverId);
+            await repo.AddNotificationById(noti, receiverId, senderId, role);
             return true;
         }
 

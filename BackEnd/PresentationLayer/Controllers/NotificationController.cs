@@ -72,14 +72,14 @@ namespace PresentationLayer.Controllers
             var serviceDto = new CreateNotificationDTO
             {
                 NotiType = request.NotiType,
-                SenderId = request.SenderId,
-                SenderRole = request.SenderRole,
+                //SenderId = request.SenderId,
+                //SenderRole = request.SenderRole,
                 Title = request.Title,
                 Message = request.Message,
                 TargetUserId = request.TargetUserId
             };
 
-            var dbSuccess = await _notificationService.AddNewNotification(serviceDto);
+            var dbSuccess = await _notificationService.AddNewNotification(serviceDto, 0, "");
 
             if (!dbSuccess)
                 return StatusCode(500, new { message = "Error saving Notification to database." });
@@ -160,7 +160,7 @@ namespace PresentationLayer.Controllers
             if (noti == null)
                 return BadRequest("Notification data is required.");
 
-            var result = await _notificationService.AddNotificationByIdAsync(noti, receiverId);
+            var result = await _notificationService.AddNotificationByIdAsync(noti, receiverId, 0, "");
 
 
             if (!result)
