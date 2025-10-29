@@ -81,19 +81,19 @@ public static class InfrastructureExtensions
         });
 
         //  Hosted Services (Background Workers)
-        services.AddHostedService<ReleaseFundsWorker>(sp =>
-        {
-            var logger = sp.GetRequiredService<ILogger<ReleaseFundsWorker>>();
-            var serviceProvider = sp.GetRequiredService<IServiceProvider>(); // resolve scoped service
-            var settings = sp.GetRequiredService<IOptions<RabbitMQSettings>>().Value; // get config
-            if (string.IsNullOrEmpty(settings.ConnectionString))
-            {
-                throw new InvalidOperationException("RabbitMQ ConnectionString is not configured for Worker.");
-            }
-            return new ReleaseFundsWorker(logger, serviceProvider, settings);
-        });
+        //services.AddHostedService<ReleaseFundsWorker>(sp =>
+        //{
+        //    var logger = sp.GetRequiredService<ILogger<ReleaseFundsWorker>>();
+        //    var serviceProvider = sp.GetRequiredService<IServiceProvider>(); // resolve scoped service
+        //    var settings = sp.GetRequiredService<IOptions<RabbitMQSettings>>().Value; // get config
+        //    if (string.IsNullOrEmpty(settings.ConnectionString))
+        //    {
+        //        throw new InvalidOperationException("RabbitMQ ConnectionString is not configured for Worker.");
+        //    }
+        //    return new ReleaseFundsWorker(logger, serviceProvider, settings);
+        //});
 
-        services.AddHostedService<ReleaseFundsWorker>();
+        //services.AddHostedService<ReleaseFundsWorker>();
 
         return services;
     }

@@ -4,7 +4,7 @@ namespace Application.IServices
 {
     public interface IAddressService
     {
-        Task AddAddressAsync(Address address);
+        Task AddAddressAsync(Address address, int currentUserId);
         Task DeleteAddressAsync(int addressId);
         Task<List<Address>> GetAddressesByUserIdAsync(int userId);
         Task<Address?> GetAddressByIdAsync(int addressId);
