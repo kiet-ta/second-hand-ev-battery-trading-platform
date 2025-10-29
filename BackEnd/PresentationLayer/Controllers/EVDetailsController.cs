@@ -30,7 +30,7 @@ namespace PresentationLayer.Controllers
             return Ok(result);
         }
 
-        [HttpPost("detail/ev")]
+        [HttpPost]
         public async Task<IActionResult> CreateEv([FromBody] CreateEvDetailDto dto, CancellationToken ct)
         {
 
@@ -39,7 +39,7 @@ namespace PresentationLayer.Controllers
 
         }
 
-        [HttpPut("detail/ev/{id:int}")]
+        [HttpPut("{id:int}")]
         public async Task<IActionResult> UpdateEv(int id, [FromBody] UpdateEvDetailDto dto, CancellationToken ct)
         {
             var ok = await _evService.UpdateAsync(id, dto, ct);
@@ -47,7 +47,7 @@ namespace PresentationLayer.Controllers
             return NoContent();
         }
 
-        [HttpDelete("detail/ev/{id:int}")]
+        [HttpDelete("{id:int}")]
         public async Task<IActionResult> DeleteEv(int id, CancellationToken ct)
         {
             var ok = await _evService.DeleteAsync(id, ct);
@@ -55,7 +55,7 @@ namespace PresentationLayer.Controllers
             return NoContent();
         }
 
-        [HttpGet("search/ev-detail")]
+        [HttpGet("search")]
         public async Task<IActionResult> SearchEvDetail([FromQuery] EVSearchRequestDto request)
         {
             var results = await _evService.SearchEvDetailAsync(request);

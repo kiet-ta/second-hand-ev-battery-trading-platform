@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace PresentationLayer.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/report")]
     [ApiController]
     public class ReportController : ControllerBase
     {

@@ -10,7 +10,7 @@ using System.Text.Json;
 namespace PresentationLayer.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/notification")]
     public class NotificationsController : ControllerBase
     {
         private readonly INotificationService _notificationService;

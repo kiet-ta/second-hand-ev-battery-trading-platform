@@ -29,7 +29,7 @@ namespace BackEnd.Application.Tests
             _repoMock.Setup(r => r.GetAddressesByUserIdAsync(1))
                      .ReturnsAsync(new List<Address>());
 
-            await _service.AddAddressAsync(address);
+            await _service.AddAddressAsync(address, 1);
 
             Assert.False(address.IsDeleted);
         }
@@ -42,7 +42,7 @@ namespace BackEnd.Application.Tests
             _repoMock.Setup(r => r.GetAddressesByUserIdAsync(1))
                      .ReturnsAsync(existing);
 
-            await _service.AddAddressAsync(address);
+            await _service.AddAddressAsync(address, 1);
 
             Assert.False(address.IsDefault);
         }
@@ -54,7 +54,7 @@ namespace BackEnd.Application.Tests
             _repoMock.Setup(r => r.GetAddressesByUserIdAsync(1))
                      .ReturnsAsync(new List<Address> { new Address { IsDefault = false } });
 
-            await _service.AddAddressAsync(address);
+            await _service.AddAddressAsync(address, 1);
 
             Assert.True(address.IsDefault);
         }
@@ -66,7 +66,7 @@ namespace BackEnd.Application.Tests
             _repoMock.Setup(r => r.GetAddressesByUserIdAsync(1))
                      .ReturnsAsync(new List<Address>());
 
-            await _service.AddAddressAsync(address);
+            await _service.AddAddressAsync(address, 1);
 
             _repoMock.Verify(r => r.AddAddressAsync(address), Times.Once);
         }
@@ -78,7 +78,7 @@ namespace BackEnd.Application.Tests
             _repoMock.Setup(r => r.GetAddressesByUserIdAsync(1))
                      .ReturnsAsync(new List<Address>());
 
-            await _service.AddAddressAsync(address);
+            await _service.AddAddressAsync(address, 1);
         }
 
 
@@ -217,7 +217,7 @@ namespace BackEnd.Application.Tests
             _repoMock.Setup(r => r.GetAddressesByUserIdAsync(1))
                      .ReturnsAsync(existing);
 
-            await _service.AddAddressAsync(address);
+            await _service.AddAddressAsync(address, 1);
 
             Assert.False(address.IsDefault);
         }
@@ -229,7 +229,7 @@ namespace BackEnd.Application.Tests
             _repoMock.Setup(r => r.GetAddressesByUserIdAsync(1))
                      .ReturnsAsync(new List<Address>());
 
-            await _service.AddAddressAsync(address);
+            await _service.AddAddressAsync(address, 1);
 
             Assert.True(address.IsDefault);
         }
