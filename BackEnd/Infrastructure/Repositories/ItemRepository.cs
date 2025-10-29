@@ -74,7 +74,7 @@ namespace Infrastructure.Repositories
                         join u in _context.Users
                             on i.UpdatedBy equals u.UserId into gj
                         from user in gj.DefaultIfEmpty()
-                        where i.IsDeleted == false
+                        where i.IsDeleted == false && i.Status == "active"
                         select new ItemDto
                         {
                             ItemId = i.ItemId,
@@ -88,6 +88,7 @@ namespace Infrastructure.Repositories
                             CreatedAt = i.CreatedAt,
                             UpdatedAt = i.UpdatedAt,
                             SellerName = user != null ? user.FullName : string.Empty,
+                            Moderation = i.Moderation,
                             Images = _context.ItemImages
                                 .Where(img => img.ItemId == i.ItemId)
                                 .Select(img => new ItemImageDto
@@ -224,7 +225,7 @@ namespace Infrastructure.Repositories
         public async Task<IEnumerable<Item>> GetLatestEVsAsync(int count)
         {
             return await _context.Items
-                .Where(x => x.ItemType == "EV" && !(x.IsDeleted == true))
+                .Where(x => x.ItemType == "ev" && !(x.IsDeleted == true) && x.Status == "active")
                 .OrderByDescending(x => x.CreatedAt)
                 .Take(count)
                 .ToListAsync();
@@ -233,7 +234,7 @@ namespace Infrastructure.Repositories
         public async Task<IEnumerable<Item>> GetLatestBatteriesAsync(int count)
         {
             return await _context.Items
-                .Where(x => x.ItemType == "Battery" && !(x.IsDeleted == true))
+                .Where(x => x.ItemType == "battery" && !(x.IsDeleted == true) && x.Status == "active")
                 .OrderByDescending(x => x.CreatedAt)
                 .Take(count)
                 .ToListAsync();

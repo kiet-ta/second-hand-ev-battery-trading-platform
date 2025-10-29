@@ -22,7 +22,14 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: './src/setupTests.js',
   },
-  theme: {
+    server: {
+    host: true, 
+    port: 5173, 
+    allowedHosts: [
+      'overhostile-mindy-overhastily.ngrok-free.dev'
+    ],
+  },
+    theme: {
     extend: {
       fontFamily: {
         sans: ['Be Vietnam Pro', 'ui-sans-serif', 'system-ui'],

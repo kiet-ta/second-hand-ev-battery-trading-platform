@@ -30,8 +30,6 @@ namespace Application.DTOs.ItemDtos
         public int? UpdatedBy { get; set; }
 
         public string? Moderation { get; set; }
-        public string LicenseUrl { get; set; }
-
 
         public List<ItemImageDto>? Images { get; set; } = new();
         public string? SellerName { get; set; }

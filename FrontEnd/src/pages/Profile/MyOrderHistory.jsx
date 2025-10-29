@@ -94,7 +94,7 @@ export default function OrderPage() {
   return (
     <div className="min-h-screen bg-[#FAF8F3] py-8 px-4">
       <div className="max-w-6xl mx-auto">
-        <h1 className="text-2xl md:text-3xl font-serif font-bold mb-6">Đơn hàng của tôi</h1>
+        <h1 className="text-2xl md:text-3xl font-roboto font-bold mb-6">Đơn hàng của tôi</h1>
 
         {/* Tabs */}
         <div className="flex items-center gap-4 mb-4 overflow-x-auto">

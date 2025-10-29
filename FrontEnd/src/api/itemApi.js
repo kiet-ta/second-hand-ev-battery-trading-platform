@@ -42,6 +42,18 @@ const itemApi = {
         const response = await axios.put(baseURL + `/${itemId}`, itemData)
         return response.data
     },
+    putItemDetailEV: async (itemId, evData) => {
+        const response = await axios.put(baseURL + `/detail/ev/${itemId}`, evData)
+        return response.data
+    },
+    putItemDetailBattery: async (itemId, batteryData) => {
+        const response = await axios.put(baseURL + `/detail/battery/${itemId}`, batteryData)
+        return response.data
+    },
+    deleteItem: async (itemId) => {
+        const response = await axios.delete(baseURL + `/${itemId}`);
+        return response.data;
+    },
 
 };
 export default itemApi;

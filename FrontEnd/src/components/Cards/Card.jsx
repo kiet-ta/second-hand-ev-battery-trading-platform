@@ -118,7 +118,6 @@ function CardComponent({
             try {
                 const payload = { buyerId: userId, itemId: id, quantity: 1, price };
                 await orderItemApi.postOrderItem(payload);
-                message.success("Đã thêm vào giỏ hàng");
             } catch (err) {
                 console.error("Error adding item:", err);
             } finally {
@@ -218,7 +217,6 @@ function CardComponent({
                     await favouriteApi.deleteFavourite(favoriteId);
                     setIsFavorited(false);
                     setFavoriteId(null);
-                    message.info("❎ Đã xoá khỏi yêu thích");
                 } else {
                     const res = await favouriteApi.postFavourite({
                         userId: parseInt(userId, 10),
@@ -227,7 +225,6 @@ function CardComponent({
                     });
                     setIsFavorited(true);
                     setFavoriteId(res?.favId ?? null);
-                    message.success("❤️ Đã thêm vào yêu thích");
                 }
             } catch (err) {
                 console.error("Favourite failed:", err);
@@ -256,15 +253,11 @@ function CardComponent({
 
             //Danh sách xe đi với danh sách xe
             if (list.length > 0 && list[0].itemType !== type) {
-                message.error(
-                    `❌ Bạn chỉ có thể so sánh các sản phẩm cùng loại (${list[0].itemType.toUpperCase()}).`
-                );
                 return;
             }
 
             // Giới hạn tối đa 3 item
             if (list.length >= 3) {
-                message.warning("⚠️ Chỉ có thể so sánh tối đa 3 sản phẩm.");
                 return;
             }
 
@@ -278,7 +271,6 @@ function CardComponent({
             };
             addToCompare(itemData);
             setIsCompared(true);
-            message.success("✅ Đã thêm vào danh sách so sánh");
         },
         [id, title, price, itemImages, type]
     );
@@ -372,7 +364,6 @@ function CardComponent({
                         >
                             {title}
                         </h3>
-                        {isVerified && <VerifiedCheck className="ml-2" />}
                     </div>
 
                     <div className="flex items-center text-sm text-gray-500 mt-2 space-x-4">

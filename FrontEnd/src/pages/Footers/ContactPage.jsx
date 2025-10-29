@@ -8,7 +8,7 @@ function ContactPage() {
       style={{ fontFamily: "'Be Vietnam Pro', sans-serif" }}
     >
       <div className="py-20 text-center bg-white border-b border-[#E8E4DC]">
-        <h1 className="text-5xl font-extrabold font-serif tracking-wider text-[#2C2C2C]">
+        <h1 className="text-5xl font-extrabold font-roboto tracking-wider text-[#2C2C2C]">
           Liên Hệ Với Chúng Tôi
         </h1>
         <p className="mt-4 text-lg text-gray-600 max-w-2xl mx-auto">
