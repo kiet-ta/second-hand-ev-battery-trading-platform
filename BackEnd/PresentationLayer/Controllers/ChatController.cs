@@ -7,7 +7,7 @@ using static Application.DTOs.SignalRDtos.ChatDto;
 
 namespace PresentationLayer.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/chat")]
     [ApiController]
     public class ChatController : ControllerBase
     {
@@ -28,7 +28,7 @@ namespace PresentationLayer.Controllers
             return r == null ? NotFound() : Ok(r);
         }
 
-        [HttpPost("send")]
+        [HttpPost("rooms/{cid}/messages")]
         [Authorize]
         public async Task<IActionResult> SendMessage([FromBody] SendMessageDto dto)
         {

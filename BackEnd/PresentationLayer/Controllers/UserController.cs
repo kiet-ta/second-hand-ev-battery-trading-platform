@@ -1,44 +1,80 @@
-﻿using Application.DTOs.UserDtos;
+﻿using Application.DTOs;
+using Application.DTOs.UserDtos;
 using Application.IServices;
 using Domain.Entities;
 using Infrastructure.Helpers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace PresentationLayer.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/users")]
     [ApiController]
     public class UserController : ControllerBase
     {
         private readonly IUserService _userService;
+        private readonly IUploadService _uploadService;
 
-        public UserController(IUserService userService)
+        public UserController(IUserService userService, IUploadService uploadService)
         {
             _userService = userService;
+            _uploadService = uploadService;
         }
 
-        [HttpGet("count-by-role")]
-        public async Task<IActionResult> CountUsersByRole()
+        //[HttpGet("count-by-role")]
+        //public async Task<IActionResult> CountUsersByRole()
+        //{
+        //    var result = await _userService.GetUsersByRoleAsync();
+        //    return Ok(result);
+        //}
+
+        //[HttpPost("Register")]
+        //public async Task<IActionResult> AddUser([FromBody] CreateUserDto dto)
+        //{
+
+        //    var result = await _userService.AddUserAsync(dto);
+        //    return Ok(result);
+        //}
+
+        [HttpGet("{userId}/avatar")]
+        public async Task<IActionResult> GetUserAvatar(int userId)
         {
-            var result = await _userService.GetUsersByRoleAsync();
-            return Ok(result);
+            var avatarUrl = await _userService.GetAvatarAsync(userId);
+            if (string.IsNullOrEmpty(avatarUrl))
+                return NotFound(new { message = "Avatar not set or user not found." });
+
+            return Ok(new { userId, avatarUrl });
         }
 
-        [HttpPost("Register")]
-        public async Task<IActionResult> AddUser([FromBody] CreateUserDto dto)
+        [HttpPut("me/avatar")]
+        [Consumes("multipart/form-data")]
+        public async Task<IActionResult> UploadAvatar([FromForm] UploadAvatarRequest request)
         {
-            
-                var result = await _userService.AddUserAsync(dto);
-                return Ok(result);
-            
-            
+            if (request.File == null)
+                return BadRequest("No file uploaded");
+
+            var idClaim = User.FindFirst("user_id") ?? User.FindFirst(ClaimTypes.NameIdentifier);
+
+            if (idClaim == null)
+                return Unauthorized("Invalid token: user ID not found in claims");
+
+            if (!int.TryParse(idClaim.Value, out var userId))
+                return BadRequest("Invalid user ID format in token");
+
+            var avatarUrl = await _uploadService.UploadAvatarAsync(userId, request.File);
+
+            return Ok(new
+            {
+                Message = "Upload success",
+                AvatarUrl = avatarUrl
+            });
         }
 
-        [HttpGet]
-        [Authorize(Roles = "manager,staff")]
-        public async Task<IActionResult> Get() => Ok(await _userService.GetAllUsersAsync());
+        //[HttpGet]
+        //[Authorize(Roles = "manager,staff")]
+        //public async Task<IActionResult> Get() => Ok(await _userService.GetAllUsersAsync());
 
         [HttpGet("{id}")]
         public async Task<IActionResult> Get(int id)
@@ -70,7 +106,7 @@ namespace PresentationLayer.Controllers
             return NoContent();
         }
 
-        [HttpPut("{userId}/change-password")]
+        [HttpPut("{userId}/password")]
         public async Task<IActionResult> ChangePassword(int userId, [FromBody] ChangePasswordRequestDto request)
         {
         
@@ -80,7 +116,8 @@ namespace PresentationLayer.Controllers
             
         }
 
-        [HttpGet("all/user/pagination")]
+        [HttpGet]
+        [Authorize(Roles = "manager,staff")]
         public async Task<IActionResult> GetAllUsers([FromQuery] int page = 1, [FromQuery] int pageSize = 20)
         {
             if (page <= 0 || pageSize <= 0)

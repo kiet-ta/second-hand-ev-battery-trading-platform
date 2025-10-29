@@ -15,5 +15,6 @@ namespace Application.IRepositories
         Task UpdateAsync(BatteryDetail batteryDetail);
         Task DeleteAsync(int itemId);
         Task SaveChangesAsync();
+        Task<IEnumerable<Item>> GetLatestBatteriesAsync(int count);
     }
 }

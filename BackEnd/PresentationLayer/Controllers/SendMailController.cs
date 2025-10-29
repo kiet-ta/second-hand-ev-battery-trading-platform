@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 namespace PresentationLayer.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/mail")]
     public class MailController : ControllerBase
     {
         private readonly IMailService _mailService;
