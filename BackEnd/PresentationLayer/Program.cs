@@ -222,8 +222,12 @@ namespace PresentationLayer
             builder.Services.AddScoped<IEmailRepository, EmailTemplateRepository>();
             builder.Services.AddScoped<IMailService, MailService>();
             builder.Services.AddScoped<IValidator<PaymentRequestDto>, PaymentRequestValidator>();
+
+            builder.Services.AddScoped<IReportService, ReportService>();
+            builder.Services.AddScoped<IReportRepository, ReportRepository>();
+
             builder.Services.AddHostedService<PayOSWebhookInitializer>();
-            builder.Services.AddHostedService<ReleaseFundsWorker>();
+            //builder.Services.AddHostedService<ReleaseFundsWorker>();
             builder.Services.AddScoped<IKYC_DocumentService, KYC_DocumentService>();
             builder.Services.AddScoped<IRedisCacheHelper, RedisCacheHelper>();
             builder.Services.AddScoped<IFavoriteRepository, FavoriteRepository>();
@@ -258,17 +262,17 @@ namespace PresentationLayer
                 //  inject connection string into constructor
                 return new RabbitMQPublisher(settings);
             });
-            builder.Services.AddHostedService<ReleaseFundsWorker>(sp =>
-            {
-                var logger = sp.GetRequiredService<ILogger<ReleaseFundsWorker>>();
-                var serviceProvider = sp.GetRequiredService<IServiceProvider>(); // resolve scoped service
-                var settings = sp.GetRequiredService<IOptions<RabbitMQSettings>>().Value; // get config
-                if (string.IsNullOrEmpty(settings.ConnectionString))
-                {
-                    throw new InvalidOperationException("RabbitMQ ConnectionString is not configured for Worker.");
-                }
-                return new ReleaseFundsWorker(logger, serviceProvider, settings);
-            });
+            //builder.Services.AddHostedService<ReleaseFundsWorker>(sp =>
+            //{
+            //    var logger = sp.GetRequiredService<ILogger<ReleaseFundsWorker>>();
+            //    var serviceProvider = sp.GetRequiredService<IServiceProvider>(); // resolve scoped service
+            //    var settings = sp.GetRequiredService<IOptions<RabbitMQSettings>>().Value; // get config
+            //    if (string.IsNullOrEmpty(settings.ConnectionString))
+            //    {
+            //        throw new InvalidOperationException("RabbitMQ ConnectionString is not configured for Worker.");
+            //    }
+            //    return new ReleaseFundsWorker(logger, serviceProvider, settings);
+            //});
             //Complaint
             builder.Services.AddScoped<IComplaintService, ComplaintService>();
             builder.Services.AddScoped<IComplaintRepository, ComplaintRepository>();
