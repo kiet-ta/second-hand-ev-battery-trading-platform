@@ -96,7 +96,6 @@ export default function LoginPage() {
     const handleLocalLogin = async (e) => {
         e.preventDefault();
         setError("");
-
         if (!email || !password)
             return setError("Vui lòng nhập đầy đủ thông tin đăng nhập.");
         if (password.length < 6)
@@ -105,6 +104,7 @@ export default function LoginPage() {
         try {
             const data = await authApi.login(email.trim(), password.trim());
             const res = data.data;
+            console.log("Login response:", res);
 
             const newUser = { ...res, token: res.token };
             localStorage.setItem("userId", res.userId);

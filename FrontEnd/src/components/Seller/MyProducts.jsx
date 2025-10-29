@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Clock, Tag, CheckCircle, XCircle, Search } from "lucide-react";
-import { Input, Select, Modal, Button, message, Spin } from "antd";
+import { Input, Select, Modal, Button, Spin } from "antd";
 import ProductCreationModal from "../ItemForm/ProductCreationModal";
 import walletApi from "../../api/walletApi";
 import itemApi from "../../api/itemApi";
@@ -19,7 +19,6 @@ export default function MyProducts() {
   const sellerId = localStorage.getItem("userId");
   const baseURL = import.meta.env.VITE_API_BASE_URL;
 
-  // Fetch all products
   const fetchProducts = async () => {
     if (!sellerId) return;
     setLoading(true);
@@ -30,7 +29,7 @@ export default function MyProducts() {
       setProducts(data);
       setFiltered(data);
     } catch (err) {
-      message.error(err.message);
+      console.error(err);
     } finally {
       setLoading(false);
     }
@@ -40,7 +39,6 @@ export default function MyProducts() {
     fetchProducts();
   }, []);
 
-  // Search + filter
   useEffect(() => {
     let data = [...products];
     if (searchTerm)
@@ -56,7 +54,6 @@ export default function MyProducts() {
   const formatCurrency = (num) =>
     new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(num);
 
-  // Open payment modal
   const handlePayClick = async (item) => {
     try {
       setPayLoading(true);
@@ -69,31 +66,22 @@ export default function MyProducts() {
       setIsPayModalOpen(true);
     } catch (err) {
       console.error(err);
-      message.error("Không thể tải thông tin ví hoặc sản phẩm!");
     } finally {
       setPayLoading(false);
     }
   };
 
-  // Confirm payment
   const handleConfirmPayment = async () => {
     if (!wallet || wallet.balance < 100000) {
-      message.warning("Số dư không đủ để thanh toán ₫100,000");
       return;
     }
 
     setPayLoading(true);
     try {
-      // 1️⃣ Thanh toán phí
       await walletApi.depositWallet({ userId: sellerId, amount: 100000 });
-      message.success(`Thanh toán phí ₫100,000 cho sản phẩm "${selectedItem.title}" thành công!`);
-
-      // 2️⃣ Cập nhật ví
       setWallet((prev) => ({ ...prev, balance: prev.balance - 100000 }));
 
-      // 3️⃣ Chuẩn bị payload cập nhật
       const categoryId = selectedItem.itemType === "ev" ? 1 : 2;
-
       const updatePayload = {
         itemId: selectedItem.itemId,
         itemType: selectedItem.itemType,
@@ -116,23 +104,18 @@ export default function MyProducts() {
         itemDetail: JSON.stringify({}),
       };
 
-      // 4️⃣ Cập nhật item chính
       await itemApi.putItem(selectedItem.itemId, updatePayload);
 
-      // 5️⃣ Cập nhật chi tiết EV hoặc Battery
       if (selectedItem.itemType === "ev" && selectedItem.evDetail) {
         await itemApi.putItemDetailEV(selectedItem.itemId, selectedItem.evDetail);
       } else if (selectedItem.itemType === "battery" && selectedItem.batteryDetail) {
         await itemApi.putItemDetailBattery(selectedItem.itemId, selectedItem.batteryDetail);
       }
 
-      // 6️⃣ Làm mới danh sách và đóng modal
       setIsPayModalOpen(false);
       fetchProducts();
-      message.success("Sản phẩm đã được kích hoạt thành công!");
     } catch (error) {
       console.error(error);
-      message.error("Thanh toán thất bại, vui lòng thử lại!");
     } finally {
       setPayLoading(false);
     }
@@ -176,14 +159,13 @@ export default function MyProducts() {
         />
       </div>
 
-      {/* Products */}
-      {filtered.length === 0 ? (
-        <div className="flex flex-col justify-center items-center h-[60vh] text-gray-500">
-          <img
-            src="https://cdn-icons-png.flaticon.com/512/4076/4076549.png"
-            alt="No data"
-            className="w-28 mb-4 opacity-70"
-          />
+      {/* Products List */}
+      {products.length === 0 ? (
+        <div className="flex flex-col justify-center items-center h-[40vh] text-gray-500">
+          <p className="text-lg font-medium">Người dùng chưa có sản phẩm.</p>
+        </div>
+      ) : filtered.length === 0 ? (
+        <div className="flex flex-col justify-center items-center h-[40vh] text-gray-500">
           <p className="text-lg font-medium">Không có sản phẩm nào phù hợp.</p>
         </div>
       ) : (

@@ -26,7 +26,7 @@ function FaqPage() {
     return (
         <div className="bg-[#FAF8F3] text-[#2C2C2C] overflow-y-auto">
              <div className="py-20 text-center bg-white border-b border-[#E8E4DC]">
-                <h1 className="text-5xl font-extrabold font-serif tracking-wider">Câu Hỏi Thường Gặp</h1>
+                <h1 className="text-5xl font-extrabold font-roboto tracking-wider">Câu Hỏi Thường Gặp</h1>
                 <p className="mt-4 text-lg text-gray-600">Tìm câu trả lời cho các câu hỏi phổ biến nhất.</p>
             </div>
             <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16">

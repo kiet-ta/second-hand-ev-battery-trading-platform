@@ -33,7 +33,7 @@ function SellerOnBoard() {
 
         {/* Right Section: Content */}
         <div className="md:w-1/2 p-8 lg:p-12 flex flex-col justify-center bg-white">
-          <h1 className="text-3xl md:text-4xl font-bold text-[#2C2C2C] font-serif">
+          <h1 className="text-3xl md:text-4xl font-bold text-[#2C2C2C] font-roboto">
             Chào mừng đến với <span className="text-[#D4AF37]">Cóc Mua Xe</span>
           </h1>
 

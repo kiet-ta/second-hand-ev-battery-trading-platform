@@ -74,7 +74,7 @@ namespace Infrastructure.Repositories
                         join u in _context.Users
                             on i.UpdatedBy equals u.UserId into gj
                         from user in gj.DefaultIfEmpty()
-                        where i.IsDeleted == false
+                        where i.IsDeleted == false && i.Status == "active"
                         select new ItemDto
                         {
                             ItemId = i.ItemId,

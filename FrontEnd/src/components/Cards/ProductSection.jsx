@@ -19,7 +19,7 @@ const ProductSection = ({
     <div className="w-full mb-16">
       <div className="flex justify-between items-center pb-2 mb-8">
         {/* The h2 is kept for alignment but the title is rendered in HomePage via SectionHeader */}
-        <h2 className="text-left text-3xl font-serif font-bold text-[#2C2C2C]"></h2>
+        <h2 className="text-left text-3xl font-roboto font-bold text-[#2C2C2C]"></h2>
         <Link to={viewAllUrl} className="flex items-center text-[#B8860B] font-semibold hover:text-[#D4AF37] transition-colors">
           View All
           <FiArrowRight className="ml-2 w-4 h-4" />

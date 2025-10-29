@@ -24,7 +24,7 @@ function CareersPage() {
         <div className="bg-[#FAF8F3] text-[#2C2C2C] overflow-y-auto">
             {/* Header */}
             <div className="py-20 text-center bg-white border-b border-[#E8E4DC]">
-                <h1 className="text-5xl font-extrabold font-serif tracking-wider">Cơ Hội Nghề Nghiệp</h1>
+                <h1 className="text-5xl font-extrabold font-roboto tracking-wider">Cơ Hội Nghề Nghiệp</h1>
                 <p className="mt-4 text-lg text-gray-600 max-w-2xl mx-auto">
                     Gia nhập đội ngũ tiên phong của chúng tôi và cùng định hình tương lai của ngành công nghiệp xe điện bền vững.
                 </p>
@@ -34,7 +34,7 @@ function CareersPage() {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
                 {/* Why Join Us */}
                 <div className="mb-20">
-                    <h2 className="text-4xl font-bold font-serif text-center text-[#B8860B] mb-12">Tại Sao Chọn Chúng Tôi?</h2>
+                    <h2 className="text-4xl font-bold font-roboto text-center text-[#B8860B] mb-12">Tại Sao Chọn Chúng Tôi?</h2>
                     <div className="grid md:grid-cols-3 gap-10 text-center">
                         <div className="p-6">
                             <FiCpu className="w-12 h-12 text-[#B8860B] mx-auto mb-4" />
@@ -56,7 +56,7 @@ function CareersPage() {
 
                 {/* Open Positions */}
                 <div>
-                    <h2 className="text-4xl font-bold font-serif text-center text-[#B8860B] mb-12">Các Vị Trí Đang Tuyển</h2>
+                    <h2 className="text-4xl font-bold font-roboto text-center text-[#B8860B] mb-12">Các Vị Trí Đang Tuyển</h2>
                     <div className="space-y-6 max-w-4xl mx-auto">
                         {jobOpenings.map(job => (
                             <JobOpening key={job.title} {...job} />

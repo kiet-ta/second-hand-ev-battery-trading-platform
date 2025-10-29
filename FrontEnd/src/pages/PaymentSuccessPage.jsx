@@ -18,7 +18,7 @@ function PaymentSuccessPage() {
         className="bg-white shadow-2xl rounded-2xl border border-[#E8E4DC] max-w-lg w-full p-10 text-center relative z-10"
       >
         <CheckCircleFilled className="text-[#D4AF37] text-6xl mb-4" />
-        <h1 className="text-4xl font-serif font-extrabold text-[#2C2C2C] mb-3">
+        <h1 className="text-4xl font-roboto font-extrabold text-[#2C2C2C] mb-3">
           Thanh Toán Thành Công!
         </h1>
         <p className="text-gray-600 text-lg mb-8 max-w-md mx-auto">
@@ -28,7 +28,7 @@ function PaymentSuccessPage() {
 
         <Result
           status="success"
-          title={<span className="text-[#2C2C2C] font-serif text-xl">Đơn hàng đã được xác nhận</span>}
+          title={<span className="text-[#2C2C2C] font-roboto text-xl">Đơn hàng đã được xác nhận</span>}
           subTitle={
             <span className="text-gray-600">
               Chúng tôi sẽ sớm gửi thông tin vận chuyển qua email và số điện thoại của bạn.

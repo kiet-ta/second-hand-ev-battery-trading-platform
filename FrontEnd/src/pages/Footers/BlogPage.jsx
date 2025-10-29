@@ -27,7 +27,7 @@ function BlogPage() {
     return (
          <div className="bg-[#FAF8F3] text-[#2C2C2C] overflow-y-auto">
             <div className="py-20 text-center bg-white border-b border-[#E8E4DC]">
-                <h1 className="text-5xl font-extrabold font-serif tracking-wider">Blog & Tin Tức</h1>
+                <h1 className="text-5xl font-extrabold font-roboto tracking-wider">Blog & Tin Tức</h1>
                 <p className="mt-4 text-lg text-gray-600 max-w-2xl mx-auto">Cập nhật những thông tin, xu hướng và kiến thức mới nhất về thế giới xe điện.</p>
             </div>
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">

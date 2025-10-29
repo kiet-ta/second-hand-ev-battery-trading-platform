@@ -29,7 +29,7 @@ function AboutPage() {
             <div className="relative h-96">
                 <img src="https://images.unsplash.com/photo-1552519507-da3b142c6e3d?q=80&w=2070&auto=format&fit=crop" alt="Xe điện cổ điển" className="absolute inset-0 w-full h-full object-cover" />
                 <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center">
-                    <h1 className="text-5xl font-extrabold text-white font-serif tracking-wider">Về Cóc Mua Xe</h1>
+                    <h1 className="text-5xl font-extrabold text-white font-roboto tracking-wider">Về Cóc Mua Xe</h1>
                 </div>
             </div>
 
@@ -38,7 +38,7 @@ function AboutPage() {
                 {/* Mission and Vision */}
                 <div className="grid md:grid-cols-2 gap-12 items-center mb-20">
                     <div>
-                        <h2 className="text-4xl font-bold font-serif text-[#B8860B] mb-4">Sứ Mệnh Của Chúng Tôi</h2>
+                        <h2 className="text-4xl font-bold font-roboto text-[#B8860B] mb-4">Sứ Mệnh Của Chúng Tôi</h2>
                         <p className="text-lg text-gray-700 leading-relaxed">
                             Tại Cóc Mua Xe, sứ mệnh của chúng tôi là thúc đẩy cuộc cách mạng xe điện bằng cách tạo ra một nền tảng đáng tin cậy, minh bạch và dễ dàng cho việc mua bán xe điện và pin đã qua sử dụng. Chúng tôi tin rằng một tương lai bền vững có thể đạt được bằng cách kéo dài vòng đời của các sản phẩm chất lượng.
                         </p>
@@ -56,7 +56,7 @@ function AboutPage() {
 
                 {/* Our Values */}
                 <div className="text-center mb-20">
-                    <h2 className="text-4xl font-bold font-serif text-[#B8860B] mb-12">Giá Trị Cốt Lõi</h2>
+                    <h2 className="text-4xl font-bold font-roboto text-[#B8860B] mb-12">Giá Trị Cốt Lõi</h2>
                     <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-10">
                         <div className="p-6 bg-white rounded-lg shadow-lg border border-[#E8E4DC]">
                             <FiAward />
@@ -79,7 +79,7 @@ function AboutPage() {
 
                 {/* Team Section */}
                 <div className="text-center">
-                    <h2 className="text-4xl font-bold font-serif text-[#B8860B] mb-12">Gặp Gỡ Đội Ngũ</h2>
+                    <h2 className="text-4xl font-bold font-roboto text-[#B8860B] mb-12">Gặp Gỡ Đội Ngũ</h2>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
                         {teamMembers.map(member => (
                             <TeamMemberCard key={member.name} {...member} />

@@ -115,9 +115,9 @@ function Navbar({ data }) {
                             <input type="text" name="query" placeholder="Tìm kiếm xe điện & pin cao cấp..." className="w-full text-lg p-3 rounded-lg border-none focus:ring-2 focus:ring-[#D4AF37] text-[#2C2C2C] pr-[100px]" /> {/* Adjusted padding */}
                             <div className="absolute right-0 top-0 h-full flex items-center"> {/* Use flex for vertical centering */}
                                 <select name="itemType" className="h-full bg-[#D4AF37] text-[#2C2C2C] text-center font-bold border-none rounded-r-lg hover:bg-[#B8860B] transition-colors cursor-pointer px-4 appearance-none"> {/* Added appearance-none */}
-                                    <option value="All">Tất cả</option>
-                                    <option value="EV">Xe</option>
-                                    <option value="Battery">Pin</option>
+                                    <option value="all">Tất cả</option>
+                                    <option value="ev">Xe</option>
+                                    <option value="battery">Pin</option>
                                 </select>
                             </div>
                             <button type="submit" className="hidden">Tìm</button>
