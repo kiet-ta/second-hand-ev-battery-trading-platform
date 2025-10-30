@@ -27,7 +27,7 @@ export default function CompareEVPage() {
             const results = await Promise.all(
                 list.map(async (it) => {
                     try {
-                        const res = await fetch(`${BASE}Item/with-detail/${it.itemId}`);
+                        const res = await fetch(`${BASE}item/with-detail/${it.itemId}`);
                         if (!res.ok) throw new Error("API error");
                         const data = await res.json();
 

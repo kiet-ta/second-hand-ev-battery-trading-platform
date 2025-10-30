@@ -5,7 +5,6 @@ import {
   Eye,
   Wrench,
   CheckCircle,
-  AlertTriangle,
   RefreshCw,
   UserCheck,
 } from "lucide-react";
@@ -19,34 +18,39 @@ export default function ComplaintList() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [levelFilter, setLevelFilter] = useState("all");
-  const baseURL = import.meta.env.VITE_API_BASE_URL;
 
-  // Modal
   const [modalVisible, setModalVisible] = useState(false);
   const [modalLoading, setModalLoading] = useState(false);
   const [selectedComplaint, setSelectedComplaint] = useState(null);
 
-  // Staff danh sách (ví dụ tạm)
-  const [staffList, setStaffList] = useState([
+  const [staffList] = useState([
     { id: 11, name: "Nguyen Van Staff" },
     { id: 12, name: "Tran Thi Support" },
     { id: 13, name: "Le Van Helpdesk" },
   ]);
 
   const token = localStorage.getItem("token");
+  const baseURL = import.meta.env.VITE_API_BASE_URL;
 
-
-  // Lấy danh sách complaint
+  // ✅ Lấy danh sách complaint
   const fetchComplaints = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`${baseURL}Complaints/all`, {
+      const res = await fetch(`${baseURL}complaint/all`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (!res.ok) throw new Error("Không thể tải complaint");
       const data = await res.json();
-      setComplaints(data);
-      setFiltered(data);
+
+      // Sắp xếp complaint mới nhất lên đầu
+      const sorted = (data || []).sort((a, b) => {
+        const dateA = new Date(a.createdAt || 0);
+        const dateB = new Date(b.createdAt || 0);
+        return dateB - dateA;
+      });
+
+      setComplaints(sorted);
+      setFiltered(sorted);
     } catch (err) {
       console.error(err);
       message.error("❌ Lỗi tải danh sách khiếu nại.");
@@ -55,11 +59,12 @@ export default function ComplaintList() {
     }
   };
 
+  // Gọi API khi load trang
   useEffect(() => {
     fetchComplaints();
   }, []);
 
-  // Lọc và tìm kiếm
+  // ✅ Lọc và tìm kiếm
   useEffect(() => {
     let list = [...complaints];
     if (statusFilter !== "all") list = list.filter((c) => c.status === statusFilter);
@@ -68,19 +73,19 @@ export default function ComplaintList() {
       const q = search.toLowerCase();
       list = list.filter(
         (c) =>
-          c.reason.toLowerCase().includes(q) ||
-          c.description.toLowerCase().includes(q)
+          c.reason?.toLowerCase().includes(q) ||
+          c.description?.toLowerCase().includes(q)
       );
     }
     setFiltered(list);
   }, [complaints, search, statusFilter, levelFilter]);
 
-  // Xem chi tiết complaint
+  // ✅ Xem chi tiết complaint
   const openDetailModal = async (id) => {
     setModalVisible(true);
     setModalLoading(true);
     try {
-      const res = await fetch(`${baseURL}Complaints/${id}`, {
+      const res = await fetch(`${baseURL}complaint/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (!res.ok) throw new Error("Không thể lấy chi tiết complaint");
@@ -95,14 +100,12 @@ export default function ComplaintList() {
     }
   };
 
-  // Update status
+  // ✅ Cập nhật trạng thái
   const updateStatus = async (id, newStatus) => {
     try {
-      const res = await fetch(`${baseURL}Complaints/${id}/status?status=${newStatus}`, {
+      const res = await fetch(`${baseURL}complaint/${id}/status?status=${newStatus}`, {
         method: "PATCH",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
       if (!res.ok) throw new Error();
       message.success(`✅ Trạng thái chuyển sang "${newStatus}".`);
@@ -113,11 +116,10 @@ export default function ComplaintList() {
     }
   };
 
-
-  // Update severity level
+  // ✅ Cập nhật mức độ nghiêm trọng
   const updateLevel = async (id, newLevel) => {
     try {
-      const res = await fetch(`${baseURL}Complaints/${id}/level`, {
+      const res = await fetch(`${baseURL}complaint/${id}/level`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -133,10 +135,10 @@ export default function ComplaintList() {
     }
   };
 
-  // Assign complaint cho staff
+  // ✅ Giao staff xử lý
   const assignToStaff = async (id, staffId) => {
     try {
-      const res = await fetch(`${baseURL}Complaints/assignee/${staffId}`, {
+      const res = await fetch(`${baseURL}complaint/assignee/${staffId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (!res.ok) throw new Error();
@@ -147,7 +149,7 @@ export default function ComplaintList() {
     }
   };
 
-  // Badge status color
+  // ✅ Badge màu trạng thái
   const statusBadge = (status) => {
     switch (status) {
       case "pending":
@@ -171,6 +173,7 @@ export default function ComplaintList() {
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
+      {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-semibold">📋 Quản lý khiếu nại</h1>
         <button
@@ -220,13 +223,13 @@ export default function ComplaintList() {
         </select>
       </div>
 
-      {/* Bảng complaint */}
+      {/* Bảng khiếu nại */}
       <div className="overflow-x-auto bg-white rounded-xl shadow">
         <table className="w-full text-sm text-left border-collapse">
           <thead className="bg-slate-100 text-slate-700 uppercase text-xs">
             <tr>
               <th className="p-3">#</th>
-              <th className="p-3">User</th>
+              <th className="p-3">Người dùng</th>
               <th className="p-3">Lý do</th>
               <th className="p-3">Mức độ</th>
               <th className="p-3">Trạng thái</th>
@@ -268,9 +271,9 @@ export default function ComplaintList() {
         </table>
       </div>
 
-      {/* 🧾 Modal chi tiết */}
+      {/* Modal chi tiết */}
       <Modal
-        title="Chi tiết khiếu nại"
+        title="🧾 Chi tiết khiếu nại"
         open={modalVisible}
         onCancel={() => setModalVisible(false)}
         footer={null}
@@ -282,7 +285,7 @@ export default function ComplaintList() {
             <Spin tip="Đang tải..." />
           </div>
         ) : selectedComplaint ? (
-          <div className="space-y-3">
+          <div className="space-y-3 text-[15px]">
             <p><b>ID:</b> {selectedComplaint.complaintId}</p>
             <p><b>User ID:</b> {selectedComplaint.userId}</p>
             <p><b>Lý do:</b> {selectedComplaint.reason}</p>

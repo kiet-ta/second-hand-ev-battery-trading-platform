@@ -67,7 +67,7 @@ export default function LoginPage() {
     async function handleCredentialResponse(response) {
         const googleToken = response.credential;
         try {
-            const res = await fetch(`${baseURL}Auth/google`, {
+            const res = await fetch(`${baseURL}auth/tokens/google`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ credential: googleToken }),
@@ -94,24 +94,28 @@ export default function LoginPage() {
     const handleLocalLogin = async (e) => {
         e.preventDefault();
         setError("");
+
         if (!email || !password)
             return setError("Vui lòng nhập đầy đủ thông tin đăng nhập.");
         if (password.length < 6)
             return setError("Mật khẩu phải có ít nhất 6 ký tự.");
 
         try {
-            const data = await authApi.login(email.trim(), password.trim());
-            const res = data.data;
-            console.log("Login response:", res);
+            const data = await authApi.login({ email: email.trim(), password: password.trim() });
 
+            // ✅ Trích xuất data
+            const res = data.data;
             const newUser = { ...res, token: res.token };
+
+            // 💾 Lưu token + user
             localStorage.setItem("userId", res.userId);
             localStorage.setItem("token", res.token);
             localStorage.setItem("user", JSON.stringify(newUser));
-            setUser(newUser);
-            message.success("Đăng nhập thành công!");
 
-            // Lưu remember info
+            message.success("Đăng nhập thành công!");
+            setUser(newUser);
+
+            // ✅ Lưu “Ghi nhớ đăng nhập”
             if (remember) {
                 localStorage.setItem("rememberEmail", email);
                 localStorage.setItem("rememberPassword", password);
@@ -120,7 +124,7 @@ export default function LoginPage() {
                 localStorage.removeItem("rememberPassword");
             }
 
-            // Phân quyền
+            // ✅ Điều hướng theo vai trò
             const role = res.role?.toLowerCase();
             if (role === "manager" || role === "staff") navigate("/manage");
             else if (role === "seller") navigate("/seller");
@@ -130,6 +134,7 @@ export default function LoginPage() {
             setError("Thông tin đăng nhập không chính xác.");
         }
     };
+
 
     return (
         <div className="min-h-screen flex flex-col items-center justify-center bg-[#FFF8E7] px-4">

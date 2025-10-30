@@ -44,9 +44,9 @@ export default function BuyerViewSeller() {
             try {
                 setLoading(true);
                 const [sRes, iRes, rRes] = await Promise.all([
-                    fetch(`${baseURL}seller/${sellerId}`),
-                    fetch(`${baseURL}item/seller/${sellerId}`),
-                    fetch(`${baseURL}${sellerId}/reviews`),
+                    fetch(`${baseURL}sellers/${sellerId}`),
+                    fetch(`${baseURL}sellers/${sellerId}/item`),
+                    fetch(`${baseURL}sellers/${sellerId}/reviews`),
                 ]);
 
                 const sellerData = await sRes.json();

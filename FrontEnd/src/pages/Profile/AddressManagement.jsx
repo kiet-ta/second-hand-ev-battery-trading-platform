@@ -23,7 +23,7 @@ const AddressManagement = () => {
                 if (!userId)
                     return;
 
-                const res = await fetch(`${baseURL}User/${userId}`);
+                const res = await fetch(`${baseURL}users/${userId}`);
                 if (!res.ok) throw new Error("Không lấy được thông tin user");
                 const data = await res.json();
                 setCurrentUser(data);

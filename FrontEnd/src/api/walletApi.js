@@ -25,7 +25,7 @@ const walletApi = {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
-                }       
+                }
             }
         )
         return response.data;

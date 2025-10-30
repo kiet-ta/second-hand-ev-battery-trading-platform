@@ -23,12 +23,20 @@ export default function TransactionContent() {
     const [statusFilter, setStatusFilter] = useState("all");
     const [searchQuery, setSearchQuery] = useState("");
 
-    // Tải dữ liệu giao dịch
+    // ✅ Tải dữ liệu giao dịch
     const fetchTransactions = async () => {
         try {
             setLoading(true);
             const data = await managerAPI.getTransactions();
-            setTransactions(data || []);
+
+            // 🟢 Sắp xếp giao dịch mới nhất lên đầu (theo createdAt)
+            const sorted = (data || []).sort((a, b) => {
+                const dateA = new Date(a.createdAt || 0);
+                const dateB = new Date(b.createdAt || 0);
+                return dateB - dateA;
+            });
+
+            setTransactions(sorted);
         } catch (error) {
             console.error("❌ Lỗi tải giao dịch:", error);
             message.error("Không thể tải danh sách giao dịch");
@@ -41,7 +49,7 @@ export default function TransactionContent() {
         fetchTransactions();
     }, []);
 
-    // Lọc và tìm kiếm
+    // ✅ Lọc và tìm kiếm
     useEffect(() => {
         let result = [...transactions];
 
@@ -62,7 +70,7 @@ export default function TransactionContent() {
         setFilteredData(result);
     }, [transactions, statusFilter, searchQuery]);
 
-    //  Xuất CSV
+    // ✅ Xuất CSV
     const exportToCSV = () => {
         if (filteredData.length === 0) {
             message.info("Không có dữ liệu để xuất.");
@@ -96,7 +104,10 @@ export default function TransactionContent() {
         const encodedUri = encodeURI(csvContent);
         const link = document.createElement("a");
         link.setAttribute("href", encodedUri);
-        link.setAttribute("download", `transactions_${new Date().toISOString().slice(0, 10)}.csv`);
+        link.setAttribute(
+            "download",
+            `transactions_${new Date().toISOString().slice(0, 10)}.csv`
+        );
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -179,7 +190,10 @@ export default function TransactionContent() {
             transition={{ duration: 0.35 }}
         >
             <Card>
-                <CardHeader title="📄 Quản lý giao dịch" icon={<ClipboardList size={18} />} />
+                <CardHeader
+                    title="Quản lý giao dịch"
+                    icon={<ClipboardList size={18} />}
+                />
                 <div className="p-4">
                     {/* Bộ lọc, tìm kiếm và xuất CSV */}
                     <div className="flex justify-between items-center mb-4 flex-wrap gap-3">
@@ -205,7 +219,11 @@ export default function TransactionContent() {
                                 <Option value="expired">Hết hạn</Option>
                             </Select>
 
-                            <Button type="default" icon={<Download size={16} />} onClick={exportToCSV}>
+                            <Button
+                                type="default"
+                                icon={<Download size={16} />}
+                                onClick={exportToCSV}
+                            >
                                 Xuất CSV
                             </Button>
                         </Space>

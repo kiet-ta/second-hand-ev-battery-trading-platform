@@ -17,7 +17,7 @@ export default function ForgotPasswordPage() {
     const handleSendEmail = async (values) => {
         setLoading(true);
         try {
-            const res = await fetch(`${baseURL}Auth/forgot-password`, {
+            const res = await fetch(`${baseURL}auth/password-resets`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ email: values.email }),
@@ -39,7 +39,7 @@ export default function ForgotPasswordPage() {
             return message.error("❌ Mật khẩu xác nhận không khớp!");
         setLoading(true);
         try {
-            const res = await fetch(`${baseURL}Auth/reset-password/otp`, {
+            const res = await fetch(`${baseURL}auth/password`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -180,10 +180,10 @@ export default function ForgotPasswordPage() {
                             {/* Vòng tròn số */}
                             <div
                                 className={`flex items-center justify-center w-8 h-8 rounded-full font-semibold text-sm transition-all duration-300 ${isActive
-                                        ? "bg-[#D4AF37] text-white shadow-md"
-                                        : isDone
-                                            ? "bg-[#FFF8E7] border-2 border-[#D4AF37] text-[#D4AF37]"
-                                            : "bg-gray-200 text-gray-500"
+                                    ? "bg-[#D4AF37] text-white shadow-md"
+                                    : isDone
+                                        ? "bg-[#FFF8E7] border-2 border-[#D4AF37] text-[#D4AF37]"
+                                        : "bg-gray-200 text-gray-500"
                                     }`}
                             >
                                 {index + 1}
@@ -192,10 +192,10 @@ export default function ForgotPasswordPage() {
                             {/* Tên bước */}
                             <span
                                 className={`ml-2 text-sm font-medium ${isActive
-                                        ? "text-gray-800"
-                                        : isDone
-                                            ? "text-[#D4AF37]"
-                                            : "text-gray-400"
+                                    ? "text-gray-800"
+                                    : isDone
+                                        ? "text-[#D4AF37]"
+                                        : "text-gray-400"
                                     }`}
                             >
                                 {title}

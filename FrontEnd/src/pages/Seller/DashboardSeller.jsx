@@ -31,7 +31,7 @@ export default function SellerDashboard() {
                 // NOTE: This fetch runs whenever the component mounts, ensuring data is ready
                 // for the index route and potentially for the other sub-components if needed.
                 const res = await fetch(
-                    `${baseURL}SellerDashboard/${sellerId}`,
+                    `${baseURL}seller-dashboard/${sellerId}`,
                     {
                         headers: {
                             Authorization: `Bearer ${token}`,

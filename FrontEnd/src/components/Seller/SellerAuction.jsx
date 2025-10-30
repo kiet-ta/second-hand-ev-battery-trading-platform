@@ -51,7 +51,7 @@ export default function SellerAuctionPage({ onClose }) {
                 updatedAt: today,
             };
 
-            const itemRes = await fetch(`${baseURL}Item`, {
+            const itemRes = await fetch(`${baseURL}item`, {
                 method: "POST",
                 headers: {
                     Authorization: `Bearer ${token}`,

@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const baseURL = import.meta.env.VITE_API_BASE_URL + "Compaints";
+const baseURL = import.meta.env.VITE_API_BASE_URL + "complaint";
 
 const complaintApi = {
     postComplaint: async (data) => {
