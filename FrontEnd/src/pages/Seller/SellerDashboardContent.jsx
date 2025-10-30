@@ -30,7 +30,7 @@ export default function SellerDashboardContent() {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const res = await fetch(`${baseURL}SellerDashboard/${sellerId}`, {
+                const res = await fetch(`${baseURL}seller-dashboard/${sellerId}`, {
                     headers: { Authorization: `Bearer ${token}` },
                 });
                 const data = await res.json();

@@ -1,23 +1,24 @@
 import React, { useEffect, useState, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { message, Popover } from "antd";
+import { message, Popover, Spin } from "antd";
 import authApi from "../api/authApi";
-import Logo from "../components/Logo";
-import RegisterPicture from "../assets/images/LoginPicture.jpg"; // Hình cóc cưỡi xe vàng
+import RegisterPicture from "../assets/images/LoginPicture.jpg";
 
 export default function RegisterPage() {
     const baseURL = import.meta.env.VITE_API_BASE_URL;
-    const navigate = useNavigate();
     const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+    const navigate = useNavigate();
+
     const [user, setUser] = useState(null);
     const [fullname, setFullname] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
     const [error, setError] = useState("");
+    const [loading, setLoading] = useState(false);
     const googleButtonRef = useRef(null);
 
-    // Load Google script
+    // ⚙️ Load Google script
     useEffect(() => {
         const id = "google-identity-script";
         if (document.getElementById(id)) {
@@ -54,10 +55,11 @@ export default function RegisterPage() {
         }
     }
 
+    // 🧠 Xử lý đăng nhập Google
     async function handleCredentialResponse(response) {
         const googleToken = response.credential;
         try {
-            const res = await fetch(`${baseURL}Auth/google`, {
+            const res = await fetch(`${baseURL}auth/tokens/google`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ credential: googleToken }),
@@ -71,9 +73,29 @@ export default function RegisterPage() {
             navigate("/");
         } catch (err) {
             console.error("Google Register Error:", err);
+            message.error("Không thể đăng ký bằng Google.");
         }
     }
 
+    // 📨 Gửi mail chào mừng
+    const sendWelcomeMail = async (email) => {
+        try {
+            const res = await fetch(`${baseURL}mail/welcome`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    to: email,
+                    actionUrl: "https://cocmuaxe.vn/login",
+                }),
+            });
+            if (!res.ok) throw new Error("Send mail failed");
+            console.log("✅ Mail welcome đã gửi thành công!");
+        } catch (err) {
+            console.error("❌ Lỗi gửi mail:", err);
+        }
+    };
+
+    // 🧾 Xử lý đăng ký
     const handleRegister = async (e) => {
         e.preventDefault();
         setError("");
@@ -83,19 +105,39 @@ export default function RegisterPage() {
         if (password !== confirmPassword)
             return setError("Mật khẩu nhập lại không khớp.");
 
+        setLoading(true);
         try {
+            // 🟢 Gọi API đăng ký
             const res = await authApi.register({
+                userId: 0,
                 fullName: fullname,
                 email,
                 password,
                 confirmPassword,
             });
-            navigate("/login");
+
+            // ✅ Backend trả về token & user trong res.data
+            const userData = res.data;
+
+            // 📨 Gửi email chào mừng
+            await sendWelcomeMail(email);
+
+            // 💾 Lưu token + user
+            localStorage.setItem("token", userData.token);
+            localStorage.setItem("userId", userData.userId);
+            localStorage.setItem("user", JSON.stringify(userData));
+
+            message.success("🎉 Đăng ký thành công! Chào mừng bạn đến với Cóc Mua Xe 🚗💨");
+            navigate("/"); // 👉 chuyển thẳng sang Home
         } catch (err) {
             console.error("Register error:", err);
             setError("Đăng ký thất bại. Vui lòng thử lại.");
+        } finally {
+            setLoading(false);
         }
     };
+
+
 
     return (
         <div className="min-h-screen flex flex-col items-center justify-center bg-[#FFF8E7] px-4">
@@ -151,9 +193,10 @@ export default function RegisterPage() {
                             >
                                 <button
                                     type="submit"
-                                    className="w-full bg-[#D4AF37] hover:bg-[#C19A32] text-white font-semibold py-3 rounded-xl transition-all"
+                                    disabled={loading}
+                                    className="w-full bg-[#D4AF37] hover:bg-[#C19A32] text-white font-semibold py-3 rounded-xl transition-all disabled:opacity-70"
                                 >
-                                    Đăng ký
+                                    {loading ? <Spin size="small" /> : "Đăng ký"}
                                 </button>
                             </Popover>
 

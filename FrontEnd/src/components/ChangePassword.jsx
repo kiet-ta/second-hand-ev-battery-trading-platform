@@ -56,7 +56,7 @@ export default function ChangePassword() {
 
         setLoading(true);
         try {
-            const res = await fetch(`${baseURL}Auth/change-password`, {
+            const res = await fetch(`${baseURL}auth/users/me/password`, {
                 method: "PUT",
                 headers: {
                     "Content-Type": "application/json",

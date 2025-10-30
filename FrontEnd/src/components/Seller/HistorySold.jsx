@@ -27,7 +27,7 @@ export default function HistorySold() {
     useEffect(() => {
         const fetchSales = async () => {
             try {
-                const res = await fetch(`${baseURL}History/${sellerId}`, {
+                const res = await fetch(`${baseURL}history?sellerId=${sellerId}&PageNumber=1&PageSize=10`, {
                     headers: {
                         Authorization: `Bearer ${token}`,
                         "Content-Type": "application/json",

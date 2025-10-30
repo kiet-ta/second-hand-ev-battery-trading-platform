@@ -1,10 +1,4 @@
-import React, {
-    useEffect,
-    useState,
-    useMemo,
-    useCallback,
-    memo,
-} from "react";
+import React, { useEffect, useState, useMemo, useCallback, memo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Slider from "react-slick";
 import {
@@ -14,21 +8,20 @@ import {
     FiArrowRight,
     FiBarChart2,
 } from "react-icons/fi";
+import { message } from "antd";
 import orderItemApi from "../../api/orderItemApi";
 import favouriteApi from "../../api/favouriteApi";
+import addressLocalApi from "../../api/addressLocalApi";
 import {
     addToCompare,
     getCompareList,
     removeFromCompare,
 } from "../../utils/compareUtils";
-import { message } from "antd";
-import addressLocalApi from "../../api/addressLocalApi";
-import orderApi from "../../api/orderApi";
 
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 
-// ✅ Small reusable Verified badge
+// ✅ Badge xác minh
 const VerifiedCheck = ({ className = "" }) => (
     <div
         className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 ${className}`}
@@ -74,7 +67,7 @@ function CardComponent({
         [itemImages]
     );
 
-    // ✅ Load favorites & compare state
+    // ✅ Load trạng thái yêu thích & so sánh
     useEffect(() => {
         const fav = userFavorites.find((f) => f.itemId === id);
         setIsFavorited(!!fav);
@@ -94,7 +87,7 @@ function CardComponent({
         };
     }, [id]);
 
-    // ✅ Slider settings
+    // ✅ Slider
     const carouselSettings = useMemo(
         () => ({
             dots: true,
@@ -108,7 +101,7 @@ function CardComponent({
         []
     );
 
-    // ✅ Handle cart actions
+    // ✅ Thêm vào giỏ hàng
     const handleAddToCart = useCallback(
         async (e) => {
             e.preventDefault();
@@ -118,8 +111,10 @@ function CardComponent({
             try {
                 const payload = { buyerId: userId, itemId: id, quantity: 1, price };
                 await orderItemApi.postOrderItem(payload);
+                message.success("Đã thêm sản phẩm vào giỏ hàng!");
             } catch (err) {
                 console.error("Error adding item:", err);
+                message.error("Không thể thêm vào giỏ hàng!");
             } finally {
                 setIsProcessing(false);
             }
@@ -127,6 +122,7 @@ function CardComponent({
         [id, price, userId, isProcessing]
     );
 
+    // ✅ MUA NGAY
     const handleBuyNow = async (e) => {
         e.preventDefault();
         e.stopPropagation();
@@ -145,17 +141,16 @@ function CardComponent({
                 buyerId: userId,
                 itemId: id,
                 quantity: 1,
-                price: price,
+                price,
             };
-
             const createdOrderItem = await orderItemApi.postOrderItem(orderItemPayload);
             if (!createdOrderItem?.orderItemId)
                 throw new Error("Không thể tạo OrderItem.");
 
-            // 2️⃣ Lấy địa chỉ mặc định
+            // 2️⃣ Lấy địa chỉ giao hàng
             const allAddresses = await addressLocalApi.getAddressByUserId(userId);
             const defaultAddress =
-                allAddresses.find((addr) => addr.isDefault) || allAddresses[0];
+                allAddresses.find((a) => a.isDefault) || allAddresses[0];
 
             if (!defaultAddress) {
                 message.warning("Vui lòng thêm địa chỉ giao hàng trong hồ sơ!");
@@ -163,39 +158,30 @@ function CardComponent({
                 return;
             }
 
-            // 3️⃣ Tạo Order
-            const orderPayload = {
-                buyerId: userId,
-                addressId: defaultAddress.addressId,
-                orderItemIds: [createdOrderItem.orderItemId],
-                createdAt: new Date().toISOString().split("T")[0],
-                updatedAt: new Date().toISOString().split("T")[0],
+            // 3️⃣ Chuẩn hoá dữ liệu checkout
+            const checkoutData = {
+                source: "buyNow",
+                totalAmount: price,
+                orderItems: [
+                    {
+                        id: id,
+                        name: title || "Sản phẩm",
+                        price,
+                        quantity: 1,
+                        image:
+                            itemImages?.[0]?.imageUrl ||
+                            "https://placehold.co/100x100/e2e8f0/374151?text=?",
+                    },
+                ],
+                allAddresses,
+                selectedAddressId: defaultAddress.addressId,
             };
 
-            const createdOrder = await orderApi.postOrderNew(orderPayload);
-            if (!createdOrder?.orderId) throw new Error("Không thể tạo Order.");
+            // 4️⃣ Lưu vào localStorage để reload vẫn giữ dữ liệu
+            localStorage.setItem("checkoutData", JSON.stringify(checkoutData));
 
-            // 4️⃣ Chuyển sang trang Checkout
-            navigate("/checkout", {
-                state: {
-                    fromBuyNow: true,
-                    orderId: createdOrder.orderId,
-                    totalAmount: price,
-                    orderItems: [
-                        {
-                            id: id,
-                            name: title || "Sản phẩm",
-                            price: price,
-                            quantity: 1,
-                            image:
-                                itemImages?.[0]?.imageUrl ||
-                                "https://placehold.co/100x100",
-                        },
-                    ],
-                    allAddresses,
-                    selectedAddressId: defaultAddress.addressId,
-                },
-            });
+            // 5️⃣ Điều hướng sang CheckoutPage
+            navigate("/checkout/buy-now", { state: checkoutData });
         } catch (err) {
             console.error("❌ Lỗi mua ngay:", err);
             message.error("Không thể mua ngay. Vui lòng thử lại.");
@@ -204,8 +190,7 @@ function CardComponent({
         }
     };
 
-
-    // ✅ Handle favorite toggle
+    // ❤️ Yêu thích
     const handleFavoriteClick = useCallback(
         async (e) => {
             e.preventDefault();
@@ -217,6 +202,7 @@ function CardComponent({
                     await favouriteApi.deleteFavourite(favoriteId);
                     setIsFavorited(false);
                     setFavoriteId(null);
+                    message.info("Đã xoá khỏi danh sách yêu thích!");
                 } else {
                     const res = await favouriteApi.postFavourite({
                         userId: parseInt(userId, 10),
@@ -225,6 +211,7 @@ function CardComponent({
                     });
                     setIsFavorited(true);
                     setFavoriteId(res?.favId ?? null);
+                    message.success("Đã thêm vào danh sách yêu thích!");
                 }
             } catch (err) {
                 console.error("Favourite failed:", err);
@@ -235,7 +222,7 @@ function CardComponent({
         [isFavorited, favoriteId, userId, id, isProcessing]
     );
 
-    // Handle Compare toggle
+    // 📊 So sánh
     const handleCompareClick = useCallback(
         (e) => {
             e.preventDefault();
@@ -244,24 +231,15 @@ function CardComponent({
             const list = getCompareList();
             const already = list.some((x) => x.itemId === id);
 
-            //Nếu đã có trong danh sách → xoá
             if (already) {
                 removeFromCompare(id);
                 setIsCompared(false);
                 return;
             }
 
-            //Danh sách xe đi với danh sách xe
-            if (list.length > 0 && list[0].itemType !== type) {
-                return;
-            }
+            if (list.length > 0 && list[0].itemType !== type) return;
+            if (list.length >= 3) return;
 
-            // Giới hạn tối đa 3 item
-            if (list.length >= 3) {
-                return;
-            }
-
-            //Thêm vào danh sách
             const itemData = {
                 itemId: id,
                 name: title,
@@ -275,8 +253,7 @@ function CardComponent({
         [id, title, price, itemImages, type]
     );
 
-
-    // Classes
+    // CSS class
     const heartClass = isFavorited
         ? "flex items-center justify-center w-10 h-10 rounded-full bg-red-400 text-white hover:bg-red-500 shadow-lg"
         : "flex items-center justify-center w-10 h-10 rounded-full bg-white text-red-500 hover:bg-red-50 shadow-lg";
@@ -286,7 +263,7 @@ function CardComponent({
     return (
         <Link to={detailUrl} state={id} className="block group">
             <div className="w-80 bg-white rounded-xl shadow-md border border-gray-200 transition-all duration-300 group-hover:shadow-xl group-hover:border-yellow-400 group-hover:-translate-y-1">
-                {/* Image */}
+                {/* Ảnh sản phẩm */}
                 <div className="relative">
                     <Slider {...carouselSettings}>
                         {displayImages.map((img, i) => (
@@ -305,21 +282,19 @@ function CardComponent({
                         ))}
                     </Slider>
 
-                    {/* Action buttons */}
+                    {/* Nút hành động */}
                     <div className="absolute top-3 right-3 z-10 flex flex-col items-end space-y-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                        {/* Favorite */}
+                        {/* ❤️ Yêu thích */}
                         <button
                             onClick={handleFavoriteClick}
                             disabled={isProcessing}
                             className={`${heartClass} ${isProcessing ? "opacity-50 cursor-not-allowed" : ""
                                 }`}
                         >
-                            <FiHeart
-                                className={`w-5 h-5 ${isFavorited ? "fill-white" : ""}`}
-                            />
+                            <FiHeart className={`w-5 h-5 ${isFavorited ? "fill-white" : ""}`} />
                         </button>
 
-                        {/* Compare */}
+                        {/* 📊 So sánh */}
                         <button
                             onClick={handleCompareClick}
                             className={`flex items-center justify-center px-4 py-2 rounded-md font-semibold text-xs shadow-md transition-all duration-300 ${isCompared
@@ -331,7 +306,7 @@ function CardComponent({
                             {isCompared ? "Đã thêm" : "So sánh"}
                         </button>
 
-                        {/* Cart buttons (only for battery) */}
+                        {/* ⚡ Mua ngay / 🛒 Giỏ hàng */}
                         {type === "battery" && (
                             <div className="flex flex-col space-y-2">
                                 <button
@@ -355,13 +330,10 @@ function CardComponent({
                     </div>
                 </div>
 
-                {/* Content */}
+                {/* Nội dung */}
                 <div className="p-5">
                     <div className="flex items-center">
-                        <h3
-                            className="text-xl font-bold text-gray-900 truncate"
-                            title={title}
-                        >
+                        <h3 className="text-xl font-bold text-gray-900 truncate" title={title}>
                             {title}
                         </h3>
                     </div>

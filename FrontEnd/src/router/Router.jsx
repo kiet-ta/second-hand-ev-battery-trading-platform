@@ -41,7 +41,6 @@ import ForgotPasswordPage from "../pages/ForgotPasswordPage";
    --------------------------- */
 import PaymentSuccessPage from "../pages/PaymentSuccessPage";
 import PaymentFailPage from "../pages/PaymentFailPage";
-import DetailedCheckoutPage from "../pages/DetailCheckout";
 
 /* ---------------------------
    Profile (Router-based SPA) - Buyer account area
@@ -97,6 +96,8 @@ import ComplaintPage from "../pages/Main/ComplaintPage";
 import OrderPage from "../pages/Profile/MyOrderHistory";
 import SellerPendingReview from "../pages/Seller/SellerPendingReview";
 import RechargePage from "../pages/RechargePage";
+import BuyNowCheckoutPage from "../pages/Main/BuyNowCheckoutPage";
+import CommissionSettings from "../components/Manager/CommissionSettings";
 
 /* ---------------------------
    Router definition
@@ -140,9 +141,10 @@ export const router = createBrowserRouter([
       { path: "wallet", element: <WalletTransactionPage /> },
       { path: "complaint", element: <ComplaintPage /> },
       { path: "compare", element: <CompareEVPage /> },
-      {path: "order-history", element: <OrderPage/>},
-      {path: "pending-review", element: <SellerPendingReview />}
+      { path: "order-history", element: <OrderPage /> },
+      { path: "pending-review", element: <SellerPendingReview /> },
       { path: "recharge", element: <RechargePage /> },
+      { path: "checkout/buy-now", element: <BuyNowCheckoutPage /> }
     ],
   },
 
@@ -208,6 +210,7 @@ export const router = createBrowserRouter([
           { path: "news", element: <NewsPage /> },
           { path: "reports", element: <ReportsContent /> },
           { path: "settings", element: <SettingsContent /> },
+          { path: "fee", element: <CommissionSettings /> },
         ],
       },
     ],
@@ -217,5 +220,4 @@ export const router = createBrowserRouter([
   { path: "/bought", element: <PurchaseHistory /> },
   { path: "/payment/success", element: <PaymentSuccessPage /> },
   { path: "/payment/fail", element: <PaymentFailPage /> },
-  { path: "/detailcheckout", element: <DetailedCheckoutPage /> },
 ]);

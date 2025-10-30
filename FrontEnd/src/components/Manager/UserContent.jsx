@@ -17,12 +17,51 @@ export default function UserContent() {
 
     const currentUserId = parseInt(localStorage.getItem("userId"));
 
+    const sendBanEmail = async (to, actionUrl, reason) => {
+        try {
+            const BASE_URL = import.meta.env.VITE_API_BASE_URL;
+            const token = localStorage.getItem("token");
+
+            const res = await fetch(`${BASE_URL}mail/ban`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({
+                    to,
+                    actionUrl,
+                    reason,
+                }),
+            });
+
+            if (!res.ok) {
+                const text = await res.text();
+                console.error("❌ Gửi mail thất bại:", res.status, text);
+                message.warning("Không thể gửi email thông báo cho người dùng");
+            } else {
+                message.success("📩 Đã gửi email thông báo cấm tài khoản!");
+            }
+        } catch (err) {
+            console.error("❌ Lỗi khi gửi mail:", err);
+            message.error("Lỗi khi gửi email thông báo");
+        }
+    };
+
     // Tải danh sách người dùng
     const fetchUsers = async (pageNum = 1) => {
         try {
             setLoading(true);
             const data = await managerAPI.getUsersPaginated(pageNum, 20);
-            setUsers(data.items || []);
+
+            // ✅ Sắp xếp người dùng theo ngày tạo (mới nhất ở đầu)
+            const sortedUsers = (data.items || []).sort((a, b) => {
+                const dateA = new Date(a.createdAt || 0);
+                const dateB = new Date(b.createdAt || 0);
+                return dateB - dateA;
+            });
+
+            setUsers(sortedUsers);
             setTotalPages(data.totalPages || 1);
         } catch (error) {
             console.error("❌ Lỗi tải user:", error);
@@ -31,6 +70,7 @@ export default function UserContent() {
             setLoading(false);
         }
     };
+
 
     useEffect(() => {
         fetchUsers(page);
@@ -55,20 +95,35 @@ export default function UserContent() {
     }, [users, roleFilter, statusFilter, searchQuery]);
 
     // Cập nhật trạng thái người dùng
+    // Cập nhật trạng thái người dùng
     const handleStatusChange = async (userId, status) => {
         if (userId === currentUserId) {
             message.warning("⚠️ Bạn không thể thay đổi trạng thái của chính mình");
             return;
         }
+
         try {
             await managerAPI.updateUserStatus(userId, status);
             await fetchUsers(page);
             message.success("✅ Trạng thái người dùng đã được cập nhật!");
+
+            // ✅ Nếu là hành động cấm tài khoản → gửi mail
+            if (status === "ban") {
+                const bannedUser = users.find((u) => u.userId === userId);
+                if (bannedUser && bannedUser.email) {
+                    await sendBanEmail(
+                        bannedUser.email,
+                        "https://cocmuaxe.vn/help/appeal", // ví dụ URL người dùng có thể khiếu nại
+                        "Tài khoản của bạn đã bị cấm do vi phạm điều khoản sử dụng."
+                    );
+                }
+            }
         } catch (err) {
             console.error("Lỗi cập nhật:", err);
             message.error("❌ Cập nhật thất bại");
         }
     };
+
 
     // Xuất CSV
     const exportToCSV = () => {

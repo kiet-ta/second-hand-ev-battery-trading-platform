@@ -10,6 +10,7 @@ const ProfileForm = () => {
     const token = localStorage.getItem("token");
     const [showPhone, setShowPhone] = useState(false);
     const baseURL = import.meta.env.VITE_API_BASE_URL;
+    const [uploading, setUploading] = useState(false);
 
     const maskPhone = (phone) => {
         if (!phone) return "";
@@ -22,7 +23,7 @@ const ProfileForm = () => {
     useEffect(() => {
         if (!userId) return;
 
-        fetch(`${baseURL}User/${userId}`, {
+        fetch(`${baseURL}users/${userId}`, {
             headers: {
                 "Authorization": `Bearer ${token}`,
                 "Content-Type": "application/json",
@@ -48,38 +49,70 @@ const ProfileForm = () => {
         const file = e.target.files[0];
         if (!file) return;
 
-        // Hiển thị preview tạm thời
+        // Hiển thị preview tạm thời (ảnh local)
         const previewUrl = URL.createObjectURL(file);
         setFormData((prev) => ({
             ...prev,
             avatarProfile: previewUrl,
         }));
 
+        // Lấy thông tin từ .env
+        const CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
+        const UPLOAD_PRESET = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
+
         try {
+            setUploading(true);
+            message.loading({ content: "⏳ Đang tải ảnh lên Cloudinary...", key: "upload" });
+
             const formDataUpload = new FormData();
             formDataUpload.append("file", file);
-            formDataUpload.append("upload_preset", "EV.Battery.Trading"); // preset Cloudinary
-            formDataUpload.append("folder", "EV_BATTERY_TRADING/Electric_Verhicle");
+            formDataUpload.append("upload_preset", UPLOAD_PRESET);
+            formDataUpload.append("folder", "EV_BATTERY_TRADING/User_Avatars");
 
-            const response = await fetch("https://api.cloudinary.com/v1_1/dmokmlroc/image/upload", {
+            const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, {
                 method: "POST",
                 body: formDataUpload,
             });
 
-            const data = await response.json();
+            const data = await res.json();
+            console.log("Cloudinary response:", data);
+
             if (data.secure_url) {
+                // ✅ Cập nhật avatar trong state
                 setFormData((prev) => ({
                     ...prev,
                     avatarProfile: data.secure_url,
                 }));
+
+                // ✅ Lưu vào localStorage để giữ avatar sau khi reload
+                localStorage.setItem("userAvatar", data.secure_url);
+
+                message.success({
+                    content: "✅ Ảnh đại diện đã được tải lên thành công!",
+                    key: "upload",
+                    duration: 2,
+                });
                 console.log("✅ Upload thành công:", data.secure_url);
             } else {
+                message.error({
+                    content: "❌ Tải ảnh lên thất bại. Vui lòng thử lại.",
+                    key: "upload",
+                    duration: 2,
+                });
                 console.error("❌ Upload thất bại:", data);
             }
-        } catch (error) {
-            console.error("Lỗi khi tải ảnh lên Cloudinary:", error);
+        } catch (err) {
+            console.error("🚨 Lỗi khi tải ảnh lên Cloudinary:", err);
+            message.error({
+                content: "⚠️ Có lỗi xảy ra khi tải ảnh. Kiểm tra lại kết nối.",
+                key: "upload",
+                duration: 2,
+            });
+        } finally {
+            setUploading(false);
         }
     };
+
 
     //Khi người dùng thay đổi nội dung form
     const handleInputChange = (e) => {
@@ -104,7 +137,7 @@ const ProfileForm = () => {
             updatedAt: new Date().toISOString(),
         };
 
-        fetch(`${baseURL}User/${userId}`, {
+        fetch(`${baseURL}users/${userId}`, {
             method: "PUT",
             headers: {
                 "Authorization": `Bearer ${token}`,

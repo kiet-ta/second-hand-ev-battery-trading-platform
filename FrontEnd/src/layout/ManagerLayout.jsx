@@ -187,12 +187,13 @@ export default function ManagerLayout({ onRefresh, onAddStaff, children }) {
 
                             {/* Cập nhật quy định hoa hồng */}
                             <button
-                                onClick={() => navigate("settings")}
+                                onClick={() => navigate("fee")}
                                 className="flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-200 text-sm text-slate-700 hover:bg-slate-50 text-left"
                             >
                                 <ClipboardList size={16} className="text-orange-500" />
                                 Cập nhật quy định hoa hồng
                             </button>
+
                         </div>
                     </Card>
                 </aside>

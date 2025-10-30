@@ -20,7 +20,7 @@ export default function ComplaintPage() {
   useEffect(() => {
     const fetchComplaints = async () => {
       try {
-        const res = await fetch(`${baseURL}Complaints/user/${userId}`, {
+        const res = await fetch(`${baseURL}complaint/user/${userId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         const data = await res.json();
@@ -44,7 +44,7 @@ export default function ComplaintPage() {
 
     setLoading(true);
     try {
-      const res = await fetch(`${baseURL}Complaints`, {
+      const res = await fetch(`${baseURL}complaint`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -64,7 +64,7 @@ export default function ComplaintPage() {
       message.success("Gửi khiếu nại thành công!");
       setForm({ reason: "", description: "", severityLevel: "low" });
       // refresh list
-      const updated = await fetch(`${baseURL}/Complaints/user/${userId}`, {
+      const updated = await fetch(`${baseURL}complaint/user/${userId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setComplaints(await updated.json());

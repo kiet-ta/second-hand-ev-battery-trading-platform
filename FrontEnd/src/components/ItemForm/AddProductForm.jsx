@@ -14,7 +14,7 @@ export default function MyProductsPage() {
     const fetchMyItems = async () => {
         setIsListLoading(true);
         try {
-            const res = await fetch(`${baseURL}Item/seller/${userID}`, {
+            const res = await fetch(`${baseURL}sellers/${userID}/item`, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                     "Content-Type": "application/json",

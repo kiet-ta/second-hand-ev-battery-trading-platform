@@ -33,7 +33,7 @@ export default function HistoryBought() {
     setLoading(true);
     try {
       const res = await fetch(
-        `${baseURL}History/bought?pageNumber=${page}&pageSize=${pageSize}`,
+        `${baseURL}history/me/bought?pageNumber=${page}&pageSize=${pageSize}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,

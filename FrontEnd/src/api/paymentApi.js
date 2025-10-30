@@ -17,7 +17,7 @@ const paymentApi = {
     },
     cancelPayment: async (orderCode, reason) => {
         try {
-            const response = await axios.post(`${baseURL}/info/${orderCode}`,reason)
+            const response = await axios.post(`${baseURL}/cancel/${orderCode}`, reason)
             return response.data;
         } catch (error) {
             console.error("Error in createPayment API call:", error);
