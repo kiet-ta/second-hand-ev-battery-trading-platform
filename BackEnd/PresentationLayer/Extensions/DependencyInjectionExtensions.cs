@@ -47,6 +47,8 @@ public static class DependencyInjectionExtensions
         services.AddSingleton<INotificationService, NotificationService>();
         services.AddScoped<IComplaintService, ComplaintService>();
         services.AddScoped<IWalletService, WalletService>();
+        services.AddSingleton<IProfanityCountService, ProfanityCountService>();
+        
 
         //---Repositories
         services.AddScoped<IAuctionRepository, AuctionRepository>();

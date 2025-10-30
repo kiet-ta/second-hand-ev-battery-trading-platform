@@ -17,7 +17,7 @@ namespace Application.Services
             _reviewRepository = reviewRepository ?? throw new ArgumentNullException(nameof(reviewRepository));
         }
 
-        public async Task<ReviewResponseDto> CreateReviewAsync(CreateReviewDto dto)
+        public async Task<ReviewResponseDto> CreateReviewAsync(CreateReviewDto dto, int id)
         {
             if (dto == null)
                 throw new ArgumentNullException(nameof(dto), "Review data cannot be null.");
@@ -31,7 +31,7 @@ namespace Application.Services
             if (string.IsNullOrWhiteSpace(dto.Comment))
                 throw new ArgumentException("Review comment cannot be empty.");
 
-            var result = await _reviewRepository.CreateReviewAsync(dto);
+            var result = await _reviewRepository.CreateReviewAsync(dto, id);
             if (result == null)
                 throw new InvalidOperationException("Failed to create review.");
 
