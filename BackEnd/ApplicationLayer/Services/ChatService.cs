@@ -16,12 +16,14 @@ namespace Application.Services
         private readonly IChatRepository _repo;
         private readonly IUserContextService _userContext;
         private readonly IProfanityFilterService _filterService;
+        private readonly IUserModerationRepository _modRepo;
 
-        public ChatService(IChatRepository repo, IUserContextService userContext, IProfanityFilterService filterService)
+        public ChatService(IChatRepository repo, IUserContextService userContext, IProfanityFilterService filterService, IUserModerationRepository modRepo)
         {
             _repo = repo;
             _userContext = userContext;
             _filterService = filterService;
+            _modRepo = modRepo;
         }
 
         public async Task<ChatRoomDto> EnsureRoomAsync(long[] members)
@@ -75,7 +77,27 @@ namespace Application.Services
             if (!room.Members.Contains(dto.From) || !room.Members.Contains(dto.To))
                 throw new UnauthorizedAccessException("Users must be members of the room");
 
-            var cleanedMessage = _filterService.CleanMessage(dto.Text);
+            //var cleanedMessage = _filterService.CleanMessage(dto.Text);
+
+            var filterResult = _filterService.Filter(dto.Text);
+            var cleanedMessage = filterResult.CleanedText;
+
+            // 2. Nếu vi phạm, ghi lại log
+            if (filterResult.WasProfane)
+            {
+                Console.WriteLine($"User {dto.From} sent a profane message.");
+                await _modRepo.AddProfanityLogAsync(dto.From, DateTimeOffset.UtcNow);
+
+                // 3. (Tùy chọn) Kiểm tra ngay lập tức
+                // Bạn có thể lấy count ngay bây giờ để quyết định cấm chat, v.v.
+                int profanityCount = await _modRepo.GetProfanityCountAsync(dto.From, TimeSpan.FromHours(1));
+                Console.WriteLine($"User {dto.From} profanity count in last 1h: {profanityCount}");
+
+                if (profanityCount > 5) // Ví dụ: Cấm chat nếu chửi bậy quá 5 lần/giờ
+                {
+                    // throw new Exception("Bạn đã bị cấm chat vì vi phạm.");
+                }
+            }
 
             // Create message
             var msg = new Message

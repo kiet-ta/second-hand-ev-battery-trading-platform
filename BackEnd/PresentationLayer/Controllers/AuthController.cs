@@ -76,7 +76,7 @@ namespace PresentationLayer.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error during login");
-                return StatusCode(500, new { success = false, error = "Internal server error" });
+                return StatusCode(500, new { success = false, error = ex.Message });
             }
         }
 
