@@ -230,7 +230,8 @@ namespace Application.Services
                 Email = u.Email,
                 Phone = u.Phone,
                 Role = u.Role,
-                AccountStatus = u.AccountStatus
+                AccountStatus = u.AccountStatus,
+                CreatedAt = u.CreatedAt
             });
 
             return new PagedResultUser<UserListResponseDto>
