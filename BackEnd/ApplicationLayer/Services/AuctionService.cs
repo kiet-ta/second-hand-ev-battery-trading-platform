@@ -75,6 +75,34 @@ public class AuctionService : IAuctionService
         return history;
     }
 
+    public async Task<IEnumerable<BidderHistoryDto>> GetBidderHistoryAsync(int auctionId, int userId)
+    {
+        var auctionExists = await _auctionRepository.GetByIdAsync(auctionId);
+        if (auctionExists == null)
+            throw new KeyNotFoundException($"Auction with ID {auctionId} not found.");
+        var bids = (await _bidRepository.GetBidsByAuctionIdAsync(auctionId))
+            .Where(b => b.UserId == userId)
+            .ToList();
+        if (!bids.Any())
+            return Enumerable.Empty<BidderHistoryDto>();
+
+        var user = await _userRepository.GetByIdAsync(userId);
+
+        var history = bids.Select(Bid =>
+        {
+            return new BidderHistoryDto
+            {
+                UserId = Bid.UserId,
+                FullName = user?.FullName ?? "Unknown",
+                BidAmount = Bid.BidAmount,
+                BidTime = Bid.BidTime
+            };
+        })
+            .OrderByDescending(b => b.BidTime)
+            .ToList();
+        return history;
+    }
+
     public async Task<AuctionDto?> GetAuctionByItemIdAsync(int itemId)
     {
         var auction = await _auctionRepository.GetByItemIdAsync(itemId);
