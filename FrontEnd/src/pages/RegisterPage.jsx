@@ -18,7 +18,6 @@ export default function RegisterPage() {
     const [loading, setLoading] = useState(false);
     const googleButtonRef = useRef(null);
 
-    // ⚙️ Load Google script
     useEffect(() => {
         const id = "google-identity-script";
         if (document.getElementById(id)) {
@@ -55,7 +54,6 @@ export default function RegisterPage() {
         }
     }
 
-    // 🧠 Xử lý đăng nhập Google
     async function handleCredentialResponse(response) {
         const googleToken = response.credential;
         try {
@@ -77,7 +75,6 @@ export default function RegisterPage() {
         }
     }
 
-    // 📨 Gửi mail chào mừng
     const sendWelcomeMail = async (email) => {
         try {
             const res = await fetch(`${baseURL}mail/welcome`, {
@@ -95,7 +92,6 @@ export default function RegisterPage() {
         }
     };
 
-    // 🧾 Xử lý đăng ký
     const handleRegister = async (e) => {
         e.preventDefault();
         setError("");
@@ -107,7 +103,6 @@ export default function RegisterPage() {
 
         setLoading(true);
         try {
-            // 🟢 Gọi API đăng ký
             const res = await authApi.register({
                 userId: 0,
                 fullName: fullname,
@@ -116,19 +111,16 @@ export default function RegisterPage() {
                 confirmPassword,
             });
 
-            // ✅ Backend trả về token & user trong res.data
             const userData = res.data;
 
-            // 📨 Gửi email chào mừng
             await sendWelcomeMail(email);
 
-            // 💾 Lưu token + user
             localStorage.setItem("token", userData.token);
             localStorage.setItem("userId", userData.userId);
             localStorage.setItem("user", JSON.stringify(userData));
 
             message.success("🎉 Đăng ký thành công! Chào mừng bạn đến với Cóc Mua Xe 🚗💨");
-            navigate("/"); // 👉 chuyển thẳng sang Home
+            navigate("/"); 
         } catch (err) {
             console.error("Register error:", err);
             setError("Đăng ký thất bại. Vui lòng thử lại.");

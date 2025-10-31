@@ -32,7 +32,6 @@ export default function ComplaintList() {
   const token = localStorage.getItem("token");
   const baseURL = import.meta.env.VITE_API_BASE_URL;
 
-  // ✅ Lấy danh sách complaint
   const fetchComplaints = async () => {
     setLoading(true);
     try {
@@ -42,7 +41,6 @@ export default function ComplaintList() {
       if (!res.ok) throw new Error("Không thể tải complaint");
       const data = await res.json();
 
-      // Sắp xếp complaint mới nhất lên đầu
       const sorted = (data || []).sort((a, b) => {
         const dateA = new Date(a.createdAt || 0);
         const dateB = new Date(b.createdAt || 0);

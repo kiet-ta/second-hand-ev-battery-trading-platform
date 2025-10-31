@@ -4,7 +4,6 @@ import paymentApi from "../../api/paymentApi";
 import orderApi from "../../api/orderApi";
 import { FiMapPin, FiX } from "react-icons/fi";
 
-// 🌟 Modal chọn địa chỉ giao hàng
 const AddressModal = ({ addresses, selectedId, onSelect, onClose }) => {
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
@@ -73,7 +72,6 @@ function BuyNowCheckoutPage() {
     const location = useLocation();
     const navigate = useNavigate();
 
-    // ✅ Hỗ trợ khôi phục từ localStorage nếu reload
     const savedData = localStorage.getItem("checkoutData");
     const orderData = location.state || (savedData ? JSON.parse(savedData) : null);
 
@@ -87,7 +85,6 @@ function BuyNowCheckoutPage() {
     const [statusMessage, setStatusMessage] = useState("");
     const pollingIntervalRef = useRef(null);
 
-    // Thông tin phụ phí
     const insurance = { name: "Bảo hiểm hư hỏng sản phẩm", price: 6000 };
     const shipping = { name: "Vận chuyển nhanh", price: 1000 };
 
@@ -104,7 +101,6 @@ function BuyNowCheckoutPage() {
     const formatVND = (price) =>
         price.toLocaleString("vi-VN", { style: "currency", currency: "VND" });
 
-    // ❗Kiểm tra dữ liệu đầu vào
     if (!orderData || !orderData.orderItems || orderData.orderItems.length === 0) {
         return (
             <div className="p-6 bg-gray-100 min-h-screen text-center">
@@ -118,7 +114,6 @@ function BuyNowCheckoutPage() {
 
     const finalTotalPrice = calculateTotal();
 
-    // 🧾 Kiểm tra thanh toán
     const checkPaymentStatus = async (orderCode, paymentWindow) => {
         try {
             const info = await paymentApi.getPaymentInfoByOrderCode(orderCode);
@@ -142,7 +137,6 @@ function BuyNowCheckoutPage() {
         }
     };
 
-    // 💳 Xử lý xác nhận và thanh toán
     const handleConfirmAndPay = async () => {
         if (!selectedDeliveryAddress) {
             setStatusMessage("Vui lòng chọn địa chỉ giao hàng.");
@@ -153,9 +147,8 @@ function BuyNowCheckoutPage() {
         setStatusMessage("Đang xác nhận đơn hàng...");
 
         try {
-            // Chuẩn hoá danh sách OrderItem ID
             const orderItemIds = orderData.orderItems.map((item) => item.id);
-
+            console.log("Order Item IDs:", orderItemIds);
             const orderPayload = {
                 buyerId: localStorage.getItem("userId"),
                 addressId: selectedDeliveryAddress.addressId,
@@ -216,11 +209,9 @@ function BuyNowCheckoutPage() {
         }
     };
 
-    // 🖼️ Giao diện chính
     return (
         <div className="p-6 bg-gray-100 min-h-screen">
             <div className="max-w-4xl mx-auto bg-white shadow-md rounded-lg p-6">
-                {/* Địa chỉ giao hàng */}
                 <div className="mb-6 pb-4 border-b border-gray-200">
                     <h2 className="text-lg font-semibold mb-4 text-[#C99700] flex items-center gap-2">
                         <FiMapPin /> Địa chỉ giao hàng

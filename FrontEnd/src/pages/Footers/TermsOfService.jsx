@@ -2,7 +2,7 @@ import React from 'react';
 
 const PolicySection = ({ title, children }) => (
     <div className="mb-8">
-        <h2 className="text-2xl font-bold font-serif text-[#B8860B] mb-4">{title}</h2>
+        <h2 className="text-2xl font-bold font-roboto text-[#B8860B] mb-4">{title}</h2>
         <div className="space-y-4 text-gray-700 leading-relaxed">
             {children}
         </div>
@@ -13,7 +13,7 @@ function TermsOfServicePage() {
     return (
         <div className="bg-[#FAF8F3] text-[#2C2C2C] overflow-y-auto">
             <div className="py-20 text-center bg-white border-b border-[#E8E4DC]">
-                <h1 className="text-5xl font-extrabold font-serif tracking-wider">Điều Khoản Dịch Vụ</h1>
+                <h1 className="text-5xl font-extrabold font-roboto tracking-wider">Điều Khoản Dịch Vụ</h1>
                 <p className="mt-4 text-lg text-gray-600">Cập nhật lần cuối: 22 tháng 10, 2025</p>
             </div>
             <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16">

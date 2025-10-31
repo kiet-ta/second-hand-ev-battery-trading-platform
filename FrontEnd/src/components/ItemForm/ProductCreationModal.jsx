@@ -9,6 +9,7 @@ import itemApi from "../../api/itemApi";
 import auctionApi from "../../api/auctionApi";
 import uploadImageApi from "../../api/uploadImageApi";
 import walletApi from "../../api/walletApi";
+import evData from "../../assets/datas/evData";
 
 export default function ProductCreationModal({ onSuccess }) {
   const [isOpenModal, setIsOpenModal] = useState(false);
@@ -185,7 +186,7 @@ const handleDeposit = async () => {
   const renderStepContent = () => {
     switch (currentStep) {
       case 0:
-        return <Step1ItemDetails form={form} onFinish={handleStep1Finish} />;
+        return <Step1ItemDetails form={form} onFinish={handleStep1Finish} evData={evData}/>;
       case 1:
         return <Step2AuctionDetails form={form} onFinish={handleStep2Finish} />;
       case 2:

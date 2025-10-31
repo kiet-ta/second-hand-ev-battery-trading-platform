@@ -46,7 +46,6 @@ function MainLayout() {
 
     const mainRef = useRef(null);
 
-    // Kiểm tra nếu là trang compare
     const isComparePage = location.pathname.startsWith("/compare");
 
     return (

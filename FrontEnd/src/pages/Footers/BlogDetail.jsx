@@ -1,8 +1,6 @@
-// src/pages/BlogDetail.jsx
 import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 
-// Dữ liệu giả lập tương tự BlogList.jsx
 const MOCK_BLOGS = [
     {
         id: 1,

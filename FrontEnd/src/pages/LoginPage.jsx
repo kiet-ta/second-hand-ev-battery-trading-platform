@@ -15,7 +15,6 @@ export default function LoginPage() {
     const baseURL = import.meta.env.VITE_API_BASE_URL;
     const googleButtonRef = useRef(null);
 
-    // Khi load lại trang, nếu có remember data thì tự điền
     useEffect(() => {
         const savedEmail = localStorage.getItem("rememberEmail");
         const savedPassword = localStorage.getItem("rememberPassword");
@@ -63,7 +62,6 @@ export default function LoginPage() {
         }
     }
 
-    // Login bằng Google
     async function handleCredentialResponse(response) {
         const googleToken = response.credential;
         try {
@@ -90,7 +88,6 @@ export default function LoginPage() {
         }
     }
 
-    // Login thủ công
     const handleLocalLogin = async (e) => {
         e.preventDefault();
         setError("");
@@ -103,11 +100,9 @@ export default function LoginPage() {
         try {
             const data = await authApi.login({ email: email.trim(), password: password.trim() });
 
-            // ✅ Trích xuất data
             const res = data.data;
             const newUser = { ...res, token: res.token };
 
-            // 💾 Lưu token + user
             localStorage.setItem("userId", res.userId);
             localStorage.setItem("token", res.token);
             localStorage.setItem("user", JSON.stringify(newUser));
@@ -115,7 +110,6 @@ export default function LoginPage() {
             message.success("Đăng nhập thành công!");
             setUser(newUser);
 
-            // ✅ Lưu “Ghi nhớ đăng nhập”
             if (remember) {
                 localStorage.setItem("rememberEmail", email);
                 localStorage.setItem("rememberPassword", password);
@@ -124,7 +118,6 @@ export default function LoginPage() {
                 localStorage.removeItem("rememberPassword");
             }
 
-            // ✅ Điều hướng theo vai trò
             const role = res.role?.toLowerCase();
             if (role === "manager" || role === "staff") navigate("/manage");
             else if (role === "seller") navigate("/seller");
@@ -139,7 +132,6 @@ export default function LoginPage() {
     return (
         <div className="min-h-screen flex flex-col items-center justify-center bg-[#FFF8E7] px-4">
             <div className="relative bg-white rounded-3xl shadow-xl flex flex-col lg:flex-row items-center justify-between w-full max-w-4xl overflow-hidden">
-                {/* Form đăng nhập */}
                 <div className="w-full lg:w-1/2 p-10">
                     {!user ? (
                         <form onSubmit={handleLocalLogin} className="space-y-4">

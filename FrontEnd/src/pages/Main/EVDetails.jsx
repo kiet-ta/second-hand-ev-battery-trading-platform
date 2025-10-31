@@ -91,10 +91,18 @@ function EVDetails() {
         setSellerProfile(seller);
 
         const reviewRes = await reviewApi.getReviewByItemID(itemId);
-        const rawReviews = reviewRes.exists || [];
+        const rawReviews = reviewRes || [];
+        const latestReviewsMap = new Map();
 
+        for (const review of rawReviews) {
+          const existingReview = latestReviewsMap.get(review.reviewerId);
+          if (!existingReview || new Date(review.createdAt) > new Date(existingReview.createdAt)) {
+            latestReviewsMap.set(review.reviewerId, review);
+          }
+        }
+        const latestReviews = Array.from(latestReviewsMap.values());
         const enriched = await Promise.all(
-          rawReviews.map(async (r) => {
+          latestReviews.map(async (r) => {
             try {
               const user = await userApi.getUserByID(r.reviewerId);
               return {
@@ -113,6 +121,7 @@ function EVDetails() {
         );
 
         setReviews(enriched);
+        console.log(enriched);
       } catch (err) {
         console.error("❌ Lỗi tải dữ liệu sản phẩm:", err);
       } finally {
@@ -204,8 +213,8 @@ function EVDetails() {
                   src={url}
                   onClick={() => setSelectedImage(i)}
                   className={`w-20 h-20 rounded-lg object-cover cursor-pointer border-2 ${selectedImage === i
-                      ? "border-[#B8860B]"
-                      : "border-[#EAE6DA]"
+                    ? "border-[#B8860B]"
+                    : "border-[#EAE6DA]"
                     }`}
                 />
               ))}
@@ -282,10 +291,10 @@ function EVDetails() {
             {feedback && (
               <div
                 className={`mt-4 px-4 py-3 rounded-lg text-sm font-semibold ${feedback.type === "success"
-                    ? "bg-green-100 text-green-800"
-                    : feedback.type === "loading"
-                      ? "bg-yellow-100 text-yellow-800"
-                      : "bg-red-100 text-red-700"
+                  ? "bg-green-100 text-green-800"
+                  : feedback.type === "loading"
+                    ? "bg-yellow-100 text-yellow-800"
+                    : "bg-red-100 text-red-700"
                   }`}
               >
                 {feedback.msg}

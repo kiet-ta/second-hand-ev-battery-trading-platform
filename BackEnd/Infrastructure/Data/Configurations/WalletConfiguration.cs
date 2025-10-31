@@ -22,6 +22,9 @@ public class WalletConfiguration : IEntityTypeConfiguration<Wallet>
             .HasMaxLength(10)
             .HasDefaultValue("vnd")
             .HasColumnName("currency");
+        entity.Property(e => e.HeldBalance)
+            .HasColumnType("decimal(18, 2)")
+            .HasColumnName("held_balance");
         entity.Property(e => e.Status)
             .HasMaxLength(20)
             .HasDefaultValue("active")

@@ -1,4 +1,3 @@
-// src/components/Manager/ReportsContent.jsx
 import React from "react";
 import { BarChart3 } from "lucide-react";
 import Card from "./Card";

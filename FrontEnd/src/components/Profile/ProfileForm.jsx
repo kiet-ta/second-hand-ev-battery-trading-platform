@@ -19,7 +19,6 @@ const ProfileForm = () => {
         return phone.slice(0, 3) + "*".repeat(len - 6) + phone.slice(-3);
     };
 
-    //Lấy thông tin người dùng khi load component
     useEffect(() => {
         if (!userId) return;
 
@@ -44,19 +43,16 @@ const ProfileForm = () => {
 
     if (!formData) return <p>Đang tải thông tin...</p>;
 
-    //Upload ảnh đại diện lên Cloudinary
     const handleAvatarChange = async (e) => {
         const file = e.target.files[0];
         if (!file) return;
 
-        // Hiển thị preview tạm thời (ảnh local)
         const previewUrl = URL.createObjectURL(file);
         setFormData((prev) => ({
             ...prev,
             avatarProfile: previewUrl,
         }));
 
-        // Lấy thông tin từ .env
         const CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
         const UPLOAD_PRESET = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
 
@@ -78,13 +74,11 @@ const ProfileForm = () => {
             console.log("Cloudinary response:", data);
 
             if (data.secure_url) {
-                // ✅ Cập nhật avatar trong state
                 setFormData((prev) => ({
                     ...prev,
                     avatarProfile: data.secure_url,
                 }));
 
-                // ✅ Lưu vào localStorage để giữ avatar sau khi reload
                 localStorage.setItem("userAvatar", data.secure_url);
 
                 message.success({
@@ -114,7 +108,6 @@ const ProfileForm = () => {
     };
 
 
-    //Khi người dùng thay đổi nội dung form
     const handleInputChange = (e) => {
         const { name, value } = e.target;
         setFormData((prev) => ({
@@ -123,7 +116,6 @@ const ProfileForm = () => {
         }));
     };
 
-    //API để cập nhật thông tin người dùng
 
 
     const handleSubmit = (e) => {

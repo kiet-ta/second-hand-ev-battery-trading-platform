@@ -4,7 +4,6 @@ import paymentApi from "../../api/paymentApi";
 import orderApi from "../../api/orderApi";
 import { FiMapPin, FiX } from "react-icons/fi";
 
-// 🌟 Modal chọn địa chỉ giao hàng
 const AddressModal = ({ addresses, selectedId, onSelect, onClose }) => {
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
@@ -87,7 +86,6 @@ function CheckoutPage() {
     const [statusMessage, setStatusMessage] = useState("");
     const pollingIntervalRef = useRef(null);
 
-    // Gói bảo hiểm & phí vận chuyển
     const insurance = { name: "Bảo hiểm hư hỏng sản phẩm", price: 6000 };
     const shipping = { name: "Vận chuyển nhanh", price: 1000 };
 
@@ -95,7 +93,6 @@ function CheckoutPage() {
         (addr) => addr.addressId === selectedAddressId
     );
 
-    // Clear interval khi rời trang
     useEffect(() => {
         return () => {
             if (pollingIntervalRef.current) {
@@ -104,7 +101,6 @@ function CheckoutPage() {
         };
     }, []);
 
-    // Format tiền VND
     const formatVND = (price) => {
         return price.toLocaleString("vi-VN", {
             style: "currency",
@@ -176,6 +172,7 @@ function CheckoutPage() {
                 createdAt: new Date().toISOString().split("T")[0],
                 updatedAt: new Date().toISOString().split("T")[0],
             };
+            console.log("Dữ liệu tạo đơn hàng:", orderPayload);
 
             const orderResponse = await orderApi.postOrderNew(orderPayload);
             console.log("Kết quả tạo đơn hàng:", orderResponse);
@@ -201,6 +198,7 @@ function CheckoutPage() {
             const paymentLinkResponse = await paymentApi.createPaymentLink(
                 paymentPayload
             );
+            console.log(paymentLinkResponse, paymentPayload)
             console.log("Kết quả tạo link thanh toán:", paymentLinkResponse);
 
             const { checkoutUrl, orderCode } = paymentLinkResponse;

@@ -16,7 +16,6 @@ const WalletTransactionPage = () => {
   const [wallet, setWallet] = useState(null);
   const [transactions, setTransactions] = useState([]);
 
-  // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
@@ -28,7 +27,6 @@ const WalletTransactionPage = () => {
         const data = await walletApi.getWalletByUser(userId);
         setWallet(data);
         const txs = await walletApi.getWalletTransactions(data.walletId);
-        // Sort transactions newest first
         setTransactions(txs.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)));
       } catch (error) {
         console.error("Lỗi khi lấy dữ liệu ví:", error);

@@ -1,6 +1,4 @@
-// src/components/CompareToast.jsx
 import React, { useEffect, useState, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
 import { getCompareList, clearCompare } from "../utils/compareUtils";
 import { CheckCircle, XCircle } from "lucide-react";
 
@@ -8,7 +6,6 @@ export default function CompareToast() {
     const [count, setCount] = useState(0);
     const [visible, setVisible] = useState(false);
     const [type, setType] = useState(null);
-    const navigate = useNavigate();
     const max = 3;
 
     // Làm mới danh sách

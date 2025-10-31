@@ -28,7 +28,7 @@ const HeroAdvert = ({ imageUrl, title, description, link, ctaText }) => (
             className="absolute inset-0 w-full h-full object-cover object-center transition-transform duration-700 group-hover:scale-105"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-gray-950 via-gray-950/60 to-transparent p-8 flex flex-col justify-end text-white">
-            <h1 className="text-5xl md:text-6xl font-extrabold font-serif mb-4 drop-shadow-lg text-yellow-300">
+            <h1 className="text-5xl md:text-6xl font-extrabold font-roboto mb-4 drop-shadow-lg text-yellow-300">
                 {title}
             </h1>
             <p className="text-lg md:text-xl text-gray-200 max-w-2xl mb-6 drop-shadow-md">
@@ -108,7 +108,7 @@ function HomePage() {
                 {`
                     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700;800&display=swap');
                     
-                    .font-serif { 
+                    .font-roboto { 
                         font-family: 'Playfair Display', serif; 
                     }
                 `}
@@ -154,6 +154,7 @@ function HomePage() {
                                     isVerified={isItemVerified(item)}
                                     userFavorites={userFavorites}
                                     onFavoriteChange={refetchFavorites}
+                                    updatedBy={item.updatedBy}
                                 />
                             ))}
                     </div>
@@ -205,7 +206,7 @@ function HomePage() {
 
                     <div className="mt-20 p-8 bg-white rounded-xl shadow-2xl border-2 border-[#C4B5A0]/60 text-center relative overflow-hidden">
                         <FiGift className="w-16 h-16 text-[#B8860B] mx-auto mb-6 drop-shadow-lg" />
-                        <h3 className="text-3xl font-serif font-bold text-[#2C2C2C] mb-4 tracking-wide">
+                        <h3 className="text-3xl font-roboto font-bold text-[#2C2C2C] mb-4 tracking-wide">
                             Tham Gia Cộng Đồng Độc Quyền
                         </h3>
                         <p className="text-gray-600 text-lg max-w-3xl mx-auto mb-8">

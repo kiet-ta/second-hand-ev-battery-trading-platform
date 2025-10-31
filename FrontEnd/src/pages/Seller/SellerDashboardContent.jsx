@@ -47,7 +47,6 @@ export default function SellerDashboardContent() {
     if (loading)
         return <div className="text-gray-500 p-8">Đang tải dữ liệu...</div>;
 
-    // Chuyển dữ liệu tuần sang định dạng dễ hiển thị
     const revenueData =
         dashboardData?.revenueByWeek?.map((w) => ({
             weekLabel: `Tuần ${w.weekNumber}/${w.year}`,
@@ -198,9 +197,7 @@ export default function SellerDashboardContent() {
                 </div>
             </div>
 
-            {/* Biểu đồ doanh thu & đơn hàng theo tuần */}
             <div className="grid md:grid-cols-2 gap-6">
-                {/* Biểu đồ doanh thu */}
                 <div className="bg-white rounded-xl p-6 border border-gray-200">
                     <h2 className="text-lg font-semibold text-gray-900 mb-6">
                         Doanh thu theo tuần

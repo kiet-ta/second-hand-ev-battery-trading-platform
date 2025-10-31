@@ -43,7 +43,6 @@ const AddressManagement = () => {
 
                 const res = await addressApi.getUserAddresses(userId);
 
-                // Map DB fields -> UI fields
                 const mapped = res.map(addr => ({
                     id: addr.addressId,
                     street: addr.street,
@@ -73,12 +72,10 @@ const AddressManagement = () => {
         isDefault: false,
     });
 
-    // Load provinces
     useEffect(() => {
         addressApi.getProvinces().then(setProvinces).catch(() => setProvinces([]));
     }, []);
 
-    // Load districts khi chọn tỉnh
     useEffect(() => {
         if (formData.provinceCode) {
             addressApi
@@ -92,7 +89,6 @@ const AddressManagement = () => {
         }
     }, [formData.provinceCode]);
 
-    // Load wards khi chọn huyện
     useEffect(() => {
         if (formData.districtCode) {
             addressApi
@@ -196,14 +192,11 @@ const AddressManagement = () => {
             };
 
             if (editingId) {
-                // Cập nhật
                 await addressApi.updateAddress(editingId, addressPayload);
             } else {
-                // Thêm mới
                 await addressApi.addAddress(addressPayload);
             }
 
-            // Reload danh sách từ DB
             const res = await addressApi.getUserAddresses(userId);
             const mapped = res.map(addr => ({
                 id: addr.addressId,
@@ -243,15 +236,12 @@ const AddressManagement = () => {
             const userId = localStorage.getItem("userId");
             if (!userId) return;
 
-            // 🟢 1. Cập nhật local UI ngay lập tức
             setSavedAddresses(prev => {
-                // Tạo mảng mới đã cập nhật
                 const updated = prev.map(addr => ({
                     ...addr,
                     isDefault: addr.id === id
                 }));
 
-                // Sort lại để đưa mặc định lên đầu
                 const sorted = [...updated].sort(
                     (a, b) => (a.isDefault === b.isDefault ? 0 : a.isDefault ? -1 : 1)
                 );
@@ -259,7 +249,6 @@ const AddressManagement = () => {
                 return sorted;
             });
 
-            // 🟢 2. Đồng bộ DB (không chặn giao diện)
             const allAddresses = await addressApi.getUserAddresses(userId);
             for (const addr of allAddresses) {
                 const updated = { ...addr, isDefault: addr.addressId === id };
@@ -271,15 +260,6 @@ const AddressManagement = () => {
             console.error("❌ Lỗi đặt mặc định:", err);
         }
     };
-
-
-
-
-
-    // ----------------------
-    // Render
-    // ----------------------
-
     return (
         <div className="address-container h-screen overflow-y-auto">
             <div className="address-header">

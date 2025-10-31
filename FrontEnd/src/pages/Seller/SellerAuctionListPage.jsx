@@ -9,7 +9,6 @@ export default function SellerAuctionListPage() {
 
     const token = localStorage.getItem("token");
 
-    // API lấy danh sách đấu giá
     const fetchAuctions = async () => {
         try {
             setLoading(true);
@@ -79,7 +78,6 @@ export default function SellerAuctionListPage() {
                         Chưa có phiên đấu giá nào.
                     </p>
                 ) : (
-                    // Danh sách đấu giá
                     <div className="space-y-4">
                         {auctions.map((a) => (
                             <div

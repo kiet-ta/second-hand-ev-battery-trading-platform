@@ -175,7 +175,6 @@ function BatteryDetails() {
 
     setIsProcessing(true);
     try {
-      // 1️⃣ Tạo OrderItem
       const orderItemPayload = {
         buyerId: userId,
         itemId: itemId,
@@ -187,7 +186,6 @@ function BatteryDetails() {
       if (!createdOrderItem?.orderItemId)
         throw new Error("Không thể tạo OrderItem.");
 
-      // 2️⃣ Lấy địa chỉ mặc định
       const allAddresses = await addressLocalApi.getAddressByUserId(userId);
       const defaultAddress =
         allAddresses.find((addr) => addr.isDefault) || allAddresses[0];
@@ -197,45 +195,30 @@ function BatteryDetails() {
         navigate("/profile/address");
         return;
       }
-
-      // 3️⃣ Tạo Order
-      const orderPayload = {
-        buyerId: userId,
-        addressId: defaultAddress.addressId,
-        orderItemIds: [createdOrderItem.orderItemId],
-        createdAt: new Date().toISOString().split("T")[0],
-        updatedAt: new Date().toISOString().split("T")[0],
+      const checkoutData = {
+        source: "buyNow",
+        totalAmount: item.price,
+        orderItems: [
+          {
+            id: itemId,
+            name: item.title || "Sản phẩm",
+            price: item.price,
+            quantity: 1,
+            image:
+              item.itemImage?.[0]?.imageUrl ||
+              "https://placehold.co/100x100/e2e8f0/374151?text=?",
+          },
+        ],
+        allAddresses,
+        selectedAddressId: defaultAddress.addressId,
       };
 
-      const createdOrder = await orderApi.postOrderNew(orderPayload);
-      if (!createdOrder?.orderId) throw new Error("Không thể tạo Order.");
+      localStorage.setItem("checkoutData", JSON.stringify(checkoutData));
 
-      // 4️⃣ Chuyển sang trang Checkout
-      navigate("/checkout", {
-        state: {
-          fromBuyNow: true,
-          orderId: createdOrder.orderId,
-          totalAmount: item.price,
-          orderItems: [
-            {
-              id: item.itemId || itemId,
-              name: item.title || "Sản phẩm",
-              price: item.price,
-              quantity: 1,
-              image:
-                imageUrls[selectedImage] ||
-                "https://placehold.co/100x100",
-            },
-          ],
-          allAddresses,
-          selectedAddressId: defaultAddress.addressId,
-        },
-      });
+      navigate("/checkout/buy-now", { state: checkoutData });
+
     } catch (err) {
       console.error("❌ Lỗi mua ngay:", err);
-      message.error("Không thể mua ngay. Vui lòng thử lại.");
-    } finally {
-      setIsProcessing(false);
     }
   };
 

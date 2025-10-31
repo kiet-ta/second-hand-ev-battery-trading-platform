@@ -9,10 +9,8 @@ import Step3_StoreInfo from "../components/Seller/SellerForm/Step3BusinessInfo";
 import Step4_Confirmation from "../components/Seller/SellerForm/Step4Confirmation";
 import userApi from "../api/userApi";
 import { useNavigate } from "react-router-dom";
-import useKycRedirect from "../hooks/useKycRedirect";
 
 const SellerRegistrationForm = () => {
-  useKycRedirect();
   const navigate = useNavigate
 
   const [userId] = useState(localStorage.getItem("userId"));
@@ -130,7 +128,7 @@ const SellerRegistrationForm = () => {
   };
 
   const totalSteps = formData.accountType === "store" ? 5 : 4;
-  
+
   return (
     <div className="max-w-2xl mx-auto p-6 bg-white rounded-xl shadow-lg my-10">
       <StepIndicator

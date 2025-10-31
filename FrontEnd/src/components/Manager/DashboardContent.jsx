@@ -14,7 +14,6 @@ import CardHeader from "../../components/Manager/CardHeader";
 import StatTile from "../../components/Manager/StatTile";
 import { managerAPI } from "../../hooks/managerApi";
 
-// 🔹 Định dạng tiền VND
 function currencyVND(x) {
     try {
         return x.toLocaleString("vi-VN", { style: "currency", currency: "VND" });
@@ -31,7 +30,6 @@ export default function DashboardContent() {
     const [transactions, setTransactions] = useState([]);
     const [loading, setLoading] = useState(true);
 
-    // 🔹 Bản đồ tháng
     const monthMap = {
         Jan: "T1", Feb: "T2", Mar: "T3", Apr: "T4",
         May: "T5", Jun: "T6", Jul: "T7", Aug: "T8",

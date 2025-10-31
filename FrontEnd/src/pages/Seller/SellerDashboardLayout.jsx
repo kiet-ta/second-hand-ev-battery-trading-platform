@@ -25,12 +25,10 @@ export default function SellerDashboardLayout() {
     ];
 
     const handleLogout = () => {
-        // Giữ lại thông tin remember
         const rememberEmail = localStorage.getItem("rememberEmail");
         const rememberPassword = localStorage.getItem("rememberPassword");
 
-        localStorage.clear(); // Xoá mọi thứ
-        // Ghi lại thông tin remember
+        localStorage.clear();
         if (rememberEmail && rememberPassword) {
             localStorage.setItem("rememberEmail", rememberEmail);
             localStorage.setItem("rememberPassword", rememberPassword);
@@ -54,7 +52,7 @@ export default function SellerDashboardLayout() {
                         <NavLink
                             key={id}
                             to={path}
-                            end={path === "/seller"} // chỉ match đúng /seller
+                            end={path === "/seller"} 
                             className={({ isActive }) =>
                                 `w-full flex items-center gap-3 px-4 py-3 rounded-lg mb-2 transition font-medium ${isActive
                                     ? "bg-indigo-100 !text-indigo-700 font-semibold"

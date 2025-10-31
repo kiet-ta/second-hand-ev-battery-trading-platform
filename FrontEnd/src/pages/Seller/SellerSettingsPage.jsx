@@ -1,4 +1,3 @@
-// src/pages/seller/SellerSettingsPage.jsx
 export default function SellerSettingsPage() {
     return (
         <div className="p-6 bg-white border rounded-xl shadow-sm">

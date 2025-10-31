@@ -1,7 +1,7 @@
 // KycManagementPage.js
 import React, { useState, useEffect, useCallback } from 'react';
-import kycApi from '../../api/kycApi'; // Import API đã sửa
-import KycDocumentCard from '../../components/Cards/KYCCard'; // Import component con
+import kycApi from '../../api/kycApi'; 
+import KycDocumentCard from '../../components/Cards/KYCCard'; 
 
 const KycManagementPage = () => {
   const [currentTab, setCurrentTab] = useState('pending'); // 'pending', 'approved', 'rejected'
@@ -9,11 +9,10 @@ const KycManagementPage = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Hàm để tải dữ liệu dựa trên tab hiện tại
   const fetchDocuments = useCallback(async () => {
     setLoading(true);
     setError(null);
-    setDocuments([]); // Xóa danh sách cũ
+    setDocuments([]); 
     try {
       let response;
       if (currentTab === 'pending') {
@@ -32,15 +31,13 @@ const KycManagementPage = () => {
     }
   }, [currentTab]);
 
-  // Tự động tải lại dữ liệu khi tab thay đổi
   useEffect(() => {
     fetchDocuments();
   }, [fetchDocuments]);
 
-  // Hàm xử lý khi nhấn nút "Duyệt"
   const handleApprove = async (docId, note) => {
     const payload = {
-      note: note || "Tài liệu hợp lệ.", // Ghi chú mặc định nếu rỗng
+      note: note || "Tài liệu hợp lệ.", 
       verifiedAt: new Date().toISOString(),
       verifiedBy: localStorage.getItem("userId")
     };
@@ -49,8 +46,6 @@ const KycManagementPage = () => {
       await kycApi.putApprovedKYC(docId, payload);
       alert(`Đã duyệt thành công tài liệu #${docId}`);
 
-      // <-- THAY ĐỔI: Tải lại danh sách từ server
-      // thay vì chỉ lọc state cục bộ
       fetchDocuments();
 
     } catch (err) {
@@ -59,7 +54,6 @@ const KycManagementPage = () => {
     }
   };
 
-  // Hàm xử lý khi nhấn nút "Từ chối"
   const handleReject = async (docId, note) => {
     if (!note || note.trim() === '') {
       alert("Vui lòng nhập lý do từ chối.");
@@ -67,9 +61,8 @@ const KycManagementPage = () => {
     }
 
     const payload = {
-      note: note, // Ghi chú từ component con
+      note: note, 
       verifiedAt: new Date().toISOString(),
-      // <-- THAY ĐỔI: Dùng localStorage giống như handleApprove
       verifiedBy: localStorage.getItem("userId")
     };
 
@@ -77,8 +70,6 @@ const KycManagementPage = () => {
       await kycApi.putRejectedKYC(docId, payload);
       alert(`Đã từ chối tài liệu #${docId}`);
 
-      // <-- THAY ĐỔI: Tải lại danh sách từ server
-      // thay vì chỉ lọc state cục bộ
       fetchDocuments();
 
     } catch (err) {
@@ -135,8 +126,8 @@ const KycManagementPage = () => {
             <KycDocumentCard
               key={doc.docId}
               document={doc}
-              onApprove={handleApprove} // Truyền hàm xử lý xuống
-              onReject={handleReject}   // Truyền hàm xử lý xuống
+              onApprove={handleApprove} 
+              onReject={handleReject}   
             />
           ))}
         </div>

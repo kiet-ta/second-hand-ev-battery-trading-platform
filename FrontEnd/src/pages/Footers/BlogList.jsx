@@ -1,5 +1,3 @@
-// src/pages/BlogList.jsx
-import React, { useEffect, useState } from "react";
 import BlogHeader from "../../components/BlogHeader";
 import BlogCard from "../../components/Cards/BlogCard";
 
@@ -31,12 +29,6 @@ const MOCK_BLOGS = [
 ];
 
 export default function BlogList() {
-    const [blogs, setBlogs] = useState([]);
-
-    useEffect(() => {
-        // giả lập API call
-        setTimeout(() => setBlogs(MOCK_BLOGS), 500);
-    }, []);
 
     return (
         <div>
