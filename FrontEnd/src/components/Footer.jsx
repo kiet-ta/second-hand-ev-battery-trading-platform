@@ -47,7 +47,7 @@ function Footer() {
     const discoverLinks = [
         { title: 'Xe Điện', link: '/search?itemType=EV' },
         { title: 'Pin', link: '/search?itemType=Battery' },
-        { title: 'Blog', link: '/blog' },
+        { title: 'Tin tức', link: '/news' },
     ];
 
     return (

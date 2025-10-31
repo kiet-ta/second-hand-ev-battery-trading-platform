@@ -5,6 +5,7 @@ import {
     Image as ImageIcon,
 } from "lucide-react";
 import NewsEditor from "../Editor/TextEditor";
+import newsApi from "../../api/newsApi";
 function Card({ children, className = "" }) {
     return (
         <div className={`rounded-2xl shadow-sm border border-slate-200 bg-white ${className}`}>
@@ -29,7 +30,7 @@ export default function NewsPage() {
         { 
             id: 1, 
             title: "Welcome to the News Management!",
-            category: "EV News",
+            category: "category",
             summary: "The image uploader is now a separate, reusable component.",
             authorId: 1,
             thumbnailUrl: "https://placehold.co/600x400/31343C/FFFFFF?text=Example",
@@ -62,12 +63,12 @@ export default function NewsPage() {
             title: newPost.title,
             category: newPost.category,
             summary: newPost.summary || newPost.content.substring(0, 200),
-            authorId: newPost.authorId,
+            authorId: localStorage.getItem("userId"),
             thumbnailUrl: newPost.thumbnailUrl,
             content: newPost.content,
             tags: newPost.tags,
         };
-
+        newsApi.postNews(apiPayload);
         console.log("--- API Payload to Backend ---");
         console.log(JSON.stringify(apiPayload, null, 2));
 
@@ -76,12 +77,12 @@ export default function NewsPage() {
 
         setNewPost({
             title: "",
-            category: "EV News",
+            category: "category",
             summary: "",
-            authorId: 1,
+            authorId: localStorage.getItem("userId"),
             thumbnailUrl: "",
             content: "",
-            tags: "ev,battery,trading",
+            tags: "#tag",
         });
     };
 

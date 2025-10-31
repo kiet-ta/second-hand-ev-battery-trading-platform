@@ -6,8 +6,8 @@ import { Button, message, Spin } from "antd";
 import "ckeditor5/ckeditor5.css";
 
 async function uploadToCloudinary(file) {
-  const cloudName = "YOUR_CLOUD_NAME";
-  const uploadPreset = "YOUR_UPLOAD_PRESET";
+  const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
+  const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
   const url = `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`;
   const formData = new FormData();
   formData.append("file", file);

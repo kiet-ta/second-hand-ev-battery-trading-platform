@@ -13,8 +13,6 @@ import CheckoutPage from "../pages/Main/CheckoutPage";
 import AuctionMainPage from "../pages/Auctions/AuctionMainPage";
 import AuctionDetailPage from "../pages/Auctions/AuctionDetailPage";
 import FavouritePage from "../pages/Main/FavouritePage";
-import BlogList from "../pages/Footers/BlogList";
-import BlogDetail from "../pages/Footers/BlogDetail";
 import AboutPage from "../pages/Footers/AboutPage";
 import CareersPage from "../pages/Footers/CareerPage";
 import PressPage from "../pages/Footers/PressPage";
@@ -98,6 +96,8 @@ import SellerPendingReview from "../pages/Seller/SellerPendingReview";
 import RechargePage from "../pages/RechargePage";
 import BuyNowCheckoutPage from "../pages/Main/BuyNowCheckoutPage";
 import CommissionSettings from "../components/Manager/CommissionSettings";
+import NewsList from "../pages/Footers/NewsList";
+import NewsDetail from "../pages/Footers/NewsDetail";
 
 /* ---------------------------
    Router definition
@@ -128,8 +128,8 @@ export const router = createBrowserRouter([
       { path: "seller-registration", element: <SellerOnBoard /> },
       { path: "seller-form", element: <SellerForm /> },
       { path: "success", element: <SuccessPage /> },
-      { path: "blog", element: <BlogList /> },
-      { path: "blog/:id", element: <BlogDetail /> },
+      { path: "news", element: <NewsList /> },
+      { path: "news/:id", element: <NewsDetail /> },
       { path: "about", element: <AboutPage /> },
       { path: "careers", element: <CareersPage /> },
       { path: "press", element: <PressPage /> },
