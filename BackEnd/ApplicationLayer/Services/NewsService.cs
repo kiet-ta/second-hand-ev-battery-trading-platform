@@ -2,6 +2,7 @@
 using Application.IRepositories;
 using Application.IServices;
 using Domain.Entities;
+using System.Runtime.InteropServices;
 
 namespace Application.Services
 {
@@ -14,6 +15,10 @@ namespace Application.Services
             _newsRepository = newsRepository;
         }
 
+        public async Task<IEnumerable<News>> GetAllNewsAsync(int page, int pageSize)
+        {
+            return await _newsRepository.GetAllNewsAsync(page, pageSize);
+        }
         public async Task<bool> ApproveNewsAsync(int newsId)
         {
             var result = await _newsRepository.SetApprovedStatusAsync(newsId);
@@ -29,6 +34,10 @@ namespace Application.Services
             return true;
         }
 
+        public async Task<News> GetBynewsId(int id)
+        {
+            return await _newsRepository.GetNewsByIdAsync(id);
+        }
         public async Task<bool> CancelNewsAsync(int newsId)
         {
             var result = await _newsRepository.SetCanclledStatusAsync(newsId);
