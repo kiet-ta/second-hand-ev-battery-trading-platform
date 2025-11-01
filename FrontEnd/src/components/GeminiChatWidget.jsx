@@ -86,7 +86,7 @@ export default function GeminiChatWidget() {
             console.error("Gemini error:", err);
             setMessages((prev) => [
                 ...prev,
-                { role: "model", text: "❌ Lỗi: không thể gửi tin nhắn. Vui lòng thử lại." },
+                { role: "model", text: "Lỗi: không thể gửi tin nhắn. Vui lòng thử lại." },
             ]);
         } finally {
             setIsLoading(false);
@@ -95,21 +95,21 @@ export default function GeminiChatWidget() {
 
     return (
         <>
-            {/* 🔘 Nút mở chat */}
+            {/* Nút mở chat */}
             {!isOpen && (
                 <button
                     onClick={() => setIsOpen(true)}
-                    className="fixed bottom-6 right-6 bg-green-600 text-white p-4 rounded-full shadow-lg hover:bg-green-700 transition z-[9999]"
+                    className="fixed bottom-6 right-6 bg-orange-600 text-white p-4 rounded-full shadow-lg hover:bg-orange-700 transition z-[9999]"
                 >
                     <MessageSquare size={26} />
                 </button>
             )}
 
-            {/* 💬 Hộp chat */}
+            {/* Hộp chat */}
             {isOpen && (
                 <div className="fixed bottom-6 right-6 w-80 h-[480px] flex flex-col bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden z-[9999]">
                     {/* Header */}
-                    <div className="flex justify-between items-center bg-green-600 text-white px-4 py-2">
+                    <div className="flex justify-between items-center bg-orange-600 text-white px-4 py-2">
                         <span className="font-semibold">CocMuaXe Assistant</span>
                         <button onClick={() => setIsOpen(false)}>
                             <X size={20} />
@@ -148,13 +148,13 @@ export default function GeminiChatWidget() {
                             value={userInput}
                             onChange={(e) => setUserInput(e.target.value)}
                             placeholder="Nhập tin nhắn..."
-                            className="flex-1 text-sm px-3 py-2 border rounded-lg focus:outline-none focus:ring-1 focus:ring-green-400"
+                            className="flex-1 text-sm px-3 py-2 border rounded-lg focus:outline-none focus:ring-1 focus:ring-orange-400"
                             disabled={isLoading}
                         />
                         <button
                             type="submit"
                             disabled={isLoading || !userInput.trim()}
-                            className="ml-2 bg-green-600 hover:bg-green-700 text-white p-2 rounded-full transition"
+                            className="ml-2 bg-orange-600 hover:bg-orange-700 text-white p-2 rounded-full transition"
                         >
                             <Send size={16} />
                         </button>

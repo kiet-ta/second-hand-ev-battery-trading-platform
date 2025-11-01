@@ -1,35 +1,54 @@
 import { useEffect, useState } from 'react';
 
-const useCountdown = (targetDate) => {
-  const countDownDate = new Date(targetDate).getTime();
+const useCountdown = (endTimeStr) => {
+    const calculateTimeRemaining = useCallback(() => {
+        // Logic relies only on endTimeStr, ignoring external status
+        if (!endTimeStr) return { time: "N/A", isFinished: true };
 
-  const [countDown, setCountDown] = useState(
-    countDownDate - new Date().getTime()
-  );
+        const now = new Date().getTime();
+        const endTime = new Date(endTimeStr).getTime();
+        const distance = endTime - now;
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCountDown(countDownDate - new Date().getTime());
-    }, 1000);
+        if (distance <= 0) { 
+            return { time: "00h 00m 00s", isFinished: true };
+        }
 
-    return () => clearInterval(interval);
-  }, [countDownDate]);
+        const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((distance % (1000 * 60)) / 1000);
 
-  return getReturnValues(countDown);
+        const pad = (num) => String(num).padStart(2, '0');
+
+        if (days > 0) {
+            return { time: `${days}d ${pad(hours)}h ${pad(minutes)}m`, isFinished: false };
+        }
+        return { time: `${pad(hours)}h ${pad(minutes)}m ${pad(seconds)}s`, isFinished: false };
+    }, [endTimeStr]);
+
+    const [countdown, setCountdown] = useState(calculateTimeRemaining);
+
+    useEffect(() => {
+        if (!endTimeStr) return;
+        
+        const initialCountdown = calculateTimeRemaining();
+        setCountdown(initialCountdown);
+
+        if (initialCountdown.isFinished) return;
+
+        const intervalId = setInterval(() => {
+            const newCountdown = calculateTimeRemaining(); 
+            setCountdown(newCountdown);
+
+            // This ensures the timer stops instantly when distance <= 0
+            if (newCountdown.isFinished) { 
+                clearInterval(intervalId); 
+            }
+        }, 1000);
+
+        return () => clearInterval(intervalId);
+    }, [calculateTimeRemaining, endTimeStr]); 
+
+    return countdown;
 };
-
-const getReturnValues = (countDown) => {
-  if (countDown < 0) {
-    return { days: 0, hours: 0, minutes: 0, seconds: 0, isFinished: true };
-  }
-  const days = Math.floor(countDown / (1000 * 60 * 60 * 24));
-  const hours = Math.floor(
-    (countDown % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
-  );
-  const minutes = Math.floor((countDown % (1000 * 60 * 60)) / (1000 * 60));
-  const seconds = Math.floor((countDown % (1000 * 60)) / 1000);
-
-  return { days, hours, minutes, seconds, isFinished: false };
-};
-
 export { useCountdown };

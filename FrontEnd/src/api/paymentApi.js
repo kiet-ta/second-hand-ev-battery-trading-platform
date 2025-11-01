@@ -2,7 +2,6 @@ import axios from "axios";
 const baseURL = import.meta.env.VITE_API_BASE_URL + "payment";
 const paymentApi = {
     createPaymentLink: async (payload) => {
-        console.log(payload)
         const response = await axios.post(baseURL + '/create-payment-link', payload);
         console.log(response.data)
         return response.data;
@@ -18,7 +17,7 @@ const paymentApi = {
     },
     cancelPayment: async (orderCode, reason) => {
         try {
-            const response = await axios.post(`${baseURL}/info/${orderCode}`,reason)
+            const response = await axios.post(`${baseURL}/cancel/${orderCode}`, reason)
             return response.data;
         } catch (error) {
             console.error("Error in createPayment API call:", error);

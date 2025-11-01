@@ -1,7 +1,6 @@
 ﻿using Application.DTOs;
 using Application.DTOs.ItemDtos;
 using Application.IRepositories;
-using Domain.DTOs;
 using Domain.Entities;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -33,12 +32,17 @@ namespace Infrastructure.Repositories
                 .FirstOrDefaultAsync();
         }
 
-
         public async Task<List<Item>> GetAllSellerItemsAsync(int sellerId)
         {
             return await _context.Items
                 .Where(i => i.UpdatedBy == sellerId && !(i.IsDeleted == true))
                 .ToListAsync();
+        }
+        public IQueryable<Item> GetAllSellerItemsQueryable(int sellerId)
+        {
+            return _context.Items
+                .Where(i => i.UpdatedBy == sellerId && !(i.IsDeleted == true))
+                .AsQueryable();
         }
 
         public async Task<List<Item>> GetProcessingItemsAsync(int sellerId)
@@ -84,6 +88,7 @@ namespace Infrastructure.Repositories
 
             return items;
         }
+
         public async Task<List<Item>> GetCanceledItemsAsync(int sellerId)
         {
             var items = await _context.Items
@@ -117,13 +122,10 @@ namespace Infrastructure.Repositories
             foreach (var item in items)
             {
                 item.Status = "canceled";
-
             }
 
             return items;
         }
-
-
 
         public async Task<List<Item>> GetSoldItemsAsync(int sellerId)
         {
@@ -148,6 +150,7 @@ namespace Infrastructure.Repositories
         }
 
 #pragma warning disable CS8601
+
         public async Task<List<BatteryItemDto>> MapToBatteryItemsAsync(List<Item> batteryItems)
         {
             var itemIds = batteryItems.Select(i => i.ItemId).ToList();
@@ -172,7 +175,7 @@ namespace Infrastructure.Repositories
                         select new BatteryItemDto
                         {
                             ItemId = item.ItemId,
-
+                            ItemType = item.ItemType,
                             Brand = battery.Brand,
                             Capacity = battery.Capacity,
                             Voltage = battery.Voltage,
@@ -180,7 +183,6 @@ namespace Infrastructure.Repositories
                             ListedPrice = item.Price,
                             ActualPrice = pd != null ? pd.Amount : (decimal?)null,
                             PaymentMethod = p != null ? p.Method : null,
-
 
                             CreatedAt = item.CreatedAt,
                             SoldAt = item.UpdatedAt,
@@ -192,6 +194,68 @@ namespace Infrastructure.Repositories
                                 Phone = u.Phone,
                                 Address = a != null ? $"{a.Street}, {a.Ward}, {a.District}, {a.Province}" : null
                             } : null
+                        };
+
+            return await query.ToListAsync();
+        }
+        public async Task<List<BatteryItemDto>> MapToBatteryItemsAsync(IQueryable<Item> batteryItemsQuery)
+        {
+            // KHÔNG dùng itemIds và List<Item> nữa
+            var query = from item in batteryItemsQuery // Dùng IQueryable được truyền vào
+                        join battery in _context.BatteryDetails on item.ItemId equals battery.ItemId
+                        //join img in _context.ItemImages on item.ItemId equals img.ItemId into images
+                        //from img in images.DefaultIfEmpty()
+                        join oi in _context.OrderItems on item.ItemId equals oi.ItemId into orderItems
+                        from oi in orderItems.DefaultIfEmpty()
+                        join o in _context.Orders on oi.OrderId equals o.OrderId into orders
+                        from o in orders.DefaultIfEmpty()
+                        join u in _context.Users on o.BuyerId equals u.UserId into buyers
+                        from u in buyers.DefaultIfEmpty()
+                        join a in _context.Addresses on o.AddressId equals a.AddressId into addresses
+                        from a in addresses.DefaultIfEmpty()
+                        join pd in _context.PaymentDetails on item.ItemId equals pd.ItemId into payments
+                        from pd in payments.DefaultIfEmpty()
+                        join p in _context.Payments on pd.PaymentId equals p.PaymentId into paymentList
+                        from p in paymentList.DefaultIfEmpty()
+
+                            // Tính toán trạng thái ngay trong query
+                        let isSold = _context.PaymentDetails.Any(pd_s => pd_s.ItemId == item.ItemId && _context.Payments.Any(p_s => p_s.PaymentId == pd_s.PaymentId && p_s.Status == "completed"))
+                        let isProcessing = !isSold && _context.OrderItems.Any(oi_p => oi_p.ItemId == item.ItemId && _context.Orders.Any(o_p => o_p.OrderId == oi_p.OrderId && (o_p.Status == "paid" || o_p.Status == "shipped")))
+                        let isPending = !isSold && !isProcessing && _context.PaymentDetails.Any(pd_pe => pd_pe.ItemId == item.ItemId && _context.Payments.Any(p_pe => p_pe.PaymentId == pd_pe.PaymentId && p_pe.Status == "pending"))
+                        let isCanceled = !isSold && !isProcessing && !isPending &&
+                                         (_context.PaymentDetails.Any(pd_c => pd_c.ItemId == item.ItemId && _context.Payments.Any(p_c => p_c.PaymentId == pd_c.PaymentId && (p_c.Status == "failed" || p_c.Status == "refunded" || p_c.Status == "expired")))
+                                          || _context.OrderItems.Any(oi_c => oi_c.ItemId == item.ItemId && _context.Orders.Any(o_c => o_c.OrderId == oi_c.OrderId && o_c.Status == "canceled")))
+
+                        select new BatteryItemDto
+                        {
+                            ItemId = item.ItemId,
+                            ItemType = item.ItemType,
+                            Brand = battery.Brand,
+                            Capacity = battery.Capacity,
+                            Voltage = battery.Voltage,
+                            ChargeCycles = battery.ChargeCycles,
+                            ListedPrice = item.Price,
+                            ActualPrice = pd != null ? pd.Amount : (decimal?)null,
+                            PaymentMethod = p != null ? p.Method : null,
+                            CreatedAt = item.CreatedAt,
+                            SoldAt = item.UpdatedAt,
+                            ImageUrl = (from img_ in _context.ItemImages 
+                                where img_.ItemId == item.ItemId 
+                                select img_.ImageUrl).FirstOrDefault(),
+                            Buyer = u != null ? new BuyerDto
+                            {
+                                BuyerId = u.UserId,
+                                FullName = u.FullName,
+                                Phone = u.Phone,
+                                Address = a != null ? $"{a.Street}, {a.Ward}, {a.District}, {a.Province}" : null
+                            } : null,
+
+                            // Gán trạng thái đã tính toán
+                            Status = isSold ? "sold" :
+                                     isProcessing ? "processing" :
+                                     isPending ? "pending_approval" :
+                                     isCanceled ? "canceled" :
+                                     "available"
                         };
 
             return await query.ToListAsync();
@@ -221,6 +285,7 @@ namespace Infrastructure.Repositories
                         select new EVItemDto
                         {
                             ItemId = item.ItemId,
+                            ItemType = item.ItemType,
                             Title = item.Title,
                             LicensePlate = ev.LicensePlate,
                             Mileage = ev.Mileage,
@@ -229,7 +294,6 @@ namespace Infrastructure.Repositories
                             ListedPrice = item.Price,
                             ActualPrice = pd != null ? pd.Amount : (decimal?)null,
                             PaymentMethod = p != null ? p.Method : null,
-
 
                             CreatedAt = item.CreatedAt,
                             SoldAt = item.UpdatedAt,
@@ -241,6 +305,68 @@ namespace Infrastructure.Repositories
                                 Phone = u.Phone,
                                 Address = a != null ? $"{a.Street}, {a.Ward}, {a.District}, {a.Province}" : null
                             } : null
+                        };
+
+            return await query.ToListAsync();
+        }
+
+        public async Task<List<EVItemDto>> MapToEVItemsAsync(IQueryable<Item> evItemsQuery)
+        {
+            var query = from item in evItemsQuery
+                        join ev in _context.EVDetails on item.ItemId equals ev.ItemId
+                        //join img in _context.ItemImages on item.ItemId equals img.ItemId into images
+                        //from img in images.DefaultIfEmpty()
+                        join oi in _context.OrderItems on item.ItemId equals oi.ItemId into orderItems
+                        from oi in orderItems.DefaultIfEmpty()
+                        join o in _context.Orders on oi.OrderId equals o.OrderId into orders
+                        from o in orders.DefaultIfEmpty()
+                        join u in _context.Users on o.BuyerId equals u.UserId into buyers
+                        from u in buyers.DefaultIfEmpty()
+                        join a in _context.Addresses on o.AddressId equals a.AddressId into addresses
+                        from a in addresses.DefaultIfEmpty()
+                        join pd in _context.PaymentDetails on item.ItemId equals pd.ItemId into payments
+                        from pd in payments.DefaultIfEmpty()
+                        join p in _context.Payments on pd.PaymentId equals p.PaymentId into paymentList
+                        from p in paymentList.DefaultIfEmpty()
+
+                        let isSold = _context.PaymentDetails.Any(pd_s => pd_s.ItemId == item.ItemId && _context.Payments.Any(p_s => p_s.PaymentId == pd_s.PaymentId && p_s.Status == "completed"))
+                        let isProcessing = !isSold && _context.OrderItems.Any(oi_p => oi_p.ItemId == item.ItemId && _context.Orders.Any(o_p => o_p.OrderId == oi_p.OrderId && (o_p.Status == "paid" || o_p.Status == "shipped")))
+                        let isPending = !isSold && !isProcessing && _context.PaymentDetails.Any(pd_pe => pd_pe.ItemId == item.ItemId && _context.Payments.Any(p_pe => p_pe.PaymentId == pd_pe.PaymentId && p_pe.Status == "pending"))
+                        let isCanceled = !isSold && !isProcessing && !isPending &&
+                                         (_context.PaymentDetails.Any(pd_c => pd_c.ItemId == item.ItemId && _context.Payments.Any(p_c => p_c.PaymentId == pd_c.PaymentId && (p_c.Status == "failed" || p_c.Status == "refunded" || p_c.Status == "expired")))
+                                          || _context.OrderItems.Any(oi_c => oi_c.ItemId == item.ItemId && _context.Orders.Any(o_c => o_c.OrderId == oi_c.OrderId && o_c.Status == "canceled")))
+
+                        select new EVItemDto
+                        {
+                            ItemId = item.ItemId,
+                            ItemType = item.ItemType,
+                            Title = item.Title,
+                            LicensePlate = ev.LicensePlate,
+                            Mileage = ev.Mileage,
+                            Color = ev.Color,
+                            Year = ev.Year,
+                            ListedPrice = item.Price,
+                            ActualPrice = pd != null ? pd.Amount : (decimal?)null,
+                            PaymentMethod = p != null ? p.Method : null,
+
+                            CreatedAt = item.CreatedAt,
+                            SoldAt = item.UpdatedAt,
+                            ImageUrl = (from img_ in _context.ItemImages
+                                        where img_.ItemId == item.ItemId
+                                        select img_.ImageUrl).FirstOrDefault(),
+                            Buyer = u != null ? new BuyerDto
+                            {
+                                BuyerId = u.UserId,
+                                FullName = u.FullName,
+                                Phone = u.Phone,
+                                Address = a != null ? $"{a.Street}, {a.Ward}, {a.District}, {a.Province}" : null
+                            } : null,
+
+                            Status = isSold ? "sold" :
+                                     isProcessing ? "processing" :
+                                     isPending ? "pending_approval" :
+                                     isCanceled ? "canceled" :
+                                     "available"
                         };
 
             return await query.ToListAsync();

@@ -4,6 +4,7 @@ using Application.IRepositories.IBiddingRepositories;
 using Application.IRepositories.IPaymentRepositories;
 using Application.IServices;
 using Domain.Entities;
+using IdGen;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.Extensions.Configuration;
 using Net.payOS;
@@ -20,9 +21,10 @@ public class PaymentService : IPaymentService
     private readonly ICommissionFeeRuleRepository _commissionRuleRepo;
     private readonly IUserRepository _userRepository;
     private readonly IItemRepository _itemRepository;
+    private readonly IIdGenerator<long> _idGenerator;
 
     public PaymentService(PayOS payOS, IPaymentRepository paymentRepository, IWalletRepository walletRepository, IConfiguration config, ICommissionFeeRuleRepository commissionRuleRepo,
-    IUserRepository userRepository, IItemRepository itemRepository)
+    IUserRepository userRepository, IItemRepository itemRepository, IIdGenerator<long> idGenerator)
     {
         _payOS = payOS;
         _paymentRepository = paymentRepository;
@@ -31,6 +33,7 @@ public class PaymentService : IPaymentService
         _commissionRuleRepo = commissionRuleRepo;
         _userRepository = userRepository;
         _itemRepository = itemRepository;
+        _idGenerator = idGenerator;
     }
 
     public async Task<PaymentResponseDto> CreatePaymentAsync(PaymentRequestDto request)
@@ -43,7 +46,8 @@ public class PaymentService : IPaymentService
         if (wallet == null)
             throw new ArgumentException("User or wallet does not exist");
 
-        long orderCode = long.Parse(DateTimeOffset.UtcNow.ToString("ffffff"));
+        // using idGen to avoid duplicate order code
+        long orderCode = _idGenerator.CreateId();
 
         var payment = new Payment
         {
@@ -199,7 +203,12 @@ public class PaymentService : IPaymentService
     {
         var rules = await _commissionRuleRepo.GetAllAsync();
         var registrationFeeRule = rules.FirstOrDefault(r => r.FeeCode == "SELLER_REG_FEE" && r.IsActive);
-
+        var user = await _userRepository.GetByIdAsync(request.UserId);
+        if (user.Role != "seller" || user.Paid == "registering" || user.Paid == "account-maintenance-fee")
+        {
+            //400 (Bad Request)
+            throw new InvalidOperationException("User is not a seller or has paid the fee.");
+        }
         if (registrationFeeRule == null)
             throw new Exception("Registration fee for Seller not configured yet.");
 
@@ -248,5 +257,72 @@ public class PaymentService : IPaymentService
             CheckoutUrl = result.checkoutUrl,
             Status = "pending"
         };
+    }
+
+    public async Task<PaymentResponseDto> CreateDepositPaymentLinkAsync(int userId, decimal amount)
+    {
+        //unique id deposit order
+        long depositOrderCode = _idGenerator.CreateId();
+
+        // Create Payment record in DB to track deposit transaction
+        var paymentRecord = new Payment
+        {
+            UserId = userId,
+            OrderCode = depositOrderCode,
+            TotalAmount = amount,
+            Method = "payos",
+            Status = "pending",
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow,
+        };
+        paymentRecord = await _paymentRepository.AddPaymentAsync(paymentRecord);
+
+        // ! Create a PaymentDetail record to mark this as a deposit transaction
+        // By not setting OrderId and ItemId
+        var depositDetail = new PaymentDetail
+        {
+            PaymentId = paymentRecord.PaymentId,
+            OrderId = null,
+            ItemId = null,
+            Amount = amount
+        };
+        await _paymentRepository.AddPaymentDetailsAsync(new List<PaymentDetail> { depositDetail });
+
+        var description = $"Deposit: {userId}";
+        var payOSItem = new ItemData(
+            name: "Wallet Deposit",
+            quantity: 1,
+            price: (int)amount
+        );
+
+        var domain = _config["AppSettings:Domain"] ?? "http://localhost:5173/";
+        var paymentData = new PaymentData(
+            orderCode: depositOrderCode,
+            amount: (int)amount,
+            description: description,
+            items: new List<ItemData> { payOSItem },
+            cancelUrl: $"{domain}wallet/deposit/cancel?paymentId={paymentRecord.PaymentId}",
+            returnUrl: $"{domain}wallet/deposit/success?paymentId={paymentRecord.PaymentId}"
+        );
+
+        //using payos to create link
+        try
+        {
+            CreatePaymentResult payOSResult = await _payOS.createPaymentLink(paymentData);
+
+            return new PaymentResponseDto
+            {
+                PaymentId = paymentRecord.PaymentId,
+                OrderCode = payOSResult.orderCode,
+                CheckoutUrl = payOSResult.checkoutUrl,
+                Status = "pending"
+            };
+        }
+        catch (Exception ex)
+        {
+            await _paymentRepository.UpdatePaymentStatusAsync(paymentRecord.PaymentId, "failed");
+            Console.WriteLine($"Error creating PayOS link for deposit: {ex.Message}");
+            throw new Exception("Failed to create payment link. Please try again later.", ex);
+        }
     }
 }

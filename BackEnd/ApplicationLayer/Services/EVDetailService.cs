@@ -19,15 +19,16 @@ namespace Application.Services
 
         public EVDetailService(IItemRepository itemRepo, IEVDetailRepository evRepo) //, IUnitOfWork uow)
         {
-            _itemRepo = itemRepo;
-            _evRepo = evRepo;
+            _itemRepo = itemRepo ?? throw new ArgumentNullException(nameof(itemRepo));
+            _evRepo = evRepo ?? throw new ArgumentNullException(nameof(evRepo));
             //_uow = uow;
         }
 
         public async Task<EVDetailDto> CreateAsync(CreateEvDetailDto dto, CancellationToken ct = default)
         {
             // basic validation (add more as needed)
-            if (string.IsNullOrWhiteSpace(dto.Title)) throw new ArgumentException("Title required");
+            if (dto == null) throw new ArgumentNullException(nameof(dto));
+            if (string.IsNullOrWhiteSpace(dto.Title)) throw new ArgumentException("Title required", nameof(dto.Title));
 
             var item = new Item
             {
@@ -39,12 +40,15 @@ namespace Application.Services
                 Quantity = dto.Quantity,
                 Status = dto.Status,
                 UpdatedBy = dto.UpdatedBy,
-                //CreatedAt = DateTime.UtcNow,
-                //UpdatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
             };
 
             await _itemRepo.AddAsync(item, ct);
             await _itemRepo.SaveChangesAsync(); // Save to get ItemId if DB generates it
+            if (item.ItemId <= 0)
+                throw new InvalidOperationException("Failed to generate ItemId.");
+
             var ev = new EVDetail
             {
                 ItemId = item.ItemId, // IMPORTANT: if using DB identity, ItemId won't be populated until SaveChanges.
@@ -59,7 +63,8 @@ namespace Application.Services
                 PreviousOwners = dto.PreviousOwners,
                 IsRegistrationValid = dto.IsRegistrationValid,
                 Mileage = dto.Mileage,
-                //UpdatedAt = DateTime.UtcNow
+                LicenseUrl = dto.LicenseUrl,
+                UpdatedAt = DateTime.UtcNow
             };
 
             // If ItemId identity is generated on DB, you must SaveChanges() after AddAsync(item) to get item.ItemId.
@@ -83,7 +88,8 @@ namespace Application.Services
 
         public async Task<bool> DeleteAsync(int itemId, CancellationToken ct = default)
         {
-            if (!await _evRepo.ExistsAsync(itemId, ct)) return false;
+            if (!await _evRepo.ExistsAsync(itemId, ct))
+                throw new InvalidOperationException("EV detail not found.");
 
             await _evRepo.DeleteAsync(itemId, ct);
             await _itemRepo.SaveChangesAsync();
@@ -92,11 +98,14 @@ namespace Application.Services
 
         public async Task<IEnumerable<EVDetailDto>> GetAllAsync(CancellationToken ct = default)
         {
-            var evs = await _evRepo.GetAllAsync(ct);
+            var evs = await _evRepo.GetAllAsync(ct)
+                ?? throw new InvalidOperationException("Failed to retrieve EV details."); 
+
             var result = new List<EVDetailDto>();
             foreach (var e in evs)
             {
-                var item = await _itemRepo.GetByIdAsync(e.ItemId, ct);
+                var item = await _itemRepo.GetByIdAsync(e.ItemId, ct)
+                    ?? throw new InvalidOperationException($"Item not found for ItemId {e.ItemId}");
                 result.Add(MapToDto(e, item));
             }
             return result;
@@ -106,14 +115,16 @@ namespace Application.Services
         {
             var e = await _evRepo.GetByIdAsync(itemId, ct);
             if (e == null) return null;
-            var item = await _itemRepo.GetByIdAsync(itemId, ct);
+            var item = await _itemRepo.GetByIdAsync(itemId, ct)
+                ?? throw new InvalidOperationException($"Item not found for ItemId {itemId}");
             return MapToDto(e, item);
         }
 
         public async Task<bool> UpdateAsync(int itemId, UpdateEvDetailDto dto, CancellationToken ct = default)
         {
             var existing = await _evRepo.GetByIdAsync(itemId, ct);
-            if (existing == null) return false;
+            if (existing == null)
+                throw new InvalidOperationException("EV detail not found."); 
 
             // update fields that are not null in DTO
             if (dto.Brand != null) existing.Brand = dto.Brand;
@@ -127,23 +138,23 @@ namespace Application.Services
             if (dto.PreviousOwners.HasValue) existing.PreviousOwners = dto.PreviousOwners.Value;
             if (dto.IsRegistrationValid.HasValue) existing.IsRegistrationValid = dto.IsRegistrationValid.Value;
             if (dto.Mileage.HasValue) existing.Mileage = dto.Mileage.Value;
-            //existing.UpdatedAt = DateTime.UtcNow;
+            if (dto.LicenseUrl != null) existing.LicenseUrl = dto.LicenseUrl;
+            existing.UpdatedAt = DateTime.UtcNow;
 
             _evRepo.Update(existing);
 
             // update Item fields if supplied
             if (dto.Title != null || dto.Price.HasValue || dto.Quantity.HasValue || dto.Status != null)
             {
-                var item = await _itemRepo.GetByIdAsync(itemId, ct);
-                if (item != null)
-                {
-                    if (dto.Title != null) item.Title = dto.Title;
-                    if (dto.Price.HasValue) item.Price = dto.Price;
-                    if (dto.Quantity.HasValue) item.Quantity = dto.Quantity.Value;
-                    if (dto.Status != null) item.Status = dto.Status;
-                    //item.UpdatedAt = DateTime.UtcNow;
-                    _itemRepo.Update(item);
-                }
+                var item = await _itemRepo.GetByIdAsync(itemId, ct)
+                    ?? throw new InvalidOperationException($"Item not found for ItemId {itemId}");
+
+                if (dto.Title != null) item.Title = dto.Title;
+                if (dto.Price.HasValue) item.Price = dto.Price;
+                if (dto.Quantity.HasValue) item.Quantity = dto.Quantity.Value;
+                if (dto.Status != null) item.Status = dto.Status;
+
+                _itemRepo.Update(item);
             }
 
             try
@@ -156,6 +167,61 @@ namespace Application.Services
             }
 
             return true;
+        }
+
+        public async Task<IEnumerable<ItemDto>> GetLatestEVsAsync(int count)
+        {
+            var items = await _evRepo.GetLatestEVsAsync(count);
+            if (items == null)
+                throw new Exception("No EV items found.");
+
+            var result = new List<ItemDto>();
+
+            foreach (var item in items)
+            {
+                var images = await _itemRepo.GetByItemIdAsync(item.ItemId);
+
+                result.Add(new ItemDto
+                {
+                    ItemId = item.ItemId,
+                    ItemType = item.ItemType,
+                    CategoryId = item.CategoryId,
+                    Title = item.Title,
+                    Description = item.Description,
+                    Price = item.Price,
+                    Moderation = item.Moderation,
+                    Quantity = item.Quantity,
+                    //Status = item.Status,
+                    CreatedAt = item.CreatedAt,
+                    UpdatedAt = item.UpdatedAt,
+                    UpdatedBy = item.UpdatedBy,
+                    //IsVerified = item.IsVerified,
+                    //IsDeleted = item.IsDeleted,
+                    Images = images.Select(img => new ItemImageDto
+                    {
+                        ImageId = img.ImageId,
+                        ImageUrl = img.ImageUrl
+                    }).ToList()
+                });
+            }
+
+            return result;
+        }
+
+        public async Task<IEnumerable<EVDetailDto>> SearchEvDetailAsync(EVSearchRequestDto request)
+        {
+            var result = await _evRepo.SearchEvDetailAsync(request);
+            return result.Select(e => new EVDetailDto
+            {
+                ItemId = e.ItemId,
+                Brand = e.Brand,
+                Model = e.Model,
+                Year = e.Year,
+                Color = e.Color,
+                LicensePlate = e.LicensePlate,
+                Mileage = e.Mileage,
+                LicenseUrl = e.LicenseUrl
+            });
         }
 
         private static EVDetailDto MapToDto(EVDetail e, Item? item)
@@ -175,6 +241,7 @@ namespace Application.Services
                 Mileage = e.Mileage,
                 Title = item?.Title,
                 Price = item?.Price,
+                LicenseUrl = e.LicenseUrl,
                 Status = item?.Status
             };
 

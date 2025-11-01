@@ -1,4 +1,5 @@
-﻿using Application.IRepositories.IChatRepositories;
+﻿using Application.DTOs.SignalRDtos;
+using Application.IRepositories.IChatRepositories;
 using Application.IServices;
 using Domain.Entities;
 using System;
@@ -15,12 +16,14 @@ namespace Application.Services
         private readonly IChatRepository _repo;
         private readonly IUserContextService _userContext;
         private readonly IProfanityFilterService _filterService;
+        private readonly IUserModerationRepository _modRepo;
 
-        public ChatService(IChatRepository repo, IUserContextService userContext, IProfanityFilterService filterService)
+        public ChatService(IChatRepository repo, IUserContextService userContext, IProfanityFilterService filterService, IUserModerationRepository modRepo)
         {
             _repo = repo;
             _userContext = userContext;
             _filterService = filterService;
+            _modRepo = modRepo;
         }
 
         public async Task<ChatRoomDto> EnsureRoomAsync(long[] members)
@@ -74,7 +77,27 @@ namespace Application.Services
             if (!room.Members.Contains(dto.From) || !room.Members.Contains(dto.To))
                 throw new UnauthorizedAccessException("Users must be members of the room");
 
-            var cleanedMessage = _filterService.CleanMessage(dto.Text);
+            //var cleanedMessage = _filterService.CleanMessage(dto.Text);
+
+            var filterResult = _filterService.Filter(dto.Text);
+            var cleanedMessage = filterResult.CleanedText;
+
+            // 2. Nếu vi phạm, ghi lại log
+            if (filterResult.WasProfane)
+            {
+                Console.WriteLine($"User {dto.From} sent a profane message.");
+                await _modRepo.AddProfanityLogAsync(dto.From, DateTimeOffset.UtcNow);
+
+                // 3. (Tùy chọn) Kiểm tra ngay lập tức
+                // Bạn có thể lấy count ngay bây giờ để quyết định cấm chat, v.v.
+                int profanityCount = await _modRepo.GetProfanityCountAsync(dto.From, TimeSpan.FromHours(1));
+                Console.WriteLine($"User {dto.From} profanity count in last 1h: {profanityCount}");
+
+                if (profanityCount > 5) // Ví dụ: Cấm chat nếu chửi bậy quá 5 lần/giờ
+                {
+                    // throw new Exception("Bạn đã bị cấm chat vì vi phạm.");
+                }
+            }
 
             // Create message
             var msg = new Message
@@ -130,6 +153,55 @@ namespace Application.Services
                 m.Text,
                 m.CreatedAt
             )).ToList();
+        }
+
+        public async Task<IEnumerable<ChatRoomSummaryDto>> GetRoomsByUserIdAsync(long userId)
+        {
+            var roomIds = await _repo.GetRoomIdsByUserIdAsync(userId);
+
+            var roomTasks = new List<Task<ChatRoomSummaryDto?>>();
+
+            foreach (var cid in roomIds)
+            {
+                roomTasks.Add(GetRoomSummaryInternalAsync(cid));
+            }
+
+            var summaries = await Task.WhenAll(roomTasks);
+
+            return summaries
+                .Where(s => s != null)
+                .Select(s => s!)
+                .OrderByDescending(s => s.LastMessage?.CreatedAt ?? DateTimeOffset.MinValue);
+        }
+
+        private async Task<ChatRoomSummaryDto?> GetRoomSummaryInternalAsync(long cid)
+        {
+            try
+            {
+                var room = await _repo.GetRoomRawAsync(cid);
+                if (room == null) return null;
+
+                var lastMessage = await _repo.GetLastMessageAsync(cid);
+
+                MessageDto? lastMessageDto = null;
+                if (lastMessage != null)
+                {
+                    lastMessageDto = new MessageDto(
+                        lastMessage.Id,
+                        lastMessage.From,
+                        lastMessage.To,
+                        lastMessage.Text,
+                        lastMessage.CreatedAt
+                    );
+                }
+
+                return new ChatRoomSummaryDto(cid, room.Members.ToArray(), lastMessageDto);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error fetching summary for room {cid}: {ex.Message}");
+                return null;
+            }
         }
 
         private long GenerateCid(long[] sortedMembers)

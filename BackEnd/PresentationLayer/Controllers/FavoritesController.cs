@@ -2,10 +2,11 @@
 using Application.IServices;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace PresentationLayer.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/favorite")]
     [ApiController]
     public class FavoritesController : ControllerBase
     {
@@ -20,10 +21,12 @@ namespace PresentationLayer.Controllers
         public async Task<IActionResult> CreateFavorite([FromBody] CreateFavoriteDto dto)
         {
             if (dto == null || dto.UserId <= 0 || dto.ItemId <= 0)
-                return BadRequest("Invalid favorite data.");
+                return BadRequest(new { message = "Invalid favorite data." });
 
-            var result = await _favoriteService.CreateFavoriteAsync(dto);
-            return Ok(result);
+                var result = await _favoriteService.CreateFavoriteAsync(dto);
+                return Ok(result);
+            
+           
         }
 
         [HttpGet("{userId}")]
@@ -34,6 +37,24 @@ namespace PresentationLayer.Controllers
                 return NotFound(new { message = "No favorites found for this user." });
 
             return Ok(result);
+        }
+
+        [HttpDelete("{favId}")]
+        public async Task<IActionResult> DeleteFavorite(int favId)
+        {
+            if (favId <= 0)
+                return BadRequest("Invalid favorite ID.");
+
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!int.TryParse(userIdClaim, out int userId))
+                return Unauthorized(new { message = "Invalid user token." });
+
+            var success = await _favoriteService.DeleteFavoriteAsync(favId, userId);
+
+            if (!success)
+                return NotFound(new { message = "Favorite not found or not owned by user." });
+
+            return Ok(new { message = "Favorite deleted successfully." });
         }
     }
 }

@@ -18,7 +18,6 @@ namespace Application.DTOs.UserDtos
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
         public string? CategoryName { get; set; } = string.Empty;
-        public string ImageUrl { get; set; } = string.Empty;
 
         public List<ItemImageDto> Images { get; set; } = new();
     }

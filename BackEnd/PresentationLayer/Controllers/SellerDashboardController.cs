@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace PresentationLayer.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/seller-dashboard")]
     [ApiController]
     public class SellerDashboardController : ControllerBase
     {

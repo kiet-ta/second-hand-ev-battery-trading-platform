@@ -1,10 +1,10 @@
-using Domain.DTOs.ReviewDtos;
 using Application.DTOs.UserDtos;
 using Application.IRepositories;
 using Domain.Entities;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Application.DTOs.ReviewDtos;
 
 namespace Infrastructure.Repositories
 {
@@ -91,6 +91,11 @@ namespace Infrastructure.Repositories
                 ReviewImages = imageDtos
             };
         }
+        public async Task<List<Review>> GetReviewAsync(int itemId)
+        {
+            return await _context.Reviews
+                .Where(r => r.ItemId == itemId).ToListAsync();
+        }
 
         public async Task<List<ReviewResponseDto>> GetReviewsByTargetUserIdAsync(int targetUserId)
         {
@@ -103,7 +108,6 @@ namespace Infrastructure.Repositories
 
             var reviewIds = reviews.Select(r => r.ReviewId).ToList();
 
-            // get all images
             var images = await _context.ReviewImages
                 .Where(img => reviewIds.Contains(img.ReviewId))
                 .ToListAsync();

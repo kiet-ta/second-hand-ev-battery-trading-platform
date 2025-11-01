@@ -1,6 +1,4 @@
 using Application.IRepositories;
-using AutoMapper;
-using Domain.DTOs;
 using Domain.Entities;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -31,8 +29,16 @@ public class UserRepository : IUserRepository
 
     public async Task<User?> GetByEmailAsync(string email)
     {
+        if (string.IsNullOrWhiteSpace(email)) return null;
         return await _context.Users
-            .FirstOrDefaultAsync(u => u.Email == email && !(u.IsDeleted == true));
+            .AsNoTracking()
+            .FirstOrDefaultAsync(u => u.Email == email && !u.IsDeleted);
+    }
+
+    public async Task<bool> ExistsByUsernameAsync(string username)
+    {
+        if (string.IsNullOrWhiteSpace(username)) return false;
+        return await _context.Users.AnyAsync(u => u.FullName == username && !u.IsDeleted);
     }
 
     public async Task AddAsync(User user)
@@ -110,5 +116,21 @@ public class UserRepository : IUserRepository
             return currentMonthUsers > 0 ? 100 : 0;
 
         return ((double)(currentMonthUsers - previousMonthUsers) / previousMonthUsers) * 100;
+    }
+
+    public async Task<(IEnumerable<User> Users, int TotalCount)> GetAllPagedAsync(int page, int pageSize)
+    {
+        var query = _context.Users
+            .Where(u => !u.IsDeleted);
+
+        var totalCount = await query.CountAsync();
+
+        var users = await query
+            .OrderBy(u => u.UserId)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+        return (users, totalCount);
     }
 }

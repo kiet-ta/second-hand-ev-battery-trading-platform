@@ -8,7 +8,7 @@ public class AuctionConfiguration : IEntityTypeConfiguration<Auction>
 {
     public void Configure(EntityTypeBuilder<Auction> entity)
     {
-        entity.ToTable("auctions");
+        entity.ToTable("auctions", t => t.ExcludeFromMigrations().HasTrigger("tr_Auctions_SetStatusOnDataChange"));
         entity.HasKey(e => e.AuctionId);
 
         entity.Property(e => e.AuctionId).HasColumnName("auction_id");
@@ -21,7 +21,10 @@ public class AuctionConfiguration : IEntityTypeConfiguration<Auction>
         entity.Property(e => e.Status).HasColumnName("status").HasMaxLength(20).HasDefaultValue("upcoming");
         entity.Property(e => e.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("GETDATE()");
         entity.Property(e => e.UpdatedAt).HasColumnName("updated_at").HasDefaultValueSql("GETDATE()");
-
+        entity.Property(e => e.StepPrice)
+              .HasColumnName("step_price")
+              .HasColumnType("decimal(18,2)")
+              .HasDefaultValue(50000m);
         // Foreign key constraint
         entity.HasIndex(e => e.ItemId).IsUnique();
     }

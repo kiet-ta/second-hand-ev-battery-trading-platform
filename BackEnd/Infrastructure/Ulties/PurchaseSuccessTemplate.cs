@@ -4,11 +4,11 @@ namespace Infrastructure.Ulties
 {
     public static class PurchaseSuccessTemplate
     {
-        public static string Build(string OrderId ,  string ActionUrl,string userName)
+        public static string Build(string OrderId, string ActionUrl, string userName)
         {
             return $@"
 <!DOCTYPE html>
-<html lang='en'>
+<html lang='vi'>
 <head>
   <meta charset='UTF-8'>
   <meta name='viewport' content='width=device-width, initial-scale=1.0'>
@@ -25,20 +25,19 @@ namespace Infrastructure.Ulties
 <body>
   <div class='container'>
     <div class='header'>
-      <h1>Thank you for your purchase, {userName}! 🎉</h1>
+      <h1>Cảm ơn bạn đã mua hàng, {userName}! 🎉</h1>
     </div>
     <div class='content'>
-      <p>Your order <strong>#{OrderId}</strong> has been placed successfully.</p>
-      <a href='{ActionUrl}' class='btn'>View Order</a>
+      <p>Đơn hàng của bạn <strong>#{OrderId}</strong> đã được đặt thành công.</p>
+      <a href='{ActionUrl}' class='btn'>Xem chi tiết đơn hàng</a>
     </div>
     <div class='footer'>
-      <p>This is an automated email, please do not reply.</p>
-      <p>&copy; 2025 Cóc Mua Xe. All rights reserved.</p>
+      <p>Đây là email tự động, vui lòng không phản hồi lại email này.</p>
+      <p>&copy; 2025 Cóc Mua Xe. Tất cả các quyền được bảo lưu.</p>
     </div>
   </div>
 </body>
 </html>";
         }
-
     }
 }

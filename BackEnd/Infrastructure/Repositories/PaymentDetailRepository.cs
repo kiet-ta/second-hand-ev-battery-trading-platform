@@ -21,26 +21,49 @@ namespace Infrastructure.Repositories
 
         public async Task<decimal> GetRevenueAsync(int sellerId)
         {
-            return await _context.PaymentDetails
-                .Where(p => _context.Items
-                    .Any(i => i.ItemId == p.ItemId && i.UpdatedBy == sellerId))
-                .SumAsync(p => p.Amount);
+            var totalRevenueQuery = from pd in _context.PaymentDetails
+                                    join p in _context.Payments on pd.PaymentId equals p.PaymentId
+                                    join i in _context.Items on pd.ItemId equals i.ItemId
+                                    where
+                                        p.Status == "completed" &&
+                                        i.UpdatedBy == sellerId
+                                    select pd.Amount;
+
+            var totalRevenue = await totalRevenueQuery.SumAsync();
+
+            return totalRevenue;
         }
 
-        public async Task<List<RevenueByMonthDto>> GetRevenueByMonthAsync(int sellerId)
+        public async Task<List<RevenueByWeekDto>> GetRevenueByWeekAsync(int sellerId)
         {
-            return await _context.PaymentDetails
-                .Where(p => _context.Items
-                    .Any(i => i.ItemId == p.ItemId && i.UpdatedBy == sellerId))
-                .GroupBy(p => p.OrderId != null
-                    ? _context.Orders.First(o => o.OrderId == p.OrderId).CreatedAt.Month
-                    : 0)
-                .Select(g => new RevenueByMonthDto
+            var query = from pd in _context.PaymentDetails
+                        join o in _context.Orders on pd.OrderId equals o.OrderId
+                        join p in _context.Payments on pd.PaymentId equals p.PaymentId
+                        join i in _context.Items on pd.ItemId equals i.ItemId
+                        where i.UpdatedBy == sellerId && p.Status == "completed"
+                        select new { pd.Amount, o.CreatedAt };
+
+            var data = await query.ToListAsync();
+
+            var revenueByWeek = data
+                .GroupBy(x =>
                 {
-                    Month = g.Key,
+                    var dt = x.CreatedAt;
+                    var cal = System.Globalization.DateTimeFormatInfo.CurrentInfo.Calendar;
+                    var week = cal.GetWeekOfYear(dt, System.Globalization.CalendarWeekRule.FirstFourDayWeek, DayOfWeek.Monday);
+                    return new { dt.Year, WeekNumber = week };
+                })
+                .Select(g => new RevenueByWeekDto
+                {
+                    Year = g.Key.Year,
+                    WeekNumber = g.Key.WeekNumber,
                     Total = g.Sum(x => x.Amount)
                 })
-                .ToListAsync();
+                .OrderBy(x => x.Year)
+                .ThenBy(x => x.WeekNumber)
+                .ToList();
+
+            return revenueByWeek;
         }
     }
 }

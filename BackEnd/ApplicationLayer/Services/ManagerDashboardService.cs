@@ -1,4 +1,4 @@
-﻿using Application.DTOs.ManagerDto;
+﻿using Application.DTOs.ManageCompanyDtos;
 using Application.IRepositories;
 using Application.IRepositories.IPaymentRepositories;
 using Application.IServices;
@@ -47,7 +47,6 @@ namespace Application.Services
             var revenueThisMonth = await _orderRepo.GetRevenueThisMonthAsync(now);
             var totalUsers = await _userRepo.CountAsync();
             var activeListings = await _itemRepo.CountActiveAsync();
-            var complaintRate = await _complaintRepo.GetComplaintRateAsync();
             var growth = await _userRepo.GetMonthlyGrowthAsync();
 
             return new ManagerDashboardMetricsDto
@@ -55,7 +54,6 @@ namespace Application.Services
                 RevenueThisMonth = revenueThisMonth,
                 TotalUsers = totalUsers,
                 ActiveListings = activeListings,
-                ComplaintRate = complaintRate,
                 Growth = growth
             };
         }
@@ -70,7 +68,8 @@ namespace Application.Services
             }
 
             var data = await _paymentRepo.GetRevenueByMonthAsync(monthsRange);
-
+            if (data == null)
+                throw new Exception("Failed to retrieve revenue data.");
             var result = data.Select(d => new RevenueByMonthDto
             {
                 Month = new DateTime(d.Year, d.Month, 1).ToString("MMM"),
@@ -86,7 +85,8 @@ namespace Application.Services
             var startDate = endDate.AddMonths(-monthsRange + 1).Date; // bắt đầu từ đầu tháng đó
 
             var orders = await _orderRepo.GetOrdersWithinRangeAsync(startDate, endDate);
-
+            if (orders == null)
+                throw new Exception("Failed to fetch order data.");
             var grouped = orders
                 .GroupBy(o => new { o.CreatedAt.Year, o.CreatedAt.Month })
                 .Select(g => new OrdersByMonthDto
@@ -115,7 +115,10 @@ namespace Application.Services
 
         public async Task<IEnumerable<ProductDistributionDto>> GetProductDistributionAsync()
         {
+
             var itemCounts = await _itemRepo.GetItemTypeCountsAsync();
+            if (itemCounts == null)
+                throw new Exception("Failed to fetch product distribution data.");
             int total = itemCounts.Sum(x => x.Count);
 
             if (total == 0)
@@ -137,13 +140,22 @@ namespace Application.Services
 
         public async Task<List<LatestTransactionDto>> GetLatestTransactionsAsync(int limit)
         {
-            return await _transactionRepository.GetLatestTransactionsAsync(limit);
+            var transactions = await _transactionRepository.GetLatestTransactionsAsync(limit);
+            if (transactions == null)
+                throw new Exception("Failed to fetch latest transactions.");
+
+            return transactions;
         }
 
-        public Task<List<SellerPendingApprovalDto>> GetPendingApprovalsAsync()
+        public async Task<List<SellerPendingApprovalDto>> GetPendingApprovalsAsync()
         {
-            return _kycRepo.GetPendingApprovalsAsync();
+            var pending = await _kycRepo.GetPendingApprovalsAsync();
+            if (pending == null)
+                throw new Exception("Failed to fetch pending approvals.");
+
+            return pending;
         }
+
 
         public async Task ApproveAsync(int docId, int staffId)
         {
@@ -161,8 +173,11 @@ namespace Application.Services
             await _kycRepo.UpdateAsync(doc);
 
             var user = await _userRepo.GetByIdAsync(doc.UserId);
+            if (user == null)
+                throw new Exception("Associated user not found for KYC document.");
             if (user != null)
             {
+                user.Role = "seller";
                 user.KycStatus = "approved";
                 await _userRepo.UpdateAsync(user);
             }
@@ -185,6 +200,8 @@ namespace Application.Services
             await _kycRepo.UpdateAsync(doc);
 
             var user = await _userRepo.GetByIdAsync(doc.UserId);
+            if (user == null)
+                throw new Exception("Associated user not found for KYC document.");
             if (user != null)
             {
                 user.KycStatus = "rejected";

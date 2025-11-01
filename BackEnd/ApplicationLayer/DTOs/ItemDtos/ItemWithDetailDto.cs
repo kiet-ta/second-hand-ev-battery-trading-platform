@@ -16,12 +16,14 @@ namespace Application.DTOs.ItemDtos
         public string? Description { get; set; }
         public decimal? Price { get; set; }
         public int? Quantity { get; set; }
+        public string? Moderation { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
         public int? UpdatedBy { get; set; }
+        public string LicenseUrl { get; set; }
 
         // Quan hệ phụ
-        public ItemImage? ItemImage { get; set; }
+        public List<ItemImageDto> ItemImage { get; set; }
         public EVDetail? EVDetail { get; set; }
         public BatteryDetail? BatteryDetail { get; set; }
     }

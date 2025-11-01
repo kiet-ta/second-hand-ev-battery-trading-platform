@@ -1,4 +1,5 @@
 ﻿using Application.DTOs.ItemDtos;
+using Application.DTOs.ItemDtos.BatteryDto;
 using Application.DTOs.UserDtos;
 using Application.IRepositories;
 using Application.IServices;
@@ -28,8 +29,8 @@ namespace Application.Services
         public async Task<ItemDto?> GetByIdAsync(int id)
         {
             var item = await _itemRepository.GetByIdAsync(id);
-            if (item == null) return null;
-
+            if (item == null)
+                throw new KeyNotFoundException($"Item with ID {id} not found.");
             var images = await _itemRepository.GetByItemIdAsync(id);
 
             return new ItemDto
@@ -45,6 +46,7 @@ namespace Application.Services
                 CreatedAt = item.CreatedAt,
                 UpdatedAt = item.UpdatedAt,
                 UpdatedBy = item.UpdatedBy,
+                Moderation = item.Moderation,
                 //IsVerified = item.IsVerified,
                 //IsDeleted = item.IsDeleted,
                 Images = images.Select(img => new ItemImageDto
@@ -58,7 +60,10 @@ namespace Application.Services
         public async Task<IEnumerable<ItemDto>> GetAllAsync()
         {
             var items = await _itemRepository.GetAllAsync();
+            if (items == null)
+                throw new Exception("No items found.");
             var result = new List<ItemDto>();
+
 
             foreach (var item in items)
             {
@@ -73,6 +78,8 @@ namespace Application.Services
                     Description = item.Description,
                     Price = item.Price,
                     Quantity = item.Quantity,
+                    Moderation = item.Moderation,
+
                     //Status = item.Status,
                     CreatedAt = item.CreatedAt,
                     UpdatedAt = item.UpdatedAt,
@@ -92,6 +99,8 @@ namespace Application.Services
 
         public async Task<ItemDto> CreateAsync(ItemDto dto)
         {
+            if (dto == null)
+                throw new ArgumentNullException(nameof(dto));
             var entity = new Item
             {
                 ItemType = dto.ItemType,
@@ -131,16 +140,18 @@ namespace Application.Services
         public async Task<bool> UpdateAsync(int id, ItemDto dto)
         {
             var item = await _itemRepository.GetByIdAsync(id);
-            if (item == null) return false;
+            if (item == null)
+                throw new KeyNotFoundException($"Item with ID {id} not found."); if (item == null) return false;
 
             item.Title = dto.Title;
             item.Description = dto.Description;
             item.Price = dto.Price;
             item.Quantity = dto.Quantity;
-            item.Status = "pending";
+            item.Status = dto.Status;
             item.CategoryId = dto.CategoryId;
             item.IsDeleted = false;
             item.UpdatedAt = dto.UpdatedAt;
+            item.Moderation = dto.Moderation;
 
             _itemRepository.Update(item);
             await _itemRepository.SaveChangesAsync();
@@ -150,7 +161,8 @@ namespace Application.Services
         public async Task<bool> DeleteAsync(int id)
         {
             var item = await _itemRepository.GetByIdAsync(id);
-            if (item == null) return false;
+            if (item == null)
+                throw new KeyNotFoundException($"Item with ID {id} not found.");
 
             _itemRepository.Delete(item);
             await _itemRepository.SaveChangesAsync();
@@ -159,6 +171,8 @@ namespace Application.Services
         public async Task<IEnumerable<ItemDto>> GetLatestEVsAsync(int count)
         {
             var items = await _itemRepository.GetLatestEVsAsync(count);
+            if (items == null)
+                throw new Exception("No EV items found.");
 
             var result = new List<ItemDto>();
 
@@ -174,6 +188,7 @@ namespace Application.Services
                     Title = item.Title,
                     Description = item.Description,
                     Price = item.Price,
+                    Moderation = item.Moderation,
                     Quantity = item.Quantity,
                     //Status = item.Status,
                     CreatedAt = item.CreatedAt,
@@ -194,7 +209,8 @@ namespace Application.Services
         public async Task<IEnumerable<ItemDto>> GetLatestBatteriesAsync(int count)
         {
             var items = await _itemRepository.GetLatestBatteriesAsync(count);
-
+            if (items == null)
+                throw new Exception("No battery items found.");
             var result = new List<ItemDto>();
 
             foreach (var item in items)
@@ -209,6 +225,8 @@ namespace Application.Services
                     Title = item.Title,
                     Description = item.Description,
                     Price = item.Price,
+                    Moderation = item.Moderation,
+
                     Quantity = item.Quantity,
                     //Status = item.Status,
                     CreatedAt = item.CreatedAt,
@@ -227,89 +245,136 @@ namespace Application.Services
             return result;
         }
 
-        public async Task<PagedResult<ItemDto>> SearchItemsAsync(
-            string itemType,
-            string title,
-            decimal? minPrice = null,
-            decimal? maxPrice = null,
-            int page = 1, int pageSize = 20,
-            string sortBy = "UpdatedAt", string sortDir = "desc")
+        public async Task<PagedResultItem<ItemDto>> SearchItemsAsync(
+        string itemType,
+        string title,
+        decimal? minPrice,
+        decimal? maxPrice,
+        int page,
+        int pageSize,
+        string sortBy,
+        string sortDir)
         {
-            if (page <= 0) page = 1;
-            if (pageSize <= 0) pageSize = 20;
-
-            var query = _itemRepository.QueryItemsWithSeller();
-
-            if (!string.IsNullOrWhiteSpace(itemType))
-                query = query.Where(i => i.ItemType == itemType.Trim());
-
-            if (!string.IsNullOrWhiteSpace(title))
-                query = query.Where(i => i.Title.Contains(title.Trim()));
-
-            if (minPrice.HasValue)
-                query = query.Where(i => i.Price >= minPrice.Value);
-
-            if (maxPrice.HasValue)
-                query = query.Where(i => i.Price <= maxPrice.Value);
-
-            bool desc = sortDir.Equals("desc", StringComparison.OrdinalIgnoreCase);
-            query = sortBy switch
+            // Validate itemType
+            if (!string.IsNullOrWhiteSpace(itemType) &&
+                !itemType.ToLower().Equals("all") &&
+                !itemType.ToLower().Equals("ev") &&
+                !itemType.ToLower().Equals("battery"))
             {
-                "Price" => desc ? query.OrderByDescending(i => i.Price) : query.OrderBy(i => i.Price),
-                "Title" => desc ? query.OrderByDescending(i => i.Title) : query.OrderBy(i => i.Title),
-                _ => desc ? query.OrderByDescending(i => i.UpdatedAt) : query.OrderBy(i => i.UpdatedAt)
-            };
+                throw new ArgumentException("Invalid item type. Must be 'all', 'ev', or 'battery'.");
+            }
 
-            var total = await query.LongCountAsync();
-
-            var items = await query
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
-                .Select(i => new ItemDto
-                {
-                    ItemId = i.ItemId,
-                    ItemType = i.ItemType,
-                    Title = i.Title,
-                    Price = i.Price,
-                    UpdatedAt = i.UpdatedAt,
-                    //SellerName = i.UpdatedByUser.FullName,
-                    //Images = i.Images.ToList()
-                }).ToListAsync();
-
-            return new PagedResult<ItemDto>
-            {
-                Page = page,
-                PageSize = pageSize,
-                TotalCount = total,
-                Items = items
-            };
+            return await _itemRepository.SearchItemsAsync(
+                itemType, title, minPrice, maxPrice, page, pageSize, sortBy, sortDir);
         }
 
         public async Task<ItemWithDetailDto?> GetItemWithDetailsAsync(int id)
         {
-            return await _itemRepository.GetItemWithDetailsAsync(id);
+            var item = await _itemRepository.GetItemWithDetailsAsync(id);
+            if (item == null)
+                throw new KeyNotFoundException($"Item with ID {id} not found.");
+            return item;
         }
+
 
         public async Task<IEnumerable<ItemWithDetailDto>> GetAllItemsWithDetailsAsync()
         {
-            return await _itemRepository.GetAllItemsWithDetailsAsync();
+            var items = await _itemRepository.GetAllItemsWithDetailsAsync();
+            if (items == null)
+                throw new Exception("No detailed items found.");
+            return items;
         }
 
-        public async Task<IEnumerable<ItemBoughtDto>> GetBoughtItemsWithDetailsAsync(int userId)
+        public async Task<PagedResultBought<ItemBoughtDto>> GetBoughtItemsWithDetailsAsync(int userId, PaginationParams paginationParams)
         {
-            return await _itemRepository.GetBoughtItemsWithDetailsAsync(userId);
+            var items = await _itemRepository.GetBoughtItemsWithDetailsAsync(userId, paginationParams);
+
+            // if (items == null || items.TotalCount == 0)
+            // {
+            //     throw new KeyNotFoundException($"No bought items found for user ID {userId}.");
+            // }
+
+            return items;
+        }
+
+        public async Task<PagedResultBought<ItemBoughtDto>> GetTransactionItemsWithDetailsAsync(int userId, PaginationParams paginationParams)
+        {
+            var items = await _itemRepository.GetTransactionItemsWithDetailsAsync(userId, paginationParams);
+
+            if (items == null || items.TotalCount == 0)
+            {
+                throw new KeyNotFoundException($"No Transaction items found for user ID {userId}.");
+            }
+
+            return items;
         }
 
         public async Task<IEnumerable<ItemSellerDto>> GetSellerItemsAsync(int sellerId)
         {
-            return await _itemRepository.GetItemsBySellerIdAsync(sellerId);
+            var items = await _itemRepository.GetItemsBySellerIdAsync(sellerId);
+            if (items == null)
+                throw new KeyNotFoundException($"No items found for seller ID {sellerId}.");
+            return items;
         }
 
         public async Task<UserItemDetailDto?> GetItemDetailByIdAsync(int itemId)
         {
-            // có thể thêm logic xử lý domain hoặc business rules tại đây
             var result = await _itemRepository.GetItemWithSellerByItemIdAsync(itemId);
+            if (result == null)
+                throw new KeyNotFoundException($"Item with ID {itemId} not found.");
             return result;
+        }
+
+
+        public async Task<bool> SetApprovedItemTagAsync(int itemId)
+        {
+            var item = await _itemRepository.GetByIdAsync(itemId);
+            if (item == null)
+                throw new KeyNotFoundException($"Item with ID {itemId} not found.");
+            if (item.Moderation != "pending")
+                throw new InvalidOperationException("Only pending items can be approved.");
+
+            return await _itemRepository.SetItemTagAsync(itemId, "approved_tag");
+        }
+
+        public async Task<bool> SetRejectedItemTagAsync(int itemId)
+        {
+            var item = await _itemRepository.GetByIdAsync(itemId);
+            if (item == null)
+                throw new KeyNotFoundException($"Item with ID {itemId} not found.");
+            if (item.Moderation != "pending")
+                throw new InvalidOperationException("Only pending items can be rejected.");
+
+            return await _itemRepository.SetItemTagAsync(itemId, "reject_tag");
+        }
+
+        public async Task<IEnumerable<EVDetailDto>> SearchEvDetailAsync(EVSearchRequestDto request)
+        {
+            var result = await _itemRepository.SearchEvDetailAsync(request);
+            return result.Select(e => new EVDetailDto
+            {
+                ItemId = e.ItemId,
+                Brand = e.Brand,
+                Model = e.Model,
+                Year = e.Year,
+                Color = e.Color,
+                LicensePlate = e.LicensePlate,
+                Mileage = e.Mileage,
+                LicenseUrl = e.LicenseUrl
+            });
+        }
+
+        public async Task<IEnumerable<BatteryDetailDto>> SearchBatteryDetailAsync(BatterySearchRequestDto request)
+        {
+            var result = await _itemRepository.SearchBatteryDetailAsync(request);
+            return result.Select(e => new BatteryDetailDto
+            {
+                ItemId = e.ItemId,
+                Brand = e.Brand,
+                Capacity = e.Capacity,
+                Voltage = e.Voltage,
+                ChargeCycles = e.ChargeCycles
+            });
         }
     }
 }

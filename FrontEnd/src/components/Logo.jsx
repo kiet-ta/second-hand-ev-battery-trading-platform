@@ -1,16 +1,21 @@
-import React from 'react'
-import LogoImages from '../assets/images/Logo.png'
+import React from 'react';
+import LogoImages from '../assets/images/Logo.png';
 import { Link } from 'react-router-dom';
 
 function Logo() {
-  return (
-    <div className="flex">
-        <Link to="/" className="flex items-center text-white hover:text-green-300">
-            <img src={LogoImages} alt="Logo" className="w-1/5" />
-            <h2 className="text-white text-2xl font-bold">Cóc Mua Xe</h2>
-        </Link>
-        </div>
-  )
+ return (
+  <Link to="/" className="flex items-center gap-x-3 transition-opacity hover:opacity-80">
+   <img src={LogoImages} alt="Cóc Mua Xe Logo" className="h-14 w-auto" />
+   <div className="flex flex-col">
+     <span className="!font-Roboto font-extrabold text-2xl tracking-tighter leading-none text-[#2C2C2C]">
+       Cóc Mua Xe
+     </span>
+     <span className="text-xs text-gray-500 tracking-wide uppercase">
+       XE ĐÃ QUA SỬ DỤNG
+     </span>
+   </div>
+  </Link>
+ );
 }
 
-export default Logo
+export default Logo;

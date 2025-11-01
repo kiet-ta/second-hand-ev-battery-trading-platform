@@ -16,6 +16,7 @@ namespace Application.DTOs.ItemDtos
         public int Quantity { get; set; } = 1;
         public string Status { get; set; } = "active";
         public int? UpdatedBy { get; set; }
+        public string LicenseUrl { get; set; }
 
         // Ev fields
         public string? Brand { get; set; }
