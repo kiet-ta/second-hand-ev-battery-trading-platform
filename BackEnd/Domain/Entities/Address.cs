@@ -21,7 +21,7 @@ public class Address
 
     public string? Province { get; set; }
 
-    public int? WardCode { get; set; }
+    public string? WardCode { get; set; }
 
     public int? DistrictCode { get; set; }
 

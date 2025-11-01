@@ -45,7 +45,7 @@ namespace Infrastructure.Data.Configurations
             entity.Property(e => e.IsShopAddress)
                 .HasDefaultValue(false)
                 .HasColumnName("is_shop_address");
-            entity.Property(e => e.WardCode).HasColumnName("ward_code");
+            entity.Property(e => e.WardCode).HasMaxLength(20).HasColumnName("ward_code");
             entity.Property(e => e.DistrictCode).HasColumnName("district_code");
             entity.Property(e => e.ProvinceCode).HasColumnName("province_code");
 
