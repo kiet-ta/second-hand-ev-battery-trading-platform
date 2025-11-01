@@ -10,21 +10,19 @@ namespace BackEnd.Application.Tests
     {
         private readonly Mock<IItemRepository> _repoMock;
         private readonly ItemService _itemService;
-        private Item _capturedItem; // Dùng để "bắt" (capture) item được truyền vào Add/Update
+        private Item _capturedItem;
 
         public ItemServiceTest()
         {
             _repoMock = new Mock<IItemRepository>();
             _capturedItem = null;
 
-            // Setup Callback cho AddAsync để "bắt" entity
             _repoMock.Setup(repo => repo.AddAsync(It.IsAny<Item>(), It.IsAny<CancellationToken?>()))
                 .Callback<Item, CancellationToken?>((item, ct) =>
                 {
                     _capturedItem = item;
                 });
 
-            // Setup Callback cho Update
             _repoMock.Setup(repo => repo.Update(It.IsAny<Item>()))
                 .Callback<Item>(item =>
                 {
@@ -34,7 +32,7 @@ namespace BackEnd.Application.Tests
             _itemService = new ItemService(_repoMock.Object);
         }
 
-        // TC_ITEM_001: "Verify retrieving an item by valid ID"
+        //  TC_ITEM_001: "Verify retrieving an item by valid ID"
         [Fact]
         public async Task TC_ITEM_001_GetByIdAsync_WithValidId_ShouldReturnItem()
         {
@@ -55,13 +53,13 @@ namespace BackEnd.Application.Tests
             Assert.Equal("url.jpg", result.Images.First().ImageUrl);
         }
 
-        // TC_ITEM_002: "Verify retrieving an item by non-existent ID"
+        //  TC_ITEM_002: "Verify retrieving an item by non-existent ID"
         [Fact]
         public async Task TC_ITEM_002_GetByIdAsync_WithInvalidId_ShouldThrowKeyNotFoundException()
         {
             // Arrange
             _repoMock.Setup(repo => repo.GetByIdAsync(999, null))
-                .ReturnsAsync((Item)null)
+                .ReturnsAsync((Item)null); // Repo trả null
 
             // Act
             Func<Task> act = () => _itemService.GetByIdAsync(999); // Service throw
@@ -71,7 +69,7 @@ namespace BackEnd.Application.Tests
             Assert.Equal("Item with ID 999 not found.", exception.Message);
         }
 
-        // TC_ITEM_003: "Verify retrieving all items"
+        //  TC_ITEM_003: "Verify retrieving all items"
         [Fact]
         public async Task TC_ITEM_003_GetAllAsync_ShouldReturnAllItems()
         {
@@ -82,7 +80,6 @@ namespace BackEnd.Application.Tests
                 new Item { ItemId = 2, Title = "Item 2" }
             };
             _repoMock.Setup(repo => repo.GetAllAsync()).ReturnsAsync(items);
-            // Mock cho N+1 query (để test chạy được)
             _repoMock.Setup(repo => repo.GetByItemIdAsync(1)).ReturnsAsync(new List<ItemImage>());
             _repoMock.Setup(repo => repo.GetByItemIdAsync(2)).ReturnsAsync(new List<ItemImage>());
 
@@ -95,7 +92,7 @@ namespace BackEnd.Application.Tests
             Assert.Equal("Item 1", result.First().Title);
         }
 
-        // TC_ITEM_004: "Verify creating a new item"
+        //  TC_ITEM_004: "Verify creating a new item"
         [Fact]
         public async Task TC_ITEM_004_CreateAsync_ShouldAddItemToRepository()
         {
@@ -112,21 +109,19 @@ namespace BackEnd.Application.Tests
             var result = await _itemService.CreateAsync(itemDto);
 
             // Assert
-            // 1. Kiểm tra repo được gọi
             _repoMock.Verify(repo => repo.AddAsync(It.IsAny<Item>(), null), Times.Once);
-            _repoMock.Verify(repo => repo.SaveChangesAsync(), Times.Exactly(2)); // 1 cho Item, 1 cho Image (như code service)
+            _repoMock.Verify(repo => repo.SaveChangesAsync(), Times.Exactly(2));
             _repoMock.Verify(repo => repo.AddImageAsync(It.Is<ItemImage>(img =>
                 img.ImageUrl == "new.jpg"
             )), Times.Once);
 
-            // 2. Kiểm tra data được "bắt" (capture)
             Assert.NotNull(_capturedItem);
             Assert.Equal("New Item", _capturedItem.Title);
-            Assert.Equal("pending", _capturedItem.Status); // Logic default trong code
+            Assert.Equal("pending", _capturedItem.Status);
             Assert.False(_capturedItem.IsDeleted);
         }
 
-        // TC_ITEM_005: "Verify updating an item with a valid ID"
+        //  TC_ITEM_005: "Verify updating an item with a valid ID"
         [Fact]
         public async Task TC_ITEM_005_UpdateAsync_WithValidId_ShouldUpdateItem()
         {
@@ -157,13 +152,13 @@ namespace BackEnd.Application.Tests
             Assert.Equal("approved_tag", _capturedItem.Moderation);
         }
 
-        // TC_ITEM_006: "Verify updating an item with a non-existent ID"
+        //  TC_ITEM_006: "Verify updating an item with a non-existent ID"
         [Fact]
         public async Task TC_ITEM_006_UpdateAsync_WithInvalidId_ShouldThrowKeyNotFoundException()
         {
             // Arrange
             _repoMock.Setup(repo => repo.GetByIdAsync(999, null))
-                .ReturnsAsync((Item)null); // Repo trả null
+                .ReturnsAsync((Item)null);
 
             var updatedDto = new ItemDto { Title = "Updated Title" };
 
@@ -175,7 +170,7 @@ namespace BackEnd.Application.Tests
             Assert.Equal("Item with ID 999 not found.", exception.Message);
         }
 
-        // TC_ITEM_007: "Verify deleting an item with a valid ID"
+        //  TC_ITEM_007: "Verify deleting an item with a valid ID"
         [Fact]
         public async Task TC_ITEM_007_DeleteAsync_WithValidId_ShouldDeleteItem()
         {
@@ -192,14 +187,13 @@ namespace BackEnd.Application.Tests
             _repoMock.Verify(repo => repo.SaveChangesAsync(), Times.Once);
         }
 
-        // TC_ITEM_008: "Verify deleting an item with a non-existent ID"
+        //  TC_ITEM_008: "Verify deleting an item with a non-existent ID"
         [Fact]
         public async Task TC_ITEM_008_DeleteAsync_WithInvalidId_ShouldThrowKeyNotFoundException()
         {
             // Arrange
             _repoMock.Setup(repo => repo.GetByIdAsync(999, null))
-                .ReturnsAsync((Item)null); // Repo trả null
-
+                .ReturnsAsync((Item)null);
             // Act
             Func<Task> act = () => _itemService.DeleteAsync(999); // Service throw
 
@@ -208,7 +202,7 @@ namespace BackEnd.Application.Tests
             Assert.Equal("Item with ID 999 not found.", exception.Message);
         }
 
-        // TC_ITEM_009: "Verify retrieving the latest EVs"
+        //  TC_ITEM_009: "Verify retrieving the latest EVs"
         [Fact]
         public async Task TC_ITEM_009_GetLatestEVsAsync_ShouldReturnLatestEVs()
         {
@@ -226,7 +220,7 @@ namespace BackEnd.Application.Tests
             Assert.Equal("EV", result.First().ItemType);
         }
 
-        // TC_ITEM_010: "Verify retrieving the latest Batteries"
+        //  TC_ITEM_010: "Verify retrieving the latest Batteries"
         [Fact]
         public async Task TC_ITEM_010_GetLatestBatteriesAsync_ShouldReturnLatestBatteries()
         {
@@ -244,7 +238,7 @@ namespace BackEnd.Application.Tests
             Assert.Equal("Battery", result.First().ItemType);
         }
 
-        // TC_ITEM_011 -> TC_ITEM_017: "Verify searching items..."
+        //  TC_ITEM_011 -> TC_ITEM_017: "Verify searching items..."
         [Fact]
         public async Task TC_ITEM_011_to_017_SearchItemsAsync_ShouldCallRepository_WithCorrectParameters()
         {
@@ -258,14 +252,14 @@ namespace BackEnd.Application.Tests
             };
 
             _repoMock.Setup(repo => repo.SearchItemsAsync(
-                "ev",       
-                "Tesla",    
-                1000,       
-                5000,       
-                1,          
-                10,         
-                "Price",    
-                "asc"       
+                "ev",       // itemType (TC_ITEM_011)
+                "Tesla",    // title (TC_ITEM_012)
+                1000,       // minPrice (TC_ITEM_013)
+                5000,       // maxPrice (TC_ITEM_013)
+                1,          // page (TC_ITEM_014)
+                10,         // pageSize (TC_ITEM_014)
+                "Price",    // sortBy (TC_ITEM_015)
+                "asc"       // sortDir (TC_ITEM_015)
             )).ReturnsAsync(expectedResult);
 
             // Act
@@ -277,13 +271,12 @@ namespace BackEnd.Application.Tests
                 "ev", "Tesla", 1000, 5000, 1, 10, "Price", "asc"
             ), Times.Once);
 
-            // 2. Kiểm tra kết quả trả về đúng
             Assert.Equal(expectedResult, result);
             Assert.Equal(1, result.TotalCount);
             Assert.Equal("Tesla", result.Items.First().Title);
         }
 
-        // TC_ITEM_018: "Verify retrieving an item with details by valid ID"
+        //  TC_ITEM_018: "Verify retrieving an item with details by valid ID"
         [Fact]
         public async Task TC_ITEM_018_GetItemWithDetailsAsync_WithValidId_ShouldReturnItemWithDetails()
         {
@@ -299,13 +292,13 @@ namespace BackEnd.Application.Tests
             Assert.Equal(1, result.ItemId);
         }
 
-        // TC_ITEM_019: "Verify retrieving an item with details by non-existent ID"
+        //  TC_ITEM_019: "Verify retrieving an item with details by non-existent ID"
         [Fact]
         public async Task TC_ITEM_019_GetItemWithDetailsAsync_WithInvalidId_ShouldThrowKeyNotFoundException()
         {
             // Arrange
             _repoMock.Setup(repo => repo.GetItemWithDetailsAsync(999))
-                .ReturnsAsync((ItemWithDetailDto)null); // Repo trả null
+                .ReturnsAsync((ItemWithDetailDto)null);
 
             // Act
             Func<Task> act = () => _itemService.GetItemWithDetailsAsync(999); // Service throw
@@ -315,7 +308,7 @@ namespace BackEnd.Application.Tests
             Assert.Equal("Item with ID 999 not found.", exception.Message);
         }
 
-        // TC_ITEM_020: "Verify retrieving all items with details"
+        //  TC_ITEM_020: "Verify retrieving all items with details"
         [Fact]
         public async Task TC_ITEM_020_GetAllItemsWithDetailsAsync_ShouldReturnAllItemsWithDetails()
         {
@@ -331,7 +324,7 @@ namespace BackEnd.Application.Tests
             Assert.Single(result);
         }
 
-        // TC_ITEM_021: "Verify creating an item with null values"
+        //  TC_ITEM_021: "Verify creating an item with null values"
         [Fact]
         public async Task TC_ITEM_021_CreateAsync_WithNullValues_ShouldSetDefaultValues()
         {
@@ -339,7 +332,7 @@ namespace BackEnd.Application.Tests
             var itemDto = new ItemDto
             {
                 Title = "Test Item",
-                ItemType = null
+                ItemType = null 
             };
 
             // Act
