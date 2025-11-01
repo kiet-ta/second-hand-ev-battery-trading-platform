@@ -21,6 +21,12 @@ public class Address
 
     public string? Province { get; set; }
 
+    public string? WardCode { get; set; }
+
+    public string? DistrictCode { get; set; }
+
+    public string? ProvinceCode { get; set; }
+
     public bool? IsDefault { get; set; }
 
     public DateTime? CreatedAt { get; set; }
