@@ -10,6 +10,8 @@ namespace Application.IRepositories
 {
     public interface INewsRepository
     {
+        Task<IEnumerable<News>> GetAllNewsAsync(int page, int pageSize);
+        Task<News> GetNewsByIdAsync(int id);
         Task<bool> SetApprovedStatusAsync(int newsId);
         Task<bool> SetCanclledStatusAsync(int newsId);
         Task<News> CreateNews(CreateNewsDto dto);
