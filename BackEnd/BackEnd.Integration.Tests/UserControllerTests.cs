@@ -26,19 +26,6 @@ public class UserControllerTests : IClassFixture<DatabaseFixture>
         _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("TestScheme");
     }
 
-    [Fact]
-    public async Task GetAllUsers_WhenCalled_ReturnsOk() // Renamed for clarity
-    {
-        // Arrange - No specific arrangement needed.
-        // The authorization header is already set in the constructor.
-
-        // Act
-        var response = await _client.GetAsync("/api/user");
-
-        // Assert
-        response.EnsureSuccessStatusCode();
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-    }
 
     [Fact]
     public async Task GetAllUsers_WhenNoUsersExist_ReturnsOkAndEmptyList()
@@ -57,5 +44,20 @@ public class UserControllerTests : IClassFixture<DatabaseFixture>
         var users = await response.Content.ReadFromJsonAsync<List<CreateAddressDTO>>();
         Assert.NotNull(users);
         Assert.Empty(users); // Expecting an empty list
+    }
+
+
+    [Fact]
+    public async Task GetAllUsers_WhenCalled_ReturnsOk() // Renamed for clarity
+    {
+        // Arrange - No specific arrangement needed.
+        // The authorization header is already set in the constructor.
+
+        // Act
+        var response = await _client.GetAsync("/api/user");
+
+        // Assert
+        response.EnsureSuccessStatusCode();
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }
 }
