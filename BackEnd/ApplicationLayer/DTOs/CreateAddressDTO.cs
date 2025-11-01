@@ -10,9 +10,9 @@ namespace Application.DTOs
         public string Ward { get; set; }
         public string District { get; set; }
         public string Province { get; set; }
-        public string? WardCode { get; set; }
-        public string? DistrictCode { get; set; }
-        public string? ProvinceCode { get; set; }
+        public int? WardCode { get; set; }
+        public int? DistrictCode { get; set; }
+        public int? ProvinceCode { get; set; }
         public bool IsDefault { get; set; }
     }
 }
