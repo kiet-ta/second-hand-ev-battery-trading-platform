@@ -191,7 +191,7 @@ public class UserServiceTest
 
         // Assert
         var exception = await Assert.ThrowsAsync<InvalidOperationException>(act);
-        Assert.Equal("Email đã tồn tại!", exception.Message);
+        Assert.Equal("Email already exists.", exception.Message);
     }
 
     // Tương ứng TC_USER_009, 014, 015, 016, 017, 018, 019, 020
@@ -259,7 +259,7 @@ public class UserServiceTest
 
         // Assert
         var exception = await Assert.ThrowsAsync<KeyNotFoundException>(act);
-        Assert.Equal("User không tồn tại!", exception.Message);
+        Assert.Equal("User with ID 999 not found.", exception.Message);
     }
 
     // Tương ứng TC_USER_011: "Verify successful user deletion."
