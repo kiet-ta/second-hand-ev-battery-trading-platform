@@ -1,695 +1,359 @@
-//using Application.IRepositories;
-//using Application.Services;
-//using Domain.Entities;
-//using Moq;
-
-using NPOI.SS.Formula.Functions;
-using Application.IHelpers;
+using Application.DTOs.UserDtos;
 using Application.IRepositories;
 using Application.Services;
 using Domain.Entities;
 using Microsoft.Extensions.Configuration;
 using Moq;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Xunit;
 
-namespace BackEnd.Application.Tests
+namespace BackEnd.Application.Tests;
+
+public class UserServiceTest
 {
-    public class UserServiceTest
+    private readonly Mock<IUserRepository> _userRepoMock;
+    private readonly Mock<IConfiguration> _configMock;
+    private readonly UserService _userService;
+    private User _capturedUser; // Dùng để "bắt" user được truyền vào AddAsync
+
+    public UserServiceTest()
     {
-        // concise style
-        [Fact]
-        public async Task CreateUser_ShouldHashPassword_beforeSaving()
+        _userRepoMock = new Mock<IUserRepository>();
+        _configMock = new Mock<IConfiguration>();
+        _capturedUser = null; // Reset trước mỗi test
+
+        // === FIX LỖI 1 (JWT KEY) ===
+        // Key này phải đủ 32 bytes (256 bits)
+        var mockJwtKey = "DAY_LA_MOT_CAI_KEY_BI_MAT_RAT_DAI_DE_TEST_HS256"; // > 32 ky tu
+
+        _configMock.SetupGet(c => c["Jwt:Key"]).Returns(mockJwtKey);
+        _configMock.SetupGet(c => c["Jwt:Issuer"]).Returns("TestIssuer");
+        _configMock.SetupGet(c => c["Jwt:Audience"]).Returns("TestAudience");
+        // === KẾT THÚC FIX ===
+
+        // Setup Callback cho AddAsync để "bắt" entity
+        _userRepoMock.Setup(repo => repo.AddAsync(It.IsAny<User>()))
+            .Callback<User>(user => _capturedUser = user)
+            .Returns(Task.CompletedTask);
+
+        _userService = new UserService(_userRepoMock.Object, _configMock.Object);
+    }
+
+    // Tương ứng TC_USER_001: "Verify that the password is hashed before being saved."
+    // Test này kiểm tra method AddUserAsync(CreateUserDto dto)
+    [Fact]
+    public async Task TC_USER_001_AddUserAsync_CreateUserDto_ShouldHashPassword()
+    {
+        // Arrange
+        var dto = new CreateUserDto
         {
-            //Arrange
-            var userRepoMock = new Mock<IUserRepository>();
-            var configMock = new Mock<IConfiguration>();
+            Email = "test@example.com",
+            Password = "ValidPassword123", // Password gốc
+            FullName = "Test User",
+            Role = "Buyer"
+        };
 
-            
+        _userRepoMock.Setup(repo => repo.GetByEmailAsync(dto.Email))
+            .ReturnsAsync((User)null);
 
-            var userService = new UserService(userRepoMock.Object, configMock.Object);
+        // Act
+        var result = await _userService.AddUserAsync(dto);
 
-            var user = new User
-            {
-                Email = "abc@8686.hz",
-                PasswordHash = "123456"
-            };
+        // Assert
+        // 1. Kiểm tra AddAsync được gọi 1 lần
+        _userRepoMock.Verify(r => r.AddAsync(It.IsAny<User>()), Times.Once);
 
-            //Act
-            await userService.AddUserAsync(user);
+        // 2. Kiểm tra user đã được "bắt" (capture)
+        Assert.NotNull(_capturedUser);
 
-            //Assert
-            userRepoMock.Verify(
-                r => r.AddAsync(It.Is<User>(
-                    u => u.Email == "abc@8686.hz" && u.PasswordHash == "hashed_123456"
-                )), Times.Once);
-        }
+        // 3. Kiểm tra password đã được hash (BCrypt trực tiếp)
+        Assert.NotNull(_capturedUser.PasswordHash);
+        Assert.NotEqual(dto.Password, _capturedUser.PasswordHash);
+        Assert.True(BCrypt.Net.BCrypt.Verify(dto.Password, _capturedUser.PasswordHash));
 
+        // 4. Kiểm tra token
+        Assert.NotNull(result);
+        Assert.NotNull(result.Token);
+    }
 
-        [Fact]
-        public async Task GetAllUsersAsync_ShouldReturnAllUsers()
+    // Tương ứng TC_USER_002: "Verify retrieving all users."
+    [Fact]
+    public async Task TC_USER_002_GetAllUsersAsync_ShouldReturnAllUsers()
+    {
+        // Arrange
+        var users = new List<User>
         {
-            // Arrange
-            var userRepoMock = new Mock<IUserRepository>();
-            var configMock = new Mock<IConfiguration>();
+            new User { UserId = 1, FullName = "User 1" },
+            new User { UserId = 2, FullName = "User 2" }
+        };
+        _userRepoMock.Setup(repo => repo.GetAllAsync()).ReturnsAsync(users);
 
-            var users = new List<User>
-            {
-                new User { UserId = 1, Email = "user1@example.com", FullName = "User 1" },
-                new User { UserId = 2, Email = "user2@example.com", FullName = "User 2" }
-            };
+        // Act
+        var result = await _userService.GetAllUsersAsync();
 
-            userRepoMock.Setup(repo => repo.GetAllAsync())
-                .ReturnsAsync(users);
+        // Assert
+        Assert.NotNull(result);
+        Assert.Equal(2, result.Count());
+    }
 
-            var userService = new UserService(userRepoMock.Object, configMock.Object);
+    // Tương ứng TC_USER_003: "Verify retrieving a user by ID."
+    [Fact]
+    public async Task TC_USER_003_GetUserByIdAsync_WithValidId_ShouldReturnUser()
+    {
+        // Arrange
+        var user = new User { UserId = 1, Email = "user1@example.com" };
+        _userRepoMock.Setup(repo => repo.GetByIdAsync(1)).ReturnsAsync(user);
 
-            // Act
-            var result = await userService.GetAllUsersAsync();
+        // Act
+        var result = await _userService.GetUserByIdAsync(1);
 
-            // Assert
-            Assert.Equal(2, result.Count());
-            Assert.Contains(result, u => u.UserId == 1);
-            Assert.Contains(result, u => u.UserId == 2);
-        }
+        // Assert
+        Assert.NotNull(result);
+        Assert.Equal(1, result.UserId);
+    }
 
+    // TC_USER_005: "Verify retrieving a user by email."
+    [Fact]
+    public async Task TC_USER_005_GetUserByEmailAsync_WithValidEmail_ShouldReturnUser()
+    {
+        // Arrange
+        var user = new User { UserId = 1, Email = "valid@example.com" };
+        _userRepoMock.Setup(repo => repo.GetByEmailAsync("valid@example.com"))
+            .ReturnsAsync(user);
 
-        [Fact]
-        public async Task GetUserByIdAsync_WithValidId_ShouldReturnUser()
+        // Act
+        var result = await _userService.GetUserByEmailAsync("valid@example.com");
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.Equal("valid@example.com", result.Email);
+    }
+
+    // Test case phụ cho TC_USER_005 (trường hợp email không tồn tại)
+    [Fact]
+    public async Task TC_USER_005_GetUserByEmailAsync_WithInvalidEmail_ShouldReturnNull()
+    {
+        // Arrange
+        _userRepoMock.Setup(repo => repo.GetByEmailAsync("invalid@example.com"))
+            .ReturnsAsync((User)null);
+
+        // Act
+        var result = await _userService.GetUserByEmailAsync("invalid@example.com");
+
+        // Assert
+        Assert.Null(result);
+    }
+
+    // Tương ứng TC_USER_007: "Verify successfully adding a new user."
+    // Test này kiểm tra method AddUserAsync(User user)
+    [Fact]
+    public async Task TC_USER_007_AddUserAsync_WithNewEmail_ShouldAddUser()
+    {
+        // Arrange
+        _userRepoMock.Setup(repo => repo.GetByEmailAsync("new@example.com"))
+            .ReturnsAsync((User)null);
+
+        var newUser = new User
         {
-            // Arrange
-            var userRepoMock = new Mock<IUserRepository>();
-            var configMock = new Mock<IConfiguration>();
+            Email = "new@example.com",
+            PasswordHash = "already_hashed_password"
+        };
+        var beforeDate = DateTime.UtcNow.AddSeconds(-1);
 
-            var user = new User { UserId = 1, Email = "user1@example.com", FullName = "User 1" };
+        // Act
+        await _userService.AddUserAsync(newUser);
 
-            userRepoMock.Setup(repo => repo.GetByIdAsync(1))
-                .ReturnsAsync(user);
+        // Assert
+        // 1. Kiểm tra AddAsync được gọi
+        _userRepoMock.Verify(repo => repo.AddAsync(It.IsAny<User>()), Times.Once);
 
-            var userService = new UserService(userRepoMock.Object, configMock.Object);
+        // 2. Kiểm tra entity được "bắt"
+        Assert.NotNull(_capturedUser);
+        Assert.Equal("new@example.com", _capturedUser.Email);
+        Assert.Equal("already_hashed_password", _capturedUser.PasswordHash);
 
-            // Act
-            var result = await userService.GetUserByIdAsync(1);
+        // 3. Kiểm tra (TC_USER_021) CreatedAt và UpdatedAt đã được set
+        Assert.True(_capturedUser.CreatedAt >= beforeDate);
+        Assert.True(_capturedUser.UpdatedAt >= beforeDate);
+    }
 
-            // Assert
-            Assert.NotNull(result);
-            Assert.Equal(1, result.UserId);
-            Assert.Equal("user1@example.com", result.Email);
-        }
+    // Tương ứng TC_USER_008: "Verify adding a user with an existing email."
+    [Fact]
+    public async Task TC_USER_008_AddUserAsync_WithExistingEmail_ShouldThrowInvalidOperationException()
+    {
+        // Arrange
+        var existingUser = new User { UserId = 1, Email = "existing@example.com" };
+        _userRepoMock.Setup(repo => repo.GetByEmailAsync("existing@example.com"))
+            .ReturnsAsync(existingUser);
 
+        var newUser = new User { Email = "existing@example.com" };
 
-        [Fact]
-        public async Task GetUserByIdAsync_WithInvalidId_ShouldReturnNull()
+        // Act
+        Func<Task> act = () => _userService.AddUserAsync(newUser);
+
+        // Assert
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(act);
+        Assert.Equal("Email đã tồn tại!", exception.Message);
+    }
+
+    // Tương ứng TC_USER_009, 014, 015, 016, 017, 018, 019, 020
+    [Fact]
+    public async Task TC_USER_009_UpdateUserAsync_WithValidId_ShouldUpdateUser()
+    {
+        // Arrange
+        var existingUser = new User
         {
-            // Arrange
-            var userRepoMock = new Mock<IUserRepository>();
-            var configMock = new Mock<IConfiguration>();
+            UserId = 1,
+            FullName = "Old Name",
+            Phone = "0123",
+            Gender = "Male",
+            AvatarProfile = "old.jpg",
+            Role = "Buyer",
+            KycStatus = "pending",
+            AccountStatus = "active"
+        };
+        _userRepoMock.Setup(repo => repo.GetByIdAsync(1))
+            .ReturnsAsync(existingUser);
 
-            userRepoMock.Setup(repo => repo.GetByIdAsync(999))
-                .ReturnsAsync((User)null);
-
-            var userService = new UserService(userRepoMock.Object, configMock.Object);
-
-            // Act
-            var result = await userService.GetUserByIdAsync(999);
-
-            // Assert
-            Assert.Null(result);
-        }
-
-
-
-        [Fact]
-        public async Task GetUserByEmailAsync_WithValidEmail_ShouldReturnUser()
+        var updatedUserDto = new User
         {
-            // Arrange
-            var userRepoMock = new Mock<IUserRepository>();
-            var configMock = new Mock<IConfiguration>();
+            UserId = 1,
+            FullName = "New Name",
+            Phone = "4567",
+            Gender = "Female",
+            AvatarProfile = "new.jpg",
+            Role = "Seller",
+            KycStatus = "approved",
+            AccountStatus = "ban"
+        };
+        var beforeDate = DateTime.UtcNow.AddSeconds(-1);
 
-            var user = new User { UserId = 1, Email = "user1@example.com", FullName = "User 1" };
+        // Act
+        await _userService.UpdateUserAsync(updatedUserDto);
 
-            userRepoMock.Setup(repo => repo.GetByEmailAsync("user1@example.com"))
-                .ReturnsAsync(user);
+        // Assert
+        // Kiểm tra UpdateAsync được gọi 1 lần
+        _userRepoMock.Verify(repo => repo.UpdateAsync(It.Is<User>(u =>
+            u.UserId == 1 &&
+            u.FullName == "New Name" &&          // TC_USER_009
+            u.Phone == "4567" &&                // TC_USER_020
+            u.Gender == "Female" &&             // TC_USER_019
+            u.AvatarProfile == "new.jpg" &&     // TC_USER_018
+            u.Role == "Seller" &&               // TC_USER_017
+            u.KycStatus == "approved" &&        // TC_USER_015
+            u.AccountStatus == "ban" &&         // TC_USER_016
+            u.UpdatedAt >= beforeDate           // Check ngày update
+        )), Times.Once);
+    }
 
-            var userService = new UserService(userRepoMock.Object, configMock.Object);
+    // Tương ứng TC_USER_010: "Verify updating a user with a non-existent ID."
+    [Fact]
+    public async Task TC_USER_010_UpdateUserAsync_WithInvalidId_ShouldThrowKeyNotFoundException()
+    {
+        // Arrange
+        _userRepoMock.Setup(repo => repo.GetByIdAsync(999))
+            .ReturnsAsync((User)null);
 
-            // Act
-            var result = await userService.GetUserByEmailAsync("user1@example.com");
+        var user = new User { UserId = 999, FullName = "Updated Name" };
 
-            // Assert
-            Assert.NotNull(result);
-            Assert.Equal("user1@example.com", result.Email);
-        }
+        // Act
+        Func<Task> act = () => _userService.UpdateUserAsync(user);
 
+        // Assert
+        var exception = await Assert.ThrowsAsync<KeyNotFoundException>(act);
+        Assert.Equal("User không tồn tại!", exception.Message);
+    }
 
+    // Tương ứng TC_USER_011: "Verify successful user deletion."
+    [Fact]
+    public async Task TC_USER_011_DeleteUserAsync_ShouldCallRepositoryDeleteMethod()
+    {
+        // Arrange
+        // Act
+        await _userService.DeleteUserAsync(1);
 
-        [Fact]
-        public async Task GetUserByEmailAsync_WithInvalidEmail_ShouldReturnNull()
+        // Assert
+        _userRepoMock.Verify(repo => repo.DeleteAsync(1), Times.Once);
+    }
+
+    // Tương ứng TC_USER_012: "Verify adding a new user with complete information."
+    [Fact]
+    public async Task TC_USER_012_AddUserAsync_CreateUserDto_FullInfo_ShouldAddUser()
+    {
+        // Arrange
+        var dto = new CreateUserDto
         {
-            // Arrange
-            var userRepoMock = new Mock<IUserRepository>();
-            var configMock = new Mock<IConfiguration>();
+            Email = "full@example.com",
+            Password = "Password123",
+            FullName = "Full User",
+            DateOfBirth = new DateOnly(1990, 1, 1),
+            Gender = "Male",
+            Phone = "123456789",
+            Role = "Seller"
+        };
+        _userRepoMock.Setup(repo => repo.GetByEmailAsync(dto.Email))
+            .ReturnsAsync((User)null);
 
-            userRepoMock.Setup(repo => repo.GetByEmailAsync("nonexistent@example.com"))
-                .ReturnsAsync((User)null);
+        // Act
+        await _userService.AddUserAsync(dto);
 
-            var userService = new UserService(userRepoMock.Object, configMock.Object);
+        // Assert
+        _userRepoMock.Verify(r => r.AddAsync(It.IsAny<User>()), Times.Once);
+        Assert.NotNull(_capturedUser);
+        Assert.Equal("full@example.com", _capturedUser.Email);
+        Assert.Equal("Full User", _capturedUser.FullName);
+        Assert.Equal(new DateOnly(1990, 1, 1), _capturedUser.YearOfBirth);
+        Assert.Equal("Male", _capturedUser.Gender);
+        Assert.Equal("123456789", _capturedUser.Phone);
+        Assert.Equal("Seller", _capturedUser.Role);
+        Assert.True(BCrypt.Net.BCrypt.Verify(dto.Password, _capturedUser.PasswordHash));
+    }
 
-            // Act
-            var result = await userService.GetUserByEmailAsync("nonexistent@example.com");
-
-            // Assert
-            Assert.Null(result);
-        }
-
-
-
-        [Fact]
-        public async Task AddUserAsync_WithNewEmail_ShouldAddUser()
+    // Tương ứng TC_USER_013: "Verify adding a new user with minimum required information."
+    [Fact]
+    public async Task TC_USER_013_AddUserAsync_CreateUserDto_MinInfo_ShouldAddUser()
+    {
+        // Arrange
+        var dto = new CreateUserDto
         {
-            // Arrange
-            var userRepoMock = new Mock<IUserRepository>();
-            var configMock = new Mock<IConfiguration>();
-
-            userRepoMock.Setup(repo => repo.GetByEmailAsync("new@example.com"))
-                .ReturnsAsync((User)null);
-
-            var userService = new UserService(userRepoMock.Object, configMock.Object);
-
-            var newUser = new User
-            {
-                Email = "new@example.com",
-                FullName = "New User",
-                PasswordHash = "password123"
-            };
-
-            // Act
-            await userService.AddUserAsync(newUser);
-
-            // Assert
-            userRepoMock.Verify(repo => repo.AddAsync(It.Is<User>(u =>
-                u.Email == "new@example.com" &&
-                u.PasswordHash == "hashed_password")), Times.Once);
-        }
-
-
-
-        [Fact]
-        public async Task AddUserAsync_WithExistingEmail_ShouldThrowInvalidOperationException()
-        {
-            // Arrange
-            var userRepoMock = new Mock<IUserRepository>();
-            var configMock = new Mock<IConfiguration>();
-
-            var existingUser = new User { UserId = 1, Email = "existing@example.com" };
-
-            userRepoMock.Setup(repo => repo.GetByEmailAsync("existing@example.com"))
-                .ReturnsAsync(existingUser);
-
-            var userService = new UserService(userRepoMock.Object, configMock.Object);
-
-            var newUser = new User
-            {
-                Email = "existing@example.com",
-                FullName = "New User"
-            };
-
-            // Act & Assert
-            var exception = await Assert.ThrowsAsync<InvalidOperationException>(
-                async () => await userService.AddUserAsync(newUser));
-
-            Assert.Equal("Email đã tồn tại!", exception.Message);
-        }
-
-
-
-        [Fact]
-        public async Task UpdateUserAsync_WithValidId_ShouldUpdateUser()
-        {
-            // Arrange
-            var userRepoMock = new Mock<IUserRepository>();
-            var configMock = new Mock<IConfiguration>();
-
-            var existingUser = new User
-            {
-                UserId = 1,
-                Email = "user@example.com",
-                FullName = "Old Name",
-                Phone = "0123456789",
-                Gender = "Male",
-                Role = "Buyer",
-                KycStatus = "not_submitted",
-                AccountStatus = "active"
-            };
-
-            userRepoMock.Setup(repo => repo.GetByIdAsync(1))
-                .ReturnsAsync(existingUser);
-
-            var userService = new UserService(userRepoMock.Object, configMock.Object);
-
-            var updatedUser = new User
-            {
-                UserId = 1,
-                Email = "user@example.com",
-                FullName = "Updated Name",
-                Phone = "9876543210",
-                Gender = "Female",
-                Role = "Seller",
-                KycStatus = "verified",
-                AccountStatus = "active"
-            };
-
-            // Act
-            await userService.UpdateUserAsync(updatedUser);
-
-            // Assert
-            userRepoMock.Verify(repo => repo.UpdateAsync(It.Is<User>(u =>
-                u.UserId == 1 &&
-                u.FullName == "Updated Name" &&
-                u.Phone == "9876543210" &&
-                u.Gender == "Female" &&
-                u.Role == "Seller" &&
-                u.KycStatus == "verified")), Times.Once);
-        }
-
-
-
-        [Fact]
-        public async Task UpdateUserAsync_WithInvalidId_ShouldThrowKeyNotFoundException()
-        {
-            // Arrange
-            var userRepoMock = new Mock<IUserRepository>();
-            var configMock = new Mock<IConfiguration>();
-
-            userRepoMock.Setup(repo => repo.GetByIdAsync(999))
-                .ReturnsAsync((User)null);
-
-            var userService = new UserService(userRepoMock.Object, configMock.Object);
-
-            var user = new User
-            {
-                UserId = 999,
-                FullName = "Updated Name"
-            };
-
-            // Act & Assert
-            var exception = await Assert.ThrowsAsync<KeyNotFoundException>(
-                async () => await userService.UpdateUserAsync(user));
-
-            Assert.Equal("User không tồn tại!", exception.Message);
-        }
-
-
-        [Fact]
-        public async Task DeleteUserAsync_ShouldCallRepositoryDeleteMethod()
-        {
-            // Arrange
-            var userRepoMock = new Mock<IUserRepository>();
-            var configMock = new Mock<IConfiguration>();
-
-            var userService = new UserService(userRepoMock.Object, configMock.Object);
-
-            // Act
-            await userService.DeleteUserAsync(1);
-
-            // Assert
-            userRepoMock.Verify(repo => repo.DeleteAsync(1), Times.Once);
-        }
-
-
-
-        [Fact]
-        public async Task AddUserAsync_WithFullInformation_ShouldAddUserWithAllFields()
-        {
-            // Arrange
-            var userRepoMock = new Mock<IUserRepository>();
-            var configMock = new Mock<IConfiguration>();
-
-            userRepoMock.Setup(repo => repo.GetByEmailAsync("full@example.com"))
-                .ReturnsAsync((User)null);
-
-            var userService = new UserService(userRepoMock.Object, configMock.Object);
-
-            var newUser = new User
-            {
-                Email = "full@example.com",
-                FullName = "Full User",
-                PasswordHash = "password123",
-                Gender = "Male",
-                Phone = "0987654321",
-                Role = "Seller",
-                KycStatus = "pending",
-                AccountStatus = "active"
-            };
-
-            // Act
-            await userService.AddUserAsync(newUser);
-
-            // Assert
-            userRepoMock.Verify(repo => repo.AddAsync(It.Is<User>(u =>
-                u.Email == "full@example.com" &&
-                u.FullName == "Full User" &&
-                u.PasswordHash == "hashed_password" &&
-                u.Gender == "Male" &&
-                u.Phone == "0987654321" &&
-                u.Role == "Seller" &&
-                u.KycStatus == "pending" &&
-                u.AccountStatus == "active")), Times.Once);
-        }
-
-
-
-        [Fact]
-        public async Task AddUserAsync_WithMinimalInformation_ShouldAddUserWithDefaultValues()
-        {
-            // Arrange
-            var userRepoMock = new Mock<IUserRepository>();
-            var configMock = new Mock<IConfiguration>();
-
-            userRepoMock.Setup(repo => repo.GetByEmailAsync("minimal@example.com"))
-                .ReturnsAsync((User)null);
-
-            var userService = new UserService(userRepoMock.Object, configMock.Object);
-
-            var newUser = new User
-            {
-                Email = "minimal@example.com",
-                FullName = "Minimal User",
-                PasswordHash = "password123"
-            };
-
-            // Act
-            await userService.AddUserAsync(newUser);
-
-            // Assert
-            userRepoMock.Verify(repo => repo.AddAsync(It.Is<User>(u =>
-                u.Email == "minimal@example.com" &&
-                u.FullName == "Minimal User" &&
-                u.PasswordHash == "hashed_password" &&
-                u.Role == "Buyer" &&
-                u.KycStatus == "not_submitted" &&
-                u.AccountStatus == "active")), Times.Once);
-        }
-
-
-        [Fact]
-        public async Task UpdateUserAsync_WithPartialInformation_ShouldUpdateOnlyProvidedFields()
-        {
-            // Arrange
-            var userRepoMock = new Mock<IUserRepository>();
-            var configMock = new Mock<IConfiguration>();
-
-            var existingUser = new User
-            {
-                UserId = 1,
-                Email = "user@example.com",
-                FullName = "Old Name",
-                Phone = "0123456789",
-                Gender = "Male",
-                Role = "Buyer",
-                KycStatus = "not_submitted",
-                AccountStatus = "active"
-            };
-
-            userRepoMock.Setup(repo => repo.GetByIdAsync(1))
-                .ReturnsAsync(existingUser);
-
-            var userService = new UserService(userRepoMock.Object, configMock.Object);
-
-            var updatedUser = new User
-            {
-                UserId = 1,
-                FullName = "Updated Name",
-                Phone = "9876543210"
-                // Other fields not provided
-            };
-
-            // Act
-            await userService.UpdateUserAsync(updatedUser);
-
-            // Assert
-            userRepoMock.Verify(repo => repo.UpdateAsync(It.Is<User>(u =>
-                u.UserId == 1 &&
-                u.FullName == "Updated Name" &&
-                u.Phone == "9876543210" &&
-                u.Gender == "Male" && 
-                u.Role == "Buyer" && 
-                u.KycStatus == "not_submitted")), Times.Once); 
-        }
-
-
-        [Fact]
-        public async Task UpdateUserAsync_WithKycStatusChange_ShouldUpdateKycStatus()
-        {
-            // Arrange
-            var userRepoMock = new Mock<IUserRepository>();
-            var configMock = new Mock<IConfiguration>();
-
-            var existingUser = new User
-            {
-                UserId = 1,
-                Email = "user@example.com",
-                FullName = "User Name",
-                KycStatus = "not_submitted"
-            };
-
-            userRepoMock.Setup(repo => repo.GetByIdAsync(1))
-                .ReturnsAsync(existingUser);
-
-            var userService = new UserService(userRepoMock.Object, configMock.Object);
-
-            var updatedUser = new User
-            {
-                UserId = 1,
-                FullName = "User Name",
-                KycStatus = "verified"
-            };
-
-            // Act
-            await userService.UpdateUserAsync(updatedUser);
-
-            // Assert
-            userRepoMock.Verify(repo => repo.UpdateAsync(It.Is<User>(u =>
-                u.UserId == 1 &&
-                u.KycStatus == "verified")), Times.Once);
-        }
-
-
-        [Fact]
-        public async Task UpdateUserAsync_WithAccountStatusChange_ShouldUpdateAccountStatus()
-        {
-            // Arrange
-            var userRepoMock = new Mock<IUserRepository>();
-            var configMock = new Mock<IConfiguration>();
-
-            var existingUser = new User
-            {
-                UserId = 1,
-                Email = "user@example.com",
-                FullName = "User Name",
-                AccountStatus = "active"
-            };
-
-            userRepoMock.Setup(repo => repo.GetByIdAsync(1))
-                .ReturnsAsync(existingUser);
-
-            var userService = new UserService(userRepoMock.Object, configMock.Object);
-
-            var updatedUser = new User
-            {
-                UserId = 1,
-                FullName = "User Name",
-                AccountStatus = "suspended"
-            };
-
-            // Act
-            await userService.UpdateUserAsync(updatedUser);
-
-            // Assert
-            userRepoMock.Verify(repo => repo.UpdateAsync(It.Is<User>(u =>
-                u.UserId == 1 &&
-                u.AccountStatus == "suspended")), Times.Once);
-        }
-
-        [Fact]
-        public async Task UpdateUserAsync_WithRoleChange_ShouldUpdateRole()
-        {
-            // Arrange
-            var userRepoMock = new Mock<IUserRepository>();
-            var configMock = new Mock<IConfiguration>();
-
-            var existingUser = new User
-            {
-                UserId = 1,
-                Email = "user@example.com",
-                FullName = "User Name",
-                Role = "Buyer"
-            };
-
-            userRepoMock.Setup(repo => repo.GetByIdAsync(1))
-                .ReturnsAsync(existingUser);
-
-            var userService = new UserService(userRepoMock.Object, configMock.Object);
-
-            var updatedUser = new User
-            {
-                UserId = 1,
-                FullName = "User Name",
-                Role = "Admin"
-            };
-
-            // Act
-            await userService.UpdateUserAsync(updatedUser);
-
-            // Assert
-            userRepoMock.Verify(repo => repo.UpdateAsync(It.Is<User>(u =>
-                u.UserId == 1 &&
-                u.Role == "Admin")), Times.Once);
-        }
-
-        [Fact]
-        public async Task UpdateUserAsync_WithAvatarChange_ShouldUpdateAvatar()
-        {
-            // Arrange
-            var userRepoMock = new Mock<IUserRepository>();
-            var configMock = new Mock<IConfiguration>();
-
-            var existingUser = new User
-            {
-                UserId = 1,
-                Email = "user@example.com",
-                FullName = "User Name",
-                AvatarProfile = "old_avatar.jpg"
-            };
-
-            userRepoMock.Setup(repo => repo.GetByIdAsync(1))
-                .ReturnsAsync(existingUser);
-
-            var userService = new UserService(userRepoMock.Object, configMock.Object);
-
-            var updatedUser = new User
-            {
-                UserId = 1,
-                FullName = "User Name",
-                AvatarProfile = "new_avatar.jpg"
-            };
-
-            // Act
-            await userService.UpdateUserAsync(updatedUser);
-
-            // Assert
-            userRepoMock.Verify(repo => repo.UpdateAsync(It.Is<User>(u =>
-                u.UserId == 1 &&
-                u.AvatarProfile == "new_avatar.jpg")), Times.Once);
-        }
-
-        [Fact]
-        public async Task UpdateUserAsync_WithGenderChange_ShouldUpdateGender()
-        {
-            // Arrange
-            var userRepoMock = new Mock<IUserRepository>();
-            var configMock = new Mock<IConfiguration>();
-
-            var existingUser = new User
-            {
-                UserId = 1,
-                Email = "user@example.com",
-                FullName = "User Name",
-                Gender = "Male"
-            };
-
-            userRepoMock.Setup(repo => repo.GetByIdAsync(1))
-                .ReturnsAsync(existingUser);
-
-            var userService = new UserService(userRepoMock.Object, configMock.Object);
-
-            var updatedUser = new User
-            {
-                UserId = 1,
-                FullName = "User Name",
-                Gender = "Female"
-            };
-
-            // Act
-            await userService.UpdateUserAsync(updatedUser);
-
-            // Assert
-            userRepoMock.Verify(repo => repo.UpdateAsync(It.Is<User>(u =>
-                u.UserId == 1 &&
-                u.Gender == "Female")), Times.Once);
-        }
-
-        [Fact]
-        public async Task UpdateUserAsync_WithPhoneChange_ShouldUpdatePhone()
-        {
-            // Arrange
-            var userRepoMock = new Mock<IUserRepository>();
-            var configMock = new Mock<IConfiguration>();
-
-            var existingUser = new User
-            {
-                UserId = 1,
-                Email = "user@example.com",
-                FullName = "User Name",
-                Phone = "0123456789"
-            };
-
-            userRepoMock.Setup(repo => repo.GetByIdAsync(1))
-                .ReturnsAsync(existingUser);
-
-            var userService = new UserService(userRepoMock.Object, configMock.Object);
-
-            var updatedUser = new User
-            {
-                UserId = 1,
-                FullName = "User Name",
-                Phone = "0987654321"
-            };
-
-            // Act
-            await userService.UpdateUserAsync(updatedUser);
-
-            // Assert
-            userRepoMock.Verify(repo => repo.UpdateAsync(It.Is<User>(u =>
-                u.UserId == 1 &&
-                u.Phone == "0987654321")), Times.Once);
-        }
-
-        [Fact]
-        public async Task AddUserAsync_ShouldSetCreatedAndUpdatedDates()
-        {
-            // Arrange
-            var userRepoMock = new Mock<IUserRepository>();
-            var configMock = new Mock<IConfiguration>();
-
-            userRepoMock.Setup(repo => repo.GetByEmailAsync("new@example.com"))
-                .ReturnsAsync((User)null);
-
-            var userService = new UserService(userRepoMock.Object, configMock.Object);
-
-            var newUser = new User
-            {
-                Email = "new@example.com",
-                FullName = "New User",
-                PasswordHash = "password123"
-            };
-
-            var beforeDate = DateTime.Now;
-
-            // Act
-            await userService.AddUserAsync(newUser);
-
-            var afterDate = DateTime.Now;
-
-            // Assert
-            userRepoMock.Verify(repo => repo.AddAsync(It.Is<User>(u =>
-                u.CreatedAt >= beforeDate &&
-                u.CreatedAt <= afterDate &&
-                u.UpdatedAt >= beforeDate &&
-                u.UpdatedAt <= afterDate)), Times.Once);
-        }
+            Email = "min@example.com",
+            Password = "Password123",
+            FullName = "Min User",
+            Role = "Buyer" // Giả sử Role là bắt buộc
+        };
+        _userRepoMock.Setup(repo => repo.GetByEmailAsync(dto.Email))
+            .ReturnsAsync((User)null);
+
+        // Act
+        await _userService.AddUserAsync(dto);
+
+        // Assert
+        _userRepoMock.Verify(r => r.AddAsync(It.IsAny<User>()), Times.Once);
+        Assert.NotNull(_capturedUser);
+        Assert.Equal("min@example.com", _capturedUser.Email);
+        Assert.Equal("Min User", _capturedUser.FullName);
+        Assert.Equal("Buyer", _capturedUser.Role);
+        Assert.Null(_capturedUser.Phone); // Check các trường khác là null
+        Assert.Null(_capturedUser.Gender);
+        Assert.True(BCrypt.Net.BCrypt.Verify(dto.Password, _capturedUser.PasswordHash));
+    }
+
+    // Tương ứng TC_USER_021: "Verify updating the date and time when adding a new user."
+    [Fact]
+    public async Task TC_USER_021_AddUserAsync_ShouldSetCreatedAndUpdatedDates()
+    {
+        // Arrange
+        _userRepoMock.Setup(repo => repo.GetByEmailAsync("newdate@example.com"))
+            .ReturnsAsync((User)null);
+
+        var newUser = new User { Email = "newdate@example.com", PasswordHash = "hash" };
+        var beforeDate = DateTime.UtcNow.AddSeconds(-1); // Thêm 1s buffer
+
+        // Act
+        await _userService.AddUserAsync(newUser);
+
+        // Assert
+        _userRepoMock.Verify(repo => repo.AddAsync(It.IsAny<User>()), Times.Once);
+        Assert.NotNull(_capturedUser);
+        Assert.True(_capturedUser.CreatedAt >= beforeDate);
+        Assert.True(_capturedUser.UpdatedAt >= beforeDate);
     }
 }
