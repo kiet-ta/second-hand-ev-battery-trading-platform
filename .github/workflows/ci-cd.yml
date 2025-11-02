@@ -89,7 +89,6 @@ jobs:
       - name: Install Coverlet
         run: |
           dotnet add BackEnd/BackEnd.Application.Tests/BackEnd.Application.Tests.csproj package coverlet.collector
-          dotnet add BackEnd/BackEnd.Integration.Tests/BackEnd.Integration.Tests.csproj package coverlet.collector
       
       - name: Run SonarCloud Scan
         env:
