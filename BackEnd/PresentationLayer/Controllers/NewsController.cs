@@ -30,11 +30,11 @@ namespace PresentationLayer.Controllers
             return Ok(news);
         }
 
-        [HttpGet("{newId}")]
+        [HttpGet("{id}")]
         public async Task<IActionResult> GetNewsById(int id)
         {
             if (id <= 0) return BadRequest("newsId must be greater than 0");
-            var newsDetail = await _newsService.GetNewsById(id);
+            var newsDetail = await _newsService.GetBynewsId(id);
             return Ok(newsDetail);
         }
 

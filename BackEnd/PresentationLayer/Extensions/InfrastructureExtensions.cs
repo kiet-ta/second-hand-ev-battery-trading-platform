@@ -47,7 +47,7 @@ public static class InfrastructureExtensions
         services.AddHostedService<PayOSWebhookInitializer>();
 
         // Redis Cache
-        services.AddScoped<IRedisCacheHelper, RedisCacheHelper>();
+        services.AddSingleton<IRedisCacheHelper, RedisCacheHelper>();
 
         // Singletons
         services.AddSingleton<IUserContextService, UserContextService>();
