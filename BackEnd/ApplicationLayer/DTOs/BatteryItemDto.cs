@@ -25,5 +25,6 @@ namespace Application.DTOs
 
         public string? ImageUrl { get; set; }
         public BuyerDto? Buyer { get; set; }
+        public int? OrderId { get; set; }
     }
 }
