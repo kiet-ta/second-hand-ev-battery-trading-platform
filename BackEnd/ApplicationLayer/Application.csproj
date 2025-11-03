@@ -36,4 +36,9 @@
     </ProjectReference>
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="IServices\Commission\" />
+    <Folder Include="Services\Commission\" />
+  </ItemGroup>
+
 </Project>

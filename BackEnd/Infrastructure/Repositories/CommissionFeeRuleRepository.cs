@@ -38,4 +38,10 @@ public class CommissionFeeRuleRepository : ICommissionFeeRuleRepository
             await _context.SaveChangesAsync();
         }
     }
+
+    public async Task<CommissionFeeRule?> GetActiveRuleByCodeAsync(string feeCode)
+    {
+        return await _context.CommissionFeeRules
+            .FirstOrDefaultAsync(r => r.FeeCode == feeCode && r.IsActive == true);
+    }
 }

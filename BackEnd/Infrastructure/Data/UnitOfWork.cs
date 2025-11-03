@@ -1,5 +1,6 @@
 ﻿using Application.IRepositories;
 using Application.IRepositories.IBiddingRepositories;
+using Application.IRepositories.IPaymentRepositories;
 using Microsoft.EntityFrameworkCore.Storage;
 
 namespace Infrastructure.Data;
@@ -18,8 +19,11 @@ public class UnitOfWork : IUnitOfWork
     public IUserRepository Users { get; }
     public IOrderRepository Orders { get; }
     public IOrderItemRepository OrderItems { get; }
+    public ICommissionFeeRuleRepository CommissionFeeRule { get;}
+    public ITransactionCommissionRepository TransactionCommission { get; }
     public IAddressRepository Address { get; }
-
+    public IPaymentRepository Payments { get; }
+    public ICommissionFeeRuleRepository CommissionFeeRules { get; }
     public UnitOfWork(
             EvBatteryTradingContext context,
             IAuctionRepository auctionRepository,
@@ -30,7 +34,10 @@ public class UnitOfWork : IUnitOfWork
             IUserRepository userRepository,
             IOrderRepository orderRepository,
             IOrderItemRepository orderItemRepository,
-            IAddressRepository addressRepository
+            IAddressRepository addressRepository,
+            IPaymentRepository paymentRepository,
+            ICommissionFeeRuleRepository commissionFeeRuleRepository,
+            ITransactionCommissionRepository transactionCommissionRepository
         )
     {
         _context = context;
@@ -43,6 +50,9 @@ public class UnitOfWork : IUnitOfWork
         Orders = orderRepository;
         OrderItems = orderItemRepository;
         Address = addressRepository;
+        Payments = paymentRepository;
+        CommissionFeeRules = commissionFeeRuleRepository;
+        TransactionCommission = transactionCommissionRepository;      
     }
 
     public async Task BeginTransactionAsync(CancellationToken cancellationToken = default)
@@ -112,4 +122,5 @@ public class UnitOfWork : IUnitOfWork
         Dispose(true);
         GC.SuppressFinalize(this);
     }
+
 }

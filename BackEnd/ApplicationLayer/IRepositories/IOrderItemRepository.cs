@@ -16,6 +16,8 @@ namespace Application.IRepositories
 
         Task<OrderItem?> GetByIdAsync(int id);
 
+        Task<List<OrderItem>> GetByOrderIdAsync(int orderId);
+
         Task UpdateAsync(OrderItem entity);
 
         Task<OrderItem> CreateAsync(OrderItem orderItem);

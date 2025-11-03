@@ -1,8 +1,8 @@
 ﻿using Application.IRepositories.IBiddingRepositories;
-
+using Application.IRepositories.IPaymentRepositories;
 namespace Application.IRepositories;
 
-public interface IUnitOfWork
+public interface IUnitOfWork 
 {
     IAuctionRepository Auctions { get; }
     IBidRepository Bids { get; }
@@ -12,8 +12,13 @@ public interface IUnitOfWork
     IUserRepository Users { get; }
     IOrderRepository Orders { get; }
     IOrderItemRepository OrderItems { get; }
+    IPaymentRepository Payments { get; }
+    ICommissionFeeRuleRepository CommissionFeeRuleRepository { get; }
+    ITransactionCommissionRepository TransactionCommissionRepository { get; }
 
     IAddressRepository Address { get; }
+    ICommissionFeeRuleRepository CommissionFeeRules { get; }
+
     Task BeginTransactionAsync(CancellationToken cancellationToken = default);
 
     Task CommitTransactionAsync(CancellationToken cancellationToken = default);
@@ -21,4 +26,5 @@ public interface IUnitOfWork
     Task RollbackTransactionAsync(CancellationToken cancellationToken = default);
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
+
 }
