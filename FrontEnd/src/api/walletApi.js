@@ -10,7 +10,6 @@ const walletApi = {
         const response = await axios.post(`${baseURL}/deposit`, payload,
             {
                 headers: {
-                    // This line is essential for authorized endpoints
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
                 }

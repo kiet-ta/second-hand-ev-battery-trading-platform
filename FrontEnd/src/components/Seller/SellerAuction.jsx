@@ -38,7 +38,6 @@ export default function SellerAuctionPage({ onClose }) {
         try {
             const today = new Date().toISOString().split("T")[0];
 
-            // Bước 1: Tạo Item
             const itemBody = {
                 itemId: 0,
                 itemType: "ev",
@@ -72,7 +71,6 @@ export default function SellerAuctionPage({ onClose }) {
             }
 
 
-            // Bước 2: Tạo phiên đấu giá cho xe vừa tạo
             const auctionBody = {
                 itemId: itemData.itemId, // ✅ Lấy ID thật
                 startingPrice: parseFloat(formData.startPrice),

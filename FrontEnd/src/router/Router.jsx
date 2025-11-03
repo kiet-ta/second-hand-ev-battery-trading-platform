@@ -13,8 +13,6 @@ import CheckoutPage from "../pages/Main/CheckoutPage";
 import AuctionMainPage from "../pages/Auctions/AuctionMainPage";
 import AuctionDetailPage from "../pages/Auctions/AuctionDetailPage";
 import FavouritePage from "../pages/Main/FavouritePage";
-import BlogList from "../pages/Footers/BlogList";
-import BlogDetail from "../pages/Footers/BlogDetail";
 import AboutPage from "../pages/Footers/AboutPage";
 import CareersPage from "../pages/Footers/CareerPage";
 import PressPage from "../pages/Footers/PressPage";
@@ -63,7 +61,6 @@ import SellerDashboardContent from "../pages/Seller/SellerDashboardContent";
 import SellerBiddingPage from "../pages/Seller/SellerBiddingPage";
 import SellerOrdersPage from "../pages/Seller/SellerOrdersPage";
 import SellerHistoryPage from "../pages/Seller/SellerHistoryPage";
-import SellerSettingsPage from "../pages/Seller/SellerSettingsPage";
 
 /* ---------------------------
    Manager / Admin (Protected - manager/staff)
@@ -98,6 +95,8 @@ import SellerPendingReview from "../pages/Seller/SellerPendingReview";
 import RechargePage from "../pages/RechargePage";
 import BuyNowCheckoutPage from "../pages/Main/BuyNowCheckoutPage";
 import CommissionSettings from "../components/Manager/CommissionSettings";
+import NewsList from "../pages/Footers/NewsList";
+import NewsDetail from "../pages/Footers/NewsDetail";
 
 /* ---------------------------
    Router definition
@@ -128,8 +127,8 @@ export const router = createBrowserRouter([
       { path: "seller-registration", element: <SellerOnBoard /> },
       { path: "seller-form", element: <SellerForm /> },
       { path: "success", element: <SuccessPage /> },
-      { path: "blog", element: <BlogList /> },
-      { path: "blog/:id", element: <BlogDetail /> },
+      { path: "news", element: <NewsList /> },
+      { path: "news/:id", element: <NewsDetail /> },
       { path: "about", element: <AboutPage /> },
       { path: "careers", element: <CareersPage /> },
       { path: "press", element: <PressPage /> },
@@ -141,7 +140,6 @@ export const router = createBrowserRouter([
       { path: "wallet", element: <WalletTransactionPage /> },
       { path: "complaint", element: <ComplaintPage /> },
       { path: "compare", element: <CompareEVPage /> },
-      { path: "order-history", element: <OrderPage /> },
       { path: "pending-review", element: <SellerPendingReview /> },
       { path: "recharge", element: <RechargePage /> },
       { path: "checkout/buy-now", element: <BuyNowCheckoutPage /> }
@@ -167,7 +165,7 @@ export const router = createBrowserRouter([
           { path: "security", element: <SecuritySetting /> },
         ],
       },
-      { path: "purchase", element: <PurchaseSection /> },
+      { path: "purchase", element: <OrderPage /> },
       { path: "settings", element: <SettingsSection /> },
       { path: "chats", element: <ChatRoomWrapper /> },
     ],
@@ -185,7 +183,6 @@ export const router = createBrowserRouter([
           { path: "orders", element: <SellerOrdersPage /> },
           { path: "history", element: <SellerHistoryPage /> },
           { path: "chat", element: <ChatRoomWrapper /> },
-          { path: "settings", element: <SellerSettingsPage /> },
         ],
       },
     ],
@@ -200,8 +197,7 @@ export const router = createBrowserRouter([
         element: <ManagerDashboard />,
         children: [
           { index: true, element: <DashboardContent /> },
-          { path: "approvals", element: <SellerApprovalsContent /> },
-          { path: "kyc_management", element: <KycManagementPage /> },
+          { path: "approvals", element: <KycManagementPage /> },
           { path: "users", element: <UsersContent /> },
           { path: "products", element: <ProductModeration /> },
           { path: "complaints", element: <ComplaintsList /> },

@@ -8,7 +8,26 @@ function AuctionMainPage() {
   const fetchItems = async () => {
     try {
       const response = await auctionApi.getAuction();
-      setItems(response.data);
+      const now = new Date().getTime();
+
+      // Normalize + compute real status
+      const normalized = response.data.map((item) => {
+        const start = new Date(item.startTime).getTime();
+        const end = new Date(item.endTime).getTime();
+
+        let status = "UPCOMING";
+        if (now >= start && now < end) status = "ONGOING";
+        else if (now >= end) status = "ENDED";
+
+        return {
+          ...item,
+          status,
+          category: item.type === "ev" ? "Xe điện" : "Pin xe điện",
+          currentBid: item.currentPrice || 0,
+        };
+      });
+
+      setItems(normalized);
     } catch (error) {
       console.error("Lỗi tải dữ liệu:", error);
     }
@@ -33,22 +52,21 @@ function AuctionMainPage() {
         />
       </div>
 
-
+      {/* Auction Cards */}
       <div className="grid md:grid-cols-3 lg:grid-cols-4 gap-8 max-w-7xl mx-auto">
         {items.length > 0 ? (
           items.map((item) => (
             <CarAuctionCard
-              key={item.itemId}
+              key={item.auctionId}
               auctionID={item.auctionId}
               id={item.itemId}
               title={item.title}
               category={item.category}
-              brand={item.brand}
               currentBid={item.currentBid}
               startingPrice={item.startingPrice}
               startTime={item.startTime}
               endTime={item.endTime}
-              status={item.status}
+              status={item.status} 
               imageUrls={item.images}
             />
           ))
@@ -58,8 +76,6 @@ function AuctionMainPage() {
           </p>
         )}
       </div>
-
-
     </div>
   );
 }

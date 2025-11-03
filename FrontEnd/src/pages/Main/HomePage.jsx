@@ -11,6 +11,9 @@ import CardSkeleton from '../../components/Cards/CardSkeleton';
 import SectionHeader from '../../components/SectionHeader';
 import CompareToast from "../../components/CompareToast";
 import CompareModal from "../../components/CompareModal";
+import newsApi from "../../api/newsApi";
+import { Newspaper } from "lucide-react";
+
 
 
 const FiArrowRight = ({ className }) => (
@@ -28,7 +31,7 @@ const HeroAdvert = ({ imageUrl, title, description, link, ctaText }) => (
             className="absolute inset-0 w-full h-full object-cover object-center transition-transform duration-700 group-hover:scale-105"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-gray-950 via-gray-950/60 to-transparent p-8 flex flex-col justify-end text-white">
-            <h1 className="text-5xl md:text-6xl font-extrabold font-serif mb-4 drop-shadow-lg text-yellow-300">
+            <h1 className="text-5xl md:text-6xl font-extrabold font-roboto mb-4 drop-shadow-lg text-yellow-300">
                 {title}
             </h1>
             <p className="text-lg md:text-xl text-gray-200 max-w-2xl mb-6 drop-shadow-md">
@@ -51,8 +54,15 @@ function HomePage() {
     const [error, setError] = useState(null);
     const [userFavorites, setUserFavorites] = useState([]);
     const userId = localStorage.getItem("userId");
+    const [latestNews, setLatestNews] = useState([]);
+    const [loadingNews, setLoadingNews] = useState(true);
+
+
 
     const isItemVerified = (item) => item.moderation === 'approved_tag';
+
+
+
 
     const refetchFavorites = useCallback(async () => {
         if (!userId) { setUserFavorites([]); return; }
@@ -65,9 +75,13 @@ function HomePage() {
     }, [userId]);
 
     useEffect(() => {
+
         const fetchAllItems = async () => {
+
             setLoading(true);
             try {
+                const news = await newsApi.getNews();
+                setLatestNews(news.slice(0, 3));
                 const [items, evs, batteries] = await Promise.all([
                     itemApi.getItem(),
                     itemApi.getItemByLatestEV(),
@@ -89,6 +103,8 @@ function HomePage() {
                 setError("Không thể tải sản phẩm. Vui lòng kiểm tra kết nối và thử lại.");
             } finally {
                 setLoading(false);
+                setLoadingNews(false);
+
             }
         };
         fetchAllItems();
@@ -108,7 +124,7 @@ function HomePage() {
                 {`
                     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700;800&display=swap');
                     
-                    .font-serif { 
+                    .font-roboto { 
                         font-family: 'Playfair Display', serif; 
                     }
                 `}
@@ -154,6 +170,7 @@ function HomePage() {
                                     isVerified={isItemVerified(item)}
                                     userFavorites={userFavorites}
                                     onFavoriteChange={refetchFavorites}
+                                    updatedBy={item.updatedBy}
                                 />
                             ))}
                     </div>
@@ -203,19 +220,50 @@ function HomePage() {
                         itemType="battery"
                     />
 
-                    <div className="mt-20 p-8 bg-white rounded-xl shadow-2xl border-2 border-[#C4B5A0]/60 text-center relative overflow-hidden">
-                        <FiGift className="w-16 h-16 text-[#B8860B] mx-auto mb-6 drop-shadow-lg" />
-                        <h3 className="text-3xl font-serif font-bold text-[#2C2C2C] mb-4 tracking-wide">
-                            Tham Gia Cộng Đồng Độc Quyền
-                        </h3>
-                        <p className="text-gray-600 text-lg max-w-3xl mx-auto mb-8">
-                            Nhận quyền truy cập sớm vào các sản phẩm hiếm, ưu đãi độc quyền và các đề xuất được cá nhân hóa.
-                        </p>
-                        <button className="inline-flex items-center justify-center px-10 py-4 bg-[#D4AF37] text-[#2C2C2C] font-extrabold text-xl rounded-full shadow-xl hover:bg-[#B8860B] transition-all duration-300 transform hover:-translate-y-1">
-                            Đăng Ký Ngay <FiArrowRight className="ml-3 w-5 h-5" />
-                        </button>
-                    </div>
+<div className="mt-24">
+  <SectionHeader
+    title="Tin Tức Mới Nhất"
+    icon={Newspaper}
+    description="Khám phá xu hướng mới, công nghệ và những câu chuyện truyền cảm hứng về xe điện."
+  />
 
+  {loadingNews ? (
+    <div className="flex justify-center py-12">
+      <Spin size="large" />
+    </div>
+  ) : (
+    <div className="space-y-6">
+      {latestNews.map((post) => (
+        <Link
+          key={post.newsId}
+          to={`/news/${post.newsId}`}
+          state={post}
+          className="flex flex-col md:flex-row items-center gap-6 p-5 bg-white border-2 border-[#C4B5A0]/40 rounded-2xl shadow-md hover:shadow-2xl transition-all duration-300 hover:-translate-y-1"
+        >
+          <img
+            src={post.thumbnailUrl}
+            alt={post.title}
+            className="w-full md:w-64 h-48 object-cover rounded-xl"
+          />
+          <div className="flex-1">
+            <h3 className="text-2xl font-roboto font-bold text-[#2C2C2C] mb-2">
+              {post.title}
+            </h3>
+            <p className="text-gray-600 mb-3 line-clamp-3">{post.summary}</p>
+            <div className="flex items-center gap-3 text-sm text-gray-500">
+              <span className="bg-[#F8F5E9] text-[#B8860B] px-3 py-1 rounded-full font-semibold">
+                {post.category}
+              </span>
+              <span>
+                {new Date(post.publishDate).toLocaleDateString("vi-VN")}
+              </span>
+            </div>
+          </div>
+        </Link>
+      ))}
+    </div>
+  )}
+</div>
                 </div>
                 <div className="h-20"></div>
 

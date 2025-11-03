@@ -17,7 +17,7 @@ public class Auction
     public DateTime EndTime { get; set; }
 
     public string Status { get; set; } = String.Empty; // upcoming, ongoing, ended, cancelled
-    public decimal StepPrice { get; set; }
+    public int StepPrice { get; set; } = 0;
 
     public DateTime CreatedAt { get; set; } = DateTime.Now;
 

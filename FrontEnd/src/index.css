@@ -18,7 +18,16 @@
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
-
+.ant-select-selector {
+  border-radius: 0 !important;
+}
+.ant-select-item-option {
+  padding: 8px 12px !important;
+  border-radius: 8px !important;
+}
+.ant-select-item-option:hover {
+  background-color: #fff8e1 !important;
+}
 a {
   font-weight: 500;
   text-decoration: inherit;

@@ -48,13 +48,11 @@ export default function UserContent() {
         }
     };
 
-    // Tải danh sách người dùng
     const fetchUsers = async (pageNum = 1) => {
         try {
             setLoading(true);
             const data = await managerAPI.getUsersPaginated(pageNum, 20);
 
-            // ✅ Sắp xếp người dùng theo ngày tạo (mới nhất ở đầu)
             const sortedUsers = (data.items || []).sort((a, b) => {
                 const dateA = new Date(a.createdAt || 0);
                 const dateB = new Date(b.createdAt || 0);
@@ -76,7 +74,6 @@ export default function UserContent() {
         fetchUsers(page);
     }, [page]);
 
-    // Áp dụng lọc & tìm kiếm
     useEffect(() => {
         let filtered = [...users];
 
@@ -94,26 +91,21 @@ export default function UserContent() {
         setFilteredUsers(filtered);
     }, [users, roleFilter, statusFilter, searchQuery]);
 
-    // Cập nhật trạng thái người dùng
-    // Cập nhật trạng thái người dùng
     const handleStatusChange = async (userId, status) => {
         if (userId === currentUserId) {
-            message.warning("⚠️ Bạn không thể thay đổi trạng thái của chính mình");
             return;
         }
 
         try {
             await managerAPI.updateUserStatus(userId, status);
             await fetchUsers(page);
-            message.success("✅ Trạng thái người dùng đã được cập nhật!");
 
-            // ✅ Nếu là hành động cấm tài khoản → gửi mail
             if (status === "ban") {
                 const bannedUser = users.find((u) => u.userId === userId);
                 if (bannedUser && bannedUser.email) {
                     await sendBanEmail(
                         bannedUser.email,
-                        "https://cocmuaxe.vn/help/appeal", // ví dụ URL người dùng có thể khiếu nại
+                        "https://cocmuaxe.vn/help/appeal", 
                         "Tài khoản của bạn đã bị cấm do vi phạm điều khoản sử dụng."
                     );
                 }
@@ -125,7 +117,6 @@ export default function UserContent() {
     };
 
 
-    // Xuất CSV
     const exportToCSV = () => {
         if (filteredUsers.length === 0) {
             message.info("Không có dữ liệu để xuất.");

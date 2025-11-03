@@ -32,17 +32,14 @@ export default function ComplaintList() {
   const token = localStorage.getItem("token");
   const baseURL = import.meta.env.VITE_API_BASE_URL;
 
-  // ✅ Lấy danh sách complaint
   const fetchComplaints = async () => {
     setLoading(true);
     try {
       const res = await fetch(`${baseURL}complaint/all`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      if (!res.ok) throw new Error("Không thể tải complaint");
       const data = await res.json();
 
-      // Sắp xếp complaint mới nhất lên đầu
       const sorted = (data || []).sort((a, b) => {
         const dateA = new Date(a.createdAt || 0);
         const dateB = new Date(b.createdAt || 0);
@@ -53,7 +50,6 @@ export default function ComplaintList() {
       setFiltered(sorted);
     } catch (err) {
       console.error(err);
-      message.error("❌ Lỗi tải danh sách khiếu nại.");
     } finally {
       setLoading(false);
     }
@@ -112,7 +108,6 @@ export default function ComplaintList() {
       setModalVisible(false);
       fetchComplaints();
     } catch {
-      message.error("❌ Không thể cập nhật trạng thái.");
     }
   };
 
@@ -128,10 +123,8 @@ export default function ComplaintList() {
         body: JSON.stringify({ level: newLevel }),
       });
       if (!res.ok) throw new Error();
-      message.success(`⚡ Mức độ thay đổi thành "${newLevel}".`);
       setSelectedComplaint({ ...selectedComplaint, severityLevel: newLevel });
     } catch {
-      message.error("Không thể thay đổi mức độ.");
     }
   };
 

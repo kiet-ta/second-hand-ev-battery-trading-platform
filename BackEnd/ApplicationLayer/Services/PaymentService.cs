@@ -1,4 +1,5 @@
 ﻿using Application.DTOs.PaymentDtos;
+using Application.IHelpers;
 using Application.IRepositories;
 using Application.IRepositories.IBiddingRepositories;
 using Application.IRepositories.IPaymentRepositories;
@@ -21,11 +22,12 @@ public class PaymentService : IPaymentService
     private readonly ICommissionFeeRuleRepository _commissionRuleRepo;
     private readonly IUserRepository _userRepository;
     private readonly IItemRepository _itemRepository;
+    private readonly IUniqueIDGenerator _uniqueIDGenerator;
     private readonly IIdGenerator<long> _idGenerator;
     private readonly IUnitOfWork _uow;
 
     public PaymentService(PayOS payOS, IPaymentRepository paymentRepository, IWalletRepository walletRepository, IConfiguration config, ICommissionFeeRuleRepository commissionRuleRepo,
-    IUserRepository userRepository, IItemRepository itemRepository, IIdGenerator<long> idGenerator, IUnitOfWork uow)
+    IUserRepository userRepository, IItemRepository itemRepository, IIdGenerator<long> idGenerator, IUniqueIDGenerator uniqueIDGenerator, IUnitOfWork uow)
     {
         _payOS = payOS;
         _paymentRepository = paymentRepository;
@@ -34,6 +36,7 @@ public class PaymentService : IPaymentService
         _commissionRuleRepo = commissionRuleRepo;
         _userRepository = userRepository;
         _itemRepository = itemRepository;
+        _uniqueIDGenerator = uniqueIDGenerator;
         _idGenerator = idGenerator;
         _uow = uow;
     }
@@ -155,7 +158,8 @@ public class PaymentService : IPaymentService
             throw new ArgumentException("User or wallet does not exist");
 
         // using idGen to avoid duplicate order code
-        long orderCode = _idGenerator.CreateId();
+
+        long orderCode = _uniqueIDGenerator.CreateUnique53BitId();
 
         var payment = new Payment
         {
@@ -323,7 +327,7 @@ public class PaymentService : IPaymentService
         var feeAmount = registrationFeeRule.FeeValue;
 
         // record payment
-        long orderCode = long.Parse(DateTimeOffset.UtcNow.ToString("ffffff"));
+        long orderCode = long.Parse(DateTimeOffset.UtcNow.ToString("ffff"));
         var payment = new Payment
         {
             UserId = request.UserId,
@@ -370,7 +374,7 @@ public class PaymentService : IPaymentService
     public async Task<PaymentResponseDto> CreateDepositPaymentLinkAsync(int userId, decimal amount)
     {
         //unique id deposit order
-        long depositOrderCode = _idGenerator.CreateId();
+        long depositOrderCode = _uniqueIDGenerator.CreateUnique53BitId();
 
         // Create Payment record in DB to track deposit transaction
         var paymentRecord = new Payment
@@ -433,4 +437,5 @@ public class PaymentService : IPaymentService
             throw new Exception("Failed to create payment link. Please try again later.", ex);
         }
     }
+
 }

@@ -40,7 +40,6 @@ const useCountdown = (endTimeStr) => {
             const newCountdown = calculateTimeRemaining(); 
             setCountdown(newCountdown);
 
-            // This ensures the timer stops instantly when distance <= 0
             if (newCountdown.isFinished) { 
                 clearInterval(intervalId); 
             }

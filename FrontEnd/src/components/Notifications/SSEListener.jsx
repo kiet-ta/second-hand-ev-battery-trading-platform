@@ -38,7 +38,6 @@ const SSEListener = ({ userId, onNewNotification }) => {
         const payload = JSON.parse(event.data);
         console.log('[SSE DEBUG] Message received:', payload);
 
-        // 🧠 Ignore self-notifications (sender = current user)
         if (String(payload.senderId) === String(userId)) {
           console.log('[SSE DEBUG] Ignoring self-notification:', payload);
           return;

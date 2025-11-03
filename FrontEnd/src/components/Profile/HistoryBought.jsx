@@ -44,7 +44,6 @@ export default function HistoryBought() {
       if (!res.ok) throw new Error("Failed to fetch orders");
       const data = await res.json();
 
-      // ✅ Lấy danh sách trong data.items
       const formattedOrders = data.items.map((order) => ({
         orderCode: order.orderCode,
         paymentCreatedAt: order.paymentCreatedAt,
@@ -72,7 +71,6 @@ export default function HistoryBought() {
 
       setOrders(formattedOrders);
 
-      // ✅ Lưu thông tin phân trang để render UI
       setPagination({
         currentPage: data.pageNumber,
         totalPages: Math.ceil(data.totalCount / data.pageSize),
@@ -183,7 +181,6 @@ export default function HistoryBought() {
     link.click();
   };
 
-  // --- Lọc nâng cao ---
   const filteredOrders = orders.filter((o) => {
     const matchStatus = filter === "all" || o.status === filter;
     const matchType = filterType === "all" || o.itemType === filterType;

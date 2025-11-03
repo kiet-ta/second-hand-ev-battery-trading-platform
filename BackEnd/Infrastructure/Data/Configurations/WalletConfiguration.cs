@@ -13,8 +13,6 @@ public class WalletConfiguration : IEntityTypeConfiguration<Wallet>
         entity.HasKey(e => e.WalletId);
 
         entity.HasIndex(e => e.UserId, "UQ__wallets__B9BE370EDA87C2F7").IsUnique();
-        entity.Property(e => e.HeldBalance)
-        .HasColumnName("held_balance");
 
         entity.Property(e => e.WalletId).HasColumnName("wallet_id");
 
@@ -26,7 +24,9 @@ public class WalletConfiguration : IEntityTypeConfiguration<Wallet>
             .HasMaxLength(10)
             .HasDefaultValue("vnd")
             .HasColumnName("currency");
-
+        entity.Property(e => e.HeldBalance)
+            .HasColumnType("decimal(18, 2)")
+            .HasColumnName("held_balance");
         entity.Property(e => e.Status)
             .HasMaxLength(20)
             .HasDefaultValue("active")

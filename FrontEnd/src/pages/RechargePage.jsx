@@ -13,7 +13,6 @@ export default function RechargePage() {
     const userId = localStorage.getItem("userId");
     const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-    // 🔹 Lấy số dư ví
     const fetchWallet = async () => {
         try {
             const res = await fetch(`${BASE_URL}wallet/user/${userId}`, {
@@ -35,7 +34,6 @@ export default function RechargePage() {
         fetchWallet();
     }, []);
 
-    // 🔹 Gọi API thanh toán QR
     const handlePayment = async () => {
         if (amount <= 0) {
             message.warning("Vui lòng nhập số tiền hợp lệ!");
@@ -57,7 +55,6 @@ export default function RechargePage() {
 
             if (res.ok && data.checkoutUrl) {
                 message.success("Chuyển hướng đến trang thanh toán...");
-                // 🔁 Mở link QR trong tab mới
                 window.open(data.checkoutUrl, "_blank");
             } else {
                 message.error(data.message || "Không thể khởi tạo thanh toán!");

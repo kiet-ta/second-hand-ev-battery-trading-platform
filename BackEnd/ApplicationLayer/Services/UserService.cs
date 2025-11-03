@@ -160,6 +160,7 @@ namespace Application.Services
             existing.Role = user.Role;
             existing.KycStatus = user.KycStatus;
             existing.AccountStatus = user.AccountStatus;
+            existing.YearOfBirth = user.YearOfBirth;
             existing.UpdatedAt = DateTime.UtcNow;
 
             await _userRepository.UpdateAsync(existing);

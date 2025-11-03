@@ -4,7 +4,6 @@ import itemApi from '../../api/itemApi';
 import CardComponent from '../../components/Cards/Card';
 import { Spin } from 'antd';
 
-// ✅ Price ranges
 const electricCarPriceRanges = [
   { label: 'Dưới 50.000.000 đ', value: '0-50000000' },
   { label: '50.000.000 - 500.000.000 đ', value: '50000000-500000000' },
@@ -38,7 +37,6 @@ function SearchPage() {
     sellerName: searchParams.get("sellerName") || '',
   });
 
-  // 🧠 Dynamic detail filters
   const [detailFilters, setDetailFilters] = useState({});
   const [selectedDetails, setSelectedDetails] = useState({});
 
@@ -52,7 +50,6 @@ function SearchPage() {
           return acc;
         }, []);
 
-  // 🧩 Fetch items
   const fetchItems = useCallback(async () => {
     setIsLoading(true);
     try {
@@ -105,7 +102,6 @@ function SearchPage() {
     setSearchParams(newSearchParams, { replace: true });
   }, [filters, setSearchParams]);
 
-  // 🔍 Extract detail filter options dynamically
   useEffect(() => {
     if (itemList.length === 0) {
       setDetailFilters({});
@@ -145,7 +141,6 @@ function SearchPage() {
       });
     });
 
-  // 🧭 Handlers
   const handleFilterChange = e => {
     const { name, value } = e.target;
     setFilters(prev => ({ ...prev, [name]: value, page: 1 }));
@@ -177,12 +172,11 @@ function SearchPage() {
   const currentPriceRangeValue =
     filters.minPrice === '' && filters.maxPrice === '' ? '-' : `${filters.minPrice}-${filters.maxPrice}`;
 
-  // 🧱 UI
   return (
     <div className='w-full flex mt-2 bg-[#FAF8F3] p-4 min-h-screen'>
       {/* Sidebar */}
       <aside className='w-1/4 xl:w-1/5 m-4 rounded-lg bg-white p-6 shadow-lg border border-[#E8E4DC] overflow-y-auto max-h-[90vh]'>
-        <h2 className='text-2xl font-bold font-serif pb-4 border-b text-[#B8860B]'>Bộ Lọc</h2>
+        <h2 className='text-2xl font-bold font-roboto pb-4 border-b text-[#B8860B]'>Bộ Lọc</h2>
 
         {/* Price */}
         <div className='pt-6'>
@@ -300,6 +294,7 @@ function SearchPage() {
                   year={item.itemDetail?.year}
                   mileage={item.itemDetail?.mileage}
                   isVerified={item.moderation === 'approved_tag'}
+                  updatedBy={item.updatedBy}
                 />
               ))}
             </div>
@@ -337,7 +332,6 @@ function SearchPage() {
   );
 }
 
-// 🈯 Translate field names
 function translateKey(key) {
   const dict = {
     brand: "Thương hiệu",

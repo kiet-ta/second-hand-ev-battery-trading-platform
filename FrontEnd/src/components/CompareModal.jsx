@@ -1,4 +1,3 @@
-// src/components/CompareModal.jsx
 import React, { useEffect, useState, useCallback } from "react";
 import {
     getCompareList,
@@ -17,7 +16,6 @@ export default function CompareModal() {
         setList(getCompareList());
     }, []);
 
-    // Lắng nghe event mở modal
     useEffect(() => {
         const onOpen = () => {
             if (window.location.pathname === "/compare") return;
@@ -29,14 +27,12 @@ export default function CompareModal() {
         return () => window.removeEventListener("compare:openModal", onOpen);
     }, [refresh]);
 
-    // Thêm: ẩn modal khi điều hướng sang trang compare (hoặc có event sync)
     useEffect(() => {
         const onSync = () => setOpen(false);
         window.addEventListener("compare:sync", onSync);
         return () => window.removeEventListener("compare:sync", onSync);
     }, []);
 
-    // Không return trước hook
     return (
         <AnimatePresence>
             {open && (
@@ -126,7 +122,6 @@ export default function CompareModal() {
 
                                 <button
                                     onClick={() => {
-                                        // NEW: phát event để trang compare sync dữ liệu
                                         window.dispatchEvent(new Event("compare:sync"));
                                         setOpen(false);
                                         setTimeout(() => {

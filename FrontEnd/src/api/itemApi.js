@@ -15,7 +15,7 @@ const itemApi = {
         return response.data;
     },
     getItemByLatestBattery: async () => {
-        const response = await axios.get(linkBaseURL + "battery-details" + "/latest-batterys", 10)
+        const response = await axios.get(linkBaseURL + "battery-details" + "/latest-batteries", 10)
         return response.data;
     },
     getItemBySearch: async (itemType, title, minPrice, maxPrice, page, pageSize, sortBy, sortDir) => {
@@ -31,11 +31,11 @@ const itemApi = {
         return response.data;
     },
     postItemEV: async (data) => {
-        const response = await axios.post(linkBaseURL + "ev-details" + "/detail/ev", data);
+        const response = await axios.post(linkBaseURL + "ev-details", data);
         return response.data;
     },
     postItemBattery: async (data) => {
-        const response = await axios.post(linkBaseURL + "battery-details" + "/detail/battery", data);
+        const response = await axios.post(linkBaseURL + "battery-details", data);
         return response.data;
     },
     putItem: async (itemId, itemData) => {

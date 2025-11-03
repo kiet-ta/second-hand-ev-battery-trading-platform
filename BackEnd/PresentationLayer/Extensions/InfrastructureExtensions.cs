@@ -49,20 +49,24 @@ public static class InfrastructureExtensions
         // Redis Cache
         services.AddScoped<IRedisCacheHelper, RedisCacheHelper>();
 
+        // Helper IDGenerator
+
+        services.AddScoped<IUniqueIDGenerator, UniqueIDGenerator>();
+
         // Singletons
         services.AddSingleton<IUserContextService, UserContextService>();
 
         // Idgenerator
-        services.AddSingleton<IIdGenerator<long>>(provider =>
-        {
-            var epoch = new DateTime(2020, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-            var structure = new IdStructure(45, 2, 16); // 45 bits timestamp (miliseconds), 2 bits generator-id, 16 bits sequence
-            var options = new IdGeneratorOptions(structure, new DefaultTimeSource(epoch));
-            int generatorId = 1;
-            var generator = new IdGenerator(generatorId, options);
+        //services.AddSingleton<IIdGenerator<long>>(provider =>
+        //{
+        //    var epoch = new DateTime(2020, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+        //    var structure = new IdStructure(45, 2, 16); // 45 bits timestamp (miliseconds), 2 bits generator-id, 16 bits sequence
+        //    var options = new IdGeneratorOptions(structure, new DefaultTimeSource(epoch));
+        //    int generatorId = 1;
+        //    var generator = new IdGenerator(generatorId, options);
 
-            return new IdGenerator(1, options);
-        });
+        //    return new IdGenerator(1, options);
+        //});
 
         return services;
     }

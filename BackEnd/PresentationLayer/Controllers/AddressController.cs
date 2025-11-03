@@ -38,6 +38,7 @@ namespace PresentationLayer.Controllers
                 ProvinceCode = dto.ProvinceCode,
                 IsDefault = dto.IsDefault,
                 CreatedAt = DateTime.Now,
+                IsShopAddress = false,
                 IsDeleted = false
             };
 

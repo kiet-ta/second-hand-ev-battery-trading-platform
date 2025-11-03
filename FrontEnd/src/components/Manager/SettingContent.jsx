@@ -1,4 +1,3 @@
-// src/components/Manager/SettingsContent.jsx
 import React from "react";
 import { Settings } from "lucide-react";
 import Card from "./Card";

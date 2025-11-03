@@ -17,6 +17,13 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: './src/setupTests.js',
   },
+  server: {
+    allowedHosts: [
+      "overhostile-mindy-overhastily.ngrok-free.dev" // 👈 your ngrok host
+    ],
+    host: true, // allow external access
+    port: 5173, // optional
+  },
   theme: {
     extend: {
       fontFamily: {

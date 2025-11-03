@@ -1,4 +1,3 @@
-// src/components/BlogHeader.jsx
 import React from "react";
 
 export default function BlogHeader() {

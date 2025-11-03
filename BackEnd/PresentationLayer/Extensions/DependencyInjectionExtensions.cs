@@ -49,6 +49,7 @@ public static class DependencyInjectionExtensions
         services.AddSingleton<INotificationService, NotificationService>();
         services.AddScoped<IComplaintService, ComplaintService>();
         services.AddScoped<IWalletService, WalletService>();
+        services.AddScoped<ICommissionFeeRuleService, CommissionFeeRuleService>();
 
         //---Repositories
         services.AddScoped<IAuctionRepository, AuctionRepository>();
@@ -71,6 +72,7 @@ public static class DependencyInjectionExtensions
         services.AddScoped<IReviewRepository, ReviewRepository>();
         services.AddScoped<IComplaintRepository, ComplaintRepository>();
         services.AddScoped<ICommissionFeeRuleRepository, CommissionFeeRuleRepository>();
+
         services.AddScoped<ITransactionRepository, TransactionRepository>();
         services.AddScoped<ITransactionCommissionRepository, TransactionCommissionRepository>();
         services.AddScoped<IEmailRepository, EmailTemplateRepository>();

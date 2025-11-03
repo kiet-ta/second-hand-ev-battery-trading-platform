@@ -13,7 +13,6 @@ export default function ForgotPasswordPage() {
 
     const baseURL = import.meta.env.VITE_API_BASE_URL;
 
-    // --- Gửi OTP ---
     const handleSendEmail = async (values) => {
         setLoading(true);
         try {
@@ -33,7 +32,6 @@ export default function ForgotPasswordPage() {
         }
     };
 
-    // --- Đặt lại mật khẩu ---
     const handleResetPassword = async (values) => {
         if (values.newPassword !== values.confirmPassword)
             return message.error("❌ Mật khẩu xác nhận không khớp!");
@@ -59,7 +57,6 @@ export default function ForgotPasswordPage() {
         }
     };
 
-    // --- Nội dung các bước ---
     const steps = [
         {
             title: "Email",
@@ -166,7 +163,6 @@ export default function ForgotPasswordPage() {
         },
     ];
 
-    // --- Thanh hiển thị tiến trình (tailwind thuần) ---
     const renderStepsBar = () => {
         const titles = ["Email", "OTP & Mật khẩu", "Hoàn tất"];
         return (

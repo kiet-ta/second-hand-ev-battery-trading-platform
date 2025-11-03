@@ -20,6 +20,7 @@ import {
 
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
+import ChatWithSellerButton from "../Buttons/ChatWithSellerButton";
 
 // ✅ Badge xác minh
 const VerifiedCheck = ({ className = "" }) => (
@@ -51,6 +52,7 @@ function CardComponent({
     mileage = 0,
     isVerified = false,
     userFavorites = [],
+    updatedBy
 }) {
     const navigate = useNavigate();
     const [isFavorited, setIsFavorited] = useState(false);
@@ -67,7 +69,6 @@ function CardComponent({
         [itemImages]
     );
 
-    // ✅ Load trạng thái yêu thích & so sánh
     useEffect(() => {
         const fav = userFavorites.find((f) => f.itemId === id);
         setIsFavorited(!!fav);
@@ -87,7 +88,6 @@ function CardComponent({
         };
     }, [id]);
 
-    // ✅ Slider
     const carouselSettings = useMemo(
         () => ({
             dots: true,
@@ -101,7 +101,6 @@ function CardComponent({
         []
     );
 
-    // ✅ Thêm vào giỏ hàng
     const handleAddToCart = useCallback(
         async (e) => {
             e.preventDefault();
@@ -109,12 +108,14 @@ function CardComponent({
             if (isProcessing) return;
             setIsProcessing(true);
             try {
+                if (!userId) {
+                    navigate("/login");
+                    return;
+                }
                 const payload = { buyerId: userId, itemId: id, quantity: 1, price };
                 await orderItemApi.postOrderItem(payload);
-                message.success("Đã thêm sản phẩm vào giỏ hàng!");
             } catch (err) {
                 console.error("Error adding item:", err);
-                message.error("Không thể thêm vào giỏ hàng!");
             } finally {
                 setIsProcessing(false);
             }
@@ -122,21 +123,18 @@ function CardComponent({
         [id, price, userId, isProcessing]
     );
 
-    // ✅ MUA NGAY
     const handleBuyNow = async (e) => {
         e.preventDefault();
         e.stopPropagation();
 
         const userId = localStorage.getItem("userId");
         if (!userId) {
-            message.warning("Vui lòng đăng nhập trước khi mua hàng!");
             navigate("/login");
             return;
         }
 
         setIsProcessing(true);
         try {
-            // 1️⃣ Tạo OrderItem
             const orderItemPayload = {
                 buyerId: userId,
                 itemId: id,
@@ -146,8 +144,6 @@ function CardComponent({
             const createdOrderItem = await orderItemApi.postOrderItem(orderItemPayload);
             if (!createdOrderItem?.orderItemId)
                 throw new Error("Không thể tạo OrderItem.");
-
-            // 2️⃣ Lấy địa chỉ giao hàng
             const allAddresses = await addressLocalApi.getAddressByUserId(userId);
             const defaultAddress =
                 allAddresses.find((a) => a.isDefault) || allAddresses[0];
@@ -158,7 +154,6 @@ function CardComponent({
                 return;
             }
 
-            // 3️⃣ Chuẩn hoá dữ liệu checkout
             const checkoutData = {
                 source: "buyNow",
                 totalAmount: price,
@@ -177,10 +172,8 @@ function CardComponent({
                 selectedAddressId: defaultAddress.addressId,
             };
 
-            // 4️⃣ Lưu vào localStorage để reload vẫn giữ dữ liệu
             localStorage.setItem("checkoutData", JSON.stringify(checkoutData));
 
-            // 5️⃣ Điều hướng sang CheckoutPage
             navigate("/checkout/buy-now", { state: checkoutData });
         } catch (err) {
             console.error("❌ Lỗi mua ngay:", err);
@@ -190,7 +183,6 @@ function CardComponent({
         }
     };
 
-    // ❤️ Yêu thích
     const handleFavoriteClick = useCallback(
         async (e) => {
             e.preventDefault();
@@ -198,6 +190,11 @@ function CardComponent({
             if (isProcessing) return;
             setIsProcessing(true);
             try {
+                if (!userId) {
+                    navigate("/login");
+                    return;
+                }
+
                 if (isFavorited && favoriteId) {
                     await favouriteApi.deleteFavourite(favoriteId);
                     setIsFavorited(false);
@@ -282,9 +279,7 @@ function CardComponent({
                         ))}
                     </Slider>
 
-                    {/* Nút hành động */}
                     <div className="absolute top-3 right-3 z-10 flex flex-col items-end space-y-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                        {/* ❤️ Yêu thích */}
                         <button
                             onClick={handleFavoriteClick}
                             disabled={isProcessing}
@@ -294,7 +289,6 @@ function CardComponent({
                             <FiHeart className={`w-5 h-5 ${isFavorited ? "fill-white" : ""}`} />
                         </button>
 
-                        {/* 📊 So sánh */}
                         <button
                             onClick={handleCompareClick}
                             className={`flex items-center justify-center px-4 py-2 rounded-md font-semibold text-xs shadow-md transition-all duration-300 ${isCompared
@@ -306,31 +300,10 @@ function CardComponent({
                             {isCompared ? "Đã thêm" : "So sánh"}
                         </button>
 
-                        {/* ⚡ Mua ngay / 🛒 Giỏ hàng */}
-                        {type === "battery" && (
-                            <div className="flex flex-col space-y-2">
-                                <button
-                                    onClick={handleBuyNow}
-                                    disabled={isProcessing}
-                                    className={`flex items-center justify-center px-4 py-2 rounded-md font-semibold text-xs bg-yellow-300 text-[#2C2C2C] hover:bg-yellow-400 shadow-md ${isProcessing ? "opacity-50 cursor-not-allowed" : ""
-                                        }`}
-                                >
-                                    <FiZap className="mr-1.5" /> Mua ngay
-                                </button>
-                                <button
-                                    onClick={handleAddToCart}
-                                    disabled={isProcessing}
-                                    className={`flex items-center justify-center px-4 py-2 rounded-md font-semibold text-xs bg-white text-gray-900 hover:bg-gray-100 shadow-md ${isProcessing ? "opacity-50 cursor-not-allowed" : ""
-                                        }`}
-                                >
-                                    <FiShoppingCart className="mr-1.5" /> Thêm giỏ hàng
-                                </button>
-                            </div>
-                        )}
+
                     </div>
                 </div>
 
-                {/* Nội dung */}
                 <div className="p-5">
                     <div className="flex items-center">
                         <h3 className="text-xl font-bold text-gray-900 truncate" title={title}>
@@ -357,6 +330,37 @@ function CardComponent({
                             <span>Xem Chi Tiết</span>
                             <FiArrowRight className="ml-2 w-4 h-4" />
                         </div>
+                    </div>
+                    <div className="flex justify-between items-center pt-4 border-t border-gray-100">
+                        {type === "battery" ? (
+                            <div className="flex justify-around items-center w-full gap-4">
+                                <button
+                                    onClick={handleBuyNow}
+                                    disabled={isProcessing}
+                                    className={`flex items-center px-4 py-5 rounded-xl font-semibold  bg-yellow-500 text-white hover:bg-yellow-600  shadow-md ${isProcessing ? "opacity-50 cursor-not-allowed" : ""
+                                        }`}
+                                >
+                                    Mua ngay
+                                </button>
+                                <button
+                                    onClick={handleAddToCart}
+                                    disabled={isProcessing}
+                                    className={`flex items-center  px-4 py-5 rounded-xl font-semibold bg-green-500 text-white hover:bg-green-600 shadow-md ${isProcessing ? "opacity-50 cursor-not-allowed" : ""
+                                        }`}
+                                >
+                                    Thêm giỏ hàng
+                                </button>
+                            </div>
+                        ) : (
+                            <div className="flex justify-around items-center w-full gap-4">
+                                <ChatWithSellerButton
+                                    buyerId={userId}
+                                    sellerId={updatedBy}
+                                    product={{ title, price, imageUrl: displayImages[0]?.imageUrl || "https://placehold.co/100x100/e2e8f0/374151?text=?" }}
+                                    
+                                />
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>

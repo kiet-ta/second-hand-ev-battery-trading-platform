@@ -97,12 +97,10 @@ export const managerAPI = {
         return res.json();
     },
 
-    //set status người dùng
     updateUserStatus: async (userId, status) => {
         const token = localStorage.getItem("token");
         let url = "";
 
-        // ánh xạ trạng thái sang API backend thực tế
         if (status === "ban") {
             url = `${BASE}kyc-document/users/${userId}/ban`;
         } else if (status === "active") {

@@ -49,6 +49,7 @@ function CardCart({
         {/* Clickable area for navigating */}
         <Link
           to={detailPageUrl}
+          state={id}
           className="flex items-center w-full hover:opacity-90 transition"
         >
           <img

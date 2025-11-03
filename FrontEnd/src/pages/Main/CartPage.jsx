@@ -81,9 +81,7 @@ function CartPage() {
                             price: detail.price,
                             quantity: finalQuantity,
                             stock: detail.quantity,
-                            // Pass the full images array
                             images: detail.images || [],
-                            // Pass the itemType for linking
                             itemType: detail.itemType,
                             orderItemIdsToDelete: orderItem.orderItemIdsToDelete
                         };
@@ -231,13 +229,12 @@ function CartPage() {
 
     const checkoutData = useMemo(() => {
         const selectedAddress = addresses.find(addr => addr.addressId === selectedAddressId);
-        // Prepare items for checkout, ensuring image is a single URL
         const itemsToPurchase = cartItems
             .filter(item => selectedItemIds.includes(item.id))
             .map(item => ({
                 ...item,
                 image: item.images?.[0]?.imageUrl || "https://placehold.co/100x100/e2e8f0/374151?text=?", // Pass only first image URL
-                images: undefined // Remove images array if not needed in checkout
+                images: undefined 
             }));
 
         return {

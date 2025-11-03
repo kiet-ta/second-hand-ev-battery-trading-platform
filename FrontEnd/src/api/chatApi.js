@@ -14,11 +14,19 @@ const chatApi = {
         return response.data
     },
     getChatByID: async (chatId) => {
-        const response = await axios.get(`${baseURL}/rooms/${chatId}`)
+        const response = await axios.get(`${baseURL}/rooms/${chatId}`,
+            {
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                    'Content-Type': 'application/json'
+                }
+            }
+
+        )
         return response.data
     },
     getRoomByUserIDs: async (userId) => {
-        const response = await axios.get(`${baseURL}/users/${userId}/rooms`,
+        const response = await axios.get(`${baseURL}/rooms`,
             {
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('token')}`,
@@ -33,7 +41,6 @@ const chatApi = {
         const response = await axios.post(`${baseURL}/rooms/${payload.cid}/messages`, payload,
             {
                 headers: {
-                    // This line is essential for authorized endpoints
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
                 }

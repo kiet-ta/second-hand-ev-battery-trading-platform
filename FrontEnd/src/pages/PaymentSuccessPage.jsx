@@ -1,16 +1,32 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Result, Button } from "antd";
 import { CheckCircleFilled } from "@ant-design/icons";
 import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 
 function PaymentSuccessPage() {
+  const navigate = useNavigate();
+  const [countdown, setCountdown] = useState(3);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev === 1) {
+          clearInterval(timer);
+          navigate("/");
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [navigate]);
+
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-[#FAF8F3] p-6 relative overflow-hidden">
-      {/* Soft glowing background decoration */}
       <div className="absolute top-0 left-0 w-72 h-72 bg-[#D4AF37]/20 rounded-full blur-3xl"></div>
       <div className="absolute bottom-0 right-0 w-80 h-80 bg-[#B8860B]/10 rounded-full blur-3xl"></div>
 
-      {/* Animated success card */}
       <motion.div
         initial={{ opacity: 0, scale: 0.8, y: 40 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -22,13 +38,14 @@ function PaymentSuccessPage() {
           Thanh Toán Thành Công!
         </h1>
         <p className="text-gray-600 text-lg mb-8 max-w-md mx-auto">
-          Cảm ơn bạn đã tin tưởng và mua hàng tại <span className="text-[#B8860B] font-semibold">Cóc Mua Xe</span>.  
+          Cảm ơn bạn đã tin tưởng và mua hàng tại{" "}
+          <span className="text-[#B8860B] font-semibold">Cóc Mua Xe</span>.  
           Đơn hàng của bạn đang được xử lý.
         </p>
 
         <Result
           status="success"
-          title={<span className="text-[#2C2C2C] font-roboto text-xl">Đơn hàng đã được xác nhận</span>}
+          title={<span className="text-[#2C2C2C] text-xl">Đơn hàng đã được xác nhận</span>}
           subTitle={
             <span className="text-gray-600">
               Chúng tôi sẽ sớm gửi thông tin vận chuyển qua email và số điện thoại của bạn.
@@ -54,9 +71,12 @@ function PaymentSuccessPage() {
             Quay Về Trang Chủ
           </Button>
         </div>
+
+        <p className="text-sm text-gray-500 mt-6">
+          Tự động trở về trang chủ sau <span className="font-semibold">{countdown}</span>s...
+        </p>
       </motion.div>
 
-      {/* Floating confetti sparkles (pure CSS pseudo sparkle effect) */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         {[...Array(15)].map((_, i) => (
           <motion.div

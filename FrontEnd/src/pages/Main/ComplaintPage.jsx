@@ -16,7 +16,6 @@ export default function ComplaintPage() {
   const userId = localStorage.getItem("userId");
   const token = localStorage.getItem("token");
 
-  // Lấy danh sách complaint của user
   useEffect(() => {
     const fetchComplaints = async () => {
       try {
@@ -26,7 +25,6 @@ export default function ComplaintPage() {
         const data = await res.json();
         setComplaints(data);
       } catch {
-        message.error("Không thể tải danh sách khiếu nại của bạn.");
       } finally {
         setFetching(false);
       }
@@ -34,11 +32,9 @@ export default function ComplaintPage() {
     fetchComplaints();
   }, [userId, token]);
 
-  // Gửi complaint mới
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!form.reason || !form.description) {
-      message.warning("Vui lòng điền đầy đủ lý do và mô tả khiếu nại.");
       return;
     }
 
@@ -63,7 +59,6 @@ export default function ComplaintPage() {
       if (!res.ok) throw new Error("Không thể gửi khiếu nại.");
       message.success("Gửi khiếu nại thành công!");
       setForm({ reason: "", description: "", severityLevel: "low" });
-      // refresh list
       const updated = await fetch(`${baseURL}complaint/user/${userId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -75,7 +70,6 @@ export default function ComplaintPage() {
     }
   };
 
-  // Gán màu cho status
   const statusTag = (status) => {
     switch (status) {
       case "pending":

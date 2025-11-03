@@ -10,7 +10,6 @@ const orderApi = {
         const response = await axios.get(baseURL + '/' + id,
             {
                 headers: {
-                    // This line is essential for authorized endpoints
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
                 }
@@ -32,7 +31,6 @@ const orderApi = {
         const response = await axios.get(`${baseURL}/user/${buyerId}`,
             {
                 headers: {
-                    // This line is essential for authorized endpoints
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
                 }
@@ -45,7 +43,6 @@ const orderApi = {
         const response = await axios.put(baseURL + '/' + id, data,
             {
                 headers: {
-                    // This line is essential for authorized endpoints
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
                 }

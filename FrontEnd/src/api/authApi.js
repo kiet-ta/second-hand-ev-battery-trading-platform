@@ -19,7 +19,6 @@ class authApi {
                 throw new Error("Login failed");
             }
 
-            // ✅ parse JSON trả về có field "data"
             const json = JSON.parse(text);
             return json;
         } catch (error) {
@@ -29,7 +28,6 @@ class authApi {
     }
 
 
-    // 🧾 Đăng ký
     async register(userData) {
         try {
             const res = await fetch(`${this.apiUrl}/users`, {

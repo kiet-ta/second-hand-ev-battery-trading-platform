@@ -14,12 +14,10 @@ export default function AddCompareModal({ open, onClose, BASE }) {
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState("");
 
-    // --- Bộ lọc ---
     const [priceRange, setPriceRange] = useState([0, 2000000000]);
     const [yearRange, setYearRange] = useState([2015, 2025]);
     const [sortOption, setSortOption] = useState("default");
 
-    // --- Lấy dữ liệu EV & Pin ---
     useEffect(() => {
         if (!open) return;
         const fetchItems = async () => {
@@ -27,7 +25,6 @@ export default function AddCompareModal({ open, onClose, BASE }) {
                 const res = await fetch(`${BASE}item/detail/all`);
                 const data = await res.json();
 
-                // Lọc bỏ item đã có trong compare list
                 const existing = getCompareList();
                 const existingIds = existing.map((x) => x.itemId);
 
@@ -44,7 +41,6 @@ export default function AddCompareModal({ open, onClose, BASE }) {
         fetchItems();
     }, [open]);
 
-    // --- Lọc và sắp xếp ---
     const filteredItems = useMemo(() => {
         const keyword = search.toLowerCase().trim();
 
@@ -52,7 +48,7 @@ export default function AddCompareModal({ open, onClose, BASE }) {
             const price = it.price || 0;
             const year =
                 it.evDetail?.year ||
-                (it.batteryDetail ? 2020 : 0); // tạm giá trị trung bình cho pin
+                (it.batteryDetail ? 2020 : 0);
 
             const matchesKeyword =
                 !keyword ||
@@ -104,7 +100,6 @@ export default function AddCompareModal({ open, onClose, BASE }) {
         return result;
     }, [items, search, priceRange, yearRange, sortOption]);
 
-    // --- Reset toàn bộ ---
     const handleReset = () => {
         setSearch("");
         setPriceRange([0, 2000000000]);
@@ -112,7 +107,6 @@ export default function AddCompareModal({ open, onClose, BASE }) {
         setSortOption("default");
     };
 
-    // --- Các tag đang hoạt động ---
     const activeTags = useMemo(() => {
         const tags = [];
         if (search.trim() !== "") tags.push(`Từ khóa: "${search}"`);
