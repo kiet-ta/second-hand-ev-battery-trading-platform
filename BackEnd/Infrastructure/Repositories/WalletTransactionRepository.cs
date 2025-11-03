@@ -18,9 +18,36 @@ public class WalletTransactionRepository : IWalletTransactionRepository
         return e.TransactionId;
     }
 
+    public async Task AddAsync(WalletTransaction transaction)
+    {
+        // Đơn giản là gọi AddAsync của DbContext
+        await _context.WalletTransactions.AddAsync(transaction);
+    }
+
     public async Task<IEnumerable<WalletTransaction>> GetTransactionsByWalletIdAsync(int walletId) =>
         await _context.WalletTransactions
             .Where(t => t.WalletId == walletId)
             .OrderByDescending(t => t.CreatedAt)
             .ToListAsync();
+
+    public async Task<bool> HasTransactionOfTypeWithRefIdAsync(string transactionType, int? refId)
+    {
+        // Ensure refId has a value before querying, as linking transactions without a refId doesn't make sense in this context.
+        if (!refId.HasValue)
+        {
+            return false; // Or throw an ArgumentNullException if refId is mandatory for specific types
+        }
+
+        // Check if any transaction exists matching both the type and the RefId
+        return await _context.WalletTransactions
+            .AnyAsync(wt => wt.Type == transactionType && wt.RefId == refId.Value);
+    }
+    public async Task<WalletTransaction?> FindHoldTransactionByRefIdAsync(int bidId)
+    {
+        // Find the only 'hold' transaction associated with this BidId
+        return await _context.WalletTransactions
+            .Where(wt => wt.Type == "hold" && wt.RefId == bidId)
+            .OrderByDescending(wt => wt.CreatedAt) // ensure to get hold transaction
+            .FirstOrDefaultAsync();
+    }
 }

@@ -1,4 +1,6 @@
-﻿using Application.IRepositories;
+﻿using Application.DTOs;
+using Application.DTOs.ItemDtos;
+using Application.IRepositories;
 using Domain.Entities;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -21,30 +23,8 @@ namespace Infrastructure.Repositories
 
         public async Task<Order> GetByIdAsync(int id)
         {
-            //return await _context.Orders
-            //    .Include(o => o.OrderItems)
-            //    .FirstOrDefaultAsync(o => o.OrderId == id);
-
             var order = await _context.Orders
         .FirstOrDefaultAsync(o => o.OrderId == id);
-
-            if (order != null)
-            {
-                // Load thủ công OrderItems qua OrderId
-                var orderItems = await _context.OrderItems
-                    .Where(oi => oi.OrderId == id)
-                    .ToListAsync();
-
-                // Nếu muốn trả về dạng DTO
-                order = new Order
-                {
-                    OrderId = order.OrderId,
-                    CreatedAt = order.CreatedAt,
-                    // gán các field khác
-                };
-
-                // ánh xạ sang DTO chứa cả OrderItems nếu cần
-            }
 
             return order!;
         }
@@ -76,6 +56,110 @@ namespace Infrastructure.Repositories
                 _context.Orders.Remove(order);
                 await _context.SaveChangesAsync();
             }
+        }
+
+        //Feature: Seller Dashboard
+        public async Task<int> CountBySellerAsync(int sellerId)
+        {
+            return await _context.Orders
+                .CountAsync(o => _context.PaymentDetails
+                    .Any(p => p.OrderId == o.OrderId &&
+                              _context.Items.Any(i => i.ItemId == p.ItemId && i.UpdatedBy == sellerId)));
+        }
+
+        public async Task<int> CountByStatusAsync(int sellerId, string status)
+        {
+            return await _context.Orders
+                .CountAsync(o => o.Status == status &&
+                    _context.PaymentDetails
+                        .Any(p => p.OrderId == o.OrderId &&
+                            _context.Items.Any(i => i.ItemId == p.ItemId && i.UpdatedBy == sellerId)));
+        }
+
+        public async Task<List<OrdersByWeekDto>> GetOrdersByWeekAsync(int sellerId)
+        {
+            var orderIdsQuery = _context.PaymentDetails
+                .Where(pd => _context.Items.Any(i => i.ItemId == pd.ItemId && i.UpdatedBy == sellerId))
+                .Select(pd => pd.OrderId)
+                .Distinct();
+
+            var ordersQuery = _context.Orders
+                .Where(o => orderIdsQuery.Contains(o.OrderId) && o.CreatedAt != null)
+                .Select(o => new { o.OrderId, o.CreatedAt });
+
+            var orders = await ordersQuery.ToListAsync();
+
+            var result = orders
+                .GroupBy(o =>
+                {
+                    var cal = System.Globalization.DateTimeFormatInfo.CurrentInfo.Calendar;
+                    var week = cal.GetWeekOfYear(
+                        o.CreatedAt,
+                        System.Globalization.CalendarWeekRule.FirstFourDayWeek,
+                        DayOfWeek.Monday);
+                    return new { o.CreatedAt.Year, WeekNumber = week };
+                })
+                .Select(g => new OrdersByWeekDto
+                {
+                    Year = g.Key.Year,
+                    WeekNumber = g.Key.WeekNumber,
+                    Total = g.Count()
+                })
+                .OrderBy(x => x.Year)
+                .ThenBy(x => x.WeekNumber)
+                .ToList();
+
+            return result;
+        }
+
+        public async Task<List<OrderDto>> GetOrdersByUserIdAsync(int userId)
+        {
+            var orders = await _context.Orders
+                .Where(o => o.BuyerId == userId)
+                .Select(o => new OrderDto
+                {
+                    OrderId = o.OrderId,
+                    BuyerId = o.BuyerId,
+                    AddressId = o.AddressId,
+                    Status = o.Status,
+                    CreatedAt = o.CreatedAt,
+                    UpdatedAt = o.UpdatedAt,
+                    Items = _context.OrderItems
+                        .Where(oi => oi.OrderId == o.OrderId && !(oi.IsDeleted == true))
+                        .Select(oi => new OrderItemDto
+                        {
+                            OrderItemId = oi.OrderItemId,
+                            OrderId = oi.OrderId,
+                            ItemId = oi.ItemId,
+                            Quantity = oi.Quantity,
+                            Price = oi.Price
+                        })
+                        .ToList()
+                })
+                .ToListAsync();
+
+            return orders;
+        }
+        public async Task<Order> AddOrderAsync(Order order)
+        {
+            _context.Orders.Add(order);
+            await _context.SaveChangesAsync();
+            return order;
+        }
+
+        public async Task<decimal> GetRevenueThisMonthAsync(DateTime now)
+        {
+            return await _context.Payments
+                .Where(o => o.CreatedAt.Month == now.Month && o.CreatedAt.Year == now.Year && o.Status == "completed")
+                .SumAsync(o => (decimal?)o.TotalAmount) ?? 0;
+        }
+
+        public async Task<IEnumerable<Order>> GetOrdersWithinRangeAsync(DateTime startDate, DateTime endDate)
+        {
+            return await _context.Orders
+                .AsNoTracking()
+                .Where(o => o.Status == "completed" && o.CreatedAt >= startDate && o.CreatedAt <= endDate)
+                .ToListAsync();
         }
     }
 }

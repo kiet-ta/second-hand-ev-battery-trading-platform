@@ -1,27 +1,26 @@
 ﻿using Application.DTOs.ItemDtos;
 using Application.DTOs.ItemDtos.BatteryDto;
+using Application.IRepositories;
 using Application.IServices;
 using Application.Services;
+using Infrastructure.Helpers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace PresentationLayer.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/item")]
     [ApiController]
-    [Authorize]
     public class ItemController : ControllerBase
     {
         private readonly IItemService _service;
-        private readonly IEvDetailService _evService;
-        private readonly IBatteryDetailService _batteryService;
+        private readonly IItemImageService _itemImageService;
 
-        public ItemController(IItemService service, IEvDetailService evService, IBatteryDetailService batteryService)
+        public ItemController(IItemService service, IItemImageService itemImageService)
         {
             _service = service;
-            _evService = evService;
-            _batteryService = batteryService;
+            _itemImageService = itemImageService;
         }
 
         [HttpGet("{id}")]
@@ -41,6 +40,21 @@ namespace PresentationLayer.Controllers
             return CreatedAtAction(nameof(GetItem), new { id = created.ItemId }, created);
         }
 
+        [HttpGet("{itemId}/images")]
+        public async Task<IActionResult> GetItemImages([FromServices] IItemImageRepository repo, int itemId)
+        {
+            var images = await repo.GetByItemIdAsync(itemId);
+            return Ok(images);
+        }
+
+        [HttpPost("{itemId}/images")]
+        [Consumes("multipart/form-data")]
+        public async Task<IActionResult> Upload([FromForm] UploadItemImageRequest request)
+        {
+            var urls = await _itemImageService.UploadItemImagesAsync(request.ItemId, request.Files);
+            return Ok(new { Message = "Upload success", ImageUrls = urls });
+        }
+
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateItem(int id, [FromBody] ItemDto dto)
         {
@@ -55,37 +69,27 @@ namespace PresentationLayer.Controllers
             return deleted ? NoContent() : NotFound();
         }
 
-        [HttpGet("latest-evs")]
-        public async Task<IActionResult> GetLatestEVs([FromQuery] int count = 4)
-        {
-            var result = await _service.GetLatestEVsAsync(count);
-            return Ok(result);
-        }
-
-        [HttpGet("latest-batterys")]
-        public async Task<IActionResult> GetLatestBatteries([FromQuery] int count = 4)
-        {
-            var result = await _service.GetLatestBatteriesAsync(count);
-            return Ok(result);
-        }
-
         /// <summary>
         /// Search items for seller dashboard.
         /// Query params: itemType, sellerName, minPrice, maxPrice, page, pageSize, sortBy, sortDir
         /// </summary>
         [HttpGet("search")]
+        //[CacheResult(600)]
         public async Task<IActionResult> SearchItem(
-            [FromQuery] string itemType,
-            [FromQuery] string title,
-            [FromQuery] decimal? minPrice,
-            [FromQuery] decimal? maxPrice,
+            [FromQuery] string itemType = "all",
+            [FromQuery] string title = "",
+            [FromQuery] decimal? minPrice = null,
+            [FromQuery] decimal? maxPrice = null,
             [FromQuery] int page = 1,
             [FromQuery] int pageSize = 20,
             [FromQuery] string sortBy = "UpdatedAt",
             [FromQuery] string sortDir = "desc")
         {
             var result = await _service.SearchItemsAsync(
-                itemType, title, minPrice, maxPrice, page, pageSize, sortBy, sortDir);
+            itemType, title, minPrice, maxPrice, page, pageSize, sortBy, sortDir);
+
+            if (result.Items == null || !result.Items.Any())
+                return NotFound(new { message = "No items found." });
 
             return Ok(result);
         }
@@ -100,96 +104,49 @@ namespace PresentationLayer.Controllers
             return Ok(item);
         }
 
-        [HttpGet("detail")]
+        [HttpGet("detail/all")]
         public async Task<IActionResult> GetAllItemsWithDetails()
         {
             var items = await _service.GetAllItemsWithDetailsAsync();
             return Ok(items);
         }
+        
 
-        //[HttpGet("detail/ev")]
-        //public async Task<IActionResult> GetAll(CancellationToken ct)
-        //{
-        //    var list = await _evService.GetAllAsync(ct);
-        //    return Ok(list);
-        //}
+        
+        
 
-        //[HttpGet("detail/ev/{id:int}")]
-        //public async Task<IActionResult> Get(int id, CancellationToken ct)
-        //{
-        //    var e = await _evService.GetByIdAsync(id, ct);
-        //    if (e == null) return NotFound();
-        //    return Ok(e);
-        //}
-
-        [HttpPost("detail")]
-        public async Task<IActionResult> CreateEv([FromBody] CreateEvDetailDto dto, CancellationToken ct)
+        [HttpGet("{itemId:int}/Seller")]
+        public async Task<IActionResult> GetItemDetail(int itemId)
         {
-            try
-            {
-                var created = await _evService.CreateAsync(dto, ct);
-                return CreatedAtAction(nameof(GetItem), new { id = created.ItemId }, created);
-            }
-            catch (ArgumentException aex)
-            {
-                return BadRequest(aex.Message);
-            }
-            catch (InvalidOperationException dbEx)
-            {
-                return Conflict(dbEx.Message);
-            }
+            var item = await _service.GetItemDetailByIdAsync(itemId);
+
+            if (item == null)
+                return NotFound(new { message = "Item not found or has been deleted." });
+
+            return Ok(item);
+        }
+        [HttpPut("{itemId}/approve")]
+        public async Task<IActionResult> ApproveItem(int itemId)
+        {
+
+            var result = await _service.SetApprovedItemTagAsync(itemId);
+            if (!result)
+                return BadRequest("Item not found or not in 'pending' state.");
+
+            return Ok(new { message = "Item approved successfully." });
+
         }
 
-        [HttpPut("detail/{id:int}")]
-        public async Task<IActionResult> UpdateEv(int id, [FromBody] UpdateEvDetailDto dto, CancellationToken ct)
+        [HttpPut("{itemId}/reject")]
+        public async Task<IActionResult> RejectItem(int itemId)
         {
-            var ok = await _evService.UpdateAsync(id, dto, ct);
-            if (!ok) return NotFound();
-            return NoContent();
-        }
 
-        [HttpDelete("detail/{id:int}")]
-        public async Task<IActionResult> DeleteEv(int id, CancellationToken ct)
-        {
-            var ok = await _evService.DeleteAsync(id, ct);
-            if (!ok) return NotFound();
-            return NoContent();
-        }
+            var result = await _service.SetRejectedItemTagAsync(itemId);
+            if (!result)
+                return BadRequest("Item not found or not in 'pending' state.");
 
-        //[HttpGet("detail/battery")]
-        //public async Task<IActionResult> GetAll()
-        //{
-        //    var result = await _service.GetAllAsync();
-        //    return Ok(result);
-        //}
+            return Ok(new { message = "Item rejected successfully." });
 
-        //[HttpGet("detail/{itemId}")]
-        //public async Task<IActionResult> GetById(int itemId)
-        //{
-        //    var result = await _service.GetByIdAsync(itemId);
-        //    if (result == null) return NotFound();
-        //    return Ok(result);
-        //}
-
-        [HttpPost("detail/battery")]
-        public async Task<IActionResult> CreateBattery(CreateBatteryDetailDto dto)
-        {
-            await _batteryService.CreateAsync(dto);
-            return Ok();
-        }
-
-        [HttpPut("detail/battery/{itemId}")]
-        public async Task<IActionResult> UpdateBattery(int itemId, UpdateBatteryDetailDto dto)
-        {
-            await _batteryService.UpdateAsync(itemId, dto);
-            return Ok();
-        }
-
-        [HttpDelete("detail/battery/{itemId}")]
-        public async Task<IActionResult> DeleteBattery(int itemId)
-        {
-            await _batteryService.DeleteAsync(itemId);
-            return Ok();
         }
     }
 }

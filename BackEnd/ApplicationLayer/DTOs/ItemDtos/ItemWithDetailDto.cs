@@ -12,9 +12,19 @@ namespace Application.DTOs.ItemDtos
         public int ItemId { get; set; }
         public string? Title { get; set; }
         public string? ItemType { get; set; }
+        public int? CategoryId { get; set; }
+        public string? Description { get; set; }
+        public decimal? Price { get; set; }
+        public int? Quantity { get; set; }
+        public string? Moderation { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public DateTime UpdatedAt { get; set; }
+        public int? UpdatedBy { get; set; }
+        public string LicenseUrl { get; set; }
 
         // Quan hệ phụ
-        public EvDetail? EVDetail { get; set; }
+        public List<ItemImageDto> ItemImage { get; set; }
+        public EVDetail? EVDetail { get; set; }
         public BatteryDetail? BatteryDetail { get; set; }
     }
 }

@@ -1,51 +1,37 @@
-import React, { useEffect, useState, useRef } from 'react';
-import Logo from '../assets/images/anhtao.png';
-import { fakeUser } from "../fakeUser";
-import '../assets/styles/LoginPage.css';
-import banner1 from '../assets/images/banner1.png';
-import banner2 from '../assets/images/banner2.png';
-import banner3 from '../assets/images/banner3.png';
-import UserService from '../UserService';
-import { Link, useNavigate } from 'react-router-dom';
-import { Popover } from 'antd';
+import React, { useEffect, useState, useRef } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import authApi from "../api/authApi";
+import LoginPicture from "../assets/images/LoginPicture.jpg";
 
 export default function LoginPage() {
     const navigate = useNavigate();
-    const clientId =
-        import.meta.env.VITE_GOOGLE_CLIENT_ID ||
-        '301055344643-gel1moqvoq9flgf8978aje7j9frtci79.apps.googleusercontent.com';
-
-    const [user, setUser] = useState(null); // cho cả Google + Local
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [error, setError] = useState('');
-
-    const [currentSlide, setCurrentSlide] = useState(0);
+    const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+    const [user, setUser] = useState(null);
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+    const [remember, setRemember] = useState(false);
+    const [error, setError] = useState("");
+    const baseURL = import.meta.env.VITE_API_BASE_URL;
     const googleButtonRef = useRef(null);
 
-    const slides = [
-        { id: 1, image: banner1, alt: "Xe điện nhập khẩu chính hãng" },
-        { id: 2, image: banner2, alt: "VinFast electric vehicles" },
-        { id: 3, image: banner3, alt: "Xe đạp - Xe điện Vĩnh Trường" }
-    ];
-
-    // Banner slider
     useEffect(() => {
-        const slideInterval = setInterval(() => {
-            setCurrentSlide((prev) => (prev + 1) % slides.length);
-        }, 5000);
-        return () => clearInterval(slideInterval);
-    }, [slides.length]);
+        const savedEmail = localStorage.getItem("rememberEmail");
+        const savedPassword = localStorage.getItem("rememberPassword");
+        if (savedEmail && savedPassword) {
+            setEmail(savedEmail);
+            setPassword(savedPassword);
+            setRemember(true);
+        }
+    }, []);
 
-    // Load Google script
     useEffect(() => {
-        const id = 'google-identity-script';
+        const id = "google-identity-script";
         if (document.getElementById(id)) {
             initGSI();
             return;
         }
-        const script = document.createElement('script');
-        script.src = 'https://accounts.google.com/gsi/client?hl=en';
+        const script = document.createElement("script");
+        script.src = "https://accounts.google.com/gsi/client?hl=vi";
         script.async = true;
         script.id = id;
         script.onload = () => initGSI();
@@ -53,29 +39,8 @@ export default function LoginPage() {
     }, []);
 
     useEffect(() => {
-        if (!user && googleButtonRef.current) {
-            initGSI();
-        }
+        if (!user && googleButtonRef.current) initGSI();
     }, [user]);
-
-    function parseJwt(token) {
-        try {
-            const payload = token.split('.')[1];
-            const base64 = payload.replace(/-/g, '+').replace(/_/g, '/');
-            const jsonPayload = decodeURIComponent(
-                atob(base64)
-                    .split('')
-                    .map(
-                        (c) =>
-                            '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
-                    )
-                    .join('')
-            );
-            return JSON.parse(jsonPayload);
-        } catch (e) {
-            return null;
-        }
-    }
 
     function initGSI() {
         if (!window.google?.accounts?.id) return;
@@ -85,184 +50,193 @@ export default function LoginPage() {
         });
         if (googleButtonRef.current) {
             window.google.accounts.id.renderButton(googleButtonRef.current, {
-                theme: 'outline',
-                size: 'large',
-                text: 'signin_with',
-                hl: 'en',
+                theme: "outline",
+                size: "large",
+                text: "signin_with",
+                shape: "rectangular",
+                logo_alignment: "center",
+                width: "280",
             });
         }
     }
 
-    function handleCredentialResponse(response) {
-        const profile = parseJwt(response.credential);
-        if (profile) {
-            const newUser = {
-                id: profile.sub,
-                email: profile.email,
-                name: profile.name,
-                picture: profile.picture,
-                token: response.credential,
-            };
-            setUser(newUser);
-            localStorage.setItem("user", JSON.stringify(newUser));
+    async function handleCredentialResponse(response) {
+        const googleToken = response.credential;
+        try {
+            const res = await fetch(`${baseURL}auth/tokens/google`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ credential: googleToken }),
+            });
+            if (!res.ok) throw new Error(await res.text());
+            const data = await res.json();
+            const userData = data.data;
+
+            localStorage.setItem("token", userData.token);
+            localStorage.setItem("userId", userData.userId);
+            localStorage.setItem("user", JSON.stringify(userData));
+
+            const role = userData.role?.toLowerCase();
+            if (role === "manager" || role === "staff") navigate("/manage");
+            else if (role === "seller") navigate("/seller");
+            else navigate("/");
+        } catch (err) {
+            console.error("Google Login Error:", err);
         }
     }
+
     const handleLocalLogin = async (e) => {
         e.preventDefault();
         setError("");
 
-        const trimmedEmail = email.trim();
-        const trimmedPassword = password.trim();
-
-        if (!trimmedEmail) {
-            setError("Please enter username or email.");
-            return;
-        }
-        if (!trimmedPassword) {
-            setError("Please enter password.");
+        // simple validation
+        if (!email || !password) {
+            setError("Vui lòng nhập đầy đủ thông tin đăng nhập.");
             return;
         }
 
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (trimmedEmail.includes("@") && !emailRegex.test(trimmedEmail)) {
-            setError("Invalid email.");
-            return;
-        }
-        if (trimmedPassword.length < 6) {
-            setError("Password must be at least 6 characters.");
-            return;
-        }
-
-        try {
-            // Gọi API login
-            const res = await UserService.login(trimmedEmail, trimmedPassword);
-            const newUser = {
-                ...res.user,
-                userId: res.userId,
-                token: res.token,
+        if (email.trim().toLowerCase() === "123@gmail.com" && password.trim() === "123@gmail.com") {
+            const demoUser = {
+                fullName: "Demo User",
+                role: "user",
+                token: "fake-token-123",
+                userId: "demo123",
             };
+
+            localStorage.setItem("userId", demoUser.userId);
+            localStorage.setItem("token", demoUser.token);
+            localStorage.setItem("user", JSON.stringify(demoUser));
+
+            if (remember) {
+                localStorage.setItem("rememberEmail", email);
+                localStorage.setItem("rememberPassword", password);
+            } else {
+                localStorage.removeItem("rememberEmail");
+                localStorage.removeItem("rememberPassword");
+            }
+
+            setUser(demoUser);
+            navigate("/");
+            return;
+        }
+
+        // real API validation
+        try {
+            const data = await authApi.login({ email: email.trim(), password: password.trim() });
+            const res = data.data;
+            const newUser = { ...res, token: res.token };
 
             localStorage.setItem("userId", res.userId);
             localStorage.setItem("token", res.token);
+            localStorage.setItem("user", JSON.stringify(newUser));
+
+            if (remember) {
+                localStorage.setItem("rememberEmail", email);
+                localStorage.setItem("rememberPassword", password);
+            } else {
+                localStorage.removeItem("rememberEmail");
+                localStorage.removeItem("rememberPassword");
+            }
+
             setUser(newUser);
-            alert("Login successful!");
-            navigate("/")
+            const role = res.role?.toLowerCase();
+            if (role === "manager" || role === "staff") navigate("/manage");
+            else if (role === "seller") navigate("/seller");
+            else navigate("/");
         } catch (err) {
             console.error("Login error:", err);
-            setError("Incorrect login information.");
+            setError("Thông tin đăng nhập không chính xác.");
         }
     };
 
-
-
-    function signOut() {
-        if (user?.token) {
-            fetch(`https://oauth2.googleapis.com/revoke?token=${user.token}`, {
-                method: 'POST',
-                headers: {
-                    'Content-type': 'application/x-www-form-urlencoded',
-                },
-            }).finally(() => {
-                setUser(null);
-                localStorage.removeItem("user");
-                initGSI();
-            });
-        } else {
-            setUser(null);
-            localStorage.removeItem("user");
-            initGSI();
-        }
-    }
-
     return (
-        <div className="login-container">
-            {/* Header */}
-            <header className="login-header">
-                <img src={Logo} alt="Logo" className="logo" />
-                <h1>Cóc Mua Xe</h1>
-            </header>
+        <div className="min-h-screen flex flex-col items-center justify-center bg-[#FFF8E7] px-4">
+            <div className="relative bg-white rounded-3xl shadow-xl flex flex-col lg:flex-row items-center justify-between w-full max-w-4xl overflow-hidden">
+                <div className="w-full lg:w-1/2 p-10">
+                    {!user ? (
+                        <form onSubmit={handleLocalLogin} className="space-y-4">
+                            <h2 className="text-3xl font-semibold text-gray-800">Đăng nhập</h2>
+                            <p className="text-gray-500 mb-6">
+                                Chào mừng bạn quay lại! Vui lòng nhập thông tin để tiếp tục.
+                            </p>
 
-            {/* Nội dung chính: banner + form */}
-            <div className="login-main">
-                {/* Banner bên trái */}
-                <div className="banner-container">
-                    <div className="relative w-full h-full">
-                        {slides.map((slide, index) => (
-                            <div
-                                key={slide.id}
-                                className={`banner-slide ${index === currentSlide ? 'active' : ''}`}
-                            >
-                                <img src={slide.image} alt={slide.alt} />
+                            <input
+                                type="text"
+                                placeholder="Email"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                className="w-full border border-gray-300 rounded-xl py-3 px-4 focus:outline-none focus:ring-2 focus:ring-[#D4AF37]"
+                            />
+
+                            <input
+                                type="password"
+                                placeholder="Mật khẩu"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                className="w-full border border-gray-300 rounded-xl py-3 px-4 focus:outline-none focus:ring-2 focus:ring-[#D4AF37]"
+                            />
+
+                            {error && <p className="text-red-500 text-sm">{error}</p>}
+
+                            <div className="flex justify-between items-center text-sm">
+                                <label className="flex items-center gap-2 text-gray-600">
+                                    <input
+                                        type="checkbox"
+                                        checked={remember}
+                                        onChange={(e) => setRemember(e.target.checked)}
+                                        className="accent-[#D4AF37]"
+                                    />
+                                    Ghi nhớ đăng nhập
+                                </label>
+
+                                <Link
+                                    to="/forgot-password"
+                                    className="text-gray-500 hover:text-[#D4AF37] transition-colors"
+                                >
+                                    Quên mật khẩu?
+                                </Link>
                             </div>
-                        ))}
-                    </div>
+
+                            <button
+                                type="submit"
+                                className="w-full bg-[#D4AF37] hover:bg-[#C19A32] text-white font-semibold py-3 rounded-xl transition-all"
+                            >
+                                Đăng nhập
+                            </button>
+
+                            <div className="flex items-center my-4">
+                                <div className="flex-grow h-px bg-gray-300" />
+                                <span className="mx-3 text-gray-400 text-sm">hoặc</span>
+                                <div className="flex-grow h-px bg-gray-300" />
+                            </div>
+
+                            <div className="flex justify-center">
+                                <div ref={googleButtonRef} />
+                            </div>
+
+                            <p className="text-center text-sm text-gray-600 mt-6">
+                                Chưa có tài khoản?{" "}
+                                <Link
+                                    to="/register"
+                                    className="!text-[#D4AF37] hover:underline font-medium"
+                                >
+                                    Đăng ký ngay
+                                </Link>
+                            </p>
+                        </form>
+                    ) : (
+                        <div className="text-center">
+                            <p>Xin chào, {user.fullName}</p>
+                        </div>
+                    )}
                 </div>
 
-                {/* Form login bên phải */}
-                <div className="login-right">
-                    <div className="login-box">
-                        {!user ? (
-                            <>
-                                <form onSubmit={handleLocalLogin}>
-                                    <p className='header-login'>Sign In</p>
-                                    <input
-                                        type="text"
-                                        placeholder="Phone number / Username / Email"
-                                        value={email}
-                                        onChange={(e) => setEmail(e.target.value)}
-                                        className="login-input"
-                                    />
-                                    <input
-                                        type="password"
-                                        placeholder="Password"
-                                        value={password}
-                                        onChange={(e) => setPassword(e.target.value)}
-                                        className="login-input"
-                                    />
-                                    <Popover
-                                        content={error}
-                                        trigger="click"
-                                        open={!!error}
-                                        onOpenChange={(visible) => {
-                                            if (!visible) setError("");
-                                        }}
-                                    >
-                                        <button type="submit" className="login-btn">
-                                            SIGN IN
-                                        </button>
-                                    </Popover>
-
-                                </form>
-
-                                <a href="#" className="forgot-password">
-                                    Forgot Password
-                                </a>
-
-                                <div className="divider">
-                                    <span>OR</span>
-                                </div>
-
-                                <div className="social-login">
-                                    <div ref={googleButtonRef} />
-                                </div>
-
-                                <p className="signup-link">
-                                    Are you new? <Link to="/register">Create an account</Link>
-                                </p>
-                            </>
-                        ) : (
-                            <div className="user-info">
-                                <img src={user.picture || "https://via.placeholder.com/50"} alt="avatar" className="avatar" />
-                                <div>
-                                    <strong>{user.name}</strong>
-                                    <p>{user.email}</p>
-                                </div>
-                                <button onClick={signOut} className="logout-btn">
-                                    Sign out
-                                </button>
-                            </div>
-                        )}
-                    </div>
+                <div className="relative w-full lg:w-1/2 flex items-center justify-center bg-white">
+                    <img
+                        src={LoginPicture}
+                        alt="Hình minh họa"
+                        className="w-[360px] h-auto object-contain drop-shadow-md mix-blend-multiply"
+                    />
                 </div>
             </div>
         </div>

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Application.DTOs.ItemDtos.BatteryDto;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -22,13 +23,17 @@ namespace Application.DTOs.ItemDtos
 
         public int Quantity { get; set; }
 
-        public DateOnly? CreatedAt { get; set; }
+        public DateTime CreatedAt { get; set; }
 
-        public DateOnly? UpdatedAt { get; set; }
+        public DateTime UpdatedAt { get; set; }
 
-        //public int? UpdatedBy { get; set; }
-        //public string? SellerName { get; set; }
-        //public string Status { get; set; } = "active";
+        public int? UpdatedBy { get; set; }
+
+        public string? Moderation { get; set; }
+
+        public List<ItemImageDto>? Images { get; set; } = new();
+        public string? SellerName { get; set; }
+        public string Status { get; set; } = "active";
         //public bool? IsDeleted { get; set; }
     }
 }

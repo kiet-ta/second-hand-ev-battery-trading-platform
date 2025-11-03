@@ -6,7 +6,7 @@ using System.Net.Mail;
 using System.Security.Cryptography;
 using System.Text.RegularExpressions;
 
-namespace Helper
+namespace Infrastructure.Helpers
 {
     public class UserValidation : IUserValidation
     {

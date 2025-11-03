@@ -1,289 +1,281 @@
-import React, { useEffect, useState, useRef } from 'react';
-import Logo from '../assets/images/anhtao.png';
-import '../assets/styles/LoginPage.css'; // Create a CSS file for styling
-import banner1 from '../assets/images/banner1.png';
-import banner2 from '../assets/images/banner2.png';
-import banner3 from '../assets/images/banner3.png';
-import { Link } from 'react-router-dom';
-import { Popover } from 'antd';
-import UserService from '../UserService';
-import { FaRegEyeSlash, FaRegEye } from "react-icons/fa";
+import React, { useEffect, useState, useRef } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { Popover, Spin } from "antd";
+import authApi from "../api/authApi";
+import RegisterPicture from "../assets/images/LoginPicture.jpg";
 
 export default function RegisterPage() {
-    const clientId =
-        import.meta.env.VITE_GOOGLE_CLIENT_ID ||
-        '301055344643-gel1moqvoq9flgf8978aje7j9frtci79.apps.googleusercontent.com';
+  const baseURL = import.meta.env.VITE_API_BASE_URL;
+  const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+  const navigate = useNavigate();
 
-    const [user, setUser] = useState(null);
-    const [username, setUsername] = useState('');
-    const [password, setPassword] = useState('');
-    const [email, setEmail] = useState('');
-    const [fullname, setFullname] = useState('');
-    const [currentSlide, setCurrentSlide] = useState(0);
-    const [confirmPassword, setConfirmPassword] = useState("");
-    const [error, setError] = useState("");
-    const [loading, setLoading] = useState(false);
-    const googleButtonRef = useRef(null);
+  const [user, setUser] = useState(null);
+  const [fullname, setFullname] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
+  const googleButtonRef = useRef(null);
 
-    const slides = [
-        {
-            id: 1,
-            image: banner1,
-        },
-        {
-            id: 2,
-            image: banner2,
-            alt: "VinFast electric vehicles"
-        },
-        {
-            id: 3,
-            image: banner3,
-            alt: "Xe đạp - Xe điện Vĩnh Trường"
-        }
-    ];
-
-    useEffect(() => {
-        const slideInterval = setInterval(() => {
-            setCurrentSlide((prev) => (prev + 1) % slides.length);
-        }, 5000); // 5 giây
-
-        return () => clearInterval(slideInterval);
-    }, [slides.length]);
-
-    useEffect(() => {
-        const id = 'google-identity-script';
-        if (document.getElementById(id)) {
-            initGSI();
-            return;
-        }
-        const script = document.createElement('script');
-        script.src = 'https://accounts.google.com/gsi/client?hl=en';
-        script.async = true;
-        script.id = id;
-        script.onload = () => initGSI();
-        document.body.appendChild(script);
-    }, []);
-    useEffect(() => {
-        if (!user && googleButtonRef.current) {
-            initGSI();
-        }
-    }, [user]);
-
-    function parseJwt(token) {
-        try {
-            const payload = token.split('.')[1];
-            const base64 = payload.replace(/-/g, '+').replace(/_/g, '/');
-            const jsonPayload = decodeURIComponent(
-                atob(base64)
-                    .split('')
-                    .map(
-                        (c) =>
-                            '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
-                    )
-                    .join('')
-            );
-            return JSON.parse(jsonPayload);
-        } catch (e) {
-            return null;
-        }
+  // --- Google init ---
+  useEffect(() => {
+    const id = "google-identity-script";
+    if (document.getElementById(id)) {
+      initGSI();
+      return;
     }
+    const script = document.createElement("script");
+    script.src = "https://accounts.google.com/gsi/client?hl=vi";
+    script.async = true;
+    script.id = id;
+    script.onload = () => initGSI();
+    document.body.appendChild(script);
+  }, []);
 
-    function initGSI() {
-        if (!window.google?.accounts?.id) return;
-        window.google.accounts.id.initialize({
-            client_id: clientId,
-            callback: handleCredentialResponse,
-        });
-        if (googleButtonRef.current) {
-            window.google.accounts.id.renderButton(googleButtonRef.current, {
-                theme: 'outline',
-                size: 'large',
-                text: 'signin_with',
-                hl: 'en',
-            });
-        }
+  useEffect(() => {
+    if (!user && googleButtonRef.current) initGSI();
+  }, [user]);
+
+  function initGSI() {
+    if (!window.google?.accounts?.id) return;
+    window.google.accounts.id.initialize({
+      client_id: clientId,
+      callback: handleCredentialResponse,
+    });
+    if (googleButtonRef.current) {
+      window.google.accounts.id.renderButton(googleButtonRef.current, {
+        theme: "outline",
+        size: "large",
+        text: "signup_with",
+        shape: "rectangular",
+        logo_alignment: "center",
+        width: "280",
+      });
     }
+  }
 
-    function handleCredentialResponse(response) {
-        const profile = parseJwt(response.credential);
-        if (profile) {
-            setUser({
-                id: profile.sub,
-                email: profile.email,
-                name: profile.name,
-                picture: profile.picture,
-                token: response.credential,
-            });
-        }
+  async function handleCredentialResponse(response) {
+    const googleToken = response.credential;
+    try {
+      const res = await fetch(`${baseURL}auth/tokens/google`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ credential: googleToken }),
+      });
+      if (!res.ok) throw new Error(await res.text());
+      const data = await res.json();
+      const userData = data.data;
+      localStorage.setItem("token", userData.token);
+      localStorage.setItem("userId", userData.userId);
+      localStorage.setItem("user", JSON.stringify(userData));
+      navigate("/");
+    } catch (err) {
+      console.error("Google Register Error:", err);
     }
+  }
 
-    function signOut() {
-        if (user?.token) {
-            fetch(`https://oauth2.googleapis.com/revoke?token=${user.token}`, {
-                method: 'POST',
-                headers: {
-                    'Content-type': 'application/x-www-form-urlencoded',
-                },
-            }).finally(() => {
-                setUser(null);
-                initGSI();
-            });
-        } else {
-            setUser(null);
-            initGSI();
-        }
+const validateFields = () => {
+  const newErrors = {};
+
+  if (!fullname.trim()) newErrors.fullname = "Họ và tên là bắt buộc.";
+
+  if (!email.trim()) newErrors.email = "Email là bắt buộc.";
+  else if (!/^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/.test(email))
+    newErrors.email = "Email không hợp lệ.";
+
+  // ✅ Password validation like '123@Gmail'
+  const passwordRegex =
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!#%*?&])[A-Za-z\d@$!#%*?&]{8,}$/;
+  if (!password) newErrors.password = "Mật khẩu là bắt buộc.";
+  else if (!passwordRegex.test(password))
+    newErrors.password =
+      "Mật khẩu phải có ít nhất 8 ký tự, gồm chữ hoa, chữ thường, số và ký tự đặc biệt.";
+
+  if (!confirmPassword) newErrors.confirmPassword = "Vui lòng nhập lại mật khẩu.";
+  else if (confirmPassword !== password)
+    newErrors.confirmPassword = "Mật khẩu nhập lại không khớp.";
+
+  setErrors(newErrors);
+  return Object.keys(newErrors).length === 0;
+};
+  const sendWelcomeMail = async (email) => {
+    try {
+      await fetch(`${baseURL}mail/welcome`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          to: email,
+          actionUrl: "https://cocmuaxe.vn/login",
+        }),
+      });
+    } catch (err) {
+      console.error("Mail error:", err);
     }
+  };
 
-    async function handleSubmit(e) {
-        e.preventDefault();
+  const handleRegister = async (e) => {
+    e.preventDefault();
+    if (!validateFields()) return;
 
-        if (!email || !password || !confirmPassword || !fullname) {
-            setError("Please enter complete information!");
-            return;
-        }
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(email)) {
-            setError("Email is not valid!");
-            return;
-        }
-        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$/;
-        if (!passwordRegex.test(password)) {
-            setError("Password must be ≥8 characters, contain uppercase, lowercase, numbers and special characters!");
-            return;
-        }
-        if (password !== confirmPassword) {
-            setError("Re-entered password does not match!");
-            return;
-        }
+    setLoading(true);
+    try {
+      const res = await authApi.register({
+        userId: 0,
+        fullName: fullname,
+        email,
+        password,
+        confirmPassword,
+      });
+      const userData = res.data;
 
-        setError("");
-        setLoading(true);
+      await sendWelcomeMail(email);
 
-        try {
-            const newUser = {
-                username,
-                email,
-                password,
-                fullname
-            };
+      localStorage.setItem("token", userData.token);
+      localStorage.setItem("userId", userData.userId);
+      localStorage.setItem("user", JSON.stringify(userData));
 
-            const res = await UserService.register(newUser);
-            console.log("Register success:", res);
-            alert("Đăng ký thành công ✅");
-        } catch (err) {
-            console.error("Register error:", err);
-            setError("Register failed, please try again!");
-        } finally {
-            setLoading(false);
-        }
+      navigate("/");
+    } catch (err) {
+      console.error("Register error:", err);
+      setErrors({ general: "Đăng ký thất bại. Vui lòng thử lại." });
+    } finally {
+      setLoading(false);
     }
+  };
 
-    return (
-        <div className="login-container">
-            {/* Header */}
-            <header className="login-header">
-                <img src={Logo} alt="Logo" className="logo" />
-                <h1>Cóc Mua Xe</h1>
-            </header>
+  return (
+    <div className="min-h-screen flex flex-col items-center justify-center bg-[#FFF8E7] px-4">
+      <div className="relative bg-white rounded-3xl shadow-xl flex flex-col lg:flex-row items-center justify-between w-full max-w-4xl overflow-hidden">
+        {/* Form */}
+        <div className="w-full lg:w-1/2 p-10">
+          {!user ? (
+            <form onSubmit={handleRegister} className="space-y-4">
+              <h2 className="text-3xl font-semibold text-gray-800">Đăng ký</h2>
+              <p className="text-gray-500 mb-6">
+                Tạo tài khoản để bắt đầu cùng Cóc Mua Xe.
+              </p>
 
-            {/* Nội dung chính: banner + form */}
-            <div className="login-main">
-                {/* Banner bên trái */}
-                <div className="banner-container">
-                    <div className="relative w-full h-full">
-                        {slides.map((slide, index) => (
-                            <div
-                                key={slide.id}
-                                className={`banner-slide ${index === currentSlide ? 'active' : ''}`}
-                            >
-                                <img src={slide.image} alt={slide.alt} />
+              {/* Fullname */}
+              <div>
+                <input
+                  type="text"
+                  placeholder="Họ và tên"
+                  value={fullname}
+                  onChange={(e) => setFullname(e.target.value)}
+                  className={`w-full border ${
+                    errors.fullname ? "border-red-400" : "border-gray-300"
+                  } rounded-xl py-3 px-4 focus:outline-none focus:ring-2 focus:ring-[#D4AF37]`}
+                />
+                {errors.fullname && (
+                  <p className="text-red-500 text-sm mt-1">{errors.fullname}</p>
+                )}
+              </div>
 
-                            </div>
-                        ))}
-                    </div>
-                </div>
+              {/* Email */}
+              <div>
+                <input
+                  type="text"
+                  placeholder="Email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className={`w-full border ${
+                    errors.email ? "border-red-400" : "border-gray-300"
+                  } rounded-xl py-3 px-4 focus:outline-none focus:ring-2 focus:ring-[#D4AF37]`}
+                />
+                {errors.email && (
+                  <p className="text-red-500 text-sm mt-1">{errors.email}</p>
+                )}
+              </div>
 
+              {/* Password */}
+              <div>
+                <input
+                  type="password"
+                  placeholder="Mật khẩu"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className={`w-full border ${
+                    errors.password ? "border-red-400" : "border-gray-300"
+                  } rounded-xl py-3 px-4 focus:outline-none focus:ring-2 focus:ring-[#D4AF37]`}
+                />
+                {errors.password && (
+                  <p className="text-red-500 text-sm mt-1">{errors.password}</p>
+                )}
+              </div>
 
-                {/* Form login bên phải */}
-                <div className="login-right">
-                    <div className="login-box">
-                        {!user ? (
-                            <>
+              {/* Confirm Password */}
+              <div>
+                <input
+                  type="password"
+                  placeholder="Nhập lại mật khẩu"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className={`w-full border ${
+                    errors.confirmPassword ? "border-red-400" : "border-gray-300"
+                  } rounded-xl py-3 px-4 focus:outline-none focus:ring-2 focus:ring-[#D4AF37]`}
+                />
+                {errors.confirmPassword && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {errors.confirmPassword}
+                  </p>
+                )}
+              </div>
 
-                                <p className="signup-link">
-                                    Already have an account?  <Link to="/login">Sign In</Link>
-                                </p>
-                                <form onSubmit={handleSubmit}>
-                                    <p className='header-login'>Sign Up</p>
-                                    <input
-                                        type="text"
-                                        placeholder="Full Name"
-                                        value={fullname}
-                                        onChange={(e) => setFullname(e.target.value)}
-                                        className="login-input"
-                                    />
-                                    <input
-                                        type="text"
-                                        placeholder="Email"
-                                        value={email}
-                                        onChange={(e) => setEmail(e.target.value)}
-                                        className="login-input"
-                                    />
-                                    <input
-                                        type="password"
-                                        placeholder="Password"
-                                        value={password}
-                                        onChange={(e) => setPassword(e.target.value)}
-                                        className="login-input"
-                                    />
+              {/* Submit */}
+              <Popover
+                content={errors.general}
+                trigger="click"
+                open={!!errors.general}
+                onOpenChange={(visible) => !visible && setErrors({ ...errors, general: "" })}
+              >
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full bg-[#D4AF37] hover:bg-[#C19A32] text-white font-semibold py-3 rounded-xl transition-all disabled:opacity-70"
+                >
+                  {loading ? <Spin size="small" /> : "Đăng ký"}
+                </button>
+              </Popover>
 
-                                    <input
-                                        type="password"
-                                        placeholder="Re-enter password"
-                                        value={confirmPassword}
-                                        onChange={(e) => setConfirmPassword(e.target.value)}
-                                        className="login-input"
-                                    />
+              {/* Divider */}
+              <div className="flex items-center my-4">
+                <div className="flex-grow h-px bg-gray-300" />
+                <span className="mx-3 text-gray-400 text-sm">hoặc</span>
+                <div className="flex-grow h-px bg-gray-300" />
+              </div>
 
-                                    <Popover
-                                        content={error}
-                                        trigger="click"
-                                        open={!!error}
-                                        onOpenChange={(visible) => {
-                                            if (!visible) setError("");
-                                        }}
-                                    >
-                                        <button type="submit" className="login-btn">
-                                            SIGN UP
-                                        </button>
-                                    </Popover>
-                                </form>
+              {/* Google Button */}
+              <div className="flex justify-center">
+                <div ref={googleButtonRef} />
+              </div>
 
-                                <div className="divider">
-                                    <span>OR</span>
-                                </div>
-
-                                <div className="social-login">
-                                    <div ref={googleButtonRef} />
-                                </div>
-
-
-                            </>
-                        ) : (
-                            <div className="user-info">
-                                <img src={user.picture} alt="avatar" className="avatar" />
-                                <div>
-                                    <strong>{user.name}</strong>
-                                    <p>{user.email}</p>
-                                </div>
-                                <button onClick={signOut} className="logout-btn">
-                                    Sign out
-                                </button>
-                            </div>
-                        )}
-                    </div>
-                </div>
+              <p className="text-center text-sm text-gray-600 mt-6">
+                Đã có tài khoản?{" "}
+                <Link
+                  to="/login"
+                  className="!text-[#D4AF37] hover:underline font-medium"
+                >
+                  Đăng nhập
+                </Link>
+              </p>
+            </form>
+          ) : (
+            <div className="text-center">
+              <p>Xin chào, {user.name}</p>
             </div>
+          )}
         </div>
-    );
+
+        {/* Image */}
+        <div className="relative w-full lg:w-1/2 flex items-center justify-center bg-white">
+          <img
+            src={RegisterPicture}
+            alt="Hình minh họa Cóc Mua Xe"
+            className="w-[360px] h-auto object-contain drop-shadow-md mix-blend-multiply"
+          />
+        </div>
+      </div>
+    </div>
+  );
 }

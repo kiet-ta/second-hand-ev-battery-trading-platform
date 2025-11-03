@@ -1,6 +1,7 @@
 using Application.DTOs.AuthenticationDtos;
 using Application.DTOs.UserDtos;
 using Domain.Entities;
+using Microsoft.AspNetCore.Http;
 
 
 namespace Application.IServices
@@ -22,5 +23,12 @@ namespace Application.IServices
         Task UpdateUserAsync(User user);
 
         Task DeleteUserAsync(int id);
+
+        Task<string?> GetAvatarAsync(int userId);
+
+        Task<bool> ChangePasswordAsync(int userId, ChangePasswordRequestDto request);
+
+        Task<PagedResultUser<UserListResponseDto>> GetAllUsersAsync(int page, int pageSize);
+
     }
 }

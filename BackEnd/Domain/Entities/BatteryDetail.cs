@@ -15,7 +15,6 @@ public class BatteryDetail
 
     public int? ChargeCycles { get; set; }
 
-    public DateOnly? UpdatedAt { get; set; }
+    public DateTime? UpdatedAt { get; set; }
 
-    //public virtual Item Item { get; set; } = null!;
 }

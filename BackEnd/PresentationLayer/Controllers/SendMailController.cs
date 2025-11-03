@@ -1,0 +1,102 @@
+﻿using Application.DTOs;
+using Application.IServices;
+using Infrastructure.Ulties;
+using Microsoft.AspNetCore.Mvc;
+using System;
+using System.Security.Claims;
+using System.Threading.Tasks;
+
+namespace PresentationLayer.Controllers
+{
+    [ApiController]
+    [Route("api/mail")]
+    public class MailController : ControllerBase
+    {
+        private readonly IMailService _mailService;
+
+        public MailController(IMailService mailService)
+        {
+            _mailService = mailService;
+        }
+
+        [HttpPost("welcome")]
+        public async Task<IActionResult> SendWelcome([FromBody] WelcomeDto request)
+        {
+            if (string.IsNullOrWhiteSpace(request.To))
+                return BadRequest(new { status = "error", message = "Missing required field: To." });
+
+                await _mailService.SendWelcomeMailAsync(request, request.ActionUrl);
+                return Ok(new { status = "success", message = "Welcome email sent successfully." });
+            
+            
+        }
+
+        [HttpPost("ban")]
+        public async Task<IActionResult> SendBan([FromBody] BanDto request)
+        {
+            if (string.IsNullOrWhiteSpace(request.To) || string.IsNullOrWhiteSpace(request.Reason))
+                return BadRequest(new { status = "error", message = "Missing required fields: To, Reason." });
+
+            
+                await _mailService.SendBanMailAsync(request, request.Reason, request.ActionUrl);
+                return Ok(new { status = "success", message = "Ban email sent successfully." });
+           
+        }
+
+        [HttpPost("purchase-success")]
+        public async Task<IActionResult> SendPurchaseSuccess([FromBody] PurchaseSuccessDto request)
+        {
+            if (string.IsNullOrWhiteSpace(request.To) || string.IsNullOrWhiteSpace(request.OrderId))
+                return BadRequest(new { status = "error", message = "Missing required fields: To, OrderId." });
+
+           
+                await _mailService.SendPurchaseSuccessMailAsync(request, request.OrderId, request.ActionUrl);
+                return Ok(new { status = "success", message = "Purchase success email sent successfully." });
+            
+        }
+
+        [HttpPost("purchase-fail")]
+        public async Task<IActionResult> SendPurchaseFail([FromBody] PurchaseFailedDto request)
+        {
+            if (string.IsNullOrWhiteSpace(request.To) || string.IsNullOrWhiteSpace(request.OrderId) || string.IsNullOrWhiteSpace(request.Reason))
+                return BadRequest(new { status = "error", message = "Missing required fields: To, OrderId, Reason." });
+
+                await _mailService.SendPurchaseFailedMailAsync(request, request.OrderId, request.Reason, request.ActionUrl);
+                return Ok(new { status = "success", message = "Purchase failed email sent successfully." });         
+        }
+        [HttpPost("new-staff")]
+        public async Task<IActionResult> SendNewStaff([FromBody] NewStaffTemplateDto request)
+        {
+            if (string.IsNullOrWhiteSpace(request.To) || string.IsNullOrWhiteSpace(request.Password))
+                return BadRequest(new { status = "error", message = "Missing required fields: To, Password." });
+
+                string logoUrl = request.LogoUrl ?? "https://cocmuaxe.com/logo.png";
+
+                await _mailService.SendNewStaffMailAsync(request, logoUrl);
+                return Ok(new { status = "success", message = "New staff onboarding email sent successfully." });
+           
+        }
+        [HttpPost]
+        public async Task<IActionResult> ResponseComplaintEmail([FromBody] CreateResponseMailDto dto)
+        {
+            var staffName = User.FindFirst(ClaimTypes.Name)?.Value;
+            var staffRole = User.FindFirst(ClaimTypes.Role)?.Value;
+
+            if (string.IsNullOrWhiteSpace(staffName))
+                return BadRequest("Staff name not found in token.");
+            if (string.IsNullOrWhiteSpace(staffRole))
+                return BadRequest("Staff role not found in token.");
+
+            if (dto == null)
+                return BadRequest("Request body cannot be null.");
+
+            await _mailService.SendResponseComplaintMailAsync(dto, staffName, staffRole);
+
+            return Ok(new
+            {
+                status = "success",
+                message = "Complaint response email sent successfully."
+            });
+        }
+    }
+}

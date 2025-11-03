@@ -15,6 +15,6 @@ namespace Application.DTOs.AuthenticationDtos
 
         public string Password { get; set; } = null!;
 
-        public string? Phone { get; set; }
+        public string ConfirmPassword { get; set; } = null!;
     }
 }

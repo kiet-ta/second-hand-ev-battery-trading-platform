@@ -1,4 +1,5 @@
 ﻿using Application.DTOs.AuthenticationDtos;
+using Application.DTOs.UserDtos;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,5 +13,15 @@ namespace Application.IServices
         Task<AuthResponseDto> RegisterAsync(RegisterDto dto);
 
         Task<AuthResponseDto> LoginAsync(LoginDto dto);
+
+        Task<AuthResponseDto> LoginWithGoogleAsync(string idToken);
+
+        Task<bool> ChangePasswordAsync(int userId, ChangePasswordRequestDto request);
+
+        Task SendOtpAsync(ForgotPasswordRequestDto dto);
+
+        Task<bool> VerifyOtpAsync(VerifyOtpDto dto);
+
+        Task ResetPasswordAsync(ResetPasswordDto dto);
     }
 }

@@ -1,13 +1,27 @@
-﻿using Application.DTOs;
+using Application.DTOs.AuctionDtos;
+using Microsoft.AspNetCore.Mvc;
 
-namespace Application.IServices
+namespace Application.IServices;
+
+public interface IAuctionService
 {
-    public interface IAuctionService
-    {
-        Task<bool> PlaceBidAsync(int biddingId, int userId, decimal bidAmount);
+    Task<IEnumerable<BidderHistoryDto>> GetBidderHistoryAsync(int auctionId);
 
-        Task<ItemBiddingDto> GetAuctionStatusAsync(int biddingId);
+    Task<AuctionListResponse> GetAuctionsAsync(int page = 1, int pageSize = 10, string? status = null);
 
-        Task<CreateAuctionResponse> CreateAuctionAsync(CreateAuctionRequest request);
-    }
+    Task<AuctionDto?> GetAuctionByIdAsync(int auctionId);
+
+    Task<CreateAuctionResponse> CreateAuctionAsync(CreateAuctionRequest request);
+
+    Task PlaceBidAsync(int auctionId, int userId, decimal bidAmount);
+
+    Task UpdateAuctionStatusesAsync();
+
+    Task<AuctionStatusDto> GetAuctionStatusAsync(int auctionId);
+
+    Task<AuctionListResponse> GetAllAuctionsAsync(int page, int pageSize);
+
+    Task<IEnumerable<AuctionDto>> GetAuctionsByUserId(int userId);
+
+    Task<AuctionDto?> GetAuctionByItemIdAsync(int itemId);
 }

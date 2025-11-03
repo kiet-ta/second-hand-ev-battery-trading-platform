@@ -1,5 +1,8 @@
 ﻿using Application.DTOs;
+using Application.DTOs.AuctionDtos;
 using Application.IServices;
+using Domain.Entities;
+using Google.Apis.Upload;
 using Microsoft.AspNetCore.Mvc;
 
 namespace PresentationLayer.Controllers;
@@ -15,15 +18,35 @@ public class AuctionController : ControllerBase
         _auctionService = auctionService;
     }
 
+    [HttpGet]
+    public async Task<IActionResult> GetAllAuction([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+    {
+        var response = await _auctionService.GetAllAuctionsAsync(page, pageSize);
+        return Ok(response);
+    }
+
+    [HttpGet("{auctionId}/bidders")]
+    public async Task<IActionResult> GetBidderHistory(int auctionId)
+    {
+        var bidderHistory = await _auctionService.GetBidderHistoryAsync(auctionId);
+        return Ok(bidderHistory);
+    }
+    [HttpGet("item/{itemId}")]
+    public async Task<IActionResult> GetAuctionByItemId(int itemId)
+    {
+        var auctionDto = await _auctionService.GetAuctionByItemIdAsync(itemId);
+        if (auctionDto == null)
+        {
+            return NotFound(new { message = "No auction found for this item." });
+        }
+        return Ok(auctionDto);
+    }
+
     [HttpPost("{auctionId}/bid")]
     public async Task<IActionResult> PlaceBid(int auctionId, [FromBody] PlaceBidRequestDto request)
     {
-        var result = await _auctionService.PlaceBidAsync(auctionId, request.UserId, request.BidAmount);
-        if (result)
-        {
+        await _auctionService.PlaceBidAsync(auctionId, request.UserId, request.BidAmount);
             return Ok(new { message = "Bid placed successfully." });
-        }
-        return BadRequest(new { message = "Failed to place bid. Check bidding status, amount, and wallet balance." });
     }
 
     [HttpGet("{auctionId}/status")]
@@ -42,5 +65,16 @@ public class AuctionController : ControllerBase
     {
         var result = await _auctionService.CreateAuctionAsync(request);
         return Ok(result);
+    }
+
+    [HttpGet("user/{userId}")]
+    public async Task<IActionResult> GetActionByUserId(int userId)
+    {
+        var auction = await _auctionService.GetAuctionsByUserId(userId);
+        if (auction == null)
+        {
+            return NotFound(new { message = "No auctions found for this user." });
+        }
+        return Ok(auction);
     }
 }

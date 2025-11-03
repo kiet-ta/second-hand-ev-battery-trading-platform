@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Domain.Entities;
 
@@ -9,11 +7,11 @@ public class User
 {
     public int UserId { get; set; }
 
-    public string FullName { get; set; } = string.Empty;
+    public string FullName { get; set; } = null!;
 
-    public string Email { get; set; } = string.Empty;
+    public string Email { get; set; } = null!;
 
-    public string PasswordHash { get; set; } = string.Empty;
+    public string PasswordHash { get; set; } = null!;
 
     public string? Gender { get; set; }
 
@@ -23,15 +21,19 @@ public class User
 
     public string? AvatarProfile { get; set; }
 
-    public string Role { get; set; } = "Buyer";
+    public string Role { get; set; } = null!;
 
-    public string KycStatus { get; set; } = "not_submitted";
+    public string? Bio { get; set; } = null!;
 
-    public string AccountStatus { get; set; } = "active";
+    public string? KycStatus { get; set; }
 
-    public DateTime CreatedAt { get; set; } = DateTime.Now;
+    public string? AccountStatus { get; set; }
 
-    public DateTime UpdatedAt { get; set; } = DateTime.Now;
+    public DateTime CreatedAt { get; set; }
 
-    public bool? IsDeleted { get; set; }
+    public DateTime? UpdatedAt { get; set; }
+
+    public string? Paid { get; set; }
+
+    public bool IsDeleted { get; set; }
 }
