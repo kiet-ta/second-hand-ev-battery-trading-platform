@@ -15,7 +15,6 @@ export default function ItemDetailModal({ itemId, open, onClose }) {
         setItem(res);
       } catch (error) {
         console.error("Failed to fetch item detail:", error);
-        message.error("Không thể tải thông tin sản phẩm.");
       } finally {
         setLoading(false);
       }

@@ -12,17 +12,20 @@ export default defineConfig({
   tailwindcss()
   ],
 
+  server: {
+    proxy: {
+      '/ghn': {
+        target: 'https://online-gateway.ghn.vn',
+        changeOrigin: true,
+        rewrite: path => path.replace(/^\/ghn/, ''), // xoá prefix /ghn
+      },
+    },
+  },
+
   test: {
     globals: true,
     environment: 'jsdom',
     setupFiles: './src/setupTests.js',
-  },
-  server: {
-    allowedHosts: [
-      "overhostile-mindy-overhastily.ngrok-free.dev" // 👈 your ngrok host
-    ],
-    host: true, // allow external access
-    port: 5173, // optional
   },
   theme: {
     extend: {

@@ -184,7 +184,6 @@ function CartPage() {
 
     const handleDeleteSelected = async () => {
         if (selectedItemIds.length === 0) {
-            message.warning("Vui lòng chọn sản phẩm để xóa.");
             return;
         }
 

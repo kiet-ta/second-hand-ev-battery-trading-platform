@@ -2,17 +2,17 @@ import React, { useState, useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import paymentApi from "../../api/paymentApi";
 import orderApi from "../../api/orderApi";
+import addressApi from "../../hooks/services/addressApi"; // ✅ API thật
+import { ghnApi } from "../../hooks/services/ghnApi";
 import { FiMapPin, FiX } from "react-icons/fi";
 
+// 🌟 Modal chọn địa chỉ giao hàng
 const AddressModal = ({ addresses, selectedId, onSelect, onClose }) => {
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[80vh] overflow-y-auto p-6 animate-fadeIn">
-                {/* Header */}
                 <div className="flex justify-between items-center border-b pb-3 mb-4">
-                    <h3 className="text-xl font-bold text-gray-800">
-                        Chọn địa chỉ giao hàng
-                    </h3>
+                    <h3 className="text-xl font-bold text-gray-800">Chọn địa chỉ giao hàng</h3>
                     <button
                         onClick={onClose}
                         className="p-2 rounded-full hover:bg-gray-100 transition-colors"
@@ -21,7 +21,6 @@ const AddressModal = ({ addresses, selectedId, onSelect, onClose }) => {
                     </button>
                 </div>
 
-                {/* Danh sách địa chỉ */}
                 <div className="space-y-3">
                     {addresses.length > 0 ? (
                         addresses.map((addr) => (
@@ -57,7 +56,6 @@ const AddressModal = ({ addresses, selectedId, onSelect, onClose }) => {
                     )}
                 </div>
 
-                {/* Footer */}
                 <div className="mt-6 flex justify-end">
                     <button
                         onClick={onClose}
@@ -76,10 +74,8 @@ function CheckoutPage() {
     const navigate = useNavigate();
     const orderData = location.state;
 
-    const [selectedAddressId, setSelectedAddressId] = useState(
-        orderData?.selectedAddressId
-    );
-    const [addresses, setAddresses] = useState(orderData?.allAddresses || []);
+    const [addresses, setAddresses] = useState([]);
+    const [selectedAddressId, setSelectedAddressId] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
 
     const [isProcessing, setIsProcessing] = useState(false);
@@ -87,71 +83,80 @@ function CheckoutPage() {
     const pollingIntervalRef = useRef(null);
 
     const insurance = { name: "Bảo hiểm hư hỏng sản phẩm", price: 6000 };
-    const shipping = { name: "Vận chuyển nhanh", price: 1000 };
+    const [shippingFee, setShippingFee] = useState(0);
+    const [loadingFee, setLoadingFee] = useState(false);
 
     const selectedDeliveryAddress = addresses.find(
         (addr) => addr.addressId === selectedAddressId
     );
 
+    // 🧭 Lấy danh sách địa chỉ từ API thật
     useEffect(() => {
-        return () => {
-            if (pollingIntervalRef.current) {
-                clearInterval(pollingIntervalRef.current);
+        const fetchAddresses = async () => {
+            try {
+                const userId = localStorage.getItem("userId");
+                const res = await addressApi.getUserAddresses(userId);
+                if (res && Array.isArray(res)) {
+                    setAddresses(res);
+                    const defaultAddr = res.find((a) => a.isDefault);
+                    if (defaultAddr) setSelectedAddressId(defaultAddr.addressId);
+                    else if (res.length > 0) setSelectedAddressId(res[0].addressId);
+                }
+            } catch (err) {
+                console.error("❌ Lỗi khi tải danh sách địa chỉ:", err);
             }
         };
+
+        fetchAddresses();
     }, []);
 
-    const formatVND = (price) => {
-        return price.toLocaleString("vi-VN", {
-            style: "currency",
-            currency: "VND",
-        });
-    };
+    // 🧮 Tự động tính phí GHN mỗi khi địa chỉ đổi
+    useEffect(() => {
+        const fetchShippingFee = async () => {
+            if (!selectedDeliveryAddress?.districtCode || !selectedDeliveryAddress?.wardCode)
+                return;
 
-    if (
-        !orderData ||
-        !orderData.itemsToPurchase ||
-        orderData.itemsToPurchase.length === 0
-    ) {
-        return (
-            <div className="p-6 bg-gray-100 min-h-screen text-center">
-                <p>Không tìm thấy dữ liệu thanh toán. Vui lòng quay lại giỏ hàng.</p>
-            </div>
-        );
-    }
+            try {
+                setLoadingFee(true);
+                const feeResult = await ghnApi.calcFee({
+                    toDistrictId: selectedDeliveryAddress.districtCode,
+                    toWardCode: selectedDeliveryAddress.wardCode,
+                    weight: 2000,
+                });
+
+                // ✅ Nếu GHN trả lỗi có message → hiển thị rõ ràng
+                if (feeResult.error) {
+                    setShippingFee(0);
+                    alert(feeResult.message || "GHN hiện chưa hỗ trợ khu vực này.");
+                    return;
+                }
+
+                // ✅ Còn nếu trả về số → cập nhật bình thường
+                setShippingFee(feeResult || 0);
+            } catch (err) {
+                console.error("❌ Không tính được phí GHN:", err);
+                setShippingFee(0);
+            } finally {
+                setLoadingFee(false);
+            }
+        };
+
+        fetchShippingFee();
+    }, [selectedDeliveryAddress]);
+
+
+    const formatVND = (price) =>
+        price.toLocaleString("vi-VN", { style: "currency", currency: "VND" });
 
     const calculateTotal = () => {
         let total = orderData.totalAmount || 0;
         total += insurance.price;
-        total += shipping.price;
+        total += shippingFee;
         return total;
     };
-
     const finalTotalPrice = calculateTotal();
 
-    const checkPaymentStatus = async (orderCode, paymentWindow) => {
-        try {
-            const info = await paymentApi.getPaymentInfoByOrderCode(orderCode);
-
-            if (info.status === "PAID") {
-                clearInterval(pollingIntervalRef.current);
-                paymentWindow.close();
-                navigate("/payment/success", { state: { paymentInfo: info } });
-            } else if (info.status === "CANCELLED" || info.status === "FAILED") {
-                clearInterval(pollingIntervalRef.current);
-                paymentWindow.close();
-                navigate("/payment/fail", {
-                    state: { reason: `Thanh toán ${info.status.toLowerCase()}.` },
-                });
-            }
-        } catch (error) {
-            console.error("Lỗi khi kiểm tra trạng thái thanh toán:", error);
-            clearInterval(pollingIntervalRef.current);
-            setIsProcessing(false);
-            setStatusMessage("Không thể xác minh trạng thái thanh toán.");
-        }
-    };
-
+    // 💳 Thanh toán
     const handleConfirmAndPay = async () => {
         setIsProcessing(true);
         setStatusMessage("Đang xác nhận đơn hàng...");
@@ -172,16 +177,10 @@ function CheckoutPage() {
                 createdAt: new Date().toISOString().split("T")[0],
                 updatedAt: new Date().toISOString().split("T")[0],
             };
-            console.log("Dữ liệu tạo đơn hàng:", orderPayload);
 
             const orderResponse = await orderApi.postOrderNew(orderPayload);
-            console.log("Kết quả tạo đơn hàng:", orderResponse);
+            if (!orderResponse?.orderId) throw new Error("Không tạo được đơn hàng.");
 
-            if (!orderResponse || !orderResponse.orderId) {
-                throw new Error("Không lấy được ID đơn hàng từ máy chủ.");
-            }
-
-            setStatusMessage("Đang khởi tạo thanh toán...");
             const paymentPayload = {
                 userId: orderData.buyerId,
                 method: "payos",
@@ -195,84 +194,43 @@ function CheckoutPage() {
                 ],
             };
 
-            const paymentLinkResponse = await paymentApi.createPaymentLink(
-                paymentPayload
-            );
-            console.log(paymentLinkResponse, paymentPayload)
-            console.log("Kết quả tạo link thanh toán:", paymentLinkResponse);
-
+            const paymentLinkResponse = await paymentApi.createPaymentLink(paymentPayload);
             const { checkoutUrl, orderCode } = paymentLinkResponse;
+            if (!checkoutUrl) throw new Error("Không tạo được link thanh toán.");
 
-            if (checkoutUrl && orderCode) {
-                setStatusMessage("Vui lòng hoàn tất thanh toán trong cửa sổ mới...");
+            const paymentWindow = window.open(
+                checkoutUrl,
+                "Thanh toán PayOS",
+                "width=800,height=600"
+            );
 
-                // Prevent multiple popups
-                if (pollingIntervalRef.current) clearInterval(pollingIntervalRef.current);
-
-                const paymentWindow = window.open(
-                    checkoutUrl,
-                    "Thanh toán PayOS",
-                    "width=800,height=600"
-                );
-
-                if (!paymentWindow) {
-                    setStatusMessage("Không thể mở cửa sổ thanh toán. Hãy kiểm tra trình chặn popup.");
+            pollingIntervalRef.current = setInterval(() => {
+                if (paymentWindow && paymentWindow.closed) {
+                    clearInterval(pollingIntervalRef.current);
                     setIsProcessing(false);
+                    setStatusMessage("Thanh toán đã bị hủy bởi người dùng.");
+                    navigate("/payment/fail", {
+                        state: { reason: "Bạn đã đóng cửa sổ thanh toán." },
+                    });
                     return;
                 }
-
-                // Poll payment status every 3s
-                let attempts = 0;
-                pollingIntervalRef.current = setInterval(async () => {
-                    attempts++;
-
-                    if (paymentWindow.closed) {
-                        clearInterval(pollingIntervalRef.current);
-                        setIsProcessing(false);
-                        setStatusMessage("Bạn đã đóng cửa sổ thanh toán.");
-                        navigate("/payment/fail", {
-                            state: { reason: "Bạn đã hủy thanh toán bằng cách đóng cửa sổ." },
-                        });
-                        return;
-                    }
-
-                    try {
-                        const info = await paymentApi.getPaymentInfoByOrderCode(orderCode);
-                        if (info.status === "PAID") {
-                            clearInterval(pollingIntervalRef.current);
-                            paymentWindow.close();
-                            navigate("/payment/success", { state: { paymentInfo: info } });
-                        } else if (["FAILED", "CANCELLED"].includes(info.status)) {
-                            clearInterval(pollingIntervalRef.current);
-                            paymentWindow.close();
-                            navigate("/payment/fail", {
-                                state: { reason: `Thanh toán ${info.status.toLowerCase()}.` },
-                            });
-                        }
-                    } catch (err) {
-                        console.error("Payment status polling error:", err);
-                    }
-
-                    // Auto-stop after 3 minutes
-                    if (attempts > 60) {
-                        clearInterval(pollingIntervalRef.current);
-                        paymentWindow.close();
-                        setIsProcessing(false);
-                        navigate("/payment/fail", {
-                            state: { reason: "Thanh toán quá thời gian cho phép (timeout)." },
-                        });
-                    }
-                }, 3000);
-            }
+            }, 3000);
         } catch (error) {
-            console.error("Lỗi khi tạo đơn hàng hoặc thanh toán:", error);
+            console.error("❌ Lỗi thanh toán:", error);
             setIsProcessing(false);
-            setStatusMessage("Xử lý đơn hàng thất bại.");
             navigate("/payment/fail", {
                 state: { reason: "Không thể hoàn tất đơn hàng. Vui lòng thử lại." },
             });
         }
     };
+
+    if (!orderData?.itemsToPurchase?.length) {
+        return (
+            <div className="p-6 bg-gray-100 min-h-screen text-center">
+                <p>Không tìm thấy dữ liệu thanh toán. Vui lòng quay lại giỏ hàng.</p>
+            </div>
+        );
+    }
 
     return (
         <div className="p-6 bg-gray-100 min-h-screen">
@@ -306,20 +264,15 @@ function CheckoutPage() {
                             </button>
                         </div>
                     ) : (
-                        <p className="text-red-500">
-                            Không có địa chỉ giao hàng nào được chọn.
-                        </p>
+                        <p className="text-red-500">Không có địa chỉ giao hàng nào được chọn.</p>
                     )}
                 </div>
 
-                {/* Sản phẩm đặt hàng */}
+                {/* 🛒 Danh sách sản phẩm */}
                 <h2 className="text-lg font-semibold mb-4">Sản phẩm đặt mua</h2>
                 <div className="divide-y">
                     {orderData.itemsToPurchase.map((item) => (
-                        <div
-                            key={item.id}
-                            className="flex items-center justify-between py-4"
-                        >
+                        <div key={item.id} className="flex items-center justify-between py-4">
                             <div className="flex items-center space-x-4">
                                 <img
                                     src={item.image}
@@ -347,41 +300,23 @@ function CheckoutPage() {
                 {/* Bảo hiểm & Vận chuyển */}
                 <div className="flex items-center justify-between py-4 border-t">
                     <div className="flex items-center space-x-2">
-                        <input type="checkbox" checked={true} className="accent-maincolor" />
+                        <input type="checkbox" checked={true} readOnly className="accent-maincolor" />
                         <div>
                             <p className="font-medium">{insurance.name}</p>
                             <p className="text-xs text-gray-500">
-                                Bảo vệ sản phẩm khỏi rủi ro, va đập, hoặc hư hỏng trong quá
-                                trình vận chuyển.
+                                Bảo vệ sản phẩm khỏi rủi ro, va đập, hoặc hư hỏng trong quá trình vận chuyển.
                             </p>
                         </div>
                     </div>
                     <p className="font-semibold">{formatVND(insurance.price)}</p>
                 </div>
 
-                <div className="grid grid-cols-2 gap-6 py-6 border-t">
-                    <div>
-                        <label className="text-sm font-medium text-gray-600">
-                            Ghi chú cho người bán:
-                        </label>
-                        <input
-                            type="text"
-                            placeholder="Nhập ghi chú cho người bán..."
-                            className="w-full mt-2 border rounded p-2 focus:outline-maincolor"
-                        />
-                    </div>
-                    <div>
-                        <p className="text-sm font-medium text-gray-600 mb-2">
-                            Phương thức vận chuyển:
-                        </p>
-                        <div className="flex justify-between items-center">
-                            <p>{shipping.name}</p>
-                            <p className="font-semibold">{formatVND(shipping.price)}</p>
-                        </div>
-                        <p className="text-xs text-gray-500 mt-1">
-                            Thời gian giao hàng dự kiến: 3–5 ngày làm việc
-                        </p>
-                    </div>
+                {/* Phí ship */}
+                <div className="flex justify-between items-center py-4 border-t">
+                    <p>Vận chuyển nhanh (GHN)</p>
+                    <p className="font-semibold">
+                        {loadingFee ? "Đang tính..." : formatVND(shippingFee || 0)}
+                    </p>
                 </div>
 
                 {/* Tổng thanh toán */}
@@ -389,14 +324,13 @@ function CheckoutPage() {
                     <p className="text-lg font-semibold">
                         Tổng cộng ({orderData.itemsToPurchase.length} sản phẩm):
                     </p>
-                    <p className="text-2xl font-bold">{formatVND(finalTotalPrice)}</p>
+                    <p className="text-2xl font-bold text-[#D4AF37]">{formatVND(finalTotalPrice)}</p>
                 </div>
 
+                {/* Nút xác nhận */}
                 <div className="flex flex-col items-end mt-6">
                     {statusMessage && (
-                        <p className="text-maincolor mb-2 font-semibold">
-                            {statusMessage}
-                        </p>
+                        <p className="text-maincolor mb-2 font-semibold">{statusMessage}</p>
                     )}
                     <button
                         onClick={handleConfirmAndPay}

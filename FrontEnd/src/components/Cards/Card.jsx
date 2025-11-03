@@ -8,7 +8,6 @@ import {
     FiArrowRight,
     FiBarChart2,
 } from "react-icons/fi";
-import { message } from "antd";
 import orderItemApi from "../../api/orderItemApi";
 import favouriteApi from "../../api/favouriteApi";
 import addressLocalApi from "../../api/addressLocalApi";
@@ -149,7 +148,6 @@ function CardComponent({
                 allAddresses.find((a) => a.isDefault) || allAddresses[0];
 
             if (!defaultAddress) {
-                message.warning("Vui lòng thêm địa chỉ giao hàng trong hồ sơ!");
                 navigate("/profile/address");
                 return;
             }
@@ -177,7 +175,6 @@ function CardComponent({
             navigate("/checkout/buy-now", { state: checkoutData });
         } catch (err) {
             console.error("❌ Lỗi mua ngay:", err);
-            message.error("Không thể mua ngay. Vui lòng thử lại.");
         } finally {
             setIsProcessing(false);
         }
@@ -199,7 +196,6 @@ function CardComponent({
                     await favouriteApi.deleteFavourite(favoriteId);
                     setIsFavorited(false);
                     setFavoriteId(null);
-                    message.info("Đã xoá khỏi danh sách yêu thích!");
                 } else {
                     const res = await favouriteApi.postFavourite({
                         userId: parseInt(userId, 10),
@@ -208,7 +204,6 @@ function CardComponent({
                     });
                     setIsFavorited(true);
                     setFavoriteId(res?.favId ?? null);
-                    message.success("Đã thêm vào danh sách yêu thích!");
                 }
             } catch (err) {
                 console.error("Favourite failed:", err);

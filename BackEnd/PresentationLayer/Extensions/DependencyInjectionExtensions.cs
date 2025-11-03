@@ -50,6 +50,7 @@ public static class DependencyInjectionExtensions
         services.AddScoped<IComplaintService, ComplaintService>();
         services.AddScoped<IWalletService, WalletService>();
         services.AddScoped<ICommissionFeeRuleService, CommissionFeeRuleService>();
+        services.AddScoped<IReportService, ReportService>();
 
         //---Repositories
         services.AddScoped<IAuctionRepository, AuctionRepository>();
@@ -83,6 +84,7 @@ public static class DependencyInjectionExtensions
         services.AddScoped<INotificationRepository, NotificationRepository>();
         services.AddScoped<IComplaintRepository, ComplaintRepository>();
         services.AddScoped<IUserModerationRepository, FirebaseUserModerationRepository>();
+        services.AddScoped<IReportRepository, ReportRepository>();
 
         //IUnitOfWork
         services.AddScoped<IUnitOfWork, UnitOfWork>();

@@ -18,7 +18,6 @@ public class PaymentRepository : IPaymentRepository
     public async Task<Payment> AddPaymentAsync(Payment payment)
     {
         _context.Payments.Add(payment);
-        await _context.SaveChangesAsync();  // Save for generate PaymentId
         return payment;
     }
 
@@ -36,39 +35,6 @@ public class PaymentRepository : IPaymentRepository
             payment.Status = status;
             payment.UpdatedAt = DateTime.UtcNow;
             await _context.SaveChangesAsync();
-        }
-    }
-
-    public async Task<Wallet> GetWalletByUserIdAsync(int userId)
-    {
-        return await _context.Wallets.FirstOrDefaultAsync(w => w.UserId == userId);
-    }
-
-    public async Task DeductWalletBalanceAsync(Wallet wallet, decimal amount, int paymentId)
-    {
-        using var transaction = await _context.Database.BeginTransactionAsync();
-        try
-        {
-            wallet.Balance -= amount;
-            wallet.UpdatedAt = DateTime.UtcNow;
-
-            var walletTransaction = new WalletTransaction
-            {
-                WalletId = wallet.WalletId,
-                Amount = -amount,
-                Type = "payment",
-                RefId = paymentId,
-                CreatedAt = DateTime.UtcNow
-            };
-            _context.WalletTransactions.Add(walletTransaction);
-
-            await _context.SaveChangesAsync();
-            await transaction.CommitAsync();
-        }
-        catch
-        {
-            await transaction.RollbackAsync();
-            throw;
         }
     }
 
@@ -99,33 +65,7 @@ public class PaymentRepository : IPaymentRepository
                 }).ToList()
             });
 
-        return await query.FirstOrDefaultAsync();
-    }
-
-    public async Task UpdateRelatedEntitiesAsync(List<PaymentDetailDto> details)
-    {
-        foreach (var detail in details)
-        {
-            if (detail.OrderId.HasValue)
-            {
-                var order = await _context.Orders.FindAsync(detail.OrderId.Value);
-                if (order != null)
-                {
-                    order.Status = "paid";
-                    order.UpdatedAt = DateTime.UtcNow;
-                }
-            }
-            if (detail.ItemId.HasValue)
-            {
-                var item = await _context.Items.FindAsync(detail.ItemId.Value);
-                if (item != null)
-                {
-                    item.Status = "sold";
-                    item.UpdatedAt = DateTime.UtcNow;
-                }
-            }
-        }
-        await _context.SaveChangesAsync();
+        return await query.AsNoTracking().FirstOrDefaultAsync();
     }
 
     public async Task<IEnumerable<(int Year, int Month, decimal Total)>> GetRevenueByMonthAsync(int monthsRange)
@@ -147,8 +87,13 @@ public class PaymentRepository : IPaymentRepository
 
         return query.Select(q => (q.Year, q.Month, q.Total));
     }
-    public async Task SaveChangesAsync()
+    public async Task<Payment?> GetByOrderIdAsync(int orderId)
     {
-        await _context.SaveChangesAsync();
+        var paymentDetail = await _context.PaymentDetails
+            .FirstOrDefaultAsync(pd => pd.OrderId == orderId);
+
+        if (paymentDetail == null) return null;
+
+        return await _context.Payments.FindAsync(paymentDetail.PaymentId);
     }
 }

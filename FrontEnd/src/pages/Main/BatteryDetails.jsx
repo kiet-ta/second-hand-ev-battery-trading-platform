@@ -12,7 +12,6 @@ import itemApi from "../../api/itemApi";
 import userApi from "../../api/userApi";
 import orderItemApi from "../../api/orderItemApi";
 import reviewApi from "../../api/reviewApi";
-import { message } from "antd";
 import addressLocalApi from "../../api/addressLocalApi";
 import placeholder from "../../assets/images/placeholder.png"
 // Star rating component
@@ -167,7 +166,6 @@ function BatteryDetails() {
 
     const userId = localStorage.getItem("userId");
     if (!userId) {
-      message.warning("Vui lòng đăng nhập trước khi mua hàng!");
       navigate("/login");
       return;
     }
@@ -190,7 +188,6 @@ function BatteryDetails() {
         allAddresses.find((addr) => addr.isDefault) || allAddresses[0];
 
       if (!defaultAddress) {
-        message.warning("Vui lòng thêm địa chỉ giao hàng trong hồ sơ!");
         navigate("/profile/address");
         return;
       }
