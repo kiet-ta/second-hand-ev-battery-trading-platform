@@ -57,7 +57,7 @@ namespace Infrastructure.Repositories
             return query.AsNoTracking(); // Optimized for read-only queries
         }
 
-        public async Task<PagedResultItem<ItemDto>> SearchItemsAsync(
+        public async Task<PagedResultItem<ItemSearchDto>> SearchItemsAsync(
             string itemType,
             string title,
             decimal? minPrice,
@@ -75,7 +75,7 @@ namespace Infrastructure.Repositories
                             on i.UpdatedBy equals u.UserId into gj
                         from user in gj.DefaultIfEmpty()
                         where i.IsDeleted == false && i.Status == "active"
-                        select new ItemDto
+                        select new ItemSearchDto
                         {
                             ItemId = i.ItemId,
                             ItemType = i.ItemType,
@@ -95,7 +95,8 @@ namespace Infrastructure.Repositories
                                 {
                                     ImageId = img.ImageId,
                                     ImageUrl = img.ImageUrl
-                                }).ToList()
+                                }).ToList(),
+                            ItemDetail = null
                         };
 
             // Filter by itemType
@@ -162,6 +163,7 @@ namespace Infrastructure.Repositories
                             LicenseUrl = d.LicenseUrl
                         })
                         .FirstOrDefaultAsync();
+                    item.ItemDetail = detail;
                 }
                 else if (item.ItemType == "battery")
                 {
@@ -175,10 +177,11 @@ namespace Infrastructure.Repositories
                             ChargeCycles = d.ChargeCycles
                         })
                         .FirstOrDefaultAsync();
+                    item.ItemDetail = detail;
                 }
             }
 
-            return new PagedResultItem<ItemDto>
+            return new PagedResultItem<ItemSearchDto>
             {
                 Page = page,
                 PageSize = pageSize,

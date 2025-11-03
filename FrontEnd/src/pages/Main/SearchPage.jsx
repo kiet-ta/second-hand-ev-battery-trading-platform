@@ -36,7 +36,17 @@ function SearchPage() {
     approvedOnly: searchParams.get("approvedOnly") === 'true',
     sellerName: searchParams.get("sellerName") || '',
   });
+  useEffect(() => {
+  const newQuery = searchParams.get("query") || "";
+  const newType = searchParams.get("itemType") || "all";
 
+  setFilters((prev) => ({
+    ...prev,
+    title: newQuery,
+    itemType: newType,
+    page: 1, // optional: reset to first page on new search
+  }));
+}, [location.search]);
   const [detailFilters, setDetailFilters] = useState({});
   const [selectedDetails, setSelectedDetails] = useState({});
 

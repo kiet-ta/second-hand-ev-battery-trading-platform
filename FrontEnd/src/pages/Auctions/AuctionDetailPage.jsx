@@ -1,6 +1,17 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { Spin, InputNumber, Button, List, Avatar, Card, Tag, Space, Carousel } from "antd";
+import {
+  Spin,
+  InputNumber,
+  Button,
+  List,
+  Avatar,
+  Card,
+  Tag,
+  Space,
+  Carousel,
+  Alert,
+} from "antd";
 import { FiClock, FiUser, FiTrendingUp, FiCheckCircle } from "react-icons/fi";
 import auctionApi from "../../api/auctionApi";
 import walletApi from "../../api/walletApi";
@@ -49,6 +60,7 @@ function AuctionDetailPage() {
   const [bidAmount, setBidAmount] = useState(null);
   const [isBidding, setIsBidding] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [errorMsg, setErrorMsg] = useState("");
 
   const countdown = useCountdown(auction?.endTime);
 
@@ -104,14 +116,43 @@ function AuctionDetailPage() {
       navigate("/login");
       return;
     }
+
     const minBid = getMinBid();
-    if (bidAmount < minBid || bidAmount > walletBalance) return;
+    if (bidAmount < minBid) {
+      setErrorMsg(`Giá đặt phải tối thiểu ${minBid.toLocaleString("vi-VN")} đ`);
+      return;
+    }
+    if (bidAmount > walletBalance) {
+      setErrorMsg("Số dư ví của bạn không đủ để đặt giá này.");
+      return;
+    }
 
     try {
       setIsBidding(true);
+      setErrorMsg("");
+
       const payload = { userId: LOGGED_IN_USER_ID, bidAmount };
       await auctionApi.bidAuction(auction.auctionId, payload);
-      await fetchAuctionDetails();
+
+      // ✅ Update UI instantly
+      setAuction((prev) => ({
+        ...prev,
+        currentPrice: bidAmount,
+      }));
+
+      setBidHistory((prev) => [
+        {
+          bidAmount,
+          fullName: "Bạn",
+          bidTime: new Date().toISOString(),
+        },
+        ...prev,
+      ]);
+
+      // ✅ Auto increment next bid
+      setBidAmount(bidAmount + stepPrice);
+    } catch (err) {
+      setErrorMsg("Không thể đặt giá. Vui lòng thử lại.");
     } finally {
       setIsBidding(false);
     }
@@ -154,7 +195,9 @@ function AuctionDetailPage() {
               </Carousel>
             ) : (
               <img
-                src={`https://placehold.co/600x400/E8E4DC/2C2C2C?text=${encodeURIComponent(auction.title || "No Image")}`}
+                src={`https://placehold.co/600x400/E8E4DC/2C2C2C?text=${encodeURIComponent(
+                  auction.title || "No Image"
+                )}`}
                 alt="No Image"
                 className="w-full object-cover aspect-[3/2]"
               />
@@ -210,6 +253,17 @@ function AuctionDetailPage() {
                   {walletBalance.toLocaleString("vi-VN")} đ
                 </span>
               </p>
+
+              {errorMsg && (
+                <Alert
+                  message={errorMsg}
+                  type="error"
+                  showIcon
+                  closable={false}
+                  className="mb-3 rounded-lg"
+                />
+              )}
+
               <Space.Compact style={{ width: "100%" }}>
                 <InputNumber
                   size="large"

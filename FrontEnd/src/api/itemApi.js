@@ -48,7 +48,7 @@ const itemApi = {
         return response.data
     },
     putItemDetailBattery: async (itemId, batteryData) => {
-        const response = await axios.put(baseURL + "battery-details" + `/${itemId}`, batteryData)
+        const response = await axios.put(linkBaseURL + "battery-details" + `/${itemId}`, batteryData)
         return response.data
     },
     deleteItem: async (itemId) => {

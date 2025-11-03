@@ -246,7 +246,7 @@ namespace Application.Services
             return result;
         }
 
-        public async Task<PagedResultItem<ItemDto>> SearchItemsAsync(
+        public async Task<PagedResultItem<ItemSearchDto>> SearchItemsAsync(
         string itemType,
         string title,
         decimal? minPrice,

@@ -13,7 +13,7 @@ import useKycRedirect from "../hooks/useKycRedirect";
 
 const SellerRegistrationForm = () => {
   const navigate = useNavigate
-      useKycRedirect();
+  useKycRedirect();
   
 
   const [userId] = useState(localStorage.getItem("userId"));

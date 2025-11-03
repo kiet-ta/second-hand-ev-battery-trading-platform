@@ -205,6 +205,7 @@ namespace Application.Services
             };
 
             await _userRepository.AddAsync(newUser);
+            await _userRepository.SaveChangesAsync();
 
             var sellected = await _userRepository.GetByIdAsync(newUser.UserId);
             var wallet = new Wallet

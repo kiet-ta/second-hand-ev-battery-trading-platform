@@ -78,7 +78,8 @@ export default function MyProducts() {
 
     setPayLoading(true);
     try {
-      await walletApi.depositWallet({ userId: sellerId, amount: 100000 });
+      const userId = localStorage.getItem("userId")
+      await walletApi.withdrawWallet({ userId: userId, amount: 100000 , type: "withdraw", ref: userId, description: `Trả phí cho sản phẩm ${selectedItem.itemId}`});
       setWallet((prev) => ({ ...prev, balance: prev.balance - 100000 }));
 
       const categoryId = selectedItem.itemType === "ev" ? 1 : 2;

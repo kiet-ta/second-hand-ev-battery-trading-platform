@@ -57,7 +57,7 @@ namespace Application.IRepositories
         Task<ItemWithSellerResult?> GetItemAndSellerByItemIdAsync(int itemId);
         Task<bool> SetItemTagAsync(int itemId, string tag);
 
-        Task<PagedResultItem<ItemDto>> SearchItemsAsync(string itemType, string title, decimal? minPrice, decimal? maxPrice, int page, int pageSize, string sortBy, string sortDir);
+        Task<PagedResultItem<ItemSearchDto>> SearchItemsAsync(string itemType, string title, decimal? minPrice, decimal? maxPrice, int page, int pageSize, string sortBy, string sortDir);
         Task<IEnumerable<EVDetail>> SearchEvDetailAsync(EVSearchRequestDto request);
         Task<IEnumerable<BatteryDetail>> SearchBatteryDetailAsync(BatterySearchRequestDto request);
     }

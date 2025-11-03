@@ -20,10 +20,12 @@ export default function useKycRedirect() {
         const kycStatus = user.kycStatus || "not_submitted";
         console.log("KYC Status:", kycStatus);
 
-        if (location.pathname === "/pending-review" && kycStatus === "not_submitted") {
+        if (location.pathname === "/pending-review" && kycStatus == "not_submitted") {
           navigate("/seller-registration");
-        } else if (location.pathname === "/seller-registration" && kycStatus === "pending") {
+        } else if (location.pathname === "/seller-registration" && kycStatus == "pending") {
           navigate("/pending-review");
+        } else if (location.pathname === "/seller-form" && kycStatus == "pending") {
+          navigate("/pending-review")
         }
       } catch (error) {
         console.error("KYC check failed:", error);

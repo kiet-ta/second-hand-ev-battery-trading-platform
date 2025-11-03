@@ -225,33 +225,6 @@ export default function ProductModeration() {
                 />
             )}
 
-            {/* Modal details unchanged */}
-            <Modal
-                open={isModalOpen}
-                onCancel={() => setIsModalOpen(false)}
-                footer={null}
-                width={950}
-                title={
-                    <b className="text-xl text-[#4F39F6] tracking-wide">
-                        🔍 Chi tiết sản phẩm
-                    </b>
-                }
-            >
-                {selectedItem ? (
-                    <motion.div
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.3 }}
-                        className="space-y-8"
-                    >
-                        {/* Details content stays same */}
-                    </motion.div>
-                ) : (
-                    <div className="flex justify-center py-10">
-                        <Spin size="large" />
-                    </div>
-                )}
-            </Modal>
         </div>
     );
 }
