@@ -33,6 +33,9 @@ public class WalletTransactionConfiguration : IEntityTypeConfiguration<WalletTra
         entity.Property(e => e.AuctionId)
               .HasColumnName("auction_id")
               .IsRequired(false);
+        entity.Property(e => e.OrderId)
+              .HasColumnName("order_id")
+              .IsRequired(false);
 
         entity.HasOne<Wallet>().WithMany()
             .HasForeignKey(d => d.WalletId)
