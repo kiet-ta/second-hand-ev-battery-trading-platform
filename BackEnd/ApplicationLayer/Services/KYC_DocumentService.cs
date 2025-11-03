@@ -68,11 +68,6 @@ namespace Application.Services
             var user = await _kycRepo.GetByIdAsync(kycDoc.UserId)
                        ?? throw new ArgumentException("User not found for this KYC document");
 
-            if (kycDoc.Status == "approved" || user.KycStatus == "approved")
-                throw new InvalidOperationException("User KYC is already approved");
-            if (kycDoc.Status == "rejected" || user.KycStatus == "rejected")
-                throw new InvalidOperationException("Cannot approve a rejected KYC");
-
             await _kycRepo.UpdateKYC_StatusAsync(kycDoc.DocId, "approved", dto.Note ?? "");
 
             kycDoc.VerifiedAt = dto.VerifiedAt ?? DateTime.Now;
@@ -90,10 +85,7 @@ namespace Application.Services
             var user = await _kycRepo.GetByIdAsync(kycDoc.UserId)
                        ?? throw new ArgumentException("User not found for this KYC document");
 
-            if (kycDoc.Status == "rejected")
-                throw new InvalidOperationException("User KYC is already rejected");
-            if (kycDoc.Status == "approved")
-                throw new InvalidOperationException("Cannot reject an approved KYC");
+           
 
             await _kycRepo.UpdateKYC_StatusAsync(kycDoc.DocId, "rejected", dto.Note ?? "");
 
