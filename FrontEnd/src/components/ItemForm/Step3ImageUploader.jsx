@@ -1,61 +1,81 @@
-import React, { useState } from 'react';
-import { Upload, Button, message } from 'antd';
+// Step3ImageUploader.jsx (optimized, no popups)
+import React, { useState, useCallback, useMemo } from "react";
+import { Upload } from "antd";
 import { UploadCloud } from "lucide-react";
 
-export default function Step3ImageUploader({ onSubmit }) {
-    const [fileList, setFileList] = useState([]);
+export default function Step3ImageUploader({ onFilesSelected }) {
+  const [fileList, setFileList] = useState([]);
+  const MAX_FILES = 8;
+  const VALID_TYPES = useMemo(() => ["image/jpeg", "image/png", "image/webp"], []);
 
-    const handleRemove = (file) => {
-        const newFileList = fileList.filter(item => item.uid !== file.uid);
-        setFileList(newFileList);
-    };
+  // ✅ Validation without popup — returns error messages as string
+  const validateFile = useCallback(
+    (file) => {
+      if (!VALID_TYPES.includes(file.type)) {
+        return "Chỉ được chọn file JPG, PNG hoặc WEBP!";
+      }
+      if (fileList.length >= MAX_FILES) {
+        return `Chỉ được tải tối đa ${MAX_FILES} hình ảnh!`;
+      }
+      return null;
+    },
+    [fileList, VALID_TYPES]
+  );
 
-    const beforeUpload = (file) => {
-        const isJpgOrPng = file.type === 'image/jpeg' || file.type === 'image/png' || file.type === 'image/webp';
-        if (!isJpgOrPng) {
-            message.error('You can only upload JPG, PNG, or WEBP files!');
-            return Upload.LIST_IGNORE;
-        }
-        setFileList(prevList => [...prevList, file]);
-        return false; // Prevent automatic upload
-    };
+  const beforeUpload = useCallback(
+    (file) => {
+      const error = validateFile(file);
+      if (error) {
+        console.warn(error);
+        return Upload.LIST_IGNORE; // silently reject invalid
+      }
 
-    const handleSubmit = () => {
-        const filesToUpload = fileList.map(file => file.originFileObj || file);
-        onSubmit(filesToUpload);
-    };
+      const updated = [...fileList, file];
+      setFileList(updated);
+      onFilesSelected(updated.map((f) => f.originFileObj || f));
+      return false; // prevent auto upload
+    },
+    [fileList, validateFile, onFilesSelected]
+  );
 
-    return (
-        <div className="text-center">
-            <h3 className="text-lg font-semibold mb-2">Upload Product Images</h3>
-            <p className="text-sm text-gray-500 mb-4">Select all the images for your product. They will be sent to the server for processing.</p>
+  const handleRemove = useCallback(
+    (file) => {
+      const updated = fileList.filter((item) => item.uid !== file.uid);
+      setFileList(updated);
+      onFilesSelected(updated.map((f) => f.originFileObj || f));
+    },
+    [fileList, onFilesSelected]
+  );
 
-            <Upload
-                listType="picture-card"
-                fileList={fileList}
-                beforeUpload={beforeUpload}
-                onRemove={handleRemove}
-                multiple
-                accept=".png,.jpg,.jpeg,.webp"
-            >
-                {fileList.length >= 8 ? null : (
-                    <div>
-                        <UploadCloud />
-                        <div style={{ marginTop: 8 }}>Select</div>
-                    </div>
-                )}
-            </Upload>
+  return (
+    <div className="text-center">
+      <h3 className="text-lg font-semibold mb-2">Tải hình sản phẩm</h3>
+      <p className="text-sm text-gray-500 mb-4">
+        Chọn tất cả hình ảnh cho sản phẩm. Hình sẽ được tải lên ở bước tiếp theo.
+      </p>
 
-            <div className="mt-6 text-right">
-                <Button
-                    type="primary"
-                    onClick={handleSubmit}
-                    disabled={fileList.length === 0}
-                >
-                    Upload & Finish
-                </Button>
-            </div>
-        </div>
-    );
+      <Upload
+        listType="picture-card"
+        fileList={fileList}
+        beforeUpload={beforeUpload}
+        onRemove={handleRemove}
+        multiple
+        accept=".png,.jpg,.jpeg,.webp"
+        showUploadList={{ showPreviewIcon: false }}
+      >
+        {fileList.length >= MAX_FILES ? null : (
+          <div className="flex flex-col items-center">
+            <UploadCloud />
+            <div className="mt-2 text-gray-600 text-sm">Chọn hình</div>
+          </div>
+        )}
+      </Upload>
+
+      {fileList.length >= MAX_FILES && (
+        <p className="mt-2 text-sm text-red-500">
+          Đã đạt giới hạn {MAX_FILES} hình ảnh.
+        </p>
+      )}
+    </div>
+  );
 }
-

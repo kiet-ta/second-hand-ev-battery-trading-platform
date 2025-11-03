@@ -9,24 +9,35 @@ namespace PresentationLayer.Controllers;
 [Route("api/commission")]
 public class CommissionController : ControllerBase
 {
-    private readonly ICommissionFeeRuleRepository _ruleRepository;
+    private readonly ICommissionFeeRuleService _ruleService;
     private readonly ICommissionService _commissionService;
 
-    public CommissionController(ICommissionFeeRuleRepository ruleRepository, ICommissionService commissionService)
+    public CommissionController(ICommissionFeeRuleService ruleService, ICommissionService commissionService)
     {
-        _ruleRepository = ruleRepository;
+        _ruleService = ruleService;
         _commissionService = commissionService;
     }
 
     [HttpGet("rules")]
     public async Task<IActionResult> GetAll() =>
-        Ok(await _ruleRepository.GetAllAsync());
+        Ok(await _ruleService.GetAllAsync());
+
+    [HttpGet("rules/{ruleId}")]
+    public async Task<IActionResult> GetRuleById(int ruleId) => Ok(await _ruleService.GetByIdAsync(ruleId));
+
 
     [HttpPost("rules")]
     public async Task<IActionResult> Create([FromBody] CommissionFeeRule rule)
     {
-        await _ruleRepository.AddAsync(rule);
+        await _ruleService.AddAsync(rule);
         return Ok(rule);
+    }
+
+    [HttpPut("{freeCode}/toggle")]
+    public async Task<IActionResult> Toggle(CommissionFeeRule rule)
+    {
+        var result = await _ruleService.ToggleStatusAsync(rule);
+        return Ok(result);
     }
 
     [HttpPost("calculate")]

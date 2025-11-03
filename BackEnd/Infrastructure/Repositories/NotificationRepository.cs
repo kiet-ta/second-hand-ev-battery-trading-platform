@@ -15,24 +15,32 @@ namespace Infrastructure.Repositories
             _context = context;
         }
 
-        public async Task AddNotificationAsync(CreateNotificationDTO noti)
+        public async Task AddNotificationAsync(CreateNotificationDTO noti, int senderId, string role)
         {
-            var allUserIds = await _context.Users
+            List<string> targetUserIds;
+            if (!string.IsNullOrEmpty(noti.TargetUserId))
+            {
+                targetUserIds = new List<string> { noti.TargetUserId };
+                Console.WriteLine($"[INFO] Sending notification only to TargetUserId = {noti.TargetUserId}");
+            }
+            else
+            {
+                targetUserIds = await _context.Users
                 .Where(u => (bool)!u.IsDeleted)
-                .Select(u => u.UserId)
+                .Select(u => u.UserId.ToString())
                 .ToListAsync();
-
-            if (!allUserIds.Any())
+            }
+            if (!targetUserIds.Any())
             {
                 Console.WriteLine("No users found to send notification.");
                 return;
             }
 
-            var notifications = allUserIds.Select(userId => new Notification
+            var notifications = targetUserIds.Select(userId => new Notification
             {
-                ReceiverId = userId,
-                SenderId = noti.SenderId,
-                SenderRole = noti.SenderRole,
+                ReceiverId = int.Parse(userId),
+                SenderId = senderId,
+                SenderRole = role,
                 NotiType = noti.NotiType,
                 Title = noti.Title,
                 Message = noti.Message,
@@ -65,13 +73,14 @@ namespace Infrastructure.Repositories
                 .OrderByDescending(n => n.CreatedAt)
                 .ToListAsync();
         }
-        public async Task<List<Notification>> GetNotificationById(int id)
+        public async Task<Notification?> GetNotificationByIdAsync(int id)
         {
-            return await _context.Notifications
-                .Where(n => n.Id == id)
-                .OrderByDescending(n => n.CreatedAt)
-                .ToListAsync();
+            var notification = await _context.Notifications
+                .FirstOrDefaultAsync(n => n.Id == id);
+
+            return notification;
         }
+
         public async Task<List<Notification>> GetAllNotificationsAsync()
         {
             return await _context.Notifications
@@ -89,13 +98,36 @@ namespace Infrastructure.Repositories
             return true;
         }
 
-        public async Task AddNotificationById(CreateNotificationDTO noti, int receiverId)
+        public async Task<bool> MarkNotificationAsReadAsync(int id)
+        {
+            var notification = await _context.Notifications.FindAsync(id);
+            if (notification == null)
+                throw new Exception($"Notification with ID {id} not found.");
+
+            notification.IsRead = true;
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<List<Notification>> GetNotificationsByReadStatusAsync(bool isRead)
+        {
+            var notifications = await _context.Notifications
+                .Where(n => n.IsRead == isRead)
+                .OrderByDescending(n => n.CreatedAt)
+                .ToListAsync();
+
+            return notifications;
+        }
+
+
+
+        public async Task AddNotificationById(CreateNotificationDTO noti, int receiverId, int senderId, string role)
         {
             var notification = new Notification
             {
                 ReceiverId = receiverId,
-                SenderId = noti.SenderId,
-                SenderRole = noti.SenderRole,
+                SenderId = senderId,
+                SenderRole = role,
                 NotiType = noti.NotiType,
                 Title = noti.Title,
                 Message = noti.Message,

@@ -5,12 +5,12 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <UserSecretsId>aad1165d-a5f8-4863-8b43-53555dfd1615</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="FirebaseDatabase.net" Version="5.0.0" />
     <PackageReference Include="Google.Apis.Auth" Version="1.72.0" />
+    <PackageReference Include="RabbitMQ.Client" Version="7.1.2" />
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.14.0" />
     <PackageReference Include="System.Net.Mail.Abstractions" Version="1.1.21" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.20" />

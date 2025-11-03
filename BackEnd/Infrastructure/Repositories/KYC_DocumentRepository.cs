@@ -17,7 +17,6 @@ namespace Infrastructure.Repositories
             _context = context;
         }
 
-        // ----------------- USER MANAGEMENT -----------------
         public async Task<User?> GetByIdAsync(int id)
         {
             var user = await _context.Users
@@ -30,7 +29,7 @@ namespace Infrastructure.Repositories
             var user = await _context.Users.FindAsync(id);
             if (user == null) return;
 
-            user.AccountStatus = status; // active, banned, warning1, warning2
+            user.AccountStatus = status; 
 
             _context.Users.Update(user);
             await _context.SaveChangesAsync();
@@ -42,13 +41,11 @@ namespace Infrastructure.Repositories
             if (user == null) throw new Exception($"User {id} not found");
             user.Role = role;
             user.KycStatus = status;
-            // not_submitted, pending, approved, rejected
 
             _context.Users.Update(user);
             await _context.SaveChangesAsync();
         }
 
-        // ----------------- KYC DOCUMENT -----------------
         public async Task CreateKYC_DocumentAsync(KycDocument kyc)
         {
             await _context.KycDocuments.AddAsync(kyc);
@@ -66,13 +63,12 @@ namespace Infrastructure.Repositories
             var kyc = await _context.KycDocuments.FindAsync(id);
             if (kyc == null) return;
 
-            kyc.Status = status; // pending, approved, rejected
+            kyc.Status = status; 
             kyc.Note = note;
             _context.KycDocuments.Update(kyc);
             await _context.SaveChangesAsync();
         }
 
-        // ----------------- QUERY LIST -----------------
         public async Task<IEnumerable<KycDocument>> GetKYC_DocumentsByStatusAsync(string status)
         {
             return await _context.KycDocuments
@@ -87,7 +83,6 @@ namespace Infrastructure.Repositories
 
         public async Task<List<SellerPendingApprovalDto>> GetPendingApprovalsAsync()
         {
-            // AsNoTracking cho read-only, tránh N+1 bằng subquery FirstOrDefault cho address
             var query = _context.KycDocuments
                 .AsNoTracking()
                 .Where(k => k.Status == "pending")
@@ -104,7 +99,6 @@ namespace Infrastructure.Repositories
                     PreferredAddress = _context.Addresses
                         .AsNoTracking()
                         .Where(a => a.UserId == x.User.UserId && !a.IsDeleted)
-                        // ưu tiên: is_shop_address -> is_default -> fallback smallest id
                         .OrderByDescending(a => a.IsShopAddress)
                         .ThenByDescending(a => a.IsDefault)
                         .ThenBy(a => a.AddressId)

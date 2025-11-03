@@ -15,25 +15,34 @@ public class WalletConfiguration : IEntityTypeConfiguration<Wallet>
         entity.HasIndex(e => e.UserId, "UQ__wallets__B9BE370EDA87C2F7").IsUnique();
 
         entity.Property(e => e.WalletId).HasColumnName("wallet_id");
+
         entity.Property(e => e.Balance)
             .HasColumnType("decimal(18, 2)")
             .HasColumnName("balance");
+
         entity.Property(e => e.Currency)
             .HasMaxLength(10)
             .HasDefaultValue("vnd")
             .HasColumnName("currency");
+        entity.Property(e => e.HeldBalance)
+            .HasColumnType("decimal(18, 2)")
+            .HasColumnName("held_balance");
         entity.Property(e => e.Status)
             .HasMaxLength(20)
             .HasDefaultValue("active")
             .HasColumnName("status");
+
         entity.Property(e => e.UpdatedAt)
             .HasDefaultValueSql("(getdate())")
             .HasColumnType("datetime")
             .HasColumnName("updated_at");
+
         entity.Property(e => e.UserId).HasColumnName("user_id");
 
         entity.HasOne<User>().WithOne()
             .HasForeignKey<Wallet>(d => d.UserId)
             .HasConstraintName("FK__wallets__user_id__160F4887");
+
+        entity.Ignore(e => e.AvailableBalance);
     }
 }

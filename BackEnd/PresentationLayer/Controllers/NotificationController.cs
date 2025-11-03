@@ -10,7 +10,7 @@ using System.Text.Json;
 namespace PresentationLayer.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/notification")]
     public class NotificationsController : ControllerBase
     {
         private readonly INotificationService _notificationService;
@@ -50,7 +50,7 @@ namespace PresentationLayer.Controllers
             HttpContext.Response.ContentType = "text/event-stream";
 
 
-            await HttpContext.Response.StartAsync(); // Commit headers and start streaming
+            await HttpContext.Response.StartAsync(); 
             Console.WriteLine($"[DEBUG-C#] Headers committed via StartAsync for {userId}.");
             await _notificationService.RegisterClientAsync(
                 HttpContext.Response,
@@ -72,14 +72,14 @@ namespace PresentationLayer.Controllers
             var serviceDto = new CreateNotificationDTO
             {
                 NotiType = request.NotiType,
-                SenderId = request.SenderId,
-                SenderRole = request.SenderRole,
+                //SenderId = request.SenderId,
+                //SenderRole = request.SenderRole,
                 Title = request.Title,
                 Message = request.Message,
                 TargetUserId = request.TargetUserId
             };
 
-            var dbSuccess = await _notificationService.AddNewNotification(serviceDto);
+            var dbSuccess = await _notificationService.AddNewNotification(serviceDto, 0, "");
 
             if (!dbSuccess)
                 return StatusCode(500, new { message = "Error saving Notification to database." });
@@ -139,7 +139,7 @@ namespace PresentationLayer.Controllers
         public async Task<IActionResult> GetById(int id)
         {
             var notifications = await _notificationService.GetNotificationByIdAsync(id);
-            if (notifications == null || notifications.Count == 0)
+            if (notifications == null )
                 return NotFound($"Notification with ID {id} not found");
 
             return Ok(notifications);
@@ -154,24 +154,37 @@ namespace PresentationLayer.Controllers
 
             return Ok($"Notification with ID {id} has been deleted successfully.");
         }
-        //[HttpPost("send/{receiverId}")]
-        //public async Task<IActionResult> SendNotification([FromBody] CreateNotificationDTO noti, int receiverId)
-        //{
-        //    if (noti == null)
-        //        return BadRequest("Notification data is required.");
+        [HttpPost("send/{receiverId}")]
+        public async Task<IActionResult> SendNotification([FromBody] CreateNotificationDTO noti, int receiverId)
+        {
+            if (noti == null)
+                return BadRequest("Notification data is required.");
 
-        //    var result = await _notificationService.SendNotificationAsyncByReceiverID(noti, receiverId);
+            var result = await _notificationService.AddNotificationByIdAsync(noti, receiverId, 0, "");
 
-        //    if (!result)
-        //        return BadRequest("Failed to send notification. Please check receiver ID or data.");
 
-        //    return Ok(new
-        //    {
-        //        message = "Notification sent successfully",
-        //        receiverId = receiverId,
-        //        title = noti.Title
-        //    });
-        //}
+            if (!result)
+                return BadRequest("Failed to send notification. Please check receiver ID or data.");
 
+            return Ok(new
+            {
+                message = "Notification sent successfully",
+                receiverId = receiverId,
+                title = noti.Title
+            });
+        }
+        [HttpPut("{id}/read")]
+        public async Task<IActionResult> MarkAsRead(int id)
+        {
+            var result = await _notificationService.MarkNotificationAsReadAsync(id);
+            return Ok(new { message = $"Notification {id} marked as read.", success = result });
+        }
+
+        [HttpGet("status/{isRead}")]
+        public async Task<IActionResult> GetByReadStatus(bool isRead)
+        {
+            var notifications = await _notificationService.GetNotificationsByReadStatusAsync(isRead);
+            return Ok(notifications);
+        }
     }
 }

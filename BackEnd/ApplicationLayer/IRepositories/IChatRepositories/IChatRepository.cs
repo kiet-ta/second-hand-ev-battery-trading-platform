@@ -14,5 +14,9 @@ namespace Application.IRepositories.IChatRepositories
         Task AppendMessageAsync(long cid, Message message);
         Task<IEnumerable<Message>> GetMessagesAsync(long cid, int limit = 50);
         Task<IEnumerable<ChatRoom>> QueryRoomsByMemberAsync(long memberId);
+
+        Task<IEnumerable<long>> GetRoomIdsByUserIdAsync(long userId);
+
+        Task<Message?> GetLastMessageAsync(long cid);
     }
 }

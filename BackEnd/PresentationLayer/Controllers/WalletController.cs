@@ -1,4 +1,5 @@
 ﻿using Application.DTOs;
+using Application.DTOs.WalletDtos;
 using Application.IServices;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -42,18 +43,23 @@ public class WalletController : ControllerBase
             return BadRequest(new { message = "Invalid deposit information." });
         }
 
-        try
-        {
+        
             var success = await _walletService.DepositAsync(request.UserId, request.Amount);
             if (success)
             {
                 return Ok(new { message = "Deposit successful." });
             }
             return StatusCode(500, new { message = "An error occurred while depositing money." });
-        }
-        catch (System.Exception ex)
+    }
+
+    [HttpPost("withdraw")]
+    public async Task<IActionResult> Withdraw([FromBody] WithdrawRequestDto request)
+    {
+        if (!ModelState.IsValid)
         {
-            return BadRequest(new { message = ex.Message });
+            return BadRequest(ModelState);
         }
+        var transactionResult = await _walletService.WithdrawAsync(request);
+        return Ok(new { message = $"{request.Type} successful.", transaction = transactionResult });
     }
 }

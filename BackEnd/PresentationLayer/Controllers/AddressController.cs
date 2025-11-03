@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace PresentationLayer.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/address")]
     public class AddressController : ControllerBase
     {
         private readonly IAddressService _addressService;
@@ -16,32 +16,39 @@ namespace PresentationLayer.Controllers
             _addressService = addressService;
         }
 
-        // ✅ Create Address
         [HttpPost]
         public async Task<IActionResult> CreateAddress([FromBody] CreateAddressDTO dto)
         {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            int userId = int.Parse(User.FindFirst("user_id")?.Value ?? "0");
 
             var address = new Address
             {
-                UserId = dto.UserId,
+                UserId = userId,
                 RecipientName = dto.RecipientName,
                 Phone = dto.Phone,
                 Street = dto.Street,
                 Ward = dto.Ward,
+                WardCode = dto.WardCode,
                 District = dto.District,
+                DistrictCode = dto.DistrictCode,
                 Province = dto.Province,
+                ProvinceCode = dto.ProvinceCode,
                 IsDefault = dto.IsDefault,
                 CreatedAt = DateTime.Now,
+                IsShopAddress = false,
                 IsDeleted = false
             };
 
-            await _addressService.AddAddressAsync(address);
+            await _addressService.AddAddressAsync(address, userId);
 
             return CreatedAtAction(nameof(GetAddressById), new { id = address.AddressId }, address);
         }
 
-        // ✅ Get All Addresses by UserId
+
+
         [HttpGet("user/{userId}")]
         public async Task<IActionResult> GetAddressesByUserId(int userId)
         {
@@ -49,7 +56,7 @@ namespace PresentationLayer.Controllers
             return Ok(addresses);
         }
 
-        // ✅ Get Address by Id
+ 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetAddressById(int id)
         {
@@ -59,7 +66,7 @@ namespace PresentationLayer.Controllers
             return Ok(address);
         }
 
-        // ✅ Update Address
+ 
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateAddress(int id, [FromBody] UpdateAddressDTO dto)
         {
@@ -70,8 +77,11 @@ namespace PresentationLayer.Controllers
             existing.Phone = dto.Phone;
             existing.Street = dto.Street;
             existing.Ward = dto.Ward;
+            existing.WardCode = dto.WardCode;
             existing.District = dto.District;
+            existing.DistrictCode = dto.DistrictCode;
             existing.Province = dto.Province;
+            existing.ProvinceCode = dto.ProvinceCode;
             existing.IsDefault = dto.IsDefault;
 
             await _addressService.UpdateAddressAsync(existing);
@@ -79,7 +89,7 @@ namespace PresentationLayer.Controllers
             return Ok(existing);
         }
 
-        // ✅ Delete Address (soft delete)
+ 
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteAddress(int id)
         {
@@ -93,8 +103,13 @@ namespace PresentationLayer.Controllers
                 return NotFound(new { ex.Message });
             }
         }
+        [HttpGet("default")]
+        public async Task<IActionResult> GetDefaultAddressByUserId([FromQuery] int userId)
+        {
+            var address = await _addressService.GetAddressDefaultByUserId(userId);
+            return Ok(address);
+        }
 
-        // ✅ Get All Addresses (Admin)
         [HttpGet]
         public async Task<IActionResult> GetAllAddresses()
         {

@@ -69,7 +69,8 @@ namespace Infrastructure.Repositories
                             HasAccessories = d.HasAccessories,
                             PreviousOwners = d.PreviousOwners,
                             IsRegistrationValid = d.IsRegistrationValid,
-                            Mileage = d.Mileage
+                            Mileage = d.Mileage,
+                            LicenseUrl = d.LicenseUrl
                         })
                         .FirstOrDefaultAsync();
 

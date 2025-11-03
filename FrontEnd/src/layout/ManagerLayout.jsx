@@ -21,7 +21,9 @@ import { IoLogOutOutline } from "react-icons/io5";
 // --- Card Wrapper ---
 function Card({ children, className = "" }) {
     return (
-        <div className={`rounded-2xl shadow-sm border border-slate-200 bg-white ${className}`}>
+        <div
+            className={`rounded-2xl shadow-sm border border-slate-200 bg-white ${className}`}
+        >
             {children}
         </div>
     );
@@ -42,19 +44,18 @@ function CardHeader({ title, icon, action }) {
 
 // --- Sidebar Menu ---
 const menu = [
-    { key: "dashboard", label: "Dashboard", icon: <LayoutDashboard size={18} />, path: "/manage" },
-    { key: "users", label: "User Management", icon: <UserCog size={18} />, path: "users" },
-    { key: "products", label: "Product Moderation", icon: <PackageSearch size={18} />, path: "products" },
-    { key: "complaints", label: "User Complaints", icon: <ShieldAlert size={18} />, path: "complaints" },
-    { key: "transactions", label: "Transaction Monitor", icon: <ClipboardList size={18} />, path: "transactions" },
-    { key: "notifications", label: "Notifications", icon: <Bell size={18} />, path: "notifications" },
-    { key: "news", label: "News Creation", icon: <ClipboardList size={18} />, path: "news" },
-    { key: "reports", label: "Reports & Analytics", icon: <BarChart3 size={18} />, path: "reports" },
-    { key: "settings", label: "Settings", icon: <Settings size={18} />, path: "settings" },
+    { key: "dashboard", label: "Bảng điều khiển", icon: <LayoutDashboard size={18} />, path: "/manage" },
+    { key: "users", label: "Quản lý người dùng", icon: <UserCog size={18} />, path: "users" },
+    { key: "products", label: "Duyệt sản phẩm", icon: <PackageSearch size={18} />, path: "products" },
+    { key: "complaints", label: "Khiếu nại người dùng", icon: <ShieldAlert size={18} />, path: "complaints" },
+    { key: "transactions", label: "Giám sát giao dịch", icon: <ClipboardList size={18} />, path: "transactions" },
+    { key: "notifications", label: "Thông báo", icon: <Bell size={18} />, path: "notifications" },
+    { key: "news", label: "Tạo tin tức", icon: <ClipboardList size={18} />, path: "news" },
+    { key: "reports", label: "Báo cáo & Phân tích", icon: <BarChart3 size={18} />, path: "reports" },
+    { key: "settings", label: "Cài đặt", icon: <Settings size={18} />, path: "settings" },
 ];
 
 // --- MAIN LAYOUT ---
-// ✨ THAY ĐỔI: Thêm `children` vào danh sách props
 export default function ManagerLayout({ onRefresh, onAddStaff, children }) {
     const navigate = useNavigate();
     const location = useLocation();
@@ -73,13 +74,22 @@ export default function ManagerLayout({ onRefresh, onAddStaff, children }) {
     const activeKey = getActiveKey();
 
     const handleLogout = () => {
-        localStorage.clear();
-        window.location.href = "/login";
+        const rememberEmail = localStorage.getItem("rememberEmail");
+        const rememberPassword = localStorage.getItem("rememberPassword");
+
+        localStorage.clear(); // Xoá mọi thứ
+        if (rememberEmail && rememberPassword) {
+            localStorage.setItem("rememberEmail", rememberEmail);
+            localStorage.setItem("rememberPassword", rememberPassword);
+        }
+
+        navigate("/login");
     };
+
 
     return (
         <div className="min-h-screen bg-slate-50">
-            {/* 🔹 Top Navigation Bar */}
+            {/* Thanh điều hướng trên cùng */}
             <div className="sticky top-0 z-30 bg-white/80 backdrop-blur border-b border-slate-200">
                 <div className="max-w-[1600px] mx-auto px-6 py-3 flex items-center justify-between">
                     <div className="flex items-center gap-3">
@@ -87,30 +97,28 @@ export default function ManagerLayout({ onRefresh, onAddStaff, children }) {
                             <ShieldCheck size={18} />
                         </div>
                         <div>
-                            <p className="text-sm text-slate-500 leading-tight">EV & Battery Trading Platform</p>
-                            <h1 className="text-lg font-semibold text-slate-800 -mt-0.5">Manager Console</h1>
+                            <p className="text-sm text-slate-500 leading-tight">
+                                Cóc Mua Xe - Nền tảng giao dịch Xe điện & Pin
+                            </p>
+                            <h1 className="text-lg font-semibold text-slate-800 -mt-0.5">
+                                Quản lý
+                            </h1>
                         </div>
                     </div>
 
                     <div className="flex items-center gap-2">
-                        <div className="hidden md:flex items-center gap-2 px-3 py-2 border border-slate-200 rounded-xl bg-white">
-                            <Search size={16} className="opacity-70" />
-                            <input placeholder="Search…" className="outline-none text-sm w-44" />
-                            <Filter size={16} className="opacity-70" />
-                        </div>
-
                         <button
                             onClick={onRefresh}
                             className="flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-200 bg-white text-slate-700 text-sm hover:bg-slate-50"
                         >
                             <RefreshCw size={16} />
-                            Refresh
+                            Làm mới
                         </button>
                     </div>
                 </div>
             </div>
 
-            {/* 🔹 Body Layout */}
+            {/* Bố cục chính */}
             <div className="max-w-[1600px] mx-auto grid grid-cols-12 gap-6 px-6 py-6">
                 {/* Sidebar */}
                 <aside className="col-span-12 lg:col-span-3 xl:col-span-2">
@@ -136,7 +144,7 @@ export default function ManagerLayout({ onRefresh, onAddStaff, children }) {
                                     className="w-full flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-red-50 transition"
                                 >
                                     <IoLogOutOutline size={20} />
-                                    <span className="font-medium">Logout</span>
+                                    <span className="font-medium text-red-600">Đăng xuất</span>
                                 </button>
                             </div>
                         </div>
@@ -144,61 +152,75 @@ export default function ManagerLayout({ onRefresh, onAddStaff, children }) {
 
                     <Card className="mt-6">
                         <CardHeader
-                            title="Quick Actions"
+                            title="Tác vụ nhanh"
                             icon={<Settings size={18} className="text-slate-700" />}
                         />
                         <div className="p-4 grid grid-cols-1 gap-2">
-                            {/* ✅ Add Staff */}
+                            {/* Thêm tài khoản nhân viên */}
                             <button
                                 onClick={onAddStaff}
                                 className="flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-200 text-sm text-slate-700 hover:bg-slate-50 text-left"
                             >
                                 <UserPlus2 size={16} className="text-indigo-600" />
-                                Add Staff Account
+                                Thêm tài khoản nhân viên
                             </button>
 
-                            {/* ✅ Review Seller Approvals */}
+                            {/* Duyệt người bán */}
                             <button
                                 onClick={() => navigate("approvals")}
                                 className="flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-200 text-sm text-slate-700 hover:bg-slate-50 text-left"
                             >
                                 <ShieldCheck size={16} className="text-emerald-600" />
-                                Review Seller Approvals
+                                Duyệt người bán
                             </button>
 
-                            {/* ✅ Update Commission */}
+                            {/* Cập nhật quy định hoa hồng */}
                             <button
-                                onClick={() => navigate("settings")}
+                                onClick={() => navigate("fee")}
                                 className="flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-200 text-sm text-slate-700 hover:bg-slate-50 text-left"
                             >
                                 <ClipboardList size={16} className="text-orange-500" />
-                                Update Commission Rules
+                                Cập nhật quy định hoa hồng
                             </button>
+
                         </div>
                     </Card>
-
                 </aside>
 
-                {/* Main Content */}
+                {/* Nội dung chính */}
                 <main className="col-span-12 lg:col-span-9 xl:col-span-10 space-y-6 relative overflow-hidden">
                     <Outlet />
 
-                    {/* ✨ THAY ĐỔI: Render `children` (chứa các modal) tại đây */}
+                    {/* Nơi hiển thị children (modal hoặc popup) */}
                     {children}
 
                     <div className="text-xs text-slate-500 flex items-center gap-2 py-4">
-                        <span>© {new Date().getFullYear()} EV & Battery Trading — Manager Console</span>
+                        <span>
+                            © {new Date().getFullYear()} Cóc Mua Xe.
+                        </span>
                     </div>
                 </main>
             </div>
+
+            {/* Xác nhận đăng xuất */}
             {showLogoutConfirm && (
-                <div className="logout-overlay">
-                    <div className="logout-popup">
-                        <h3>Đăng xuất</h3>
-                        <p>Bạn có chắc muốn đăng xuất không?</p>
-                        <div className="logout-actions">
-                            <button className="btn-cancel" onClick={() => setShowLogoutConfirm(false)}>Hủy</button>
-                            <button className="btn-confirm" onClick={handleLogout}>Đăng xuất</button>
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+                    <div className="bg-white rounded-xl p-6 shadow-lg text-center max-w-sm w-full">
+                        <h3 className="text-lg font-semibold text-slate-800 mb-2">Đăng xuất</h3>
+                        <p className="text-slate-600 mb-4">Bạn có chắc muốn đăng xuất không?</p>
+                        <div className="flex justify-center gap-3">
+                            <button
+                                className="px-4 py-2 text-sm rounded-md border border-slate-300 hover:bg-slate-100"
+                                onClick={() => setShowLogoutConfirm(false)}
+                            >
+                                Hủy
+                            </button>
+                            <button
+                                className="px-4 py-2 text-sm rounded-md bg-red-500 text-white hover:bg-red-600"
+                                onClick={handleLogout}
+                            >
+                                Đăng xuất
+                            </button>
                         </div>
                     </div>
                 </div>

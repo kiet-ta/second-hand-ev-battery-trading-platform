@@ -28,6 +28,7 @@ public class EVDetail
     public bool IsRegistrationValid { get; set; }
 
     public int? Mileage { get; set; }
+    public string LicenseUrl { get; set; }
 
     public DateTime? UpdatedAt { get; set; }
 

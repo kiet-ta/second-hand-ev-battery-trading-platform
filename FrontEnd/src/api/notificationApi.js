@@ -8,6 +8,10 @@ const notificationApi = {
     createNotification: async (payload) => {
         const response = await axios.post(`${baseURL}`,payload)
         return response.data;
+    },
+    putNotificationStatusIsRead: async (notificationId) => {
+        const response = await axios.put(`${baseURL}/${notificationId}/read`)
+        return response.data;
     }
 };
 export default notificationApi;

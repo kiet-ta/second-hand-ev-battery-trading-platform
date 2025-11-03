@@ -22,24 +22,34 @@ namespace Application.Services
             IReviewRepository reviewRepository,
             IItemRepository itemRepository)
         {
-            _userRepository = userRepository;
-            _addressRepository = addressRepository;
-            _reviewRepository = reviewRepository;
-            _itemRepository = itemRepository;
+            _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
+            _addressRepository = addressRepository ?? throw new ArgumentNullException(nameof(addressRepository));
+            _reviewRepository = reviewRepository ?? throw new ArgumentNullException(nameof(reviewRepository));
+            _itemRepository = itemRepository ?? throw new ArgumentNullException(nameof(itemRepository));
         }
 
         public async Task<SellerProfileDto?> GetSellerProfileAsync(int sellerId)
         {
-            var user = await _userRepository.GetByIdAsync(sellerId);
-            if (user == null || user.Role != "seller")
-                return null;
+            if (sellerId <= 0)
+                throw new ArgumentException("Seller ID must be greater than zero.", nameof(sellerId));
 
-            var shopAddress = await _addressRepository.GetShopAddressAsync(sellerId);
-            var reviews = await _reviewRepository.GetByTargetUserIdAsync(sellerId);
-            var items = await _itemRepository.GetBySellerIdAsync(sellerId);
+            var user = await _userRepository.GetByIdAsync(sellerId);
+            if (user == null)
+                throw new KeyNotFoundException($"Seller with ID {sellerId} not found.");
+
+            if (user.Role != "seller")
+                throw new InvalidOperationException($"User with ID {sellerId} is not a seller.");
+
+            var shopAddress = await _addressRepository.GetShopAddressAsync(sellerId)
+                ?? throw new Exception("Failed to retrieve shop address.");
+
+            var reviews = await _reviewRepository.GetByTargetUserIdAsync(sellerId)
+                ?? throw new Exception("Failed to retrieve seller reviews.");
+
+            var items = await _itemRepository.GetBySellerIdAsync(sellerId)
+                ?? throw new Exception("Failed to retrieve seller items.");
 
             double avgRating = reviews.Any() ? reviews.Average(r => r.Rating) : 0;
-
             return new SellerProfileDto
             {
                 UserId = user.UserId,
@@ -58,7 +68,14 @@ namespace Application.Services
 
         public async Task<IEnumerable<SellerReviewDto>> GetSellerReviewsAsync(int sellerId)
         {
-            return await _reviewRepository.GetReviewsBySellerIdAsync(sellerId);
+            if (sellerId <= 0)
+                throw new ArgumentException("Seller ID must be greater than zero.", nameof(sellerId));
+
+            var reviews = await _reviewRepository.GetReviewsBySellerIdAsync(sellerId);
+            if (reviews == null)
+                throw new Exception("Failed to retrieve seller reviews.");
+
+            return reviews;
         }
     }
 }

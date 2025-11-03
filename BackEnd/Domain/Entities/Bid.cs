@@ -14,5 +14,6 @@ public class Bid
     public decimal BidAmount { get; set; }
 
     public DateTime? BidTime { get; set; }
+    public string Status { get; set; } = "active"; // active, outbid, winner, released, cancelled
 
 }

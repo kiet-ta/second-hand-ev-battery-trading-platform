@@ -16,5 +16,10 @@ public class BidConfiguration : IEntityTypeConfiguration<Bid>
         entity.Property(e => e.UserId).HasColumnName("user_id");
         entity.Property(e => e.BidAmount).HasColumnName("bid_amount").HasColumnType("decimal(18,2)");
         entity.Property(e => e.BidTime).HasColumnName("bid_time").HasDefaultValueSql("GETDATE()");
+        entity.Property(e => e.Status)
+              .HasColumnName("status")
+              .HasMaxLength(20)
+              .IsRequired()
+              .HasDefaultValue("active");
     }
 }

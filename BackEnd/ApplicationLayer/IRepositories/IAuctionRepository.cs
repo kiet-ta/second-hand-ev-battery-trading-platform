@@ -15,8 +15,7 @@ public interface IAuctionRepository
 
     Task<int> CreateAsync(Auction auction);
 
-    Task UpdateCurrentPriceAsync(Auction auction);
-
+    Task<bool> UpdateCurrentPriceAsync(int auctionId, decimal newPrice);
     Task UpdateStatusAsync(Auction auction, string newStatus);
 
     Task UpdateTotalBidsAsync(int auctionId);
@@ -28,4 +27,6 @@ public interface IAuctionRepository
     Task<int> GetTotalCountAsync();
 
     Task<IEnumerable<Auction>> GetAuctionsByUserIdAsync(int userId);
+
+    Task<IEnumerable<Auction>> GetEndedAuctionsToFinalizeAsync(DateTime currentTime);
 }

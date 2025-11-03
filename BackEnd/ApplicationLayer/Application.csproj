@@ -18,6 +18,7 @@
     <PackageReference Include="CloudinaryDotNet" Version="1.27.8" />
     <PackageReference Include="FluentValidation" Version="12.0.0" />
     <PackageReference Include="Google.Apis.Auth" Version="1.72.0" />
+    <PackageReference Include="IdGen" Version="3.0.7" />
     <PackageReference Include="MailKit" Version="4.14.0" />
     <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.3.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.20" />
@@ -33,6 +34,11 @@
     <ProjectReference Include="..\Domain\Domain.csproj">
       <Private>True</Private>
     </ProjectReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="IServices\Commission\" />
+    <Folder Include="Services\Commission\" />
   </ItemGroup>
 
 </Project>

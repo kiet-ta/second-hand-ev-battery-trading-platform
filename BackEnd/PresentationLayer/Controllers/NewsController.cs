@@ -1,13 +1,15 @@
 ﻿using Application.DTOs;
 using Application.IServices;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+using System.Reactive.Subjects;
 using System.Security.Claims;
 
 namespace PresentationLayer.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/news")]
     public class NewsController : ControllerBase
     {
         private readonly INewsService _newsService;
@@ -17,6 +19,23 @@ namespace PresentationLayer.Controllers
         {
             _newsService = newsService;
             _notificationService = notificationService;
+        }
+        [HttpGet]
+        public async Task<IActionResult> GetAllNews([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+        {
+            if (page <= 0 || pageSize <= 0)
+                return BadRequest("Page and PageSize must be greater than 0");
+            
+            var news = await _newsService.GetAllNewsAsync(page, pageSize);
+            return Ok(news);
+        }
+
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetNewsById(int id)
+        {
+            if (id <= 0) return BadRequest("newsId must be greater than 0");
+            var newsDetail = await _newsService.GetNewsById(id);
+            return Ok(newsDetail);
         }
 
         [HttpPost("approve/{newsId}")]
@@ -29,7 +48,7 @@ namespace PresentationLayer.Controllers
             if (!isApproved)
                 return NotFound(new { message = "News not found." });
 
-            var notificationAdded = await _notificationService.AddNewNotification(dto);
+            var notificationAdded = await _notificationService.AddNewNotification(dto, 0, "");
             Console.WriteLine(notificationAdded
                 ? $"Notification added to DB: {dto.Title} -> {dto.Message}"
                 : "Failed to add notification to the database.");
@@ -59,24 +78,14 @@ namespace PresentationLayer.Controllers
             await _notificationService.RegisterClientAsync(Response, ct, userId);
             Console.WriteLine($"User {userId} subscribed for SSE.");
 
-            try
+
+            while (!ct.IsCancellationRequested)
             {
-                while (!ct.IsCancellationRequested)
-                {
-                    await Task.Delay(TimeSpan.FromSeconds(15), ct);
-                    await Response.WriteAsync(":\n\n"); 
-                    await Response.Body.FlushAsync();
-                }
+                await Task.Delay(TimeSpan.FromSeconds(15), ct);
+                await Response.WriteAsync(":\n\n");
+                await Response.Body.FlushAsync();
             }
-            catch (TaskCanceledException)
-            {
-            }
-            finally
-            {
-                await _notificationService.UnRegisterClientAsync(Response);
-                Console.WriteLine($"User {userId} unsubscribed.");
-            }
-            
+
         }
         [HttpPost]
         public async Task<IActionResult> AddNews([FromBody] CreateNewsDto dto)

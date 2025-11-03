@@ -6,7 +6,7 @@ using System.Security.Claims;
 
 namespace PresentationLayer.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/favorite")]
     [ApiController]
     public class FavoritesController : ControllerBase
     {
@@ -23,15 +23,10 @@ namespace PresentationLayer.Controllers
             if (dto == null || dto.UserId <= 0 || dto.ItemId <= 0)
                 return BadRequest(new { message = "Invalid favorite data." });
 
-            try
-            {
                 var result = await _favoriteService.CreateFavoriteAsync(dto);
                 return Ok(result);
-            }
-            catch (InvalidOperationException ex)
-            {
-                return Conflict(new { message = ex.Message });
-            }
+            
+           
         }
 
         [HttpGet("{userId}")]

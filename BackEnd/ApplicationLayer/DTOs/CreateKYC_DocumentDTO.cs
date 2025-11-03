@@ -10,7 +10,12 @@ namespace Application.DTOs
         public string? VehicleRegistrationUrl { get; set; }
         public string? SelfieUrl { get; set; }
         public string? DocUrl { get; set; }
-        public DateTime SubmittedAt { get; set; } = DateTime.Now;       
+        public DateTime SubmittedAt { get; set; } = DateTime.Now;   
+        public int? VerifiedBy { get; set; }
+        public DateTime? VerifiedAt { get; set; } = null;
+        public string? StoreName { get; set; }
+        public int? StorePhone { get; set; }
+        public string? StoreLogoUrl { get; set; }
         public string Status { get; set; } = "pending";
 
     }

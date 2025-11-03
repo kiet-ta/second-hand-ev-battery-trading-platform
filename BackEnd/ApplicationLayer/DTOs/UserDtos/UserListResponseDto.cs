@@ -14,5 +14,6 @@ namespace Application.DTOs.UserDtos
         public string? Phone { get; set; }
         public string Role { get; set; } = null!;
         public string? AccountStatus { get; set; }
+        public DateTime CreatedAt { get; set; }
     }
 }

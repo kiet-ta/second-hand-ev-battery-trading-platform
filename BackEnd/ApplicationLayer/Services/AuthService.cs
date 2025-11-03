@@ -13,6 +13,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 
 namespace Application.Services
@@ -25,18 +26,24 @@ namespace Application.Services
     public class AuthService : IAuthService
     {
         private readonly IUserRepository _userRepository;
+        private readonly IPasswordResetTokenRepository _otpRepository;
+        private readonly IMailService _emailSender;
         private readonly string _jwtSecret;
         private readonly string _jwtIssuer;
         private readonly string _jwtAudience;
         private readonly IConfiguration _config;
         private readonly AppSetting _appSettings;
         private readonly ILogger<AuthService> _logger;
+        private readonly IUnitOfWork _uow;
 
         public AuthService(
             IUserRepository userRepository,
             IConfiguration config,
             IOptionsMonitor<AppSetting> option,
-            ILogger<AuthService> logger)
+            ILogger<AuthService> logger,
+            IPasswordResetTokenRepository otpRepository,
+            IMailService emailSender,
+            IUnitOfWork uow)
         {
             _userRepository = userRepository;
             _config = config;
@@ -45,6 +52,9 @@ namespace Application.Services
             _jwtAudience = config["Jwt:Audience"]!;
             _appSettings = option.CurrentValue;
             _logger = logger;
+            _otpRepository = otpRepository;
+            _emailSender = emailSender;
+            _uow = uow;
         }
 
         public static int GenerateUserId()
@@ -59,36 +69,47 @@ namespace Application.Services
 
         public async Task<AuthResponseDto> RegisterAsync(RegisterDto dto)
         {
-            // Validate input
             var validator = new RegisterValidator();
             var result = validator.Validate(dto);
             if (!result.IsValid)
                 throw new ValidationException(string.Join("; ", result.Errors.Select(e => e.ErrorMessage)));
-
-            // Business validate
-            if (await _userRepository.GetByEmailAsync(dto.Email) != null)
-                throw new ValidationException("Email already registered");
-
-            // Optional: check phone unique
-            //var existingUsers = await _userRepository.GetAllAsync();
-            //if (existingUsers.Any(u => u.Phone == dto.Phone))
-            //    throw new ValidationException("Phone number already used");
-
-            //  Hash password + Save
-            var user = new User
+            try
             {
-                UserId = GenerateUserId(),
-                FullName = dto.FullName.Trim(),
-                Email = dto.Email.ToLower(),
-                PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
-                Role = "Buyer",
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow,
-                IsDeleted = false
-            };
+                if (await _uow.Users.GetByEmailAsync(dto.Email) != null)
+                    throw new ValidationException("Email already registered");
 
-            await _userRepository.AddAsync(user);
-            return GenerateToken(user);
+                var user = new User
+                {
+                    UserId = GenerateUserId(),
+                    FullName = dto.FullName.Trim(),
+                    Email = dto.Email.ToLower(),
+                    PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
+                    Role = "buyer",
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow,
+                    IsDeleted = false,
+                    KycStatus = "not_submitted",
+                    AccountStatus = "active",
+                    Paid = "pending"
+                };
+                await _userRepository.AddAsync(user);
+                var sellected = await _userRepository.GetByIdAsync(user.UserId);
+                var wallet = new Wallet
+                {
+                    UserId = sellected.UserId,
+                    Balance = 0,
+                    HeldBalance = 0,
+                    Currency = "vnd",
+                    Status = "active",
+                    UpdatedAt = DateTime.UtcNow
+                };
+                await _uow.Wallets.AddAsync(wallet);
+                return GenerateToken(user);
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
         }
 
         public async Task<AuthResponseDto> LoginAsync(LoginDto dto)
@@ -174,7 +195,7 @@ namespace Application.Services
                 FullName = string.IsNullOrWhiteSpace(payload.Name) ? username : payload.Name,
                 Email = email,
                 PasswordHash = string.Empty, // No password for Google login
-                Role = "Buyer",
+                Role = "buyer",
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow,
                 IsDeleted = false,
@@ -274,6 +295,83 @@ namespace Application.Services
             await _userRepository.UpdateAsync(user);
 
             return true;
+        }
+
+        public async Task SendOtpAsync(ForgotPasswordRequestDto dto)
+        {
+            var user = await _userRepository.GetByEmailAsync(dto.Email);
+            if (user == null)
+                throw new Exception("Email not found.");
+
+            string otp = GenerateOtp();
+            var token = new PasswordResetToken
+            {
+                UserId = user.UserId,
+                OtpCode = otp,
+                ExpirationTime = DateTime.UtcNow.AddMinutes(5)
+            };
+
+            await _otpRepository.CreateAsync(token);
+
+            string systemUrl = "https://your-website.com/reset-password"; // Try
+
+            await _emailSender.SendOtpMailAsync(
+                dto.Email,  
+                otp,        
+                systemUrl   
+            );
+        }
+
+        public async Task<bool> VerifyOtpAsync(VerifyOtpDto dto)
+        {
+            try
+            {
+                await ValidateOtpAndGetUserAsync(dto.Email, dto.OtpCode);
+                return true;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
+
+        public async Task ResetPasswordAsync(ResetPasswordDto dto)
+        {
+            if (dto.NewPassword != dto.ConfirmPassword)
+            {
+                throw new Exception("Passwords do not match. Please try again.");
+            }
+            User user = await ValidateOtpAndGetUserAsync(dto.Email, dto.OtpCode);
+
+            user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.NewPassword);
+            await _userRepository.UpdateAsync(user);
+        }
+
+        private string GenerateOtp()
+        {
+            using var rng = RandomNumberGenerator.Create();
+            var bytes = new byte[4];
+            rng.GetBytes(bytes);
+            int code = BitConverter.ToInt32(bytes, 0);
+            return Math.Abs(code % 1000000).ToString("D6");
+        }
+
+        private async Task<User> ValidateOtpAndGetUserAsync(string email, string otpCode)
+        {
+            var user = await _userRepository.GetByEmailAsync(email);
+            if (user == null)
+                throw new Exception("Email not found.");
+
+            var token = await _otpRepository.GetValidTokenAsync(user.UserId, otpCode);
+            if (token == null)
+                throw new Exception("Invalid OTP code.");
+
+            if (token.ExpirationTime < DateTime.UtcNow)
+                throw new Exception("Your OTP has expired. Please request a new one.");
+
+            await _otpRepository.MarkAsUsedAsync(token);
+
+            return user;
         }
     }
 }

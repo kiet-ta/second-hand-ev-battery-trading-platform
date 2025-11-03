@@ -26,25 +26,6 @@ namespace Infrastructure.Repositories
             var order = await _context.Orders
         .FirstOrDefaultAsync(o => o.OrderId == id);
 
-            if (order != null)
-            {
-                // Load OrderItems -> OrderId
-                var orderItems = await _context.OrderItems
-                    .Where(oi => oi.OrderId == id)
-                    .ToListAsync();
-
-                // If you want return OrderDto
-                order = new Order
-                {
-                    OrderId = order.OrderId,
-                    BuyerId = order.BuyerId,
-                    AddressId = order.AddressId,
-                    Status = order.Status,
-                    CreatedAt = order.CreatedAt
-                    // fields other...
-                };
-            }
-
             return order!;
         }
 
@@ -95,19 +76,40 @@ namespace Infrastructure.Repositories
                             _context.Items.Any(i => i.ItemId == p.ItemId && i.UpdatedBy == sellerId)));
         }
 
-        public async Task<List<OrdersByMonthDto>> GetOrdersByMonthAsync(int sellerId)
+        public async Task<List<OrdersByWeekDto>> GetOrdersByWeekAsync(int sellerId)
         {
-            return await _context.Orders
-                .Where(o => _context.PaymentDetails
-                    .Any(p => p.OrderId == o.OrderId &&
-                        _context.Items.Any(i => i.ItemId == p.ItemId && i.UpdatedBy == sellerId)))
-                .GroupBy(o => o.CreatedAt.Month)
-                .Select(g => new OrdersByMonthDto
+            var orderIdsQuery = _context.PaymentDetails
+                .Where(pd => _context.Items.Any(i => i.ItemId == pd.ItemId && i.UpdatedBy == sellerId))
+                .Select(pd => pd.OrderId)
+                .Distinct();
+
+            var ordersQuery = _context.Orders
+                .Where(o => orderIdsQuery.Contains(o.OrderId) && o.CreatedAt != null)
+                .Select(o => new { o.OrderId, o.CreatedAt });
+
+            var orders = await ordersQuery.ToListAsync();
+
+            var result = orders
+                .GroupBy(o =>
                 {
-                    Month = g.Key,
-                    TotalOrders = g.Count()
+                    var cal = System.Globalization.DateTimeFormatInfo.CurrentInfo.Calendar;
+                    var week = cal.GetWeekOfYear(
+                        o.CreatedAt,
+                        System.Globalization.CalendarWeekRule.FirstFourDayWeek,
+                        DayOfWeek.Monday);
+                    return new { o.CreatedAt.Year, WeekNumber = week };
                 })
-                .ToListAsync();
+                .Select(g => new OrdersByWeekDto
+                {
+                    Year = g.Key.Year,
+                    WeekNumber = g.Key.WeekNumber,
+                    Total = g.Count()
+                })
+                .OrderBy(x => x.Year)
+                .ThenBy(x => x.WeekNumber)
+                .ToList();
+
+            return result;
         }
 
         public async Task<List<OrderDto>> GetOrdersByUserIdAsync(int userId)

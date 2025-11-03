@@ -8,7 +8,7 @@ namespace PresentationLayer.Controllers;
 
 [Route("api/management")]
 [ApiController]
-[Authorize(Roles = "manager")]
+[Authorize(Roles = "manager,staff")]
 public class StaffManagementController : ControllerBase
 {
     private readonly IStaffManagementService _staffManagementService;
@@ -52,14 +52,9 @@ public class StaffManagementController : ControllerBase
     [HttpGet("staff/{staffId}/permissions")]
     public async Task<IActionResult> GetStaffPermissions(int staffId)
     {
-        try
-        {
-            var permissions = await _staffManagementService.GetPermissionsByStaffIdAsync(staffId);
+           var permissions = await _staffManagementService.GetPermissionsByStaffIdAsync(staffId);
             return Ok(permissions);
-        }
-        catch (Exception ex)
-        {
-            return NotFound(new { message = ex.Message });
-        }
+        
+        
     }
 }

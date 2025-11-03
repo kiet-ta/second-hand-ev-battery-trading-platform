@@ -1,19 +1,13 @@
 using Application.DTOs.AuthenticationDtos;
 using Application.DTOs.UserDtos;
-using Application.IHelpers;
 using Application.IRepositories;
 using Application.IServices;
 using Domain.Entities;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
-using System;
-using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
-using System.Linq;
 using System.Security.Claims;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace Application.Services
 {
@@ -29,14 +23,16 @@ namespace Application.Services
         {
             _userRepository = userRepository;
             _config = config;
-            _jwtSecret = config["Jwt:Key"]!;
-            _jwtIssuer = config["Jwt:Issuer"]!;
-            _jwtAudience = config["Jwt:Audience"]!;
+            _jwtSecret = config["Jwt:Key"] ?? throw new ArgumentNullException("Jwt:Key", "JWT key is missing from configuration.");
+            _jwtIssuer = config["Jwt:Issuer"] ?? throw new ArgumentNullException("Jwt:Issuer", "JWT issuer is missing from configuration.");
+            _jwtAudience = config["Jwt:Audience"] ?? throw new ArgumentNullException("Jwt:Audience", "JWT audience is missing from configuration.");
         }
 
         public async Task<List<UserRoleCountDto>> GetUsersByRoleAsync()
         {
             var data = await _userRepository.GetUsersByRoleAsync();
+            if (data == null || !data.Any())
+                throw new InvalidOperationException("No users found by role.");
 
             return data.Select(d => new UserRoleCountDto
             {
@@ -47,13 +43,18 @@ namespace Application.Services
 
         public async Task<AuthResponseDto> AddUserAsync(CreateUserDto dto)
         {
+            if (dto == null)
+                throw new ArgumentNullException(nameof(dto), "User data cannot be null.");
+
+            if (string.IsNullOrWhiteSpace(dto.Email) || string.IsNullOrWhiteSpace(dto.Password))
+                throw new ArgumentException("Email and password are required.");
+
             var existingUser = await _userRepository.GetByEmailAsync(dto.Email);
             if (existingUser != null)
-                throw new Exception("Email already registered");
+                throw new InvalidOperationException("Email already registered.");
 
             var newUser = new User
             {
-                UserId = dto.UserId,
                 FullName = dto.FullName,
                 YearOfBirth = dto.DateOfBirth,
                 Gender = dto.Gender,
@@ -61,17 +62,21 @@ namespace Application.Services
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
                 Phone = dto.Phone,
                 Role = dto.Role,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
             };
+
             await _userRepository.AddAsync(newUser);
             return GenerateToken(newUser);
         }
 
         private AuthResponseDto GenerateToken(User user)
         {
+            if (user == null)
+                throw new ArgumentNullException(nameof(user), "User cannot be null when generating token.");
+
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.UTF8.GetBytes(_jwtSecret);
-            var issuer = _config["Jwt:Issuer"];
-            var audience = _config["Jwt:Audience"];
 
             var tokenDescriptor = new SecurityTokenDescriptor
             {
@@ -82,10 +87,9 @@ namespace Application.Services
                     new Claim(ClaimTypes.Role, user.Role)
                 }),
                 Expires = DateTime.UtcNow.AddHours(2),
-                Issuer = issuer,
-                Audience = audience,
-                SigningCredentials = new SigningCredentials(
-                    new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256)
+                Issuer = _jwtIssuer,
+                Audience = _jwtAudience,
+                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256)
             };
 
             var token = tokenHandler.CreateToken(tokenDescriptor);
@@ -98,33 +102,56 @@ namespace Application.Services
             };
         }
 
-        public Task<IEnumerable<User>> GetAllUsersAsync() => _userRepository.GetAllAsync();
+        public async Task<IEnumerable<User>> GetAllUsersAsync()
+        {
+            var users = await _userRepository.GetAllAsync();
+            if (users == null)
+                throw new InvalidOperationException("No users found.");
+
+            return users;
+        }
 
         public async Task<User?> GetUserByIdAsync(int id)
         {
-            return await _userRepository.GetByIdAsync(id);
+            if (id <= 0)
+                throw new ArgumentException("Invalid user ID.");
+
+            var user = await _userRepository.GetByIdAsync(id);
+            if (user == null)
+                throw new KeyNotFoundException($"User with ID {id} not found.");
+
+            return user;
         }
 
-
-        public Task<User?> GetUserByEmailAsync(string email) => _userRepository.GetByEmailAsync(email);
+        public Task<User?> GetUserByEmailAsync(string email)
+        {
+            if (string.IsNullOrWhiteSpace(email))
+                throw new ArgumentException("Email cannot be empty.");
+            return _userRepository.GetByEmailAsync(email);
+        }
 
         public async Task AddUserAsync(User user)
         {
+            if (user == null)
+                throw new ArgumentNullException(nameof(user), "User data cannot be null.");
+
             var existing = await _userRepository.GetByEmailAsync(user.Email);
             if (existing != null)
-                throw new InvalidOperationException("Email đã tồn tại!");
+                throw new InvalidOperationException("Email already exists.");
 
-            user.CreatedAt = DateTime.Now;
-            user.UpdatedAt = DateTime.Now;
-
+            user.CreatedAt = DateTime.UtcNow;
+            user.UpdatedAt = DateTime.UtcNow;
             await _userRepository.AddAsync(user);
         }
 
         public async Task UpdateUserAsync(User user)
         {
+            if (user == null)
+                throw new ArgumentNullException(nameof(user), "User data cannot be null.");
+
             var existing = await _userRepository.GetByIdAsync(user.UserId);
             if (existing == null)
-                throw new KeyNotFoundException("User không tồn tại!");
+                throw new KeyNotFoundException($"User with ID {user.UserId} not found.");
 
             existing.FullName = user.FullName;
             existing.Phone = user.Phone;
@@ -133,45 +160,67 @@ namespace Application.Services
             existing.Role = user.Role;
             existing.KycStatus = user.KycStatus;
             existing.AccountStatus = user.AccountStatus;
-            existing.UpdatedAt = DateTime.Now;
+            existing.YearOfBirth = user.YearOfBirth;
+            existing.UpdatedAt = DateTime.UtcNow;
 
             await _userRepository.UpdateAsync(existing);
         }
 
-        public Task DeleteUserAsync(int id) => _userRepository.DeleteAsync(id);
+        public async Task DeleteUserAsync(int id)
+        {
+            if (id <= 0)
+                throw new ArgumentException("Invalid user ID.");
+
+            await _userRepository.DeleteAsync(id);
+        }
 
         public async Task<string?> GetAvatarAsync(int userId)
         {
-            if (_userRepository == null)
-                throw new Exception("_userRepository is NULL");
+            if (userId <= 0)
+                throw new ArgumentException("Invalid user ID.");
+
             var user = await _userRepository.GetByIdAsync(userId);
             if (user == null)
-                throw new Exception("User not found");
+                throw new KeyNotFoundException($"User with ID {userId} not found.");
 
             return user.AvatarProfile;
         }
 
         public async Task<bool> ChangePasswordAsync(int userId, ChangePasswordRequestDto request)
         {
+            if (request == null)
+                throw new ArgumentNullException(nameof(request), "Password change request cannot be null.");
+
+            if (string.IsNullOrWhiteSpace(request.CurrentPassword) || string.IsNullOrWhiteSpace(request.NewPassword))
+                throw new ArgumentException("Passwords cannot be empty.");
+
             if (request.NewPassword != request.ConfirmPassword)
                 throw new ArgumentException("Confirmation password does not match.");
 
             var user = await _userRepository.GetByIdAsync(userId);
             if (user == null || user.IsDeleted)
-                throw new KeyNotFoundException("User not found.");
+                throw new KeyNotFoundException($"User with ID {userId} not found or has been deleted.");
 
             bool isPasswordValid = BCrypt.Net.BCrypt.Verify(request.CurrentPassword, user.PasswordHash);
             if (!isPasswordValid)
                 throw new UnauthorizedAccessException("The current password is incorrect.");
 
             user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
+            user.UpdatedAt = DateTime.UtcNow;
             await _userRepository.UpdateAsync(user);
 
             return true;
         }
+
         public async Task<PagedResultUser<UserListResponseDto>> GetAllUsersAsync(int page, int pageSize)
         {
+            if (page <= 0 || pageSize <= 0)
+                throw new ArgumentException("Page and page size must be greater than zero.");
+
             var (users, totalCount) = await _userRepository.GetAllPagedAsync(page, pageSize);
+
+            if (users == null)
+                throw new InvalidOperationException("Failed to retrieve user list.");
 
             var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
 
@@ -182,7 +231,8 @@ namespace Application.Services
                 Email = u.Email,
                 Phone = u.Phone,
                 Role = u.Role,
-                AccountStatus = u.AccountStatus
+                AccountStatus = u.AccountStatus,
+                CreatedAt = u.CreatedAt
             });
 
             return new PagedResultUser<UserListResponseDto>

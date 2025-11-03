@@ -1,29 +1,37 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Outlet, NavLink, useNavigate } from "react-router-dom";
 import { FaRegUser } from "react-icons/fa";
 import { LuClipboardList } from "react-icons/lu";
-import { IoSettingsOutline } from "react-icons/io5";
-import { IoCartOutline, IoChatboxOutline } from "react-icons/io5";
-import { IoLogOutOutline } from "react-icons/io5";
-import { MdLogout } from "react-icons/md";
-import NotificationDropdown from "../../components/NotificationDropdown";
+import { IoSettingsOutline, IoCartOutline, IoChatboxOutline, IoLogOutOutline } from "react-icons/io5";
+import NotificationDropdown from "../../components/DropDowns/NotificationDropdown";
 import Logo from "../../components/Logo";
 import "../../assets/styles/ProfileLayout.css";
+import CartIcon from "../../components/DropDowns/CartIcon";
+
+
 
 export default function ProfileLayout() {
     const navigate = useNavigate();
     const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
     const menuItems = [
-        { to: "/profile", label: "Profile", icon: <FaRegUser /> },
-        { to: "/profile/purchase", label: "My Purchase", icon: <LuClipboardList /> },
-        { to: "/profile/chats", label: "Chat", icon: <IoChatboxOutline /> },
-        { to: "/profile/settings", label: "Settings", icon: <IoSettingsOutline /> },
+        { to: "/profile", label: "Hồ sơ cá nhân", icon: <FaRegUser /> },
+        { to: "/profile/purchase", label: "Đơn hàng của tôi", icon: <LuClipboardList /> },
+        { to: "/profile/chats", label: "Trò chuyện", icon: <IoChatboxOutline /> },
+        { to: "/profile/settings", label: "Cài đặt", icon: <IoSettingsOutline /> },
     ];
 
     const handleLogoutConfirm = () => {
-        localStorage.clear();
-        window.location.href = "/login";
+        const rememberEmail = localStorage.getItem("rememberEmail");
+        const rememberPassword = localStorage.getItem("rememberPassword");
+
+        localStorage.clear(); 
+        if (rememberEmail && rememberPassword) {
+            localStorage.setItem("rememberEmail", rememberEmail);
+            localStorage.setItem("rememberPassword", rememberPassword);
+        }
+
+        navigate("/login");
     };
 
     const handleCancelLogout = () => {
@@ -32,14 +40,13 @@ export default function ProfileLayout() {
 
     return (
         <div className="profile-layout">
-            {/* Sidebar */}
+            {/* Sidebar trái */}
             <aside className="sidebar">
                 <div
                     className="sidebar-header cursor-pointer flex items-center gap-2"
                     onClick={() => navigate("/")}
                 >
-                    <img src={Logo} alt="Logo" className="logo" />
-                    <h1 className="logo">Cóc Mua Xe</h1>
+                    <Logo />
                 </div>
 
                 <nav className="sidebar-nav">
@@ -61,50 +68,53 @@ export default function ProfileLayout() {
                     className="w-full flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-red-50 transition"
                 >
                     <IoLogOutOutline size={20} />
-                    <span className="font-medium">Logout</span>
+                    <span className="font-medium text-red-600">Đăng xuất</span>
                 </button>
-
-
             </aside>
 
-            {/* Header + nội dung */}
+            {/* Khu vực nội dung chính */}
             <main className="main-content h-screen overflow-y-auto">
                 <header className="header">
                     <div className="search-container">
                         <input
                             type="text"
-                            placeholder="Search Anything"
+                            placeholder="Tìm kiếm mọi thứ..."
                             className="search-input"
                         />
                         <button className="search-button">🔍</button>
                     </div>
 
                     <div className="header-actions flex items-center gap-5">
+                        {/* Thông báo */}
                         <NotificationDropdown userId={localStorage.getItem("userId")} />
 
-                        <div className="relative">
-                            <button className="relative text-gray-700 hover:text-blue-600 transition">
-                                <IoCartOutline size={24} />
-                                <span className="absolute -top-1.5 -right-2 bg-blue-500 text-white text-xs rounded-full px-1.5">
-                                    0
-                                </span>
-                            </button>
-                        </div>
+                        <CartIcon />
                     </div>
                 </header>
 
+                {/* Nội dung các trang con */}
                 <Outlet />
             </main>
 
-            {/* ✅ Popup xác nhận logout */}
+            {/* Popup xác nhận đăng xuất */}
             {showLogoutConfirm && (
                 <div className="logout-overlay">
                     <div className="logout-popup">
-                        <h3>Đăng xuất</h3>
-                        <p>Bạn có chắc muốn đăng xuất không?</p>
+                        <h3 className="text-lg font-semibold text-gray-800 mb-2">Đăng xuất</h3>
+                        <p className="text-gray-600 mb-4">Bạn có chắc chắn muốn đăng xuất khỏi tài khoản?</p>
                         <div className="logout-actions">
-                            <button className="btn-cancel" onClick={handleCancelLogout}>Hủy</button>
-                            <button className="btn-confirm" onClick={handleLogoutConfirm}>Đăng xuất</button>
+                            <button
+                                className="btn-cancel bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium px-4 py-2 rounded-lg"
+                                onClick={handleCancelLogout}
+                            >
+                                Hủy
+                            </button>
+                            <button
+                                className="btn-confirm bg-red-500 hover:bg-red-600 text-white font-medium px-4 py-2 rounded-lg"
+                                onClick={handleLogoutConfirm}
+                            >
+                                Đăng xuất
+                            </button>
                         </div>
                     </div>
                 </div>

@@ -21,16 +21,11 @@ namespace Infrastructure.Data.Configurations
                    .HasColumnName("complaint_id");
 
             // ===== Foreign Keys (database-first style, no navigation) =====
-            builder.Property(c => c.OrderId)
-                   .HasColumnName("order_id");
+       
 
-            builder.Property(c => c.BuyerId)
-                   .HasColumnName("buyer_id")
-                   .IsRequired();
-
-            builder.Property(c => c.SellerId)
-                   .HasColumnName("seller_id")
-                   .IsRequired();
+            builder.Property(c => c.UserId)
+                     .HasColumnName("user_id")
+                     .IsRequired();
 
             // ===== Columns =====
             builder.Property(c => c.Reason)
@@ -46,12 +41,19 @@ namespace Infrastructure.Data.Configurations
                    .HasMaxLength(20)
                    .HasDefaultValue("pending")
                    .IsRequired();
+            builder.Property(c => c.AssignTo)
+             .HasColumnName("assigned_to")  
+             .IsRequired(false);
+
 
             builder.Property(c => c.SeverityLevel)
                    .HasColumnName("severity_level")
                    .HasMaxLength(20)
                    .HasDefaultValue("medium")
                    .IsRequired();
+            builder.Property(c => c.IsDeleted)
+                  .HasColumnName("is_deleted")
+                  .HasDefaultValue(false);
 
             builder.Property(c => c.CreatedAt)
                    .HasColumnName("created_at")
@@ -60,6 +62,10 @@ namespace Infrastructure.Data.Configurations
             builder.Property(c => c.UpdatedAt)
                    .HasColumnName("updated_at")
                    .HasDefaultValueSql("GETDATE()");
+
+
+
         }
+
     }
 }
