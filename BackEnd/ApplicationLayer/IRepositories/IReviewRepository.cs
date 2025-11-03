@@ -12,7 +12,7 @@ namespace Application.IRepositories
     public interface IReviewRepository
     {
         Task<List<Review>> GetReviewAsync(int itemId);
-        Task<ReviewResponseDto> CreateReviewAsync(CreateReviewDto dto);
+        Task<ReviewResponseDto> CreateReviewAsync(CreateReviewDto dto, int id);
         Task<List<ReviewResponseDto>> GetReviewsByTargetUserIdAsync(int targetUserId);
     
         Task<IEnumerable<Review>> GetByTargetUserIdAsync(int targetUserId);
