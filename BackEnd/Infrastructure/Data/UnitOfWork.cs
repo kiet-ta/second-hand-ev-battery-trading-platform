@@ -1,5 +1,6 @@
 ﻿using Application.IRepositories;
 using Application.IRepositories.IBiddingRepositories;
+using Application.IRepositories.IPaymentRepositories;
 using Microsoft.EntityFrameworkCore.Storage;
 
 namespace Infrastructure.Data;
@@ -18,10 +19,11 @@ public class UnitOfWork : IUnitOfWork
     public IUserRepository Users { get; }
     public IOrderRepository Orders { get; }
     public IOrderItemRepository OrderItems { get; }
-    public ICommissionFeeRuleRepository CommissionFeeRuleRepository { get;}
-    public ITransactionCommissionRepository TransactionCommissionRepository { get; }
+    public ICommissionFeeRuleRepository CommissionFeeRule { get;}
+    public ITransactionCommissionRepository TransactionCommission { get; }
     public IAddressRepository Address { get; }
-
+    public IPaymentRepository Payments { get; }
+    public ICommissionFeeRuleRepository CommissionFeeRules { get; }
     public UnitOfWork(
             EvBatteryTradingContext context,
             IAuctionRepository auctionRepository,
@@ -33,6 +35,7 @@ public class UnitOfWork : IUnitOfWork
             IOrderRepository orderRepository,
             IOrderItemRepository orderItemRepository,
             IAddressRepository addressRepository,
+            IPaymentRepository paymentRepository,
             ICommissionFeeRuleRepository commissionFeeRuleRepository,
             ITransactionCommissionRepository transactionCommissionRepository
         )
@@ -47,8 +50,9 @@ public class UnitOfWork : IUnitOfWork
         Orders = orderRepository;
         OrderItems = orderItemRepository;
         Address = addressRepository;
-        CommissionFeeRuleRepository = commissionFeeRuleRepository;
-        TransactionCommissionRepository = transactionCommissionRepository;      
+        Payments = paymentRepository;
+        CommissionFeeRules = commissionFeeRuleRepository;
+        TransactionCommission = transactionCommissionRepository;      
     }
 
     public async Task BeginTransactionAsync(CancellationToken cancellationToken = default)
