@@ -11,8 +11,34 @@ public class WalletRepository : IWalletRepository
 
     public WalletRepository(EvBatteryTradingContext context) => _context = context;
 
-    public async Task<Wallet?> GetWalletByUserIdAsync(int userId) =>
+    public async Task<Wallet?> GetWalletByUserIdAsync(int? userId) =>
             await _context.Wallets.FirstOrDefaultAsync(w => w.UserId == userId);
+
+    public async Task<Wallet> GetManagerWalletAsync()
+    {
+        const int MANAGER_USER_ID = 4;
+
+        var managerWallet = await _context.Wallets
+            .FirstOrDefaultAsync(w => w.UserId == MANAGER_USER_ID);
+
+        if (managerWallet == null)
+        {
+            throw new InvalidOperationException("Không tìm thấy ví của Manager hệ thống.");
+        }
+        return managerWallet;
+    }
+
+    public void Update(Wallet wallet)
+    {
+        // Đánh dấu là đã chỉnh sửa
+        _context.Entry(wallet).State = EntityState.Modified;
+    }
+
+    public async Task AddAsync(Wallet wallet)
+    {
+        await _context.Wallets.AddAsync(wallet);
+        await _context.SaveChangesAsync();
+    }
 
     public async Task<bool> UpdateBalanceAsync(int walletId, decimal amountChange)
     {

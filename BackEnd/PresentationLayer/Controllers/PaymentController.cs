@@ -26,6 +26,37 @@ public class PaymentController : ControllerBase
         _validator = validator;
     }
 
+    [HttpPost("confirm-order/{orderId}")]
+    [Authorize(Roles = "buyer")] // Chỉ buyer mới được gọi
+    public async Task<IActionResult> ConfirmOrder(int orderId)
+    {
+        try
+        {
+            // Lấy buyerId từ JWT token
+            var buyerIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(buyerIdString))
+            {
+                return Unauthorized("Token không hợp lệ.");
+            }
+
+            var buyerId = int.Parse(buyerIdString);
+
+            var result = await _paymentService.ConfirmOrderAndSplitPaymentAsync(orderId, buyerId);
+
+            if (result)
+            {
+                return Ok(new { message = "Xác nhận đơn hàng thành công. Tiền đã được chuyển." });
+            }
+
+            return BadRequest(new { message = "Xác nhận đơn hàng thất bại." });
+        }
+        catch (Exception ex)
+        {
+            // Bắt lỗi được ném ra từ Service (ví dụ: "Đơn hàng không tồn tại")
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
     [HttpPost("webhook")]
     [Consumes("application/json", "text/plain", "application/x-www-form-urlencoded")]
     public async Task<IActionResult> HandleWebhook()

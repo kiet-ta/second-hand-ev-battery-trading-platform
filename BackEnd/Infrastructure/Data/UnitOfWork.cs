@@ -18,6 +18,8 @@ public class UnitOfWork : IUnitOfWork
     public IUserRepository Users { get; }
     public IOrderRepository Orders { get; }
     public IOrderItemRepository OrderItems { get; }
+    public ICommissionFeeRuleRepository CommissionFeeRuleRepository { get;}
+    public ITransactionCommissionRepository TransactionCommissionRepository { get; }
     public IAddressRepository Address { get; }
 
     public UnitOfWork(
@@ -30,7 +32,9 @@ public class UnitOfWork : IUnitOfWork
             IUserRepository userRepository,
             IOrderRepository orderRepository,
             IOrderItemRepository orderItemRepository,
-            IAddressRepository addressRepository
+            IAddressRepository addressRepository,
+            ICommissionFeeRuleRepository commissionFeeRuleRepository,
+            ITransactionCommissionRepository transactionCommissionRepository
         )
     {
         _context = context;
@@ -43,6 +47,8 @@ public class UnitOfWork : IUnitOfWork
         Orders = orderRepository;
         OrderItems = orderItemRepository;
         Address = addressRepository;
+        CommissionFeeRuleRepository = commissionFeeRuleRepository;
+        TransactionCommissionRepository = transactionCommissionRepository;      
     }
 
     public async Task BeginTransactionAsync(CancellationToken cancellationToken = default)
@@ -112,4 +118,5 @@ public class UnitOfWork : IUnitOfWork
         Dispose(true);
         GC.SuppressFinalize(this);
     }
+
 }

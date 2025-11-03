@@ -22,9 +22,10 @@ public class PaymentService : IPaymentService
     private readonly IUserRepository _userRepository;
     private readonly IItemRepository _itemRepository;
     private readonly IIdGenerator<long> _idGenerator;
+    private readonly IUnitOfWork _uow;
 
     public PaymentService(PayOS payOS, IPaymentRepository paymentRepository, IWalletRepository walletRepository, IConfiguration config, ICommissionFeeRuleRepository commissionRuleRepo,
-    IUserRepository userRepository, IItemRepository itemRepository, IIdGenerator<long> idGenerator)
+    IUserRepository userRepository, IItemRepository itemRepository, IIdGenerator<long> idGenerator, IUnitOfWork uow)
     {
         _payOS = payOS;
         _paymentRepository = paymentRepository;
@@ -34,6 +35,113 @@ public class PaymentService : IPaymentService
         _userRepository = userRepository;
         _itemRepository = itemRepository;
         _idGenerator = idGenerator;
+        _uow = uow;
+    }
+
+    // Once the order is completed, the money will be divided between the MANAGER and the SELLER.
+    public async Task<bool> ConfirmOrderAndSplitPaymentAsync(int orderId, int buyerId)
+    {
+        try
+        {
+            var order = await _uow.Orders.GetByIdAsync(orderId);
+
+            // Validation
+            if (order == null)
+                throw new Exception("Không tìm thấy đơn hàng.");
+            if (order.BuyerId != buyerId)
+                throw new Exception("Bạn không phải chủ đơn hàng này.");
+
+            if (order.Status != "shipped")
+                throw new Exception($"Không thể xác nhận đơn hàng ở trạng thái: {order.Status}.");
+
+            var orderItems = await _uow.OrderItems.GetByOrderIdAsync(orderId);
+            if (orderItems == null || !orderItems.Any())
+                throw new Exception("Đơn hàng không có sản phẩm.");
+
+            var firstItem = await _uow.Items.GetByIdAsync(orderItems.First().ItemId);
+            if (firstItem == null)
+                throw new Exception("Không tìm thấy sản phẩm.");
+
+            int? sellerId = firstItem.UpdatedBy;
+            decimal totalOrderAmount = orderItems.Sum(oi => oi.Price * oi.Quantity);
+
+            await _uow.BeginTransactionAsync();
+
+            var sellerWallet = await _uow.Wallets.GetWalletByUserIdAsync(sellerId);
+            var managerWallet = await _uow.Wallets.GetManagerWalletAsync();
+
+            if (sellerWallet == null)
+                throw new Exception($"Không tìm thấy ví cho Seller (ID: {sellerId}).");
+
+            string feeCode = "FEE001";
+            var commissionRule = await _uow.CommissionFeeRuleRepository.GetActiveRuleByCodeAsync(feeCode); // Hard Core
+            if (commissionRule == null)
+                throw new Exception("Không tìm thấy quy tắc hoa hồng 'FEE001'.");
+
+            decimal commissionAmount = 0;
+            if (commissionRule.FeeType == "percentage")
+            {
+                commissionAmount = totalOrderAmount * (commissionRule.FeeValue / 100);
+            }
+            else
+            {
+                commissionAmount = commissionRule.FeeValue;
+            }
+
+            decimal netAmountForSeller = totalOrderAmount - commissionAmount;
+
+            sellerWallet.Balance += netAmountForSeller;
+            sellerWallet.UpdatedAt = DateTime.UtcNow;
+            _uow.Wallets.Update(sellerWallet);
+
+            managerWallet.Balance += commissionAmount;
+            managerWallet.UpdatedAt = DateTime.UtcNow;
+            _uow.Wallets.Update(managerWallet);
+
+            order.Status = "completed";
+            order.UpdatedAt = DateTime.UtcNow;
+            _uow.Orders.UpdateAsync(order);
+
+            var sellerTransaction = new WalletTransaction
+            {
+                WalletId = sellerWallet.WalletId,
+                Amount = netAmountForSeller,
+                Type = "release",
+                OrderId = orderId,
+                CreatedAt = DateTime.UtcNow
+            };
+            await _uow.WalletTransactions.AddAsync(sellerTransaction);
+
+            var managerTransaction = new WalletTransaction
+            {
+                WalletId = managerWallet.WalletId,
+                Amount = commissionAmount,
+                Type = "payment",
+                OrderId = orderId,
+                CreatedAt = DateTime.UtcNow
+            };
+            await _uow.WalletTransactions.AddAsync(managerTransaction);
+
+            await _uow.SaveChangesAsync();
+
+            var commissionLog = new TransactionCommission
+            {
+                TransactionId = managerTransaction.TransactionId,
+                RuleId = commissionRule.RuleId,
+                AppliedValue = commissionAmount,
+                CreatedAt = DateTime.UtcNow
+            };
+            await _uow.TransactionCommissionRepository.AddAsync(commissionLog);
+
+            await _uow.CommitTransactionAsync();
+
+            return true;
+        }
+        catch (Exception ex)
+        {
+            await _uow.RollbackTransactionAsync();
+            throw; 
+        }
     }
 
     public async Task<PaymentResponseDto> CreatePaymentAsync(PaymentRequestDto request)

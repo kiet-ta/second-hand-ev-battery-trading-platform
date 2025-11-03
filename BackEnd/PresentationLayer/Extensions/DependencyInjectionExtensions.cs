@@ -72,6 +72,7 @@ public static class DependencyInjectionExtensions
         services.AddScoped<IComplaintRepository, ComplaintRepository>();
         services.AddScoped<ICommissionFeeRuleRepository, CommissionFeeRuleRepository>();
         services.AddScoped<ITransactionRepository, TransactionRepository>();
+        services.AddScoped<ITransactionCommissionRepository, TransactionCommissionRepository>();
         services.AddScoped<IEmailRepository, EmailTemplateRepository>();
         services.AddScoped<IFavoriteRepository, FavoriteRepository>();
         services.AddScoped<IKYC_DocumentRepository, KYC_DocumentRepository>();
