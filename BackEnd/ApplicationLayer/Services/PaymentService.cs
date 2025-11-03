@@ -15,6 +15,7 @@ public class PaymentService : IPaymentService
     private readonly IConfiguration _config;
     private readonly IUnitOfWork _unitOfWork;
     private readonly IUniqueIDGenerator _uniqueIDGenerator;
+    private readonly IIdGenerator<long> _idGenerator;
 
     public PaymentService(
         PayOS payOS,
@@ -27,6 +28,113 @@ public class PaymentService : IPaymentService
         _config = config;
         _uniqueIDGenerator = uniqueIDGenerator;
         _unitOfWork = unitOfWork;
+        _idGenerator = idGenerator;
+    }
+
+    // Once the order is completed, the money will be divided between the MANAGER and the SELLER.
+    public async Task<bool> ConfirmOrderAndSplitPaymentAsync(int orderId, int buyerId)
+    {
+        try
+        {
+            var order = await _unitOfWork.Orders.GetByIdAsync(orderId);
+
+            // Validation
+            if (order == null)
+                throw new Exception("Không tìm thấy đơn hàng.");
+            if (order.BuyerId != buyerId)
+                throw new Exception("Bạn không phải chủ đơn hàng này.");
+
+            if (order.Status != "shipped")
+                throw new Exception($"Không thể xác nhận đơn hàng ở trạng thái: {order.Status}.");
+
+            var orderItems = await _unitOfWork.OrderItems.GetByOrderIdAsync(orderId);
+            if (orderItems == null || !orderItems.Any())
+                throw new Exception("Đơn hàng không có sản phẩm.");
+
+            var firstItem = await _unitOfWork.Items.GetByIdAsync(orderItems.First().ItemId);
+            if (firstItem == null)
+                throw new Exception("Không tìm thấy sản phẩm.");
+
+            int? sellerId = firstItem.UpdatedBy;
+            decimal totalOrderAmount = orderItems.Sum(oi => oi.Price * oi.Quantity);
+
+            await _unitOfWork.BeginTransactionAsync();
+
+            var sellerWallet = await _unitOfWork.Wallets.GetWalletByUserIdAsync(sellerId);
+            var managerWallet = await _unitOfWork.Wallets.GetManagerWalletAsync();
+
+            if (sellerWallet == null)
+                throw new Exception($"Không tìm thấy ví cho Seller (ID: {sellerId}).");
+
+            string feeCode = "FEE001";
+            var commissionRule = await _unitOfWork.CommissionFeeRuleRepository.GetActiveRuleByCodeAsync(feeCode); // Hard Core
+            if (commissionRule == null)
+                throw new Exception("Không tìm thấy quy tắc hoa hồng 'FEE001'.");
+
+            decimal commissionAmount = 0;
+            if (commissionRule.FeeType == "percentage")
+            {
+                commissionAmount = totalOrderAmount * (commissionRule.FeeValue / 100);
+            }
+            else
+            {
+                commissionAmount = commissionRule.FeeValue;
+            }
+
+            decimal netAmountForSeller = totalOrderAmount - commissionAmount;
+
+            sellerWallet.Balance += netAmountForSeller;
+            sellerWallet.UpdatedAt = DateTime.UtcNow;
+            _unitOfWork.Wallets.Update(sellerWallet);
+
+            managerWallet.Balance += commissionAmount;
+            managerWallet.UpdatedAt = DateTime.UtcNow;
+            _unitOfWork.Wallets.Update(managerWallet);
+
+            order.Status = "completed";
+            order.UpdatedAt = DateTime.UtcNow;
+            _unitOfWork.Orders.UpdateAsync(order);
+
+            var sellerTransaction = new WalletTransaction
+            {
+                WalletId = sellerWallet.WalletId,
+                Amount = netAmountForSeller,
+                Type = "release",
+                OrderId = orderId,
+                CreatedAt = DateTime.UtcNow
+            };
+            await _unitOfWork.WalletTransactions.AddAsync(sellerTransaction);
+
+            var managerTransaction = new WalletTransaction
+            {
+                WalletId = managerWallet.WalletId,
+                Amount = commissionAmount,
+                Type = "payment",
+                OrderId = orderId,
+                CreatedAt = DateTime.UtcNow
+            };
+            await _unitOfWork.WalletTransactions.AddAsync(managerTransaction);
+
+            await _unitOfWork.SaveChangesAsync();
+
+            var commissionLog = new TransactionCommission
+            {
+                TransactionId = managerTransaction.TransactionId,
+                RuleId = commissionRule.RuleId,
+                AppliedValue = commissionAmount,
+                CreatedAt = DateTime.UtcNow
+            };
+            await _unitOfWork.TransactionCommissionRepository.AddAsync(commissionLog);
+
+            await _unitOfWork.CommitTransactionAsync();
+
+            return true;
+        }
+        catch (Exception ex)
+        {
+            await _unitOfWork.RollbackTransactionAsync();
+            throw; 
+        }
     }
 
     public async Task<PaymentResponseDto> CreatePaymentAsync(PaymentRequestDto request)
@@ -301,7 +409,6 @@ public class PaymentService : IPaymentService
     {
         long depositOrderCode = _uniqueIDGenerator.CreateUnique53BitId();
 
-        // BẮT ĐẦU TRANSACTION
         await _unitOfWork.BeginTransactionAsync();
         Payment paymentRecord;
         try
@@ -362,7 +469,6 @@ public class PaymentService : IPaymentService
         }
         catch (Exception ex)
         {
-            // "Rollback" "payment" "status" (vì "link" "fail")
             await _unitOfWork.Payments.UpdatePaymentStatusAsync(paymentRecord.PaymentId, "failed");
             await _unitOfWork.SaveChangesAsync();
             throw new Exception("Failed to create payment link. Please try again later.", ex);

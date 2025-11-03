@@ -25,7 +25,7 @@ public class Item
 
     public DateTime UpdatedAt { get; set; }
 
-    public int? UpdatedBy { get; set; }
+    public int?     UpdatedBy { get; set; }
 
     public string? Moderation { get; set; }
 

@@ -84,6 +84,13 @@ namespace Infrastructure.Repositories
             return await _context.OrderItems
                 .FirstOrDefaultAsync(o => o.OrderItemId == id && !o.IsDeleted);
         }
+        public async Task<List<OrderItem>> GetByOrderIdAsync(int orderId)
+        {
+            // Dùng Where để lọc tất cả item theo OrderId và trả về một danh sách
+            return await _context.OrderItems
+                                 .Where(oi => oi.OrderId == orderId)
+                                 .ToListAsync();
+        }
 
         public async Task UpdateAsync(OrderItem entity)
         {

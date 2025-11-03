@@ -4,8 +4,10 @@ namespace Application.IRepositories.IBiddingRepositories;
 
 public interface IWalletRepository
 {
-    Task<Wallet> GetWalletByUserIdAsync(int userId);
-
+    Task<Wallet> GetWalletByUserIdAsync(int? userId);
+    Task<Wallet> GetManagerWalletAsync();
+    void Update(Wallet wallet);
+    Task AddAsync(Wallet wallet);
     Task<bool> UpdateBalanceAsync(int walletId, decimal amountChange);
 
     Task AddWalletTransactionAsync(WalletTransaction transaction);
