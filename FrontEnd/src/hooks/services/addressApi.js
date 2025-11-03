@@ -43,45 +43,6 @@ const addressApi = {
         }
     },
 
-    getUserAddresses: async (userId) => {
-        try {
-            const res = await axios.get(`${ADDRESS_API_BASE}address/user/${userId}`);
-            return res.data;
-        } catch (err) {
-            console.error("Lỗi load user addresses:", err);
-            return [];
-        }
-    },
-
-    addAddress: async (address) => {
-        try {
-            const res = await axios.post(`${ADDRESS_API_BASE}address`, address);
-            return res.data;
-        } catch (err) {
-            console.error("Lỗi thêm mới address:", err);
-            throw err;
-        }
-    },
-
-    updateAddress: async (id, address) => {
-        try {
-            const res = await axios.put(`${ADDRESS_API_BASE}Address/${id}`, address);
-            return res.data;
-        } catch (err) {
-            console.error("Lỗi update address:", err);
-            throw err;
-        }
-    },
-
-    deleteAddress: async (id) => {
-        try {
-            const res = await axios.delete(`${ADDRESS_API_BASE}Address/${id}`);
-            return res.data;
-        } catch (err) {
-            console.error("Lỗi xóa address:", err);
-            throw err;
-        }
-    },
 };
 
 export default addressApi;

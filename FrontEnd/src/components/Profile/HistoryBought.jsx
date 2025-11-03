@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { Calendar, Package, Star, Zap, GaugeCircle, Palette, Car } from "lucide-react";
-import { message } from "antd";
 import ReviewModal from "../Modals/ReviewModal";
 import reviewApi from "../../api/reviewApi";
 
@@ -79,7 +78,6 @@ export default function HistoryBought() {
       });
     } catch (err) {
       console.error(err);
-      message.error("Không thể tải lịch sử mua hàng.");
     } finally {
       setLoading(false);
     }
@@ -99,11 +97,9 @@ export default function HistoryBought() {
 
     try {
       await reviewApi.postReview(apiPayload);
-      message.success(" Đánh giá của bạn đã được gửi thành công!");
       fetchOrders();
     } catch (error) {
       console.error("Failed to submit review:", error);
-      message.error(" Gửi đánh giá thất bại. Vui lòng thử lại.");
     }
   };
 
@@ -160,7 +156,6 @@ export default function HistoryBought() {
 
   const exportToCSV = () => {
     if (orders.length === 0) {
-      message.info("Không có dữ liệu để xuất.");
       return;
     }
 

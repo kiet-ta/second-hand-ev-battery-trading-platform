@@ -66,9 +66,6 @@ export default function NewsEditor({ initialData, onDataChange }) {
       const updated = { ...formData, thumbnailUrl: url };
       setFormData(updated);
       if (onDataChange) onDataChange(updated);
-      message.success("Uploaded to Cloudinary successfully");
-    } catch (err) {
-      message.error("Upload failed");
     } finally {
       setUploading(false);
     }

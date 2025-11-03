@@ -25,7 +25,6 @@ export default function MyProductsPage() {
             setMyItems(Array.isArray(data.data) ? data.data : []);
         } catch (error) {
             console.error("❌ Lỗi tải sản phẩm:", error);
-            message.error("Không thể tải danh sách sản phẩm của bạn.");
         } finally {
             setIsListLoading(false);
         }

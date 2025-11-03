@@ -1,39 +1,51 @@
-// Step3ImageUploader.jsx
-import React, { useState } from "react";
-import { Upload, message } from "antd";
+// Step3ImageUploader.jsx (optimized, no popups)
+import React, { useState, useCallback, useMemo } from "react";
+import { Upload } from "antd";
 import { UploadCloud } from "lucide-react";
 
 export default function Step3ImageUploader({ onFilesSelected }) {
   const [fileList, setFileList] = useState([]);
+  const MAX_FILES = 8;
+  const VALID_TYPES = useMemo(() => ["image/jpeg", "image/png", "image/webp"], []);
 
-  const handleRemove = (file) => {
-    const updatedList = fileList.filter((item) => item.uid !== file.uid);
-    setFileList(updatedList);
-    onFilesSelected(updatedList.map(f => f.originFileObj || f));
-  };
+  // ✅ Validation without popup — returns error messages as string
+  const validateFile = useCallback(
+    (file) => {
+      if (!VALID_TYPES.includes(file.type)) {
+        return "Chỉ được chọn file JPG, PNG hoặc WEBP!";
+      }
+      if (fileList.length >= MAX_FILES) {
+        return `Chỉ được tải tối đa ${MAX_FILES} hình ảnh!`;
+      }
+      return null;
+    },
+    [fileList, VALID_TYPES]
+  );
 
-  const beforeUpload = (file) => {
-    const isValid =
-      file.type === "image/jpeg" ||
-      file.type === "image/png" ||
-      file.type === "image/webp";
+  const beforeUpload = useCallback(
+    (file) => {
+      const error = validateFile(file);
+      if (error) {
+        console.warn(error);
+        return Upload.LIST_IGNORE; // silently reject invalid
+      }
 
-    if (!isValid) {
-      message.error("Chỉ được tải lên file JPG, PNG hoặc WEBP!");
-      return Upload.LIST_IGNORE;
-    }
+      const updated = [...fileList, file];
+      setFileList(updated);
+      onFilesSelected(updated.map((f) => f.originFileObj || f));
+      return false; // prevent auto upload
+    },
+    [fileList, validateFile, onFilesSelected]
+  );
 
-    if (fileList.length >= 8) {
-      message.warning("Chỉ được tải tối đa 8 hình ảnh!");
-      return Upload.LIST_IGNORE;
-    }
-
-    const updatedList = [...fileList, file];
-    setFileList(updatedList);
-    onFilesSelected(updatedList.map(f => f.originFileObj || f));
-
-    return false; // prevent automatic upload
-  };
+  const handleRemove = useCallback(
+    (file) => {
+      const updated = fileList.filter((item) => item.uid !== file.uid);
+      setFileList(updated);
+      onFilesSelected(updated.map((f) => f.originFileObj || f));
+    },
+    [fileList, onFilesSelected]
+  );
 
   return (
     <div className="text-center">
@@ -49,14 +61,21 @@ export default function Step3ImageUploader({ onFilesSelected }) {
         onRemove={handleRemove}
         multiple
         accept=".png,.jpg,.jpeg,.webp"
+        showUploadList={{ showPreviewIcon: false }}
       >
-        {fileList.length >= 8 ? null : (
+        {fileList.length >= MAX_FILES ? null : (
           <div className="flex flex-col items-center">
             <UploadCloud />
-            <div style={{ marginTop: 8 }}>Chọn hình</div>
+            <div className="mt-2 text-gray-600 text-sm">Chọn hình</div>
           </div>
         )}
       </Upload>
+
+      {fileList.length >= MAX_FILES && (
+        <p className="mt-2 text-sm text-red-500">
+          Đã đạt giới hạn {MAX_FILES} hình ảnh.
+        </p>
+      )}
     </div>
   );
 }

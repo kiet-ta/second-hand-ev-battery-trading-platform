@@ -4,7 +4,6 @@ import {
   Button,
   Spin,
   Tag,
-  message,
   Input,
   Space,
   Modal,
@@ -63,7 +62,6 @@ export default function SellerApprovalContent() {
       setApprovals(data || []);
     } catch (err) {
       console.error("❌ Lỗi tải danh sách người bán:", err);
-      message.error("Không thể tải danh sách chờ duyệt.");
     } finally {
       setLoading(false);
     }
@@ -84,15 +82,12 @@ export default function SellerApprovalContent() {
     try {
       if (action === "approve") {
         await managerAPI.approveSeller(id);
-        message.success("✅ Đã duyệt người bán thành công.");
       } else {
         await managerAPI.rejectSeller(id);
-        message.info("🚫 Đã từ chối người bán.");
       }
       await fetchApprovals();
     } catch (err) {
       console.error(err);
-      message.error("❌ Xử lý thất bại, vui lòng thử lại.");
     }
   };
 
@@ -106,7 +101,6 @@ export default function SellerApprovalContent() {
       setKycDocs(response || []);
     } catch (err) {
       console.error("Lỗi khi tải KYC:", err);
-      message.error("Không thể tải KYC.");
     } finally {
       setKycLoading(false);
     }
@@ -125,17 +119,14 @@ export default function SellerApprovalContent() {
         verifiedAt: new Date().toISOString(),
         verifiedBy: localStorage.getItem("userId")
       });
-      message.success("✅ Đã duyệt KYC.");
       fetchKycDocuments(selectedSeller.userId);
     } catch (err) {
       console.error(err);
-      message.error("❌ Lỗi khi duyệt KYC.");
     }
   };
 
   const handleRejectKyc = async (docId, note) => {
     if (!note?.trim()) {
-      message.warning("Vui lòng nhập lý do từ chối.");
       return;
     }
     try {
@@ -144,11 +135,9 @@ export default function SellerApprovalContent() {
         verifiedAt: new Date().toISOString(),
         verifiedBy: localStorage.getItem("userId")
       });
-      message.info("🚫 Đã từ chối KYC.");
       fetchKycDocuments(selectedSeller.userId);
     } catch (err) {
       console.error(err);
-      message.error("❌ Lỗi khi từ chối KYC.");
     }
   };
 

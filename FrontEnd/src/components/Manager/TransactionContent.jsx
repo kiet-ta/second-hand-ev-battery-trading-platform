@@ -37,7 +37,6 @@ export default function TransactionContent() {
             setTransactions(sorted);
         } catch (error) {
             console.error("❌ Lỗi tải giao dịch:", error);
-            message.error("Không thể tải danh sách giao dịch");
         } finally {
             setLoading(false);
         }
@@ -69,7 +68,6 @@ export default function TransactionContent() {
 
     const exportToCSV = () => {
         if (filteredData.length === 0) {
-            message.info("Không có dữ liệu để xuất.");
             return;
         }
 

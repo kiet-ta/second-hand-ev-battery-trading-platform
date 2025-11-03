@@ -10,7 +10,6 @@ import {
     Download,
     Package,
 } from "lucide-react";
-import { message } from "antd";
 import { RiBattery2ChargeLine } from "react-icons/ri";
 
 export default function HistorySold() {
@@ -39,7 +38,6 @@ export default function HistorySold() {
                 setSales(data?.items || []); // ✅ CHỈ LẤY MẢNG TRONG items
             } catch (err) {
                 console.error("❌ Lỗi khi tải lịch sử bán:", err);
-                message.error("Không thể tải dữ liệu lịch sử bán hàng");
             } finally {
                 setLoading(false);
             }
@@ -124,7 +122,6 @@ export default function HistorySold() {
 
     const exportToCSV = () => {
         if (sales.length === 0) {
-            message.info("Không có dữ liệu để xuất.");
             return;
         }
         const headers = [

@@ -23,8 +23,6 @@ export default function RechargePage() {
             });
             const data = await res.json();
             setBalance(data.balance || 0);
-        } catch (err) {
-            message.error("Không thể tải số dư ví!");
         } finally {
             setFetching(false);
         }
@@ -36,7 +34,6 @@ export default function RechargePage() {
 
     const handlePayment = async () => {
         if (amount <= 0) {
-            message.warning("Vui lòng nhập số tiền hợp lệ!");
             return;
         }
 
@@ -54,14 +51,10 @@ export default function RechargePage() {
             const data = await res.json();
 
             if (res.ok && data.checkoutUrl) {
-                message.success("Chuyển hướng đến trang thanh toán...");
                 window.open(data.checkoutUrl, "_blank");
-            } else {
-                message.error(data.message || "Không thể khởi tạo thanh toán!");
-            }
+            } 
         } catch (err) {
             console.error(err);
-            message.error("Lỗi khi khởi tạo thanh toán!");
         } finally {
             setLoading(false);
         }
