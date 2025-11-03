@@ -12,6 +12,16 @@ export default defineConfig({
   tailwindcss()
   ],
 
+  server: {
+    proxy: {
+      '/ghn': {
+        target: 'https://online-gateway.ghn.vn',
+        changeOrigin: true,
+        rewrite: path => path.replace(/^\/ghn/, ''), // xoá prefix /ghn
+      },
+    },
+  },
+
   test: {
     globals: true,
     environment: 'jsdom',

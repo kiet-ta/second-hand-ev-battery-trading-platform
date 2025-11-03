@@ -36,7 +36,7 @@ export default function ComplaintList() {
   const fetchComplaints = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`${baseURL}complaint/all`, {
+      const res = await fetch(`${baseURL}complaints/all`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (!res.ok) throw new Error("Không thể tải complaint");
@@ -85,7 +85,7 @@ export default function ComplaintList() {
     setModalVisible(true);
     setModalLoading(true);
     try {
-      const res = await fetch(`${baseURL}complaint/${id}`, {
+      const res = await fetch(`${baseURL}complaints/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (!res.ok) throw new Error("Không thể lấy chi tiết complaint");
@@ -103,7 +103,7 @@ export default function ComplaintList() {
   // ✅ Cập nhật trạng thái
   const updateStatus = async (id, newStatus) => {
     try {
-      const res = await fetch(`${baseURL}complaint/${id}/status?status=${newStatus}`, {
+      const res = await fetch(`${baseURL}complaints/${id}/status?status=${newStatus}`, {
         method: "PATCH",
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -119,7 +119,7 @@ export default function ComplaintList() {
   // ✅ Cập nhật mức độ nghiêm trọng
   const updateLevel = async (id, newLevel) => {
     try {
-      const res = await fetch(`${baseURL}complaint/${id}/level`, {
+      const res = await fetch(`${baseURL}complaints/${id}/level`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -138,7 +138,7 @@ export default function ComplaintList() {
   // ✅ Giao staff xử lý
   const assignToStaff = async (id, staffId) => {
     try {
-      const res = await fetch(`${baseURL}complaint/assignee/${staffId}`, {
+      const res = await fetch(`${baseURL}complaints/assignee/${staffId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (!res.ok) throw new Error();

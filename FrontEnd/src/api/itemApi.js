@@ -15,7 +15,7 @@ const itemApi = {
         return response.data;
     },
     getItemByLatestBattery: async () => {
-        const response = await axios.get(linkBaseURL + "battery-details" + "/latest-batterys", 10)
+        const response = await axios.get(linkBaseURL + "battery-details" + "/latest-batteries", 10)
         return response.data;
     },
     getItemBySearch: async (itemType, title, minPrice, maxPrice, page, pageSize, sortBy, sortDir) => {

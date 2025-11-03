@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import paymentApi from "../../api/paymentApi";
 import orderApi from "../../api/orderApi";
+import { ghnApi } from "../../hooks/services/ghnApi";
 import { FiMapPin, FiX } from "react-icons/fi";
 
 // 🌟 Modal chọn địa chỉ giao hàng
@@ -10,9 +11,7 @@ const AddressModal = ({ addresses, selectedId, onSelect, onClose }) => {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[80vh] overflow-y-auto p-6 animate-fadeIn">
                 <div className="flex justify-between items-center border-b pb-3 mb-4">
-                    <h3 className="text-xl font-bold text-gray-800">
-                        Chọn địa chỉ giao hàng
-                    </h3>
+                    <h3 className="text-xl font-bold text-gray-800">Chọn địa chỉ giao hàng</h3>
                     <button
                         onClick={onClose}
                         className="p-2 rounded-full hover:bg-gray-100 transition-colors"
@@ -89,7 +88,8 @@ function BuyNowCheckoutPage() {
 
     // Thông tin phụ phí
     const insurance = { name: "Bảo hiểm hư hỏng sản phẩm", price: 6000 };
-    const shipping = { name: "Vận chuyển nhanh", price: 1000 };
+    const [shippingFee, setShippingFee] = useState(0);
+    const [loadingFee, setLoadingFee] = useState(false);
 
     const selectedDeliveryAddress = addresses.find(
         (addr) => addr.addressId === selectedAddressId
@@ -112,11 +112,43 @@ function BuyNowCheckoutPage() {
             </div>
         );
     }
-
     const calculateTotal = () =>
-        (orderData.totalAmount || 0) + insurance.price + shipping.price;
+        (orderData.totalAmount || 0) + insurance.price + shippingFee;
 
-    const finalTotalPrice = calculateTotal();
+    const finalTotalPrice = calculateTotal() | 0;
+
+    useEffect(() => {
+        const fetchShippingFee = async () => {
+            if (!selectedDeliveryAddress?.districtCode || !selectedDeliveryAddress?.wardCode)
+                return;
+
+            try {
+                setLoadingFee(true);
+                const feeResult = await ghnApi.calcFee({
+                    toDistrictId: selectedDeliveryAddress.districtCode,
+                    toWardCode: selectedDeliveryAddress.wardCode,
+                    weight: 2000,
+                });
+
+                // ✅ Nếu GHN trả lỗi có message → hiển thị rõ ràng
+                if (feeResult.error) {
+                    setShippingFee(0);
+                    alert(feeResult.message || "GHN hiện chưa hỗ trợ khu vực này.");
+                    return;
+                }
+
+                // ✅ Còn nếu trả về số → cập nhật bình thường
+                setShippingFee(feeResult || 0);
+            } catch (err) {
+                console.error("❌ Không tính được phí GHN:", err);
+                setShippingFee(0);
+            } finally {
+                setLoadingFee(false);
+            }
+        };
+
+        fetchShippingFee();
+    }, [selectedDeliveryAddress]);
 
     // 🧾 Kiểm tra thanh toán
     const checkPaymentStatus = async (orderCode, paymentWindow) => {
@@ -285,9 +317,11 @@ function BuyNowCheckoutPage() {
                     <p>{insurance.name}</p>
                     <p className="font-semibold">{formatVND(insurance.price)}</p>
                 </div>
-                <div className="flex justify-between items-center border-t py-4">
-                    <p>{shipping.name}</p>
-                    <p className="font-semibold">{formatVND(shipping.price)}</p>
+                <div className="flex justify-between items-center py-4 border-t">
+                    <p>Vận chuyển nhanh (GHN)</p>
+                    <p className="font-semibold">
+                        {loadingFee ? "Đang tính..." : formatVND(shippingFee || 0)}
+                    </p>
                 </div>
 
                 {/* Tổng cộng */}

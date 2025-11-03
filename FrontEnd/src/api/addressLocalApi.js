@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const baseURL = import.meta.env.VITE_API_BASE_URL + "Address";
+const baseURL = import.meta.env.VITE_API_BASE_URL + "address";
 
 const addressLocalApi = {
     getAddress: async () => {

@@ -98,6 +98,7 @@ import SellerPendingReview from "../pages/Seller/SellerPendingReview";
 import RechargePage from "../pages/RechargePage";
 import BuyNowCheckoutPage from "../pages/Main/BuyNowCheckoutPage";
 import CommissionSettings from "../components/Manager/CommissionSettings";
+import TestGHN from "../components/TestGHN";
 
 /* ---------------------------
    Router definition
@@ -144,7 +145,8 @@ export const router = createBrowserRouter([
       { path: "order-history", element: <OrderPage /> },
       { path: "pending-review", element: <SellerPendingReview /> },
       { path: "recharge", element: <RechargePage /> },
-      { path: "checkout/buy-now", element: <BuyNowCheckoutPage /> }
+      { path: "checkout/buy-now", element: <BuyNowCheckoutPage /> },
+      { path: "test", element: <TestGHN /> },
     ],
   },
 
