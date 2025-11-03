@@ -13,11 +13,10 @@ public interface IUnitOfWork
     IOrderRepository Orders { get; }
     IOrderItemRepository OrderItems { get; }
     IPaymentRepository Payments { get; }
-    ICommissionFeeRuleRepository CommissionFeeRuleRepository { get; }
-    ITransactionCommissionRepository TransactionCommissionRepository { get; }
+    ICommissionFeeRuleRepository CommissionFeeRules { get; }
+    ITransactionCommissionRepository TransactionCommission { get; }
 
     IAddressRepository Address { get; }
-    ICommissionFeeRuleRepository CommissionFeeRules { get; }
 
     Task BeginTransactionAsync(CancellationToken cancellationToken = default);
 

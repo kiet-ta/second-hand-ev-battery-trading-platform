@@ -15,7 +15,6 @@ public class PaymentService : IPaymentService
     private readonly IConfiguration _config;
     private readonly IUnitOfWork _unitOfWork;
     private readonly IUniqueIDGenerator _uniqueIDGenerator;
-    private readonly IIdGenerator<long> _idGenerator;
 
     public PaymentService(
         PayOS payOS,
@@ -28,7 +27,6 @@ public class PaymentService : IPaymentService
         _config = config;
         _uniqueIDGenerator = uniqueIDGenerator;
         _unitOfWork = unitOfWork;
-        _idGenerator = idGenerator;
     }
 
     // Once the order is completed, the money will be divided between the MANAGER and the SELLER.
@@ -67,7 +65,7 @@ public class PaymentService : IPaymentService
                 throw new Exception($"Không tìm thấy ví cho Seller (ID: {sellerId}).");
 
             string feeCode = "FEE001";
-            var commissionRule = await _unitOfWork.CommissionFeeRuleRepository.GetActiveRuleByCodeAsync(feeCode); // Hard Core
+            var commissionRule = await _unitOfWork.CommissionFeeRules.GetActiveRuleByCodeAsync(feeCode); // Hard Core
             if (commissionRule == null)
                 throw new Exception("Không tìm thấy quy tắc hoa hồng 'FEE001'.");
 
@@ -124,7 +122,7 @@ public class PaymentService : IPaymentService
                 AppliedValue = commissionAmount,
                 CreatedAt = DateTime.UtcNow
             };
-            await _unitOfWork.TransactionCommissionRepository.AddAsync(commissionLog);
+            await _unitOfWork.TransactionCommission.AddAsync(commissionLog);
 
             await _unitOfWork.CommitTransactionAsync();
 
