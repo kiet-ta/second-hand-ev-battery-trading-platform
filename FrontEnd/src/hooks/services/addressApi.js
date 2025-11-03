@@ -1,13 +1,16 @@
+// services/addressApi.js
 import axios from "axios";
 
 const ADDRESS_API_BASE = import.meta.env.VITE_API_BASE_URL;;
 
 const addressApi = {
+    // Lấy danh sách provinces từ GitHub
     getProvinces: async () => {
         try {
             const res = await axios.get(
                 "https://raw.githubusercontent.com/madnh/hanhchinhvn/master/dist/tinh_tp.json"
             );
+            // res.data là object, cần chuyển thành mảng
             return Object.values(res.data);
         } catch (err) {
             console.error("Lỗi load provinces:", err);
@@ -15,6 +18,7 @@ const addressApi = {
         }
     },
 
+    // Lấy districts theo provinceCode (lọc từ file chung)
     getDistricts: async (provinceCode) => {
         try {
             const res = await axios.get(
@@ -29,6 +33,7 @@ const addressApi = {
         }
     },
 
+    // Lấy wards theo districtCode (lọc từ file chung)
     getWards: async (districtCode) => {
         try {
             const res = await axios.get(
@@ -43,6 +48,66 @@ const addressApi = {
         }
     },
 
+    // Lấy danh sách address của user
+    getUserAddresses: async (userId) => {
+        try {
+            const res = await axios.get(`${ADDRESS_API_BASE}address/user/${userId}`, {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem("token")}`,
+                },
+            });
+            return res.data;
+        } catch (err) {
+            console.error("Lỗi load user addresses:", err);
+            return [];
+        }
+    },
+
+    // Thêm mới địa chỉ
+    addAddress: async (address) => {
+        console.log("Payload gửi lên backend:", address);
+        try {
+            const res = await axios.post(`${ADDRESS_API_BASE}address`, address, {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem("token")}`,
+                },
+            });
+            return res.data;
+        } catch (err) {
+            console.error("Lỗi thêm mới address:", err);
+            throw err;
+        }
+    },
+
+    // Update địa chỉ
+    updateAddress: async (id, address) => {
+        try {
+            const res = await axios.put(`${ADDRESS_API_BASE}address/${id}`, address, {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem("token")}`,
+                },
+            });
+            return res.data;
+        } catch (err) {
+            console.error("Lỗi update address:", err);
+            throw err;
+        }
+    },
+
+    // Xóa địa chỉ
+    deleteAddress: async (id) => {
+        try {
+            const res = await axios.delete(`${ADDRESS_API_BASE}address/${id}`, {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem("token")}`,
+                },
+            });
+            return res.data;
+        } catch (err) {
+            console.error("Lỗi xóa address:", err);
+            throw err;
+        }
+    },
 };
 
 export default addressApi;

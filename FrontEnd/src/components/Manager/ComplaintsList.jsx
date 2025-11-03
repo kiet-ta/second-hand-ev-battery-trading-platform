@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, useMemo } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Search,
   Filter,
@@ -8,159 +8,149 @@ import {
   RefreshCw,
   UserCheck,
 } from "lucide-react";
-import { Spin, Select } from "antd";
+import { message, Spin, Modal, Select } from "antd";
 import { motion } from "framer-motion";
 
 export default function ComplaintList() {
   const [complaints, setComplaints] = useState([]);
+  const [filtered, setFiltered] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [levelFilter, setLevelFilter] = useState("all");
+
+  const [modalVisible, setModalVisible] = useState(false);
+  const [modalLoading, setModalLoading] = useState(false);
   const [selectedComplaint, setSelectedComplaint] = useState(null);
+
+  const [staffList] = useState([
+    { id: 11, name: "Nguyen Van Staff" },
+    { id: 12, name: "Tran Thi Support" },
+    { id: 13, name: "Le Van Helpdesk" },
+  ]);
 
   const token = localStorage.getItem("token");
   const baseURL = import.meta.env.VITE_API_BASE_URL;
 
-  const staffList = useMemo(
-    () => [
-      { id: 11, name: "Nguyen Van Staff" },
-      { id: 12, name: "Tran Thi Support" },
-      { id: 13, name: "Le Van Helpdesk" },
-    ],
-    []
-  );
-
-  // ✅ Fetch complaints
-  const fetchComplaints = useCallback(async () => {
+  // ✅ Lấy danh sách complaint
+  const fetchComplaints = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`${baseURL}complaint/all`, {
+      const res = await fetch(`${baseURL}complaints/all`, {
         headers: { Authorization: `Bearer ${token}` },
       });
+      if (!res.ok) throw new Error("Không thể tải complaint");
       const data = await res.json();
-      const sorted = (data || []).sort(
-        (a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0)
-      );
+
+      // Sắp xếp complaint mới nhất lên đầu
+      const sorted = (data || []).sort((a, b) => {
+        const dateA = new Date(a.createdAt || 0);
+        const dateB = new Date(b.createdAt || 0);
+        return dateB - dateA;
+      });
+
       setComplaints(sorted);
+      setFiltered(sorted);
     } catch (err) {
-      console.error("Lỗi tải complaints:", err);
+      console.error(err);
+      message.error("❌ Lỗi tải danh sách khiếu nại.");
     } finally {
       setLoading(false);
     }
-  }, [baseURL, token]);
+  };
 
+  // Gọi API khi load trang
   useEffect(() => {
     fetchComplaints();
-  }, [fetchComplaints]);
+  }, []);
 
-  // ✅ Derived filtered list
-  const filtered = useMemo(() => {
-    const q = search.trim().toLowerCase();
-    return complaints.filter((c) => {
-      const matchStatus = statusFilter === "all" || c.status === statusFilter;
-      const matchLevel = levelFilter === "all" || c.severityLevel === levelFilter;
-      const matchSearch =
-        !q ||
-        c.reason?.toLowerCase().includes(q) ||
-        c.description?.toLowerCase().includes(q);
-      return matchStatus && matchLevel && matchSearch;
-    });
-  }, [complaints, statusFilter, levelFilter, search]);
+  // ✅ Lọc và tìm kiếm
+  useEffect(() => {
+    let list = [...complaints];
+    if (statusFilter !== "all") list = list.filter((c) => c.status === statusFilter);
+    if (levelFilter !== "all") list = list.filter((c) => c.severityLevel === levelFilter);
+    if (search.trim()) {
+      const q = search.toLowerCase();
+      list = list.filter(
+        (c) =>
+          c.reason?.toLowerCase().includes(q) ||
+          c.description?.toLowerCase().includes(q)
+      );
+    }
+    setFiltered(list);
+  }, [complaints, search, statusFilter, levelFilter]);
 
-  // ✅ View details (inline, not popup)
-  const viewComplaintDetail = useCallback(
-    async (id) => {
-      try {
-        const res = await fetch(`${baseURL}complaint/${id}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        if (!res.ok) throw new Error("Failed to load detail");
-        const data = await res.json();
-        setSelectedComplaint(data);
-      } catch (err) {
-        console.error("Lỗi lấy chi tiết complaint:", err);
-        setSelectedComplaint(null);
-      }
-    },
-    [baseURL, token]
-  );
+  // ✅ Xem chi tiết complaint
+  const openDetailModal = async (id) => {
+    setModalVisible(true);
+    setModalLoading(true);
+    try {
+      const res = await fetch(`${baseURL}complaints/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error("Không thể lấy chi tiết complaint");
+      const data = await res.json();
+      setSelectedComplaint(data);
+    } catch (err) {
+      console.error(err);
+      message.error("❌ Lỗi tải chi tiết complaint.");
+      setModalVisible(false);
+    } finally {
+      setModalLoading(false);
+    }
+  };
 
-  // ✅ Update status with validation and optimistic UI
-  const updateStatus = useCallback(
-    async (id, newStatus) => {
-      if (!["pending", "in_review", "resolved"].includes(newStatus)) return;
-      try {
-        await fetch(`${baseURL}complaint/${id}/status?status=${newStatus}`, {
-          method: "PATCH",
-          headers: { Authorization: `Bearer ${token}` },
-        });
+  // ✅ Cập nhật trạng thái
+  const updateStatus = async (id, newStatus) => {
+    try {
+      const res = await fetch(`${baseURL}complaints/${id}/status?status=${newStatus}`, {
+        method: "PATCH",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error();
+      message.success(`✅ Trạng thái chuyển sang "${newStatus}".`);
+      setModalVisible(false);
+      fetchComplaints();
+    } catch {
+      message.error("❌ Không thể cập nhật trạng thái.");
+    }
+  };
 
-        setComplaints((prev) =>
-          prev.map((c) =>
-            c.complaintId === id ? { ...c, status: newStatus } : c
-          )
-        );
+  // ✅ Cập nhật mức độ nghiêm trọng
+  const updateLevel = async (id, newLevel) => {
+    try {
+      const res = await fetch(`${baseURL}complaints/${id}/level`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ level: newLevel }),
+      });
+      if (!res.ok) throw new Error();
+      message.success(`⚡ Mức độ thay đổi thành "${newLevel}".`);
+      setSelectedComplaint({ ...selectedComplaint, severityLevel: newLevel });
+    } catch {
+      message.error("Không thể thay đổi mức độ.");
+    }
+  };
 
-        if (selectedComplaint?.complaintId === id) {
-          setSelectedComplaint({ ...selectedComplaint, status: newStatus });
-        }
-      } catch (err) {
-        console.error("Cập nhật trạng thái thất bại:", err);
-      }
-    },
-    [baseURL, token, selectedComplaint]
-  );
+  // ✅ Giao staff xử lý
+  const assignToStaff = async (id, staffId) => {
+    try {
+      const res = await fetch(`${baseURL}complaints/assignee/${staffId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error();
+      message.success("👤 Đã giao khiếu nại cho nhân viên xử lý.");
+      setModalVisible(false);
+    } catch {
+      message.error("Không thể giao nhân viên.");
+    }
+  };
 
-  // ✅ Update level (validated)
-  const updateLevel = useCallback(
-    async (id, newLevel) => {
-      if (!["low", "medium", "high"].includes(newLevel)) return;
-      try {
-        await fetch(`${baseURL}complaint/${id}/level`, {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ level: newLevel }),
-        });
-
-        setComplaints((prev) =>
-          prev.map((c) =>
-            c.complaintId === id ? { ...c, severityLevel: newLevel } : c
-          )
-        );
-
-        if (selectedComplaint?.complaintId === id) {
-          setSelectedComplaint({ ...selectedComplaint, severityLevel: newLevel });
-        }
-      } catch (err) {
-        console.error("Cập nhật mức độ thất bại:", err);
-      }
-    },
-    [baseURL, token, selectedComplaint]
-  );
-
-  // ✅ Assign staff (validated)
-  const assignToStaff = useCallback(
-    async (id, staffId) => {
-      if (!staffId) return;
-      try {
-        await fetch(`${baseURL}complaint/assignee/${staffId}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setSelectedComplaint((prev) =>
-          prev ? { ...prev, assignedStaff: staffId } : prev
-        );
-      } catch (err) {
-        console.error("Không thể giao nhân viên:", err);
-      }
-    },
-    [baseURL, token]
-  );
-
-  const statusBadge = useCallback((status) => {
+  // ✅ Badge màu trạng thái
+  const statusBadge = (status) => {
     switch (status) {
       case "pending":
         return "bg-yellow-100 text-yellow-700";
@@ -171,7 +161,7 @@ export default function ComplaintList() {
       default:
         return "bg-gray-100 text-gray-700";
     }
-  }, []);
+  };
 
   if (loading) {
     return (
@@ -182,20 +172,20 @@ export default function ComplaintList() {
   }
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen space-y-6">
+    <div className="p-6 bg-gray-50 min-h-screen">
       {/* Header */}
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-semibold">📋 Quản lý khiếu nại</h1>
         <button
           onClick={fetchComplaints}
-          className="flex items-center gap-2 px-4 py-2 bg-white border rounded-lg hover:bg-gray-100 transition"
+          className="flex items-center gap-2 px-4 py-2 bg-white border rounded-lg hover:bg-gray-100"
         >
           <RefreshCw size={16} /> Làm mới
         </button>
       </div>
 
-      {/* Filters */}
-      <div className="flex flex-wrap gap-3 items-center">
+      {/* Bộ lọc */}
+      <div className="flex flex-wrap gap-3 items-center mb-5">
         <div className="relative">
           <Search className="absolute left-3 top-2.5 text-gray-400" size={18} />
           <input
@@ -233,7 +223,7 @@ export default function ComplaintList() {
         </select>
       </div>
 
-      {/* Complaints Table */}
+      {/* Bảng khiếu nại */}
       <div className="overflow-x-auto bg-white rounded-xl shadow">
         <table className="w-full text-sm text-left border-collapse">
           <thead className="bg-slate-100 text-slate-700 uppercase text-xs">
@@ -252,11 +242,7 @@ export default function ComplaintList() {
                 key={c.complaintId}
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
-                className={`border-b hover:bg-gray-50 ${
-                  selectedComplaint?.complaintId === c.complaintId
-                    ? "bg-indigo-50"
-                    : ""
-                }`}
+                className="border-b hover:bg-gray-50"
               >
                 <td className="p-3">{i + 1}</td>
                 <td className="p-3">{c.userId}</td>
@@ -273,7 +259,7 @@ export default function ComplaintList() {
                 </td>
                 <td className="p-3 text-center">
                   <button
-                    onClick={() => viewComplaintDetail(c.complaintId)}
+                    onClick={() => openDetailModal(c.complaintId)}
                     className="p-2 bg-gray-100 hover:bg-gray-200 rounded-lg"
                   >
                     <Eye size={16} />
@@ -285,82 +271,90 @@ export default function ComplaintList() {
         </table>
       </div>
 
-      {/* Inline Detail View */}
-      {selectedComplaint && (
-        <motion.div
-          key={selectedComplaint.complaintId}
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="p-5 bg-white rounded-xl shadow border space-y-3"
-        >
-          <h3 className="text-lg font-semibold mb-2">
-            🧾 Chi tiết khiếu nại #{selectedComplaint.complaintId}
-          </h3>
-          <p><b>User ID:</b> {selectedComplaint.userId}</p>
-          <p><b>Lý do:</b> {selectedComplaint.reason}</p>
-          <p><b>Mô tả:</b> {selectedComplaint.description}</p>
-
-          <div className="flex items-center gap-3">
-            <b>Mức độ:</b>
-            <Select
-              value={selectedComplaint.severityLevel}
-              style={{ width: 140 }}
-              onChange={(val) => updateLevel(selectedComplaint.complaintId, val)}
-              options={[
-                { value: "low", label: "Thấp" },
-                { value: "medium", label: "Trung bình" },
-                { value: "high", label: "Cao" },
-              ]}
-            />
+      {/* Modal chi tiết */}
+      <Modal
+        title="🧾 Chi tiết khiếu nại"
+        open={modalVisible}
+        onCancel={() => setModalVisible(false)}
+        footer={null}
+        centered
+        width={650}
+      >
+        {modalLoading ? (
+          <div className="flex justify-center py-10">
+            <Spin tip="Đang tải..." />
           </div>
+        ) : selectedComplaint ? (
+          <div className="space-y-3 text-[15px]">
+            <p><b>ID:</b> {selectedComplaint.complaintId}</p>
+            <p><b>User ID:</b> {selectedComplaint.userId}</p>
+            <p><b>Lý do:</b> {selectedComplaint.reason}</p>
+            <p><b>Mô tả:</b> {selectedComplaint.description}</p>
 
-          <p>
-            <b>Trạng thái:</b>{" "}
-            <span
-              className={`px-2 py-1 rounded text-xs font-medium ${statusBadge(
-                selectedComplaint.status
-              )}`}
-            >
-              {selectedComplaint.status}
-            </span>
-          </p>
+            <div className="flex gap-3 items-center">
+              <b>Mức độ:</b>
+              <Select
+                defaultValue={selectedComplaint.severityLevel}
+                style={{ width: 130 }}
+                onChange={(val) => updateLevel(selectedComplaint.complaintId, val)}
+                options={[
+                  { value: "low", label: "Thấp" },
+                  { value: "medium", label: "Trung bình" },
+                  { value: "high", label: "Cao" },
+                ]}
+              />
+            </div>
 
-          <div className="flex gap-3 mt-4 flex-wrap">
-            {selectedComplaint.status === "pending" && (
-              <button
-                onClick={() =>
-                  updateStatus(selectedComplaint.complaintId, "in_review")
-                }
-                className="flex items-center gap-2 px-3 py-2 bg-blue-100 hover:bg-blue-200 rounded-lg"
+            <p>
+              <b>Trạng thái:</b>{" "}
+              <span
+                className={`px-2 py-1 rounded text-xs font-medium ${statusBadge(
+                  selectedComplaint.status
+                )}`}
               >
-                <Wrench size={16} /> Đang xem xét
-              </button>
-            )}
-            {selectedComplaint.status !== "resolved" && (
-              <button
-                onClick={() =>
-                  updateStatus(selectedComplaint.complaintId, "resolved")
+                {selectedComplaint.status}
+              </span>
+            </p>
+
+            <div className="flex gap-3 mt-5 flex-wrap">
+              {selectedComplaint.status === "pending" && (
+                <button
+                  onClick={() =>
+                    updateStatus(selectedComplaint.complaintId, "in_review")
+                  }
+                  className="flex items-center gap-2 px-3 py-2 bg-blue-100 hover:bg-blue-200 rounded-lg"
+                >
+                  <Wrench size={16} /> Đang xem xét
+                </button>
+              )}
+              {selectedComplaint.status !== "resolved" && (
+                <button
+                  onClick={() =>
+                    updateStatus(selectedComplaint.complaintId, "resolved")
+                  }
+                  className="flex items-center gap-2 px-3 py-2 bg-green-100 hover:bg-green-200 rounded-lg"
+                >
+                  <CheckCircle size={16} /> Đã xử lý
+                </button>
+              )}
+              <Select
+                placeholder="Giao cho staff..."
+                style={{ width: 180 }}
+                onChange={(staffId) =>
+                  assignToStaff(selectedComplaint.complaintId, staffId)
                 }
-                className="flex items-center gap-2 px-3 py-2 bg-green-100 hover:bg-green-200 rounded-lg"
-              >
-                <CheckCircle size={16} /> Đã xử lý
-              </button>
-            )}
-            <Select
-              placeholder="Giao cho staff..."
-              style={{ width: 200 }}
-              onChange={(staffId) =>
-                assignToStaff(selectedComplaint.complaintId, staffId)
-              }
-              options={staffList.map((s) => ({
-                value: s.id,
-                label: s.name,
-              }))}
-              suffixIcon={<UserCheck size={16} />}
-            />
+                options={staffList.map((s) => ({
+                  value: s.id,
+                  label: s.name,
+                }))}
+                suffixIcon={<UserCheck size={16} />}
+              />
+            </div>
           </div>
-        </motion.div>
-      )}
+        ) : (
+          <p>Không tìm thấy complaint.</p>
+        )}
+      </Modal>
     </div>
   );
 }
