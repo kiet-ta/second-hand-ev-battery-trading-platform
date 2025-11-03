@@ -110,6 +110,7 @@ namespace Application.Services
                 Price = dto.Price,
                 Quantity = dto.Quantity,
                 Status = "pending",
+                UpdatedBy = dto.UpdatedBy,
                 IsDeleted = false,
                 CreatedAt = DateTime.Now,
                 UpdatedAt = DateTime.Now
