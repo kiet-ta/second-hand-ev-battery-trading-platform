@@ -5,7 +5,13 @@ on:
     branches: [ main, dev ]
   pull_request:
     branches: [ main ]
-
+    
+permissions:
+  actions: write  
+  checks: write      
+  contents: read    
+  security-events: write 
+  
 env:
   DOTNET_VERSION: '8.0.x'
   NODE_VERSION: '22'
@@ -45,6 +51,10 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
           cache-dependency-path: 'FrontEnd/package-lock.json'
+
+      - name: Clean npm cache
+        run: cd FrontEnd && npm cache clean --force
+        
       - run: cd FrontEnd && npm ci
       - run: cd FrontEnd && npm run lint || true
       - run: cd FrontEnd && npm run build
