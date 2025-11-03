@@ -10,6 +10,7 @@ COPY ["PresentationLayer/PresentationLayer.csproj", "PresentationLayer/"]
 COPY ["ApplicationLayer/Application.csproj", "ApplicationLayer/"]
 COPY ["Domain/Domain.csproj", "Domain/"]
 COPY ["Infrastructure/Infrastructure.csproj", "Infrastructure/"]
+COPY ["BackEnd.Application.Tests/BackEnd.Application.Tests.csproj", "BackEnd.Application.Tests/"]
 COPY ["BackEnd.sln", "."]
 # Restore dependencies
 RUN dotnet restore "BackEnd.sln"
