@@ -96,18 +96,19 @@ namespace Application.Services
             await SendAsync(message);
         }
 
-        public async Task SendResponseComplaintMailAsync(CreateResponseMailDto dto, string staffName, string staffRole)
+        public async Task<bool> SendResponseComplaintMailAsync(CreateResponseMailDto dto, string staffName, string staffRole)
         {
             if (dto == null) throw new ArgumentNullException(nameof(dto));
-            if (string.IsNullOrWhiteSpace(dto.To)) throw new ArgumentException("Recipient email cannot be empty.", nameof(dto.To));
+        
             if (string.IsNullOrWhiteSpace(staffName)) throw new ArgumentException("Staff name cannot be empty.", nameof(staffName));
             if (string.IsNullOrWhiteSpace(staffRole)) throw new ArgumentException("Staff role cannot be empty.", nameof(staffRole));
   
-
+            var user = await _templateRepository.GetUserByComplaintId(dto.complaintId);
             string htmlContent = await _templateRepository.SendResponseEmailToUser(dto, staffName, staffRole);
 
-            var message = CreateMessage(dto.To, $"Phản hồi khiếu nại #{dto.complaintId}", htmlContent);
+            var message = CreateMessage(user.Email, $"Phản hồi khiếu nại #{dto.complaintId}", htmlContent);
             await SendAsync(message);
+            return true;
         }
 
 
