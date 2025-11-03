@@ -14,7 +14,7 @@ export default function MyProductsPage() {
     const fetchMyItems = async () => {
         setIsListLoading(true);
         try {
-            const res = await fetch(`${baseURL}Item/seller/${userID}`, {
+            const res = await fetch(`${baseURL}sellers/${userID}/item`, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                     "Content-Type": "application/json",
@@ -25,7 +25,6 @@ export default function MyProductsPage() {
             setMyItems(Array.isArray(data.data) ? data.data : []);
         } catch (error) {
             console.error("❌ Lỗi tải sản phẩm:", error);
-            message.error("Không thể tải danh sách sản phẩm của bạn.");
         } finally {
             setIsListLoading(false);
         }

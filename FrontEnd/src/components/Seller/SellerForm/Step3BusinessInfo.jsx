@@ -127,11 +127,9 @@ const Step3BusinessInfo = ({ formData, setFormData, nextStep, prevStep }) => {
     // Check all required fields
     Object.keys(requiredFields).forEach(key => {
       let value;
-      // Handle nested fields (storeAddress)
       if (key in formData.storeAddress) {
         value = formData.storeAddress[key];
       } 
-      // Handle top-level fields (logoUrl)
       else if (key in formData) {
         value = formData[key];
       }

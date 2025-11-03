@@ -15,7 +15,7 @@ export default function SettingsSection() {
         if (!window.confirm("⚠️ Bạn có chắc muốn xóa tài khoản này? Hành động này không thể hoàn tác!")) return;
 
         try {
-            const res = await fetch(`${baseURL}User/${userId}`, {
+            const res = await fetch(`${baseURL}users/${userId}`, {
                 method: "DELETE",
                 headers: { "Content-Type": "application/json" },
             });

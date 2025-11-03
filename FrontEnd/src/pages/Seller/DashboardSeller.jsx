@@ -7,8 +7,6 @@ import { useNavigate, useLocation, Outlet } from "react-router-dom";
 import { IoLogOutOutline } from "react-icons/io5";
 import Logo from "../components/Logo"
 
-// ASSUMED CHANGE: Import the Dashboard content from its new file
-
 export default function SellerDashboard() {
     const location = useLocation();
     const navigate = useNavigate();
@@ -28,10 +26,8 @@ export default function SellerDashboard() {
         const fetchDashboard = async () => {
             setLoading(true);
             try {
-                // NOTE: This fetch runs whenever the component mounts, ensuring data is ready
-                // for the index route and potentially for the other sub-components if needed.
                 const res = await fetch(
-                    `${baseURL}SellerDashboard/${sellerId}`,
+                    `${baseURL}seller-dashboard/${sellerId}`,
                     {
                         headers: {
                             Authorization: `Bearer ${token}`,
@@ -54,12 +50,10 @@ export default function SellerDashboard() {
     }, [sellerId, token]);
 
     const handleLogout = () => {
-        // Giữ lại thông tin remember
         const rememberEmail = localStorage.getItem("rememberEmail");
         const rememberPassword = localStorage.getItem("rememberPassword");
 
-        localStorage.clear(); // Xoá mọi thứ
-        // Ghi lại thông tin remember
+        localStorage.clear(); 
         if (rememberEmail && rememberPassword) {
             localStorage.setItem("rememberEmail", rememberEmail);
             localStorage.setItem("rememberPassword", rememberPassword);

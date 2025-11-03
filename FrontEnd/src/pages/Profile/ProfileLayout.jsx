@@ -14,7 +14,6 @@ export default function ProfileLayout() {
     const navigate = useNavigate();
     const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
-    // Danh sách menu 
     const menuItems = [
         { to: "/profile", label: "Hồ sơ cá nhân", icon: <FaRegUser /> },
         { to: "/profile/purchase", label: "Đơn hàng của tôi", icon: <LuClipboardList /> },
@@ -22,14 +21,11 @@ export default function ProfileLayout() {
         { to: "/profile/settings", label: "Cài đặt", icon: <IoSettingsOutline /> },
     ];
 
-    //Xác nhận đăng xuất
     const handleLogoutConfirm = () => {
-        // ⚠️ Giữ lại thông tin remember
         const rememberEmail = localStorage.getItem("rememberEmail");
         const rememberPassword = localStorage.getItem("rememberPassword");
 
-        localStorage.clear(); // Xoá mọi dữ liệu
-        // ✅ Ghi lại thông tin remember nếu có
+        localStorage.clear(); 
         if (rememberEmail && rememberPassword) {
             localStorage.setItem("rememberEmail", rememberEmail);
             localStorage.setItem("rememberPassword", rememberPassword);

@@ -5,6 +5,7 @@ namespace Application.IRepositories.IBiddingRepositories;
 public interface IWalletTransactionRepository
 {
     Task<int> CreateTransactionAsync(WalletTransaction walletTransaction);
+    Task AddAsync(WalletTransaction transaction);
 
     Task<IEnumerable<WalletTransaction>> GetTransactionsByWalletIdAsync(int walletId);
 

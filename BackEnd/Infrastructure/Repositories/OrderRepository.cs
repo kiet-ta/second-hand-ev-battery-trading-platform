@@ -26,24 +26,6 @@ namespace Infrastructure.Repositories
             var order = await _context.Orders
         .FirstOrDefaultAsync(o => o.OrderId == id);
 
-            if (order != null)
-            {
-                // Load OrderItems -> OrderId
-                var orderItems = await _context.OrderItems
-                    .Where(oi => oi.OrderId == id)
-                    .ToListAsync();
-
-                // If you want return OrderDto
-                order = new Order
-                {
-                    OrderId = order.OrderId,
-                    BuyerId = order.BuyerId,
-                    AddressId = order.AddressId,
-                    Status = order.Status,
-                    CreatedAt = order.CreatedAt
-                };
-            }
-
             return order!;
         }
 
@@ -167,9 +149,9 @@ namespace Infrastructure.Repositories
 
         public async Task<decimal> GetRevenueThisMonthAsync(DateTime now)
         {
-            return await _context.Payments
-                .Where(o => o.CreatedAt.Month == now.Month && o.CreatedAt.Year == now.Year && o.Status == "completed")
-                .SumAsync(o => (decimal?)o.TotalAmount) ?? 0;
+            return await _context.Wallets
+                .Where(o => o.UserId == 4 && o.UpdatedAt.Month == now.Month && o.UpdatedAt.Year == now.Year && o.Status == "active")
+                .SumAsync(o => (decimal?)o.Balance) ?? 0;
         }
 
         public async Task<IEnumerable<Order>> GetOrdersWithinRangeAsync(DateTime startDate, DateTime endDate)

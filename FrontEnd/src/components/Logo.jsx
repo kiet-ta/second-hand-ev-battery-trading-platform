@@ -11,7 +11,7 @@ function Logo() {
        Cóc Mua Xe
      </span>
      <span className="text-xs text-gray-500 tracking-wide uppercase">
-       XE ĐÃ QUA SỬ DỤNG
+       XE VÀ PIN TỐI ƯU
      </span>
    </div>
   </Link>

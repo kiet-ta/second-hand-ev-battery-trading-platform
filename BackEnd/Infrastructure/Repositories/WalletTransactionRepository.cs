@@ -18,6 +18,12 @@ public class WalletTransactionRepository : IWalletTransactionRepository
         return e.TransactionId;
     }
 
+    public async Task AddAsync(WalletTransaction transaction)
+    {
+        // Đơn giản là gọi AddAsync của DbContext
+        await _context.WalletTransactions.AddAsync(transaction);
+    }
+
     public async Task<IEnumerable<WalletTransaction>> GetTransactionsByWalletIdAsync(int walletId) =>
         await _context.WalletTransactions
             .Where(t => t.WalletId == walletId)

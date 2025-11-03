@@ -23,7 +23,7 @@ export default function MyProducts() {
     if (!sellerId) return;
     setLoading(true);
     try {
-      const res = await fetch(`${baseURL}item/seller/${sellerId}`);
+      const res = await fetch(`${baseURL}sellers/${sellerId}/item`);
       if (!res.ok) throw new Error("Không thể tải danh sách sản phẩm");
       const data = await res.json();
       setProducts(data);
@@ -132,7 +132,7 @@ export default function MyProducts() {
     <div className="p-6">
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold text-gray-900">My Products</h2>
+        <h2 className="text-2xl font-bold text-gray-900">Sản phẩm của tôi</h2>
         <ProductCreationModal onSuccess={fetchProducts} />
       </div>
 
@@ -185,15 +185,14 @@ export default function MyProducts() {
                   className="w-full h-48 object-cover"
                 />
                 <span
-                  className={`absolute top-2 right-2 text-xs font-semibold px-2 py-1 rounded-full ${
-                    item.status === "active"
-                      ? "bg-green-100 text-green-700"
-                      : item.status === "pending"
+                  className={`absolute top-2 right-2 text-xs font-semibold px-2 py-1 rounded-full ${item.status === "active"
+                    ? "bg-green-100 text-green-700"
+                    : item.status === "pending"
                       ? "bg-yellow-100 text-yellow-700"
                       : item.status === "pending_pay"
-                      ? "bg-orange-100 text-orange-700"
-                      : "bg-gray-100 text-gray-600"
-                  }`}
+                        ? "bg-orange-100 text-orange-700"
+                        : "bg-gray-100 text-gray-600"
+                    }`}
                 >
                   {item.status === "pending_pay" ? "Chờ thanh toán" : item.status}
                 </span>

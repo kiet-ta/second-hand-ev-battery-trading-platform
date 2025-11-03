@@ -10,7 +10,6 @@ import {
     Download,
     Package,
 } from "lucide-react";
-import { message } from "antd";
 import { RiBattery2ChargeLine } from "react-icons/ri";
 
 export default function HistorySold() {
@@ -27,7 +26,7 @@ export default function HistorySold() {
     useEffect(() => {
         const fetchSales = async () => {
             try {
-                const res = await fetch(`${baseURL}History/${sellerId}`, {
+                const res = await fetch(`${baseURL}history?sellerId=${sellerId}&PageNumber=1&PageSize=10`, {
                     headers: {
                         Authorization: `Bearer ${token}`,
                         "Content-Type": "application/json",
@@ -39,7 +38,6 @@ export default function HistorySold() {
                 setSales(data?.items || []); // ✅ CHỈ LẤY MẢNG TRONG items
             } catch (err) {
                 console.error("❌ Lỗi khi tải lịch sử bán:", err);
-                message.error("Không thể tải dữ liệu lịch sử bán hàng");
             } finally {
                 setLoading(false);
             }
@@ -84,7 +82,6 @@ export default function HistorySold() {
         }
     };
 
-    // Tính toán thống kê theo loại sản phẩm
     const totalRevenueEV = sales
         .filter(
             (s) =>
@@ -117,17 +114,14 @@ export default function HistorySold() {
                 s.status?.toLowerCase() === "completed")
     ).length;
 
-    // Lọc dữ liệu
     const filteredSales = sales.filter((s) => {
         const matchStatus = filter === "all" || s.status?.toLowerCase() === filter;
         const matchType = filterType === "all" || s.itemType === filterType;
         return matchStatus && matchType;
     });
 
-    // Xuất CSV
     const exportToCSV = () => {
         if (sales.length === 0) {
-            message.info("Không có dữ liệu để xuất.");
             return;
         }
         const headers = [

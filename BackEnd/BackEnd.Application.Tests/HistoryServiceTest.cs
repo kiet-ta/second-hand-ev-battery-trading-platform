@@ -1,403 +1,310 @@
-﻿
-using Application.DTOs.ItemDtos;
+﻿using Application.DTOs;
 using Application.IRepositories;
 using Application.Services;
 using Domain.Entities;
-using Application.DTOs;
 using Moq;
-
 
 namespace BackEnd.Application.Tests
 {
-
-
-
-    public class HistorySoldServiceTests
+    public class HistoryServiceTests
     {
         private readonly Mock<IHistorySoldRepository> _repoMock;
         private readonly HistorySoldService _service;
+        private readonly User _fakeSeller;
+        private readonly int _sellerId = 1;
 
-        public HistorySoldServiceTests()
+        public HistoryServiceTests()
         {
             _repoMock = new Mock<IHistorySoldRepository>();
             _service = new HistorySoldService(_repoMock.Object);
+
+            // Arrange: Create a re-usable fake seller for tests
+            _fakeSeller = new User { UserId = _sellerId, FullName = "Test Seller" };
+
+            // Default setup: Assume seller exists for most tests
+            _repoMock.Setup(r => r.GetSellerByIdAsync(_sellerId))
+                .ReturnsAsync(_fakeSeller);
         }
 
-        private User FakeSeller => new User { UserId = 1, FullName = "Seller1" };
+        // Helper function to create fake item lists
         private List<Item> FakeItems(string type, int count)
-            => Enumerable.Range(1, count).Select(i => new Item { ItemId = i, UpdatedBy = 1, ItemType = type }).ToList();
+        {
+            return Enumerable.Range(1, count)
+                .Select(i => new Item { ItemId = i, UpdatedBy = _sellerId, ItemType = type })
+                .ToList();
+        }
+
+        // Helper function to create mixed item lists
+        private List<Item> FakeMixedItems(int batteryCount, int evCount)
+        {
+            var items = Enumerable.Range(1, batteryCount)
+                .Select(i => new Item { ItemId = i, UpdatedBy = _sellerId, ItemType = "battery" })
+                .ToList();
+
+            items.AddRange(Enumerable.Range(batteryCount + 1, evCount)
+                .Select(i => new Item { ItemId = i, UpdatedBy = _sellerId, ItemType = "ev" }));
+
+            return items;
+        }
+
+        // ### Tests for GetSoldItemsAsync ###
 
         [Fact]
-        public async Task GetSoldItemsAsync_ShouldThrow_WhenSellerNotFound()
+        public async Task GetSoldItemsAsync_ShouldThrowKeyNotFoundException_WhenSellerNotFound()
         {
-            _repoMock.Setup(r => r.GetSellerByIdAsync(1)).ReturnsAsync((User)null);
-            await Assert.ThrowsAsync<KeyNotFoundException>(() => _service.GetSoldItemsAsync(1));
+            // Arrange
+            // Override default setup: Make seller return null
+            _repoMock.Setup(r => r.GetSellerByIdAsync(_sellerId)).ReturnsAsync((User)null);
+
+            // Act & Assert
+            // Verify that the service throws KeyNotFoundException as expected
+            await Assert.ThrowsAsync<KeyNotFoundException>(() => _service.GetSoldItemsAsync(_sellerId));
         }
 
         [Fact]
-        public async Task GetSoldItemsAsync_ShouldReturnEmpty_WhenNoItems()
+        public async Task GetSoldItemsAsync_ShouldReturnEmptyList_WhenNoItemsFound()
         {
-            _repoMock.Setup(r => r.GetSellerByIdAsync(1)).ReturnsAsync(FakeSeller);
-            _repoMock.Setup(r => r.GetSoldItemsAsync(1)).ReturnsAsync(new List<Item>());
+            // Arrange
+            // Mock the repo to return an empty list of items
+            _repoMock.Setup(r => r.GetSoldItemsAsync(_sellerId)).ReturnsAsync(new List<Item>());
 
-            var result = await _service.GetSoldItemsAsync(1);
+            // Act
+            var result = await _service.GetSoldItemsAsync(_sellerId);
+
+            // Assert
+            Assert.NotNull(result);
             Assert.Empty(result);
         }
 
         [Fact]
-        public async Task GetSoldItemsAsync_ShouldReturnMappedBatteryItems()
+        public async Task GetSoldItemsAsync_ShouldReturnMappedBatteryItems_WithSoldStatus()
         {
+            // Arrange
             var items = FakeItems("battery", 2);
-            _repoMock.Setup(r => r.GetSellerByIdAsync(1)).ReturnsAsync(FakeSeller);
-            _repoMock.Setup(r => r.GetSoldItemsAsync(1)).ReturnsAsync(items);
-            _repoMock.Setup(r => r.MapToBatteryItemsAsync(items)).ReturnsAsync(
-                new List<BatteryItemDto> { new BatteryItemDto { ItemId = 1 } });
+            var mappedItems = new List<BatteryItemDto>
+            {
+                new BatteryItemDto { ItemId = 1 },
+                new BatteryItemDto { ItemId = 2 }
+            };
 
-            var result = await _service.GetSoldItemsAsync(1);
-            Assert.Single(result);
-            Assert.Equal("sold", ((BatteryItemDto)result.First()).Status);
+            _repoMock.Setup(r => r.GetSoldItemsAsync(_sellerId)).ReturnsAsync(items);
+            _repoMock.Setup(r => r.MapToBatteryItemsAsync(items)).ReturnsAsync(mappedItems);
+
+            // Act
+            var result = await _service.GetSoldItemsAsync(_sellerId);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal(2, result.Count);
+            // Verify that the service correctly set the 'Status' property
+            Assert.All(result, item => Assert.Equal("sold", ((BatteryItemDto)item).Status));
         }
 
         [Fact]
-        public async Task GetSoldItemsAsync_ShouldReturnMappedEVItems()
+        public async Task GetSoldItemsAsync_ShouldReturnMappedEVItems_WithSoldStatus()
         {
+            // Arrange
             var items = FakeItems("ev", 1);
-            _repoMock.Setup(r => r.GetSellerByIdAsync(1)).ReturnsAsync(FakeSeller);
-            _repoMock.Setup(r => r.GetSoldItemsAsync(1)).ReturnsAsync(items);
-            _repoMock.Setup(r => r.MapToEVItemsAsync(items)).ReturnsAsync(
-                new List<EVItemDto> { new EVItemDto { ItemId = 5 } });
+            var mappedItems = new List<EVItemDto> { new EVItemDto { ItemId = 1 } };
 
-            var result = await _service.GetSoldItemsAsync(1);
+            _repoMock.Setup(r => r.GetSoldItemsAsync(_sellerId)).ReturnsAsync(items);
+            _repoMock.Setup(r => r.MapToEVItemsAsync(items)).ReturnsAsync(mappedItems);
+
+            // Act
+            var result = await _service.GetSoldItemsAsync(_sellerId);
+
+            // Assert
             Assert.Single(result);
             Assert.Equal("sold", ((EVItemDto)result.First()).Status);
         }
 
         [Fact]
-        public async Task GetSoldItemsAsync_ShouldHandleMixedItems()
+        public async Task GetSoldItemsAsync_ShouldHandleMixedEVAndBatteryItems()
         {
-            var items = FakeItems("battery", 1).Concat(FakeItems("ev", 1)).ToList();
-            _repoMock.Setup(r => r.GetSellerByIdAsync(1)).ReturnsAsync(FakeSeller);
-            _repoMock.Setup(r => r.GetSoldItemsAsync(1)).ReturnsAsync(items);
-            _repoMock.Setup(r => r.MapToBatteryItemsAsync(It.IsAny<List<Item>>()))
+            // Arrange
+            var items = FakeMixedItems(batteryCount: 1, evCount: 1); // 1 battery, 1 ev
+            var batteryItems = items.Where(i => i.ItemType == "battery").ToList();
+            var evItems = items.Where(i => i.ItemType == "ev").ToList();
+
+            _repoMock.Setup(r => r.GetSoldItemsAsync(_sellerId)).ReturnsAsync(items);
+
+            // Mock the specific mappings
+            _repoMock.Setup(r => r.MapToBatteryItemsAsync(batteryItems))
                      .ReturnsAsync(new List<BatteryItemDto> { new BatteryItemDto { ItemId = 1 } });
-            _repoMock.Setup(r => r.MapToEVItemsAsync(It.IsAny<List<Item>>()))
+            _repoMock.Setup(r => r.MapToEVItemsAsync(evItems))
                      .ReturnsAsync(new List<EVItemDto> { new EVItemDto { ItemId = 2 } });
 
-            var result = await _service.GetSoldItemsAsync(1);
+            // Act
+            var result = await _service.GetSoldItemsAsync(_sellerId);
+
+            // Assert
             Assert.Equal(2, result.Count);
+            Assert.Contains(result, item => item is BatteryItemDto);
+            Assert.Contains(result, item => item is EVItemDto);
+        }
+
+        // ### Tests for GetPendingPaymentItemsAsync ###
+
+        [Fact]
+        public async Task GetPendingPaymentItemsAsync_ShouldThrowKeyNotFoundException_WhenSellerNotFound()
+        {
+            // Arrange
+            _repoMock.Setup(r => r.GetSellerByIdAsync(_sellerId)).ReturnsAsync((User)null);
+
+            // Act & Assert
+            await Assert.ThrowsAsync<KeyNotFoundException>(() => _service.GetPendingPaymentItemsAsync(_sellerId));
         }
 
         [Fact]
-        public async Task GetPendingPaymentItemsAsync_ShouldThrow_WhenSellerNotFound()
+        public async Task GetPendingPaymentItemsAsync_ShouldReturnMappedItems_WithPendingStatus()
         {
-            _repoMock.Setup(r => r.GetSellerByIdAsync(1)).ReturnsAsync((User)null);
-            await Assert.ThrowsAsync<KeyNotFoundException>(() => _service.GetPendingPaymentItemsAsync(1));
-        }
+            // Arrange
+            var items = FakeItems("ev", 1); // Test with EV items
+            var mappedItems = new List<EVItemDto> { new EVItemDto { ItemId = 1 } };
 
-        [Fact]
-        public async Task GetPendingPaymentItemsAsync_ShouldReturnEmpty_WhenNone()
-        {
-            _repoMock.Setup(r => r.GetSellerByIdAsync(1)).ReturnsAsync(FakeSeller);
-            _repoMock.Setup(r => r.GetPendingPaymentItemsAsync(1)).ReturnsAsync(new List<Item>());
+            _repoMock.Setup(r => r.GetPendingPaymentItemsAsync(_sellerId)).ReturnsAsync(items);
+            _repoMock.Setup(r => r.MapToEVItemsAsync(items)).ReturnsAsync(mappedItems);
 
-            var result = await _service.GetPendingPaymentItemsAsync(1);
-            Assert.Empty(result);
-        }
+            // Act
+            var result = await _service.GetPendingPaymentItemsAsync(_sellerId);
 
-        [Fact]
-        public async Task GetPendingPaymentItemsAsync_ShouldReturnBatteryStatus()
-        {
-            var items = FakeItems("battery", 1);
-            _repoMock.Setup(r => r.GetSellerByIdAsync(1)).ReturnsAsync(FakeSeller);
-            _repoMock.Setup(r => r.GetPendingPaymentItemsAsync(1)).ReturnsAsync(items);
-            _repoMock.Setup(r => r.MapToBatteryItemsAsync(items))
-                     .ReturnsAsync(new List<BatteryItemDto> { new BatteryItemDto { ItemId = 1 } });
-
-            var result = await _service.GetPendingPaymentItemsAsync(1);
-            Assert.Equal("pending_approval", ((BatteryItemDto)result.First()).Status);
-        }
-
-        [Fact]
-        public async Task GetPendingPaymentItemsAsync_ShouldReturnEVStatus()
-        {
-            var items = FakeItems("ev", 1);
-            _repoMock.Setup(r => r.GetSellerByIdAsync(1)).ReturnsAsync(FakeSeller);
-            _repoMock.Setup(r => r.GetPendingPaymentItemsAsync(1)).ReturnsAsync(items);
-            _repoMock.Setup(r => r.MapToEVItemsAsync(items))
-                     .ReturnsAsync(new List<EVItemDto> { new EVItemDto { ItemId = 5 } });
-
-            var result = await _service.GetPendingPaymentItemsAsync(1);
+            // Assert
+            Assert.Single(result);
+            // Verify that the service correctly set the 'Status' property
             Assert.Equal("pending_approval", ((EVItemDto)result.First()).Status);
         }
 
-        [Fact]
-        public async Task GetPendingPaymentItemsAsync_ShouldHandleBothTypes()
-        {
-            var items = FakeItems("battery", 1).Concat(FakeItems("ev", 1)).ToList();
-            _repoMock.Setup(r => r.GetSellerByIdAsync(1)).ReturnsAsync(FakeSeller);
-            _repoMock.Setup(r => r.GetPendingPaymentItemsAsync(1)).ReturnsAsync(items);
-            _repoMock.Setup(r => r.MapToBatteryItemsAsync(It.IsAny<List<Item>>()))
-                     .ReturnsAsync(new List<BatteryItemDto> { new BatteryItemDto { ItemId = 1 } });
-            _repoMock.Setup(r => r.MapToEVItemsAsync(It.IsAny<List<Item>>()))
-                     .ReturnsAsync(new List<EVItemDto> { new EVItemDto { ItemId = 2 } });
+        // ### Tests for GetProcessingItemsAsync ###
 
-            var result = await _service.GetPendingPaymentItemsAsync(1);
-            Assert.Equal(2, result.Count);
+        [Fact]
+        public async Task GetProcessingItemsAsync_ShouldThrowKeyNotFoundException_WhenSellerNotFound()
+        {
+            // Arrange
+            _repoMock.Setup(r => r.GetSellerByIdAsync(_sellerId)).ReturnsAsync((User)null);
+
+            // Act & Assert
+            await Assert.ThrowsAsync<KeyNotFoundException>(() => _service.GetProcessingItemsAsync(_sellerId));
         }
 
         [Fact]
-        public async Task GetProcessingItemsAsync_ShouldThrow_WhenSellerMissing()
+        public async Task GetProcessingItemsAsync_ShouldReturnMappedItems_WithProcessingStatus()
         {
-            _repoMock.Setup(r => r.GetSellerByIdAsync(1)).ReturnsAsync((User)null);
-            await Assert.ThrowsAsync<KeyNotFoundException>(() => _service.GetProcessingItemsAsync(1));
-        }
+            // Arrange
+            var items = FakeItems("battery", 1); // Test with Battery items
+            var mappedItems = new List<BatteryItemDto> { new BatteryItemDto { ItemId = 1 } };
 
-        [Fact]
-        public async Task GetProcessingItemsAsync_ShouldReturnEmpty_WhenNoData()
-        {
-            _repoMock.Setup(r => r.GetSellerByIdAsync(1)).ReturnsAsync(FakeSeller);
-            _repoMock.Setup(r => r.GetProcessingItemsAsync(1)).ReturnsAsync(new List<Item>());
+            _repoMock.Setup(r => r.GetProcessingItemsAsync(_sellerId)).ReturnsAsync(items);
+            _repoMock.Setup(r => r.MapToBatteryItemsAsync(items)).ReturnsAsync(mappedItems);
 
-            var result = await _service.GetProcessingItemsAsync(1);
-            Assert.Empty(result);
-        }
+            // Act
+            var result = await _service.GetProcessingItemsAsync(_sellerId);
 
-        [Fact]
-        public async Task GetProcessingItemsAsync_ShouldMapBatteryItems()
-        {
-            var items = FakeItems("battery", 2);
-            _repoMock.Setup(r => r.GetSellerByIdAsync(1)).ReturnsAsync(FakeSeller);
-            _repoMock.Setup(r => r.GetProcessingItemsAsync(1)).ReturnsAsync(items);
-            _repoMock.Setup(r => r.MapToBatteryItemsAsync(items))
-                     .ReturnsAsync(new List<BatteryItemDto> { new BatteryItemDto { ItemId = 1 } });
-
-            var result = await _service.GetProcessingItemsAsync(1);
+            // Assert
+            Assert.Single(result);
+            // Verify that the service correctly set the 'Status' property
             Assert.Equal("processing", ((BatteryItemDto)result.First()).Status);
         }
 
+        // ### Tests for GetCanceledItemsAsync ###
+
         [Fact]
-        public async Task GetProcessingItemsAsync_ShouldMapEVItems()
+        public async Task GetCanceledItemsAsync_ShouldThrowKeyNotFoundException_WhenSellerNotFound()
         {
+            // Arrange
+            _repoMock.Setup(r => r.GetSellerByIdAsync(_sellerId)).ReturnsAsync((User)null);
+
+            // Act & Assert
+            await Assert.ThrowsAsync<KeyNotFoundException>(() => _service.GetCanceledItemsAsync(_sellerId));
+        }
+
+        [Fact]
+        public async Task GetCanceledItemsAsync_ShouldReturnMappedItems_WithCanceledStatus()
+        {
+            // Arrange
             var items = FakeItems("ev", 1);
-            _repoMock.Setup(r => r.GetSellerByIdAsync(1)).ReturnsAsync(FakeSeller);
-            _repoMock.Setup(r => r.GetProcessingItemsAsync(1)).ReturnsAsync(items);
-            _repoMock.Setup(r => r.MapToEVItemsAsync(items))
-                     .ReturnsAsync(new List<EVItemDto> { new EVItemDto { ItemId = 99 } });
+            var mappedItems = new List<EVItemDto> { new EVItemDto { ItemId = 1 } };
 
-            var result = await _service.GetProcessingItemsAsync(1);
-            Assert.Equal("processing", ((EVItemDto)result.First()).Status);
-        }
+            _repoMock.Setup(r => r.GetCanceledItemsAsync(_sellerId)).ReturnsAsync(items);
+            _repoMock.Setup(r => r.MapToEVItemsAsync(items)).ReturnsAsync(mappedItems);
 
-        [Fact]
-        public async Task GetProcessingItemsAsync_ShouldCombineEVAndBattery()
-        {
-            var items = FakeItems("ev", 1).Concat(FakeItems("battery", 1)).ToList();
-            _repoMock.Setup(r => r.GetSellerByIdAsync(1)).ReturnsAsync(FakeSeller);
-            _repoMock.Setup(r => r.GetProcessingItemsAsync(1)).ReturnsAsync(items);
-            _repoMock.Setup(r => r.MapToBatteryItemsAsync(It.IsAny<List<Item>>()))
-                     .ReturnsAsync(new List<BatteryItemDto> { new BatteryItemDto { ItemId = 1 } });
-            _repoMock.Setup(r => r.MapToEVItemsAsync(It.IsAny<List<Item>>()))
-                     .ReturnsAsync(new List<EVItemDto> { new EVItemDto { ItemId = 2 } });
+            // Act
+            var result = await _service.GetCanceledItemsAsync(_sellerId);
 
-            var result = await _service.GetProcessingItemsAsync(1);
-            Assert.Equal(2, result.Count);
-        }
-
-        [Fact]
-        public async Task GetCanceledItemsAsync_ShouldThrow_WhenSellerNull()
-        {
-            _repoMock.Setup(r => r.GetSellerByIdAsync(1)).ReturnsAsync((User)null);
-            await Assert.ThrowsAsync<KeyNotFoundException>(() => _service.GetCanceledItemsAsync(1));
-        }
-
-        [Fact]
-        public async Task GetCanceledItemsAsync_ShouldReturnEmpty_WhenNoItems()
-        {
-            _repoMock.Setup(r => r.GetSellerByIdAsync(1)).ReturnsAsync(FakeSeller);
-            _repoMock.Setup(r => r.GetCanceledItemsAsync(1)).ReturnsAsync(new List<Item>());
-            var result = await _service.GetCanceledItemsAsync(1);
-            Assert.Empty(result);
-        }
-
-        [Fact]
-        public async Task GetCanceledItemsAsync_ShouldMapBatteryItems()
-        {
-            var items = FakeItems("battery", 1);
-            _repoMock.Setup(r => r.GetSellerByIdAsync(1)).ReturnsAsync(FakeSeller);
-            _repoMock.Setup(r => r.GetCanceledItemsAsync(1)).ReturnsAsync(items);
-            _repoMock.Setup(r => r.MapToBatteryItemsAsync(items))
-                     .ReturnsAsync(new List<BatteryItemDto> { new BatteryItemDto { ItemId = 3 } });
-
-            var result = await _service.GetCanceledItemsAsync(1);
-            Assert.Equal("canceled", ((BatteryItemDto)result.First()).Status);
-        }
-
-        [Fact]
-        public async Task GetCanceledItemsAsync_ShouldMapEVItems()
-        {
-            var items = FakeItems("ev", 1);
-            _repoMock.Setup(r => r.GetSellerByIdAsync(1)).ReturnsAsync(FakeSeller);
-            _repoMock.Setup(r => r.GetCanceledItemsAsync(1)).ReturnsAsync(items);
-            _repoMock.Setup(r => r.MapToEVItemsAsync(items))
-                     .ReturnsAsync(new List<EVItemDto> { new EVItemDto { ItemId = 10 } });
-
-            var result = await _service.GetCanceledItemsAsync(1);
+            // Assert
+            Assert.Single(result);
+            // Verify that the service correctly set the 'Status' property
             Assert.Equal("canceled", ((EVItemDto)result.First()).Status);
         }
 
-        [Fact]
-        public async Task GetCanceledItemsAsync_ShouldHandleMixedTypes()
-        {
-            var items = FakeItems("ev", 1).Concat(FakeItems("battery", 1)).ToList();
-            _repoMock.Setup(r => r.GetSellerByIdAsync(1)).ReturnsAsync(FakeSeller);
-            _repoMock.Setup(r => r.GetCanceledItemsAsync(1)).ReturnsAsync(items);
-            _repoMock.Setup(r => r.MapToEVItemsAsync(It.IsAny<List<Item>>()))
-                     .ReturnsAsync(new List<EVItemDto> { new EVItemDto { ItemId = 1 } });
-            _repoMock.Setup(r => r.MapToBatteryItemsAsync(It.IsAny<List<Item>>()))
-                     .ReturnsAsync(new List<BatteryItemDto> { new BatteryItemDto { ItemId = 2 } });
+        // ### Tests for GetAllSellerItemsAsync (The complex one) ###
 
-            var result = await _service.GetCanceledItemsAsync(1);
-            Assert.Equal(2, result.Count);
+        [Fact]
+        public async Task GetAllSellerItemsAsync_ShouldThrowKeyNotFoundException_WhenSellerNotFound()
+        {
+            // Arrange
+            _repoMock.Setup(r => r.GetSellerByIdAsync(_sellerId)).ReturnsAsync((User)null);
+
+            // Act & Assert
+            // Note: This tests the (int sellerId) overload
+            await Assert.ThrowsAsync<KeyNotFoundException>(() => _service.GetAllSellerItemsAsync(_sellerId));
         }
 
         [Fact]
-        public async Task GetAllSellerItemsAsync_ShouldReturnEmpty_WhenSellerNotFound()
+        public async Task GetAllSellerItemsAsync_ShouldReturnAllItemTypes_WithCorrectStatuses()
         {
-            _repoMock.Setup(r => r.GetSellerByIdAsync(1)).ReturnsAsync((User)null);
-            var result = await _service.GetAllSellerItemsAsync(1);
-            Assert.Empty(result);
-        }
-
-        [Fact]
-        public async Task GetAllSellerItemsAsync_ShouldIncludeAvailableItems()
-        {
-            var all = FakeItems("battery", 2);
-            _repoMock.Setup(r => r.GetSellerByIdAsync(1)).ReturnsAsync(FakeSeller);
-            _repoMock.Setup(r => r.GetAllSellerItemsAsync(1)).ReturnsAsync(all);
-            _repoMock.Setup(r => r.GetSoldItemsAsync(1)).ReturnsAsync(new List<Item>());
-            _repoMock.Setup(r => r.GetPendingPaymentItemsAsync(1)).ReturnsAsync(new List<Item>());
-            _repoMock.Setup(r => r.GetProcessingItemsAsync(1)).ReturnsAsync(new List<Item>());
-            _repoMock.Setup(r => r.GetCanceledItemsAsync(1)).ReturnsAsync(new List<Item>());
-            _repoMock.Setup(r => r.MapToBatteryItemsAsync(all))
-                     .ReturnsAsync(new List<BatteryItemDto> { new BatteryItemDto { ItemId = 1 } });
-
-            var result = await _service.GetAllSellerItemsAsync(1);
-            Assert.Contains(result, r => ((BatteryItemDto)r).Status == "available");
-        }
-
-        [Fact]
-        public async Task GetAllSellerItemsAsync_ShouldCombineAllStatuses()
-        {
-            var sold = FakeItems("battery", 1);
-            var all = FakeItems("battery", 2);
-
-            _repoMock.Setup(r => r.GetSellerByIdAsync(1)).ReturnsAsync(FakeSeller);
-            _repoMock.Setup(r => r.GetSoldItemsAsync(1)).ReturnsAsync(sold);
-            _repoMock.Setup(r => r.GetAllSellerItemsAsync(1)).ReturnsAsync(all);
-            _repoMock.Setup(r => r.MapToBatteryItemsAsync(It.IsAny<List<Item>>()))
-                     .ReturnsAsync(new List<BatteryItemDto> { new BatteryItemDto { ItemId = 1 } });
-
-            var result = await _service.GetAllSellerItemsAsync(1);
-            Assert.NotEmpty(result);
-        }
-
-        [Fact]
-        public async Task GetAllSellerItemsAsync_ShouldExcludeTakenIds()
-        {
-            var sold = new List<Item> { new Item { ItemId = 1, ItemType = "battery" } };
-            var all = new List<Item> { new Item { ItemId = 1, ItemType = "battery" }, new Item { ItemId = 2, ItemType = "battery" } };
-            _repoMock.Setup(r => r.GetSellerByIdAsync(1)).ReturnsAsync(FakeSeller);
-            _repoMock.Setup(r => r.GetSoldItemsAsync(1)).ReturnsAsync(sold);
-            _repoMock.Setup(r => r.GetAllSellerItemsAsync(1)).ReturnsAsync(all);
-            _repoMock.Setup(r => r.MapToBatteryItemsAsync(It.IsAny<List<Item>>()))
-                     .ReturnsAsync(new List<BatteryItemDto> { new BatteryItemDto { ItemId = 2 } });
-
-            var result = await _service.GetAllSellerItemsAsync(1);
-            Assert.DoesNotContain(result, r => (r as BatteryItemDto)?.ItemId == 1);
-        }
-
-        [Fact]
-        public async Task GetAllSellerItemsAsync_ShouldSetAvailableStatusForBattery()
-        {
-            var all = FakeItems("battery", 1);
-            _repoMock.Setup(r => r.GetSellerByIdAsync(1)).ReturnsAsync(FakeSeller);
-            _repoMock.Setup(r => r.GetAllSellerItemsAsync(1)).ReturnsAsync(all);
-            _repoMock.Setup(r => r.GetSoldItemsAsync(1)).ReturnsAsync(new List<Item>());
-            _repoMock.Setup(r => r.GetPendingPaymentItemsAsync(1)).ReturnsAsync(new List<Item>());
-            _repoMock.Setup(r => r.GetProcessingItemsAsync(1)).ReturnsAsync(new List<Item>());
-            _repoMock.Setup(r => r.GetCanceledItemsAsync(1)).ReturnsAsync(new List<Item>());
-            _repoMock.Setup(r => r.MapToBatteryItemsAsync(all))
-                     .ReturnsAsync(new List<BatteryItemDto> { new BatteryItemDto { ItemId = 1 } });
-
-            var result = await _service.GetAllSellerItemsAsync(1);
-            Assert.Equal("available", ((BatteryItemDto)result.First()).Status);
-        }
-
-        [Fact]
-        public async Task GetAllSellerItemsAsync_ShouldSetAvailableStatusForEV()
-        {
-            var all = FakeItems("ev", 1);
-            _repoMock.Setup(r => r.GetSellerByIdAsync(1)).ReturnsAsync(FakeSeller);
-            _repoMock.Setup(r => r.GetAllSellerItemsAsync(1)).ReturnsAsync(all);
-            _repoMock.Setup(r => r.GetSoldItemsAsync(1)).ReturnsAsync(new List<Item>());
-            _repoMock.Setup(r => r.GetPendingPaymentItemsAsync(1)).ReturnsAsync(new List<Item>());
-            _repoMock.Setup(r => r.GetProcessingItemsAsync(1)).ReturnsAsync(new List<Item>());
-            _repoMock.Setup(r => r.GetCanceledItemsAsync(1)).ReturnsAsync(new List<Item>());
-            _repoMock.Setup(r => r.MapToEVItemsAsync(all))
-                     .ReturnsAsync(new List<EVItemDto> { new EVItemDto { ItemId = 1 } });
-
-            var result = await _service.GetAllSellerItemsAsync(1);
-            Assert.Equal("available", ((EVItemDto)result.First()).Status);
-        }
-
-        [Fact]
-        public async Task GetAllSellerItemsAsync_ShouldReturnEmpty_WhenAllItemsTaken()
-        {
-            var all = FakeItems("battery", 1);
-            var sold = FakeItems("battery", 1);
-            _repoMock.Setup(r => r.GetSellerByIdAsync(1)).ReturnsAsync(FakeSeller);
-            _repoMock.Setup(r => r.GetAllSellerItemsAsync(1)).ReturnsAsync(all);
-            _repoMock.Setup(r => r.GetSoldItemsAsync(1)).ReturnsAsync(sold);
-
-            var result = await _service.GetAllSellerItemsAsync(1);
-            Assert.Empty(result);
-        }
-
-        [Fact]
-        public async Task GetAllSellerItemsAsync_ShouldHandleMixedEVAndBattery()
-        {
-            var all = FakeItems("battery", 1).Concat(FakeItems("ev", 1)).ToList();
-            _repoMock.Setup(r => r.GetSellerByIdAsync(1)).ReturnsAsync(FakeSeller);
-            _repoMock.Setup(r => r.GetAllSellerItemsAsync(1)).ReturnsAsync(all);
-            _repoMock.Setup(r => r.GetSoldItemsAsync(1)).ReturnsAsync(new List<Item>());
-            _repoMock.Setup(r => r.GetPendingPaymentItemsAsync(1)).ReturnsAsync(new List<Item>());
-            _repoMock.Setup(r => r.GetProcessingItemsAsync(1)).ReturnsAsync(new List<Item>());
-            _repoMock.Setup(r => r.GetCanceledItemsAsync(1)).ReturnsAsync(new List<Item>());
-            _repoMock.Setup(r => r.MapToEVItemsAsync(It.IsAny<List<Item>>()))
-                     .ReturnsAsync(new List<EVItemDto> { new EVItemDto { ItemId = 2 } });
-            _repoMock.Setup(r => r.MapToBatteryItemsAsync(It.IsAny<List<Item>>()))
-                     .ReturnsAsync(new List<BatteryItemDto> { new BatteryItemDto { ItemId = 1 } });
-
-            var result = await _service.GetAllSellerItemsAsync(1);
-            Assert.Equal(2, result.Count);
-        }
-
-        [Fact]
-        public async Task GetAllSellerItemsAsync_ShouldReturnDistinctItems()
-        {
-            var all = new List<Item> {
-                new Item { ItemId = 1, ItemType = "battery" },
-                new Item { ItemId = 1, ItemType = "battery" }
+            // Arrange
+            // 1. Setup different item lists by status
+            var soldItems = new List<Item> { new Item { ItemId = 1, ItemType = "battery" } };
+            var pendingItems = new List<Item> { new Item { ItemId = 2, ItemType = "ev" } };
+            var processingItems = new List<Item> { new Item { ItemId = 3, ItemType = "battery" } };
+            var canceledItems = new List<Item> { new Item { ItemId = 4, ItemType = "ev" } };
+            // 2. Setup "available" items (items that are NOT in any other list)
+            var allItems = new List<Item>
+            {
+                soldItems[0],       // Item 1
+                pendingItems[0],    // Item 2
+                processingItems[0], // Item 3
+                canceledItems[0],   // Item 4
+                new Item { ItemId = 5, ItemType = "battery" }, // Item 5 (Available)
+                new Item { ItemId = 6, ItemType = "ev" }       // Item 6 (Available)
             };
-            _repoMock.Setup(r => r.GetSellerByIdAsync(1)).ReturnsAsync(FakeSeller);
-            _repoMock.Setup(r => r.GetAllSellerItemsAsync(1)).ReturnsAsync(all);
-            _repoMock.Setup(r => r.MapToBatteryItemsAsync(It.IsAny<List<Item>>()))
-                     .ReturnsAsync(new List<BatteryItemDto> { new BatteryItemDto { ItemId = 1 } });
+            var availableItems = allItems.Where(i => i.ItemId == 5 || i.ItemId == 6).ToList();
 
-            var result = await _service.GetAllSellerItemsAsync(1);
-            Assert.Single(result);
+            // 3. Mock repository calls for each status
+            _repoMock.Setup(r => r.GetSoldItemsAsync(_sellerId)).ReturnsAsync(soldItems);
+            _repoMock.Setup(r => r.GetPendingPaymentItemsAsync(_sellerId)).ReturnsAsync(pendingItems);
+            _repoMock.Setup(r => r.GetProcessingItemsAsync(_sellerId)).ReturnsAsync(processingItems);
+            _repoMock.Setup(r => r.GetCanceledItemsAsync(_sellerId)).ReturnsAsync(canceledItems);
+            _repoMock.Setup(r => r.GetAllSellerItemsAsync(_sellerId)).ReturnsAsync(allItems);
+
+            // 4. Mock mapping functions
+            _repoMock.Setup(r => r.MapToBatteryItemsAsync(It.Is<List<Item>>(l => l.Any(i => i.ItemId == 1))))
+                     .ReturnsAsync(new List<BatteryItemDto> { new BatteryItemDto { ItemId = 1 } });
+            _repoMock.Setup(r => r.MapToBatteryItemsAsync(It.Is<List<Item>>(l => l.Any(i => i.ItemId == 3))))
+                     .ReturnsAsync(new List<BatteryItemDto> { new BatteryItemDto { ItemId = 3 } });
+            _repoMock.Setup(r => r.MapToBatteryItemsAsync(It.Is<List<Item>>(l => l.Any(i => i.ItemId == 5))))
+                     .ReturnsAsync(new List<BatteryItemDto> { new BatteryItemDto { ItemId = 5 } });
+
+            _repoMock.Setup(r => r.MapToEVItemsAsync(It.Is<List<Item>>(l => l.Any(i => i.ItemId == 2))))
+                     .ReturnsAsync(new List<EVItemDto> { new EVItemDto { ItemId = 2 } });
+            _repoMock.Setup(r => r.MapToEVItemsAsync(It.Is<List<Item>>(l => l.Any(i => i.ItemId == 4))))
+                     .ReturnsAsync(new List<EVItemDto> { new EVItemDto { ItemId = 4 } });
+            _repoMock.Setup(r => r.MapToEVItemsAsync(It.Is<List<Item>>(l => l.Any(i => i.ItemId == 6))))
+                     .ReturnsAsync(new List<EVItemDto> { new EVItemDto { ItemId = 6 } });
+
+            // Act
+            var result = await _service.GetAllSellerItemsAsync(_sellerId);
+
+            // Assert
+            Assert.Equal(6, result.Count); // Should contain all 6 items
+
+            // Check if statuses were set correctly by the service
+            Assert.Equal("sold", ((BatteryItemDto)result.First(i => ((dynamic)i).ItemId == 1)).Status);
+            Assert.Equal("pending_approval", ((EVItemDto)result.First(i => ((dynamic)i).ItemId == 2)).Status);
+            Assert.Equal("processing", ((BatteryItemDto)result.First(i => ((dynamic)i).ItemId == 3)).Status);
+            Assert.Equal("canceled", ((EVItemDto)result.First(i => ((dynamic)i).ItemId == 4)).Status);
+            Assert.Equal("available", ((BatteryItemDto)result.First(i => ((dynamic)i).ItemId == 5)).Status);
+            Assert.Equal("available", ((EVItemDto)result.First(i => ((dynamic)i).ItemId == 6)).Status);
         }
     }
 }
-
-

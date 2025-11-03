@@ -35,6 +35,5 @@ namespace Application.DTOs.ItemDtos
         public string? SellerName { get; set; }
         public string Status { get; set; } = "active";
         //public bool? IsDeleted { get; set; }
-        public object ItemDetail { get; set; }
     }
 }

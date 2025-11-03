@@ -14,7 +14,6 @@ export default function CompareEVPage() {
     const [openAddModal, setOpenAddModal] = useState(false);
     const BASE = import.meta.env.VITE_API_BASE_URL;
 
-    // Fetch chi tiết từng sản phẩm (EV hoặc Pin)
     const fetchCompareItems = async () => {
         try {
             const list = getCompareList();
@@ -27,7 +26,7 @@ export default function CompareEVPage() {
             const results = await Promise.all(
                 list.map(async (it) => {
                     try {
-                        const res = await fetch(`${BASE}Item/with-detail/${it.itemId}`);
+                        const res = await fetch(`${BASE}item/with-detail/${it.itemId}`);
                         if (!res.ok) throw new Error("API error");
                         const data = await res.json();
 
@@ -62,7 +61,6 @@ export default function CompareEVPage() {
         } else setIntroGlow(false);
     }, []);
 
-    //Đồng bộ khi compareList thay đổi
     useEffect(() => {
         const sync = () => fetchCompareItems();
         window.addEventListener("compare:removed", sync);
@@ -87,10 +85,8 @@ export default function CompareEVPage() {
         setItems([]);
     };
 
-    //Xác định loại sản phẩm (EV / Battery)
     const itemType = items[0]?.itemType || null;
 
-    // 🧩 Dữ liệu so sánh động theo loại
     const sections = useMemo(() => {
         if (!items.length) return [];
 
@@ -99,7 +95,6 @@ export default function CompareEVPage() {
             c = items[2];
         const V = (get) => [a && get(a), b && get(b), c && get(c)];
 
-        // --- Xe điện ---
         if (itemType === "ev") {
             return [
                 {
@@ -165,7 +160,6 @@ export default function CompareEVPage() {
             ];
         }
 
-        // --- Pin ---
         if (itemType === "battery") {
             return [
                 {
@@ -208,7 +202,6 @@ export default function CompareEVPage() {
         return [];
     }, [items, itemType]);
 
-    // Loading
     if (loading)
         return (
             <div className="min-h-[60vh] grid place-items-center text-gray-500">
@@ -216,7 +209,6 @@ export default function CompareEVPage() {
             </div>
         );
 
-    // 🕳 Empty
     if (!items.length)
         return (
             <div className="min-h-[60vh] grid place-items-center text-gray-600">
@@ -224,7 +216,6 @@ export default function CompareEVPage() {
             </div>
         );
 
-    // UI chính
     return (
         <motion.div
             initial={{ opacity: 0, x: 40 }}

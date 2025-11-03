@@ -9,7 +9,6 @@ function FavouritePage() {
     const [isLoading, setIsLoading] = useState(true);
     const userId = localStorage.getItem("userId");
 
-    // --- Lấy danh sách yêu thích ---
     const fetchFavorites = useCallback(async () => {
         if (!userId) {
             setFavorites([]);
@@ -35,11 +34,9 @@ function FavouritePage() {
         fetchFavorites();
     }, [fetchFavorites]);
 
-    // --- Xóa nhanh (Optimistic UI) ---
     const handleRemoveFavorite = async (favId) => {
         if (!favId) return;
 
-        // Xóa tạm trên giao diện
         setFavorites((prev) => prev.filter((item) => item.favId !== favId));
 
         try {
@@ -47,7 +44,6 @@ function FavouritePage() {
             console.log(`✅ Đã xóa mục yêu thích ${favId} thành công`);
         } catch (err) {
             console.error("❌ Không thể xóa mục yêu thích:", err);
-            // Khôi phục lại giao diện nếu API lỗi
             await fetchFavorites();
         }
     };
@@ -56,7 +52,7 @@ function FavouritePage() {
     const renderHeader = () => (
         <div className="flex items-center space-x-3 mb-10 pt-4 border-b-2 border-yellow-600/50 pb-3">
             <FiHeart className="w-8 h-8 text-yellow-600" />
-            <h1 className="text-3xl sm:text-4xl font-serif font-semibold text-gray-800 tracking-wide">
+            <h1 className="text-3xl sm:text-4xl font-roboto font-semibold text-gray-800 tracking-wide">
                 Danh sách yêu thích của tôi
             </h1>
         </div>
@@ -79,7 +75,7 @@ function FavouritePage() {
 
                 {!userId ? (
                     <div className="text-center p-12 bg-white rounded-xl shadow-md border border-yellow-500/30">
-                        <h2 className="text-2xl font-serif font-semibold text-yellow-700 mb-2">
+                        <h2 className="text-2xl font-roboto font-semibold text-yellow-700 mb-2">
                             Truy cập bị giới hạn
                         </h2>
                         <p className="text-gray-600">
@@ -106,7 +102,7 @@ function FavouritePage() {
                     </div>
                 ) : (
                     <div className="text-center p-12 bg-white rounded-xl shadow-md border border-yellow-500/20">
-                        <h2 className="text-2xl font-serif font-semibold text-gray-700 mb-2">
+                        <h2 className="text-2xl font-roboto font-semibold text-gray-700 mb-2">
                             Chưa có sản phẩm yêu thích nào
                         </h2>
                         <p className="text-gray-600">

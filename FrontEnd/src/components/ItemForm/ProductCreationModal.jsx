@@ -1,6 +1,6 @@
-// ProductCreationModal.jsx
-import React, { useState, useEffect } from "react";
-import { Modal, Steps, Spin, Form, Button, message } from "antd";
+// ProductCreationModal.jsx (optimized & popup-free)
+import React, { useState, useEffect, useCallback, useMemo } from "react";
+import { Modal, Steps, Spin, Form, Button } from "antd";
 import Step1ItemDetails from "./Step1ItemDetail";
 import Step2AuctionDetails from "./Step2AuctionDetail";
 import Step3ImageUploader from "./Step3ImageUploader";
@@ -9,6 +9,7 @@ import itemApi from "../../api/itemApi";
 import auctionApi from "../../api/auctionApi";
 import uploadImageApi from "../../api/uploadImageApi";
 import walletApi from "../../api/walletApi";
+import evData from "../../assets/datas/evData";
 
 export default function ProductCreationModal({ onSuccess }) {
   const [isOpenModal, setIsOpenModal] = useState(false);
@@ -19,19 +20,31 @@ export default function ProductCreationModal({ onSuccess }) {
   const [createAuction, setCreateAuction] = useState(false);
   const [wallet, setWallet] = useState(null);
   const [form] = Form.useForm();
+  const userID = useMemo(() => parseInt(localStorage.getItem("userId")), []);
 
-  const userID = parseInt(localStorage.getItem("userId"));
+  // === Step navigation ===
+  const nextStep = useCallback(() => setCurrentStep((s) => s + 1), []);
+  const prevStep = useCallback(() => setCurrentStep((s) => s - 1), []);
+  const handleFilesSelected = useCallback((files) => setSelectedFiles(files), []);
 
-  const showModal = () => setIsOpenModal(true);
-  const nextStep = () => setCurrentStep((prev) => prev + 1);
-  const prevStep = () => setCurrentStep((prev) => prev - 1);
-  const handleFilesSelected = (files) => setSelectedFiles(files);
+  const resetState = useCallback(() => {
+    setCurrentStep(0);
+    setNewItem(null);
+    setSelectedFiles([]);
+    setWallet(null);
+    form.resetFields();
+  }, [form]);
 
   // === Step 1: Create Item ===
-  const handleStep1Finish = async (values) => {
+  const handleStep1Finish = useCallback(async (values) => {
     setIsLoading(true);
     try {
-      setCreateAuction(values.createAuction || false);
+      if (!values.title || !values.price || !values.categoryId) {
+        console.warn("Thiếu thông tin sản phẩm bắt buộc.");
+        return;
+      }
+
+      setCreateAuction(!!values.createAuction);
 
       const basePayload = {
         categoryId: values.categoryId,
@@ -44,9 +57,7 @@ export default function ProductCreationModal({ onSuccess }) {
       };
 
       let createdItem;
-
       if (values.categoryId === 1) {
-        // EV payload
         const evPayload = {
           ...basePayload,
           licenseUrl: values.licenseUrl || "",
@@ -74,142 +85,124 @@ export default function ProductCreationModal({ onSuccess }) {
         createdItem = await itemApi.postItemBattery(batteryPayload);
       }
 
-      setNewItem(createdItem);
-      message.success("Sản phẩm đã được tạo thành công!");
+      if (!createdItem) {
+        console.error("Không thể tạo sản phẩm — phản hồi trống.");
+        return;
+      }
 
-      if (values.createAuction) nextStep(); // show auction step only if selected
-      else setCurrentStep(2); // skip auction
-    } catch (error) {
-      console.error(error);
-      message.error("Tạo sản phẩm thất bại!");
+      setNewItem(createdItem);
+      if (values.createAuction) nextStep();
+      else setCurrentStep(2);
+    } catch (err) {
+      console.error("❌ Lỗi khi tạo sản phẩm:", err);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [userID, nextStep]);
 
   // === Step 2: Auction ===
-  const handleStep2Finish = async (values) => {
+  const handleStep2Finish = useCallback(async (values) => {
     setIsLoading(true);
     try {
+      if (!newItem?.itemId) return console.error("Không tìm thấy Item ID.");
+      if (!values.auctionTime?.length) return console.warn("Chưa chọn thời gian đấu giá.");
+
       await auctionApi.postAuction({
         itemId: newItem.itemId,
         startingPrice: values.startingPrice,
         startTime: values.auctionTime[0].toISOString(),
         endTime: values.auctionTime[1].toISOString(),
       });
-      message.success("Chi tiết đấu giá đã lưu!");
       setCurrentStep(2);
-    } catch (error) {
-      console.error(error);
-      message.error("Lưu đấu giá thất bại!");
+    } catch (err) {
+      console.error("❌ Lỗi khi lưu đấu giá:", err);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [newItem]);
 
-  // === Step 3: Image Upload ===
-  const handleStep3Upload = async () => {
-    if (!selectedFiles.length) return;
+  // === Step 3: Upload Images ===
+  const handleStep3Upload = useCallback(async () => {
+    if (!selectedFiles.length) {
+      console.warn("⚠️ Chưa chọn hình ảnh nào.");
+      return;
+    }
+
+    if (!newItem?.itemId) {
+      console.error("Không tìm thấy Item ID để tải hình.");
+      return;
+    }
+
     setIsLoading(true);
     try {
-      if (!newItem || !newItem.itemId) {
-        message.error("Không tìm thấy Item ID!");
-        return;
-      }
-
       await uploadImageApi.uploadItemImage(newItem.itemId, selectedFiles);
-      message.success("Hình ảnh đã được tải lên!");
-
-      // Fetch wallet immediately for Step 4
       const walletData = await walletApi.getWalletByUser(userID);
       setWallet(walletData);
-
       nextStep();
-    } catch (error) {
-      console.error(error);
-      message.error("Tải hình thất bại!");
+    } catch (err) {
+      console.error("❌ Lỗi khi tải hình:", err);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [selectedFiles, newItem, nextStep, userID]);
 
-  // === Step 4: Deposit Wallet ===
-const handleDeposit = async () => {
-  if (!wallet || wallet.balance < 100000) return;
-  setIsLoading(true);
-  try {
-    await walletApi.depositWallet({ userId: userID, amount: 100000 });
-    message.success("Thanh toán phí ₫100,000 thành công! Sản phẩm đã hoạt động.");
+  // === Step 4: Deposit ===
+  const handleDeposit = useCallback(async () => {
+    if (!wallet || wallet.balance < 100000) {
+      console.warn("⚠️ Số dư ví không đủ hoặc ví chưa sẵn sàng.");
+      return;
+    }
 
-    // Update wallet locally
-    setWallet((prev) => ({ ...prev, balance: prev.balance - 100000 }));
+    setIsLoading(true);
+    try {
+      await walletApi.depositWallet({ userId: userID, amount: 100000 });
 
-    // Prepare full payload without licenseUrl
-    const updatePayload = {
-      itemId: newItem.itemId,
-      itemType: newItem.itemType || "ev", // or "Battery"
-      categoryId: newItem.categoryId,
-      title: newItem.title || "Chưa đặt tên",
-      description: newItem.description || "",
-      price: newItem.price || 0,
-      quantity: newItem.quantity || 1,
-      updatedBy: userID,
-      itemDetail: newItem.itemDetail || JSON.stringify({}),
-      status: "active",
-      images: newItem.images || [],
-      sellerName: newItem.sellerName || "",
-      moderation: "pending",
-      createdAt: newItem.createdAt,
-      updatedAt: new Date().toISOString(),
-    };
+      setWallet((prev) => ({ ...prev, balance: prev.balance - 100000 }));
 
-    await itemApi.putItem(newItem.itemId, updatePayload);
+      const updatePayload = {
+        ...newItem,
+        updatedBy: userID,
+        status: "active",
+        moderation: "pending",
+        updatedAt: new Date().toISOString(),
+      };
 
-    if (onSuccess) onSuccess();
-  } catch (error) {
-    console.error(error);
-    message.error("Thanh toán thất bại!");
-  } finally {
-    setIsLoading(false);
-  }
-};
+      await itemApi.putItem(newItem.itemId, updatePayload);
+      if (onSuccess) onSuccess();
+    } catch (err) {
+      console.error("❌ Thanh toán thất bại:", err);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [wallet, userID, newItem, onSuccess]);
 
+  // === UI ===
+  const steps = useMemo(
+    () => [
+      { title: "Thông tin sản phẩm" },
+      { title: "Đấu giá (tùy chọn)" },
+      { title: "Tải hình ảnh" },
+      { title: "Hoàn tất" },
+    ],
+    []
+  );
 
-  const steps = [
-    { title: "Thông tin sản phẩm" },
-    { title: "Đấu giá (tùy chọn)" },
-    { title: "Tải hình ảnh" },
-    { title: "Hoàn tất" },
-  ];
-
-  const renderStepContent = () => {
+  const renderStepContent = useCallback(() => {
     switch (currentStep) {
       case 0:
-        return <Step1ItemDetails form={form} onFinish={handleStep1Finish} />;
+        return <Step1ItemDetails form={form} onFinish={handleStep1Finish} evData={evData} />;
       case 1:
         return <Step2AuctionDetails form={form} onFinish={handleStep2Finish} />;
       case 2:
         return <Step3ImageUploader onFilesSelected={handleFilesSelected} />;
       case 3:
-        return (
-          <Step4Complete
-            walletInfo={wallet}
-            onDeposit={handleDeposit}
-            onReset={() => {
-              setCurrentStep(0);
-              setNewItem(null);
-              setSelectedFiles([]);
-              setWallet(null);
-              form.resetFields();
-            }}
-          />
-        );
+        return <Step4Complete walletInfo={wallet} onDeposit={handleDeposit} onReset={resetState} />;
       default:
-        return <div>Something went wrong</div>;
+        return <div>Không xác định được bước hiện tại.</div>;
     }
-  };
+  }, [currentStep, form, wallet, handleStep1Finish, handleStep2Finish, handleStep3Upload, handleDeposit]);
 
-  const renderFooter = () => {
+  const renderFooter = useCallback(() => {
     if (currentStep === 3) return null;
 
     if (currentStep === 2) {
@@ -236,12 +229,12 @@ const handleDeposit = async () => {
         </Button>
       </div>
     );
-  };
+  }, [currentStep, prevStep, nextStep, selectedFiles, handleStep3Upload, form]);
 
   return (
     <>
       <button
-        onClick={showModal}
+        onClick={() => setIsOpenModal(true)}
         className="flex items-center bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600"
       >
         Thêm sản phẩm mới

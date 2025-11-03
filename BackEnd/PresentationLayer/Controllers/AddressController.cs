@@ -31,10 +31,14 @@ namespace PresentationLayer.Controllers
                 Phone = dto.Phone,
                 Street = dto.Street,
                 Ward = dto.Ward,
+                WardCode = dto.WardCode,
                 District = dto.District,
+                DistrictCode = dto.DistrictCode,
                 Province = dto.Province,
+                ProvinceCode = dto.ProvinceCode,
                 IsDefault = dto.IsDefault,
                 CreatedAt = DateTime.Now,
+                IsShopAddress = false,
                 IsDeleted = false
             };
 
@@ -73,8 +77,11 @@ namespace PresentationLayer.Controllers
             existing.Phone = dto.Phone;
             existing.Street = dto.Street;
             existing.Ward = dto.Ward;
+            existing.WardCode = dto.WardCode;
             existing.District = dto.District;
+            existing.DistrictCode = dto.DistrictCode;
             existing.Province = dto.Province;
+            existing.ProvinceCode = dto.ProvinceCode;
             existing.IsDefault = dto.IsDefault;
 
             await _addressService.UpdateAddressAsync(existing);

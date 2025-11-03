@@ -45,10 +45,6 @@ const ProfileDropDown = ({ users, walletBalance }) => {
         },
         {
             key: "4",
-            label: <a href="/complaint">Gửi yêu cầu</a>,
-        },
-        {
-            key: "5",
             label: (
                 <a
                     href="#"
@@ -76,7 +72,7 @@ const ProfileDropDown = ({ users, walletBalance }) => {
                                     "https://upload.wikimedia.org/wikipedia/commons/8/89/Portrait_Placeholder.png"
                                 }
                                 alt={users.fullName}
-                                className="w-10 h-10 rounded-full object-contain shadow-md"
+                                className="w-10 h-10 rounded-full object-cover shadow-md"
                             />
                         </div>
                         <DownOutlined />

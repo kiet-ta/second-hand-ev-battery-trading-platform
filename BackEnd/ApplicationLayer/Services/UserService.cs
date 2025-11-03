@@ -160,6 +160,7 @@ namespace Application.Services
             existing.Role = user.Role;
             existing.KycStatus = user.KycStatus;
             existing.AccountStatus = user.AccountStatus;
+            existing.YearOfBirth = user.YearOfBirth;
             existing.UpdatedAt = DateTime.UtcNow;
 
             await _userRepository.UpdateAsync(existing);
@@ -230,7 +231,8 @@ namespace Application.Services
                 Email = u.Email,
                 Phone = u.Phone,
                 Role = u.Role,
-                AccountStatus = u.AccountStatus
+                AccountStatus = u.AccountStatus,
+                CreatedAt = u.CreatedAt
             });
 
             return new PagedResultUser<UserListResponseDto>

@@ -2,6 +2,7 @@
 using Application.IRepositories;
 using Domain.Entities;
 using Infrastructure.Data;
+using Microsoft.EntityFrameworkCore;
 using System.Reactive;
 
 
@@ -14,6 +15,9 @@ namespace Infrastructure.Repositories
         {
             _context = context;
         }
+        public async Task<IEnumerable<News>> GetAllNewsAsync(int page, int pageSize)
+        => await _context.News.Skip((page-1) * pageSize).Take(pageSize).ToListAsync();
+        
         public async Task<News> GetNewsByIdAsync(int newsId)
         {
             return await _context.News.FindAsync(newsId);

@@ -1,4 +1,5 @@
-﻿using Application.IServices;
+﻿using Application.DTOs.SignalRDtos;
+using Application.IServices;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -30,6 +31,46 @@ namespace Application.Services
             {
                 throw new Exception("cannot load file");
             }
+        }
+
+        public ProfanityFilterResult Filter(string text)
+        {
+            if (string.IsNullOrWhiteSpace(text))
+            {
+                return new ProfanityFilterResult { CleanedText = text, WasProfane = false };
+            }
+
+            string cleaned = text;
+            bool wasProfane = false;
+
+            // Lặp qua từng từ trong danh sách
+            foreach (var word in _badWords)
+            {
+                var pattern = $@"\b{Regex.Escape(word)}\b";
+
+                // Sử dụng Regex.Match để kiểm tra nhanh
+                // (Hiệu quả hơn là gọi IsMatch rồi lại gọi Replace)
+                var match = Regex.Match(cleaned, pattern, RegexOptions.IgnoreCase);
+
+                if (match.Success)
+                {
+                    wasProfane = true; // Đánh dấu là có vi phạm
+
+                    // Thực hiện thay thế
+                    cleaned = Regex.Replace(
+                        cleaned,
+                        pattern,
+                        new string('*', word.Length), // Thay bằng số '*' tương ứng
+                        RegexOptions.IgnoreCase
+                    );
+                }
+            }
+
+            return new ProfanityFilterResult
+            {
+                CleanedText = cleaned,
+                WasProfane = wasProfane
+            };
         }
 
         public bool ContainsProfanity(string message)

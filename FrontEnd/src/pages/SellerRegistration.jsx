@@ -12,8 +12,9 @@ import { useNavigate } from "react-router-dom";
 import useKycRedirect from "../hooks/useKycRedirect";
 
 const SellerRegistrationForm = () => {
-  useKycRedirect();
   const navigate = useNavigate
+      useKycRedirect();
+  
 
   const [userId] = useState(localStorage.getItem("userId"));
   const [currentStep, setCurrentStep] = useState(1);
@@ -64,6 +65,7 @@ const SellerRegistrationForm = () => {
       const updatedUser = {
       ...user,
       bio: formData.bio,
+      kycStatus: "pending",
       updatedAt: new Date().toISOString(),
     };      
       await kycApi.postKYC(userId, kycPayload);
@@ -130,7 +132,7 @@ const SellerRegistrationForm = () => {
   };
 
   const totalSteps = formData.accountType === "store" ? 5 : 4;
-  
+
   return (
     <div className="max-w-2xl mx-auto p-6 bg-white rounded-xl shadow-lg my-10">
       <StepIndicator

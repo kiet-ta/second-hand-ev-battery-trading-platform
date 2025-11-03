@@ -11,25 +11,23 @@ export default defineConfig({
   plugins: [react(),
   tailwindcss()
   ],
+
   server: {
-    allowedHosts: [
-      'acf2025dbf0e.ngrok-free.app', // ✅ Cho phép host này
-    ],
-    port: 5173, // hoặc port bạn đang dùng
+    proxy: {
+      '/ghn': {
+        target: 'https://online-gateway.ghn.vn',
+        changeOrigin: true,
+        rewrite: path => path.replace(/^\/ghn/, ''), // xoá prefix /ghn
+      },
+    },
   },
+
   test: {
     globals: true,
     environment: 'jsdom',
     setupFiles: './src/setupTests.js',
   },
-    server: {
-    host: true, 
-    port: 5173, 
-    allowedHosts: [
-      'overhostile-mindy-overhastily.ngrok-free.dev'
-    ],
-  },
-    theme: {
+  theme: {
     extend: {
       fontFamily: {
         sans: ['Be Vietnam Pro', 'ui-sans-serif', 'system-ui'],

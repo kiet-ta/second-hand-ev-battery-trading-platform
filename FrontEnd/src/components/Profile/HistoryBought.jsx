@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { Calendar, Package, Star, Zap, GaugeCircle, Palette, Car } from "lucide-react";
-import { message } from "antd";
 import ReviewModal from "../Modals/ReviewModal";
 import reviewApi from "../../api/reviewApi";
 
@@ -33,7 +32,7 @@ export default function HistoryBought() {
     setLoading(true);
     try {
       const res = await fetch(
-        `${baseURL}History/bought?pageNumber=${page}&pageSize=${pageSize}`,
+        `${baseURL}history/me/bought?pageNumber=${page}&pageSize=${pageSize}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -44,7 +43,6 @@ export default function HistoryBought() {
       if (!res.ok) throw new Error("Failed to fetch orders");
       const data = await res.json();
 
-      // ✅ Lấy danh sách trong data.items
       const formattedOrders = data.items.map((order) => ({
         orderCode: order.orderCode,
         paymentCreatedAt: order.paymentCreatedAt,
@@ -72,7 +70,6 @@ export default function HistoryBought() {
 
       setOrders(formattedOrders);
 
-      // ✅ Lưu thông tin phân trang để render UI
       setPagination({
         currentPage: data.pageNumber,
         totalPages: Math.ceil(data.totalCount / data.pageSize),
@@ -81,7 +78,6 @@ export default function HistoryBought() {
       });
     } catch (err) {
       console.error(err);
-      message.error("Không thể tải lịch sử mua hàng.");
     } finally {
       setLoading(false);
     }
@@ -101,11 +97,9 @@ export default function HistoryBought() {
 
     try {
       await reviewApi.postReview(apiPayload);
-      message.success(" Đánh giá của bạn đã được gửi thành công!");
       fetchOrders();
     } catch (error) {
       console.error("Failed to submit review:", error);
-      message.error(" Gửi đánh giá thất bại. Vui lòng thử lại.");
     }
   };
 
@@ -162,7 +156,6 @@ export default function HistoryBought() {
 
   const exportToCSV = () => {
     if (orders.length === 0) {
-      message.info("Không có dữ liệu để xuất.");
       return;
     }
 
@@ -183,7 +176,6 @@ export default function HistoryBought() {
     link.click();
   };
 
-  // --- Lọc nâng cao ---
   const filteredOrders = orders.filter((o) => {
     const matchStatus = filter === "all" || o.status === filter;
     const matchType = filterType === "all" || o.itemType === filterType;

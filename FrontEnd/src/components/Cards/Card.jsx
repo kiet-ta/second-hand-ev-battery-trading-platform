@@ -1,10 +1,4 @@
-import React, {
-    useEffect,
-    useState,
-    useMemo,
-    useCallback,
-    memo,
-} from "react";
+import React, { useEffect, useState, useMemo, useCallback, memo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Slider from "react-slick";
 import {
@@ -16,19 +10,18 @@ import {
 } from "react-icons/fi";
 import orderItemApi from "../../api/orderItemApi";
 import favouriteApi from "../../api/favouriteApi";
+import addressLocalApi from "../../api/addressLocalApi";
 import {
     addToCompare,
     getCompareList,
     removeFromCompare,
 } from "../../utils/compareUtils";
-import { message } from "antd";
-import addressLocalApi from "../../api/addressLocalApi";
-import orderApi from "../../api/orderApi";
 
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
+import ChatWithSellerButton from "../Buttons/ChatWithSellerButton";
 
-// ✅ Small reusable Verified badge
+// ✅ Badge xác minh
 const VerifiedCheck = ({ className = "" }) => (
     <div
         className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 ${className}`}
@@ -58,6 +51,7 @@ function CardComponent({
     mileage = 0,
     isVerified = false,
     userFavorites = [],
+    updatedBy
 }) {
     const navigate = useNavigate();
     const [isFavorited, setIsFavorited] = useState(false);
@@ -74,7 +68,6 @@ function CardComponent({
         [itemImages]
     );
 
-    // ✅ Load favorites & compare state
     useEffect(() => {
         const fav = userFavorites.find((f) => f.itemId === id);
         setIsFavorited(!!fav);
@@ -94,7 +87,6 @@ function CardComponent({
         };
     }, [id]);
 
-    // ✅ Slider settings
     const carouselSettings = useMemo(
         () => ({
             dots: true,
@@ -108,7 +100,6 @@ function CardComponent({
         []
     );
 
-    // ✅ Handle cart actions
     const handleAddToCart = useCallback(
         async (e) => {
             e.preventDefault();
@@ -116,6 +107,10 @@ function CardComponent({
             if (isProcessing) return;
             setIsProcessing(true);
             try {
+                if (!userId) {
+                    navigate("/login");
+                    return;
+                }
                 const payload = { buyerId: userId, itemId: id, quantity: 1, price };
                 await orderItemApi.postOrderItem(payload);
             } catch (err) {
@@ -133,79 +128,58 @@ function CardComponent({
 
         const userId = localStorage.getItem("userId");
         if (!userId) {
-            message.warning("Vui lòng đăng nhập trước khi mua hàng!");
             navigate("/login");
             return;
         }
 
         setIsProcessing(true);
         try {
-            // 1️⃣ Tạo OrderItem
             const orderItemPayload = {
                 buyerId: userId,
                 itemId: id,
                 quantity: 1,
-                price: price,
+                price,
             };
-
             const createdOrderItem = await orderItemApi.postOrderItem(orderItemPayload);
             if (!createdOrderItem?.orderItemId)
                 throw new Error("Không thể tạo OrderItem.");
-
-            // 2️⃣ Lấy địa chỉ mặc định
             const allAddresses = await addressLocalApi.getAddressByUserId(userId);
             const defaultAddress =
-                allAddresses.find((addr) => addr.isDefault) || allAddresses[0];
+                allAddresses.find((a) => a.isDefault) || allAddresses[0];
 
             if (!defaultAddress) {
-                message.warning("Vui lòng thêm địa chỉ giao hàng trong hồ sơ!");
                 navigate("/profile/address");
                 return;
             }
 
-            // 3️⃣ Tạo Order
-            const orderPayload = {
-                buyerId: userId,
-                addressId: defaultAddress.addressId,
-                orderItemIds: [createdOrderItem.orderItemId],
-                createdAt: new Date().toISOString().split("T")[0],
-                updatedAt: new Date().toISOString().split("T")[0],
+            const checkoutData = {
+                source: "buyNow",
+                totalAmount: price,
+                orderItems: [
+                    {
+                        id: id,
+                        name: title || "Sản phẩm",
+                        price,
+                        quantity: 1,
+                        image:
+                            itemImages?.[0]?.imageUrl ||
+                            "https://placehold.co/100x100/e2e8f0/374151?text=?",
+                    },
+                ],
+                allAddresses,
+                selectedAddressId: defaultAddress.addressId,
             };
 
-            const createdOrder = await orderApi.postOrderNew(orderPayload);
-            if (!createdOrder?.orderId) throw new Error("Không thể tạo Order.");
+            localStorage.setItem("checkoutData", JSON.stringify(checkoutData));
 
-            // 4️⃣ Chuyển sang trang Checkout
-            navigate("/checkout", {
-                state: {
-                    fromBuyNow: true,
-                    orderId: createdOrder.orderId,
-                    totalAmount: price,
-                    orderItems: [
-                        {
-                            id: id,
-                            name: title || "Sản phẩm",
-                            price: price,
-                            quantity: 1,
-                            image:
-                                itemImages?.[0]?.imageUrl ||
-                                "https://placehold.co/100x100",
-                        },
-                    ],
-                    allAddresses,
-                    selectedAddressId: defaultAddress.addressId,
-                },
-            });
+            navigate("/checkout/buy-now", { state: checkoutData });
         } catch (err) {
             console.error("❌ Lỗi mua ngay:", err);
-            message.error("Không thể mua ngay. Vui lòng thử lại.");
         } finally {
             setIsProcessing(false);
         }
     };
 
-
-    // ✅ Handle favorite toggle
     const handleFavoriteClick = useCallback(
         async (e) => {
             e.preventDefault();
@@ -213,6 +187,11 @@ function CardComponent({
             if (isProcessing) return;
             setIsProcessing(true);
             try {
+                if (!userId) {
+                    navigate("/login");
+                    return;
+                }
+
                 if (isFavorited && favoriteId) {
                     await favouriteApi.deleteFavourite(favoriteId);
                     setIsFavorited(false);
@@ -235,7 +214,7 @@ function CardComponent({
         [isFavorited, favoriteId, userId, id, isProcessing]
     );
 
-    // Handle Compare toggle
+    // 📊 So sánh
     const handleCompareClick = useCallback(
         (e) => {
             e.preventDefault();
@@ -244,24 +223,15 @@ function CardComponent({
             const list = getCompareList();
             const already = list.some((x) => x.itemId === id);
 
-            //Nếu đã có trong danh sách → xoá
             if (already) {
                 removeFromCompare(id);
                 setIsCompared(false);
                 return;
             }
 
-            //Danh sách xe đi với danh sách xe
-            if (list.length > 0 && list[0].itemType !== type) {
-                return;
-            }
+            if (list.length > 0 && list[0].itemType !== type) return;
+            if (list.length >= 3) return;
 
-            // Giới hạn tối đa 3 item
-            if (list.length >= 3) {
-                return;
-            }
-
-            //Thêm vào danh sách
             const itemData = {
                 itemId: id,
                 name: title,
@@ -275,8 +245,7 @@ function CardComponent({
         [id, title, price, itemImages, type]
     );
 
-
-    // Classes
+    // CSS class
     const heartClass = isFavorited
         ? "flex items-center justify-center w-10 h-10 rounded-full bg-red-400 text-white hover:bg-red-500 shadow-lg"
         : "flex items-center justify-center w-10 h-10 rounded-full bg-white text-red-500 hover:bg-red-50 shadow-lg";
@@ -286,7 +255,7 @@ function CardComponent({
     return (
         <Link to={detailUrl} state={id} className="block group">
             <div className="w-80 bg-white rounded-xl shadow-md border border-gray-200 transition-all duration-300 group-hover:shadow-xl group-hover:border-yellow-400 group-hover:-translate-y-1">
-                {/* Image */}
+                {/* Ảnh sản phẩm */}
                 <div className="relative">
                     <Slider {...carouselSettings}>
                         {displayImages.map((img, i) => (
@@ -305,21 +274,16 @@ function CardComponent({
                         ))}
                     </Slider>
 
-                    {/* Action buttons */}
                     <div className="absolute top-3 right-3 z-10 flex flex-col items-end space-y-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                        {/* Favorite */}
                         <button
                             onClick={handleFavoriteClick}
                             disabled={isProcessing}
                             className={`${heartClass} ${isProcessing ? "opacity-50 cursor-not-allowed" : ""
                                 }`}
                         >
-                            <FiHeart
-                                className={`w-5 h-5 ${isFavorited ? "fill-white" : ""}`}
-                            />
+                            <FiHeart className={`w-5 h-5 ${isFavorited ? "fill-white" : ""}`} />
                         </button>
 
-                        {/* Compare */}
                         <button
                             onClick={handleCompareClick}
                             className={`flex items-center justify-center px-4 py-2 rounded-md font-semibold text-xs shadow-md transition-all duration-300 ${isCompared
@@ -331,37 +295,13 @@ function CardComponent({
                             {isCompared ? "Đã thêm" : "So sánh"}
                         </button>
 
-                        {/* Cart buttons (only for battery) */}
-                        {type === "battery" && (
-                            <div className="flex flex-col space-y-2">
-                                <button
-                                    onClick={handleBuyNow}
-                                    disabled={isProcessing}
-                                    className={`flex items-center justify-center px-4 py-2 rounded-md font-semibold text-xs bg-yellow-300 text-[#2C2C2C] hover:bg-yellow-400 shadow-md ${isProcessing ? "opacity-50 cursor-not-allowed" : ""
-                                        }`}
-                                >
-                                    <FiZap className="mr-1.5" /> Mua ngay
-                                </button>
-                                <button
-                                    onClick={handleAddToCart}
-                                    disabled={isProcessing}
-                                    className={`flex items-center justify-center px-4 py-2 rounded-md font-semibold text-xs bg-white text-gray-900 hover:bg-gray-100 shadow-md ${isProcessing ? "opacity-50 cursor-not-allowed" : ""
-                                        }`}
-                                >
-                                    <FiShoppingCart className="mr-1.5" /> Thêm giỏ hàng
-                                </button>
-                            </div>
-                        )}
+
                     </div>
                 </div>
 
-                {/* Content */}
                 <div className="p-5">
                     <div className="flex items-center">
-                        <h3
-                            className="text-xl font-bold text-gray-900 truncate"
-                            title={title}
-                        >
+                        <h3 className="text-xl font-bold text-gray-900 truncate" title={title}>
                             {title}
                         </h3>
                     </div>
@@ -385,6 +325,37 @@ function CardComponent({
                             <span>Xem Chi Tiết</span>
                             <FiArrowRight className="ml-2 w-4 h-4" />
                         </div>
+                    </div>
+                    <div className="flex justify-between items-center pt-4 border-t border-gray-100">
+                        {type === "battery" ? (
+                            <div className="flex justify-around items-center w-full gap-4">
+                                <button
+                                    onClick={handleBuyNow}
+                                    disabled={isProcessing}
+                                    className={`flex items-center px-4 py-5 rounded-xl font-semibold  bg-yellow-500 text-white hover:bg-yellow-600  shadow-md ${isProcessing ? "opacity-50 cursor-not-allowed" : ""
+                                        }`}
+                                >
+                                    Mua ngay
+                                </button>
+                                <button
+                                    onClick={handleAddToCart}
+                                    disabled={isProcessing}
+                                    className={`flex items-center  px-4 py-5 rounded-xl font-semibold bg-green-500 text-white hover:bg-green-600 shadow-md ${isProcessing ? "opacity-50 cursor-not-allowed" : ""
+                                        }`}
+                                >
+                                    Thêm giỏ hàng
+                                </button>
+                            </div>
+                        ) : (
+                            <div className="flex justify-around items-center w-full gap-4">
+                                <ChatWithSellerButton
+                                    buyerId={userId}
+                                    sellerId={updatedBy}
+                                    product={{ title, price, imageUrl: displayImages[0]?.imageUrl || "https://placehold.co/100x100/e2e8f0/374151?text=?" }}
+                                    
+                                />
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>

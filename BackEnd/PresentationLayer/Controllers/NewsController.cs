@@ -1,7 +1,9 @@
 ﻿using Application.DTOs;
 using Application.IServices;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+using System.Reactive.Subjects;
 using System.Security.Claims;
 
 namespace PresentationLayer.Controllers
@@ -17,6 +19,23 @@ namespace PresentationLayer.Controllers
         {
             _newsService = newsService;
             _notificationService = notificationService;
+        }
+        [HttpGet]
+        public async Task<IActionResult> GetAllNews([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+        {
+            if (page <= 0 || pageSize <= 0)
+                return BadRequest("Page and PageSize must be greater than 0");
+            
+            var news = await _newsService.GetAllNewsAsync(page, pageSize);
+            return Ok(news);
+        }
+
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetNewsById(int id)
+        {
+            if (id <= 0) return BadRequest("newsId must be greater than 0");
+            var newsDetail = await _newsService.GetNewsById(id);
+            return Ok(newsDetail);
         }
 
         [HttpPost("approve/{newsId}")]

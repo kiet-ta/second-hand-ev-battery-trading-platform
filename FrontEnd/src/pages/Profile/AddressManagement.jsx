@@ -2,65 +2,20 @@ import { useEffect, useState } from "react";
 import "../../assets/styles/AddressManagement.css";
 import addressApi from "../../hooks/services/addressApi";
 import { motion, AnimatePresence } from "framer-motion";
+import axios from "axios";
 
+const GHN_TOKEN = import.meta.env.VITE_GHN_TOKEN;
 
 const AddressManagement = () => {
     const [provinces, setProvinces] = useState([]);
     const [districts, setDistricts] = useState([]);
     const [wards, setWards] = useState([]);
+
     const baseURL = import.meta.env.VITE_API_BASE_URL;
-
     const [savedAddresses, setSavedAddresses] = useState([]);
-
     const [showForm, setShowForm] = useState(false);
     const [editingId, setEditingId] = useState(null);
     const [currentUser, setCurrentUser] = useState(null);
-
-    useEffect(() => {
-        const fetchUser = async () => {
-            try {
-                const userId = localStorage.getItem("userId");
-                if (!userId)
-                    return;
-
-                const res = await fetch(`${baseURL}User/${userId}`);
-                if (!res.ok) throw new Error("Không lấy được thông tin user");
-                const data = await res.json();
-                setCurrentUser(data);
-            } catch (err) {
-                console.error("Lỗi load user:", err);
-            }
-        };
-
-        fetchUser();
-    }, []);
-
-    useEffect(() => {
-        const fetchAddresses = async () => {
-            try {
-                const userId = localStorage.getItem("userId");
-                if (!userId) return;
-
-                const res = await addressApi.getUserAddresses(userId);
-
-                // Map DB fields -> UI fields
-                const mapped = res.map(addr => ({
-                    id: addr.addressId,
-                    street: addr.street,
-                    ward: addr.ward,
-                    district: addr.district,
-                    province: addr.province,
-                    isDefault: addr.isDefault
-                }));
-
-                setSavedAddresses(mapped);
-            } catch (err) {
-                console.error("Lỗi load addresses:", err);
-            }
-        };
-
-        fetchAddresses();
-    }, []);
 
     const [formData, setFormData] = useState({
         provinceCode: "",
@@ -73,18 +28,72 @@ const AddressManagement = () => {
         isDefault: false,
     });
 
-    // Load provinces
+    // ======================= 🧭 LOAD USER =======================
     useEffect(() => {
-        addressApi.getProvinces().then(setProvinces).catch(() => setProvinces([]));
+        const fetchUser = async () => {
+            try {
+                const userId = localStorage.getItem("userId");
+                if (!userId) return;
+
+                const res = await fetch(`${baseURL}users/${userId}`);
+                if (!res.ok) throw new Error("Không lấy được thông tin user");
+                const data = await res.json();
+                setCurrentUser(data);
+            } catch (err) {
+                console.error("Lỗi load user:", err);
+            }
+        };
+        fetchUser();
     }, []);
 
-    // Load districts khi chọn tỉnh
+    // ======================= 📦 LOAD ADDRESS =======================
+    const loadAddresses = async () => {
+        try {
+            const userId = localStorage.getItem("userId");
+            if (!userId) return;
+
+            const res = await addressApi.getUserAddresses(userId);
+            const mapped = res.map((addr) => ({
+                addressId: addr.addressId,
+                street: addr.street,
+                ward: addr.ward,
+                district: addr.district,
+                province: addr.province,
+                wardCode: addr.wardCode,
+                districtCode: addr.districtCode,
+                provinceCode: addr.provinceCode,
+                isDefault: addr.isDefault,
+            }));
+            setSavedAddresses(mapped);
+        } catch (err) {
+            console.error("Lỗi load addresses:", err);
+        }
+    };
+
+    useEffect(() => {
+        loadAddresses();
+    }, []);
+
+    // ======================= 🗺 LOAD GHN DATA =======================
+    useEffect(() => {
+        axios
+            .get("/ghn/shiip/public-api/master-data/province", {
+                headers: { Token: GHN_TOKEN },
+            })
+            .then((res) => setProvinces(res.data.data))
+            .catch((err) => console.error("Lỗi load tỉnh:", err));
+    }, []);
+
     useEffect(() => {
         if (formData.provinceCode) {
-            addressApi
-                .getDistricts(formData.provinceCode)
-                .then(setDistricts)
-                .catch(() => setDistricts([]));
+            axios
+                .post(
+                    "/ghn/shiip/public-api/master-data/district",
+                    { province_id: Number(formData.provinceCode) },
+                    { headers: { Token: GHN_TOKEN } }
+                )
+                .then((res) => setDistricts(res.data.data))
+                .catch((err) => console.error("Lỗi load huyện:", err));
             setWards([]);
         } else {
             setDistricts([]);
@@ -92,20 +101,59 @@ const AddressManagement = () => {
         }
     }, [formData.provinceCode]);
 
-    // Load wards khi chọn huyện
     useEffect(() => {
         if (formData.districtCode) {
-            addressApi
-                .getWards(formData.districtCode)
-                .then(setWards)
-                .catch(() => setWards([]));
+            axios
+                .post(
+                    "/ghn/shiip/public-api/master-data/ward",
+                    { district_id: Number(formData.districtCode) },
+                    { headers: { Token: GHN_TOKEN } }
+                )
+                .then((res) => setWards(res.data.data))
+                .catch((err) => console.error("Lỗi load xã:", err));
         } else {
             setWards([]);
         }
     }, [formData.districtCode]);
 
+    // ======================= 🎛 FORM HANDLERS =======================
+    const handleProvinceChange = (e) => {
+        const code = e.target.value;
+        const province = provinces.find((p) => String(p.ProvinceID) === code);
+        setFormData({
+            ...formData,
+            provinceCode: code,
+            provinceName: province?.ProvinceName || "",
+            districtCode: "",
+            districtName: "",
+            wardCode: "",
+            wardName: "",
+        });
+    };
 
+    const handleDistrictChange = (e) => {
+        const code = e.target.value;
+        const district = districts.find((d) => String(d.DistrictID) === code);
+        setFormData({
+            ...formData,
+            districtCode: code,
+            districtName: district?.DistrictName || "",
+            wardCode: "",
+            wardName: "",
+        });
+    };
 
+    const handleWardChange = (e) => {
+        const code = e.target.value;
+        const ward = wards.find((w) => String(w.WardCode) === code);
+        setFormData({
+            ...formData,
+            wardCode: code,
+            wardName: ward?.WardName || "",
+        });
+    };
+
+    // ======================= ✏️ CRUD HANDLERS =======================
     const handleAddNew = () => {
         setEditingId(null);
         setFormData({
@@ -124,13 +172,13 @@ const AddressManagement = () => {
     };
 
     const handleEdit = (address) => {
-        setEditingId(address.id);
+        setEditingId(address.addressId);
         setFormData({
-            provinceCode: "",
+            provinceCode: address.provinceCode || "",
             provinceName: address.province,
-            districtCode: "",
+            districtCode: address.districtCode || "",
             districtName: address.district,
-            wardCode: "",
+            wardCode: address.wardCode || "",
             wardName: address.ward,
             detail: address.street,
             isDefault: address.isDefault,
@@ -138,83 +186,38 @@ const AddressManagement = () => {
         setShowForm(true);
     };
 
-
-    const handleProvinceChange = (e) => {
-        const code = e.target.value;
-        const province = provinces.find((p) => String(p.code) === String(code));
-        setFormData({
-            ...formData,
-            provinceCode: code,
-            provinceName: province?.name_with_type || "",
-            districtCode: "",
-            districtName: "",
-            wardCode: "",
-            wardName: "",
-        });
-    };
-
-    const handleDistrictChange = (e) => {
-        const code = e.target.value;
-        const district = districts.find((d) => String(d.code) === String(code));
-        setFormData({
-            ...formData,
-            districtCode: code,
-            districtName: district?.name_with_type || "",
-            wardCode: "",
-            wardName: "",
-        });
-    };
-
-    const handleWardChange = (e) => {
-        const code = e.target.value;
-        const ward = wards.find((w) => String(w.code) === String(code));
-        setFormData({
-            ...formData,
-            wardCode: code,
-            wardName: ward?.name_with_type || "",
-        });
-    };
-
     const handleSave = async () => {
-        if (!formData.detail || !formData.provinceName || !formData.districtName || !formData.wardName) {
+        if (
+            !formData.detail ||
+            !formData.provinceName ||
+            !formData.districtName ||
+            !formData.wardName
+        ) {
             alert("Vui lòng điền đầy đủ thông tin!");
             return;
         }
 
         try {
-            const userId = localStorage.getItem("userId");
-
             const addressPayload = {
-                userId: userId,
                 recipientName: currentUser?.fullName || "Unknown",
                 phone: currentUser?.phone || "0000000000",
                 street: formData.detail,
                 ward: formData.wardName,
                 district: formData.districtName,
                 province: formData.provinceName,
+                wardCode: formData.wardCode,
+                districtCode: formData.districtCode,
+                provinceCode: formData.provinceCode,
                 isDefault: formData.isDefault,
             };
 
             if (editingId) {
-                // Cập nhật
                 await addressApi.updateAddress(editingId, addressPayload);
             } else {
-                // Thêm mới
                 await addressApi.addAddress(addressPayload);
             }
 
-            // Reload danh sách từ DB
-            const res = await addressApi.getUserAddresses(userId);
-            const mapped = res.map(addr => ({
-                id: addr.addressId,
-                street: addr.street,
-                ward: addr.ward,
-                district: addr.district,
-                province: addr.province,
-                isDefault: addr.isDefault
-            }));
-            setSavedAddresses(mapped);
-
+            await loadAddresses();
             setShowForm(false);
             setEditingId(null);
         } catch (err) {
@@ -223,16 +226,13 @@ const AddressManagement = () => {
         }
     };
 
-
-
     const handleDelete = async (id) => {
         if (window.confirm("Bạn có chắc muốn xóa địa chỉ này?")) {
             try {
                 await addressApi.deleteAddress(id);
-                const userId = localStorage.getItem("userId");
-                const res = await addressApi.getUserAddresses(userId);
-                setSavedAddresses(res);
+                await loadAddresses(); // ✅ reload danh sách sau khi xóa
             } catch (err) {
+                console.error("Lỗi xóa address:", err);
                 alert("Có lỗi khi xóa địa chỉ!");
             }
         }
@@ -243,43 +243,18 @@ const AddressManagement = () => {
             const userId = localStorage.getItem("userId");
             if (!userId) return;
 
-            // 🟢 1. Cập nhật local UI ngay lập tức
-            setSavedAddresses(prev => {
-                // Tạo mảng mới đã cập nhật
-                const updated = prev.map(addr => ({
-                    ...addr,
-                    isDefault: addr.id === id
-                }));
-
-                // Sort lại để đưa mặc định lên đầu
-                const sorted = [...updated].sort(
-                    (a, b) => (a.isDefault === b.isDefault ? 0 : a.isDefault ? -1 : 1)
-                );
-
-                return sorted;
-            });
-
-            // 🟢 2. Đồng bộ DB (không chặn giao diện)
-            const allAddresses = await addressApi.getUserAddresses(userId);
-            for (const addr of allAddresses) {
+            const res = await addressApi.getUserAddresses(userId);
+            for (const addr of res) {
                 const updated = { ...addr, isDefault: addr.addressId === id };
                 await addressApi.updateAddress(addr.addressId, updated);
             }
-
-            console.log("✅ Đã cập nhật mặc định thành công");
+            await loadAddresses();
         } catch (err) {
             console.error("❌ Lỗi đặt mặc định:", err);
         }
     };
 
-
-
-
-
-    // ----------------------
-    // Render
-    // ----------------------
-
+    // ======================= 🧱 RENDER =======================
     return (
         <div className="address-container h-screen overflow-y-auto">
             <div className="address-header">
@@ -291,13 +266,13 @@ const AddressManagement = () => {
                 )}
             </div>
 
-            {/* LIST */}
+            {/* Danh sách địa chỉ */}
             {!showForm && (
                 <div className="address-list">
                     <AnimatePresence>
-                        {savedAddresses.map((address, index) => (
+                        {savedAddresses.map((address) => (
                             <motion.div
-                                key={`${address.id}-${address.isDefault ? 'default' : 'normal'}`}
+                                key={address.addressId}
                                 layout
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
@@ -322,7 +297,9 @@ const AddressManagement = () => {
                                         {savedAddresses.length > 1 && (
                                             <button
                                                 className="btn-delete"
-                                                onClick={() => handleDelete(address.id)}
+                                                onClick={() =>
+                                                    handleDelete(address.addressId)
+                                                }
                                             >
                                                 Xóa
                                             </button>
@@ -340,7 +317,9 @@ const AddressManagement = () => {
                                 {!address.isDefault && (
                                     <button
                                         className="btn-set-default"
-                                        onClick={() => handleSetDefault(address.id)}
+                                        onClick={() =>
+                                            handleSetDefault(address.addressId)
+                                        }
                                     >
                                         Đặt làm mặc định
                                     </button>
@@ -351,13 +330,14 @@ const AddressManagement = () => {
                 </div>
             )}
 
-            {/* FORM */}
+            {/* Form thêm/sửa */}
             {showForm && (
                 <div className="form-card">
                     <h3 className="form-title">
                         {editingId ? "Chỉnh sửa địa chỉ" : "Thêm địa chỉ mới"}
                     </h3>
 
+                    {/* Tỉnh */}
                     <div className="form-group">
                         <label className="form-label">Tỉnh/Thành phố *</label>
                         <select
@@ -367,13 +347,14 @@ const AddressManagement = () => {
                         >
                             <option value="">-- Chọn Tỉnh/Thành --</option>
                             {provinces.map((p) => (
-                                <option key={p.code} value={p.code}>
-                                    {p.name_with_type}
+                                <option key={p.ProvinceID} value={p.ProvinceID}>
+                                    {p.ProvinceName}
                                 </option>
                             ))}
                         </select>
                     </div>
 
+                    {/* Huyện */}
                     <div className="form-group">
                         <label className="form-label">Quận/Huyện *</label>
                         <select
@@ -384,13 +365,14 @@ const AddressManagement = () => {
                         >
                             <option value="">-- Chọn Quận/Huyện --</option>
                             {districts.map((d) => (
-                                <option key={d.code} value={d.code}>
-                                    {d.name_with_type}
+                                <option key={d.DistrictID} value={d.DistrictID}>
+                                    {d.DistrictName}
                                 </option>
                             ))}
                         </select>
                     </div>
 
+                    {/* Xã */}
                     <div className="form-group">
                         <label className="form-label">Phường/Xã *</label>
                         <select
@@ -401,13 +383,14 @@ const AddressManagement = () => {
                         >
                             <option value="">-- Chọn Phường/Xã --</option>
                             {wards.map((w) => (
-                                <option key={w.code} value={w.code}>
-                                    {w.name_with_type}
+                                <option key={w.WardCode} value={w.WardCode}>
+                                    {w.WardName}
                                 </option>
                             ))}
                         </select>
                     </div>
 
+                    {/* Chi tiết */}
                     <div className="form-group">
                         <label className="form-label">Địa chỉ chi tiết *</label>
                         <input
@@ -421,6 +404,7 @@ const AddressManagement = () => {
                         />
                     </div>
 
+                    {/* Checkbox */}
                     <div className="checkbox-group">
                         <input
                             type="checkbox"
@@ -436,6 +420,7 @@ const AddressManagement = () => {
                         </label>
                     </div>
 
+                    {/* Actions */}
                     <div className="form-actions">
                         <button className="btn-cancel" onClick={() => setShowForm(false)}>
                             Hủy

@@ -10,6 +10,7 @@ COPY ["PresentationLayer/PresentationLayer.csproj", "PresentationLayer/"]
 COPY ["ApplicationLayer/Application.csproj", "ApplicationLayer/"]
 COPY ["Domain/Domain.csproj", "Domain/"]
 COPY ["Infrastructure/Infrastructure.csproj", "Infrastructure/"]
+COPY ["BackEnd.Application.Tests/BackEnd.Application.Tests.csproj", "BackEnd.Application.Tests/"]
 COPY ["BackEnd.sln", "."]
 # Restore dependencies
 RUN dotnet restore "BackEnd.sln"
@@ -25,7 +26,5 @@ RUN dotnet publish "PresentationLayer.csproj" -c Release -o /app/publish /p:UseA
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-# Install Entity Framework tools for migrations
-RUN dotnet tool install --global dotnet-ef
-ENV PATH="$PATH:/root/.dotnet/tools"
+
 ENTRYPOINT ["dotnet", "PresentationLayer.dll"]

@@ -162,7 +162,6 @@ namespace Infrastructure.Repositories
                             LicenseUrl = d.LicenseUrl
                         })
                         .FirstOrDefaultAsync();
-                    item.ItemDetail = detail;
                 }
                 else if (item.ItemType == "battery")
                 {
@@ -176,7 +175,6 @@ namespace Infrastructure.Repositories
                             ChargeCycles = d.ChargeCycles
                         })
                         .FirstOrDefaultAsync();
-                    item.ItemDetail = detail;
                 }
             }
 

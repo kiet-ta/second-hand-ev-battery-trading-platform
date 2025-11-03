@@ -26,19 +26,15 @@ const ProtectedRoute = ({ allowedRoles }) => {
     const decodedToken = token ? parseJwt(token) : null;
     const userRole = decodedToken?.role?.toLowerCase();
 
-    // 1. Check for token/authentication
     if (!token || !userRole) {
-        // Not logged in or token is invalid -> Redirect to login
         return <Navigate to="/login" replace />;
     }
-
-    // 2. Check for role authorization
+    if (allowedRoles == "seller" && userRole != "seller"){
+        return <Navigate to="/seller-registration" replace/>
+    }
     if (allowedRoles.includes(userRole)) {
-        // User has an allowed role -> Render the child routes
         return <Outlet />;
     } else {
-        // User is logged in but has the wrong role -> Redirect to a relevant path (e.g., homepage)
-        // You can customize this redirect based on your application flow.
         return <Navigate to="/" replace />;
     }
 };

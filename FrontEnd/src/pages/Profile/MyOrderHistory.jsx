@@ -16,20 +16,19 @@ const TABS = [
 ];
 
 export default function OrderPage() {
-  const [orders, setOrders] = useState([]); // enriched orders with item detail
+  const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("all");
   const [search, setSearch] = useState("");
   const [selectedItemId, setSelectedItemId] = useState(null);
   const [itemModalOpen, setItemModalOpen] = useState(false);
-  const [reviewPayload, setReviewPayload] = useState(null); // { item, order }
+  const [reviewPayload, setReviewPayload] = useState(null);
   const buyerId = localStorage.getItem("userId");
 
   const fetchOrders = useCallback(async () => {
     try {
       setLoading(true);
-      const res = await orderApi.getOrdersByBuyerId(buyerId); // your api
-      // enrich each order's items with item detail
+      const res = await orderApi.getOrdersByBuyerId(buyerId);
       const enriched = await Promise.all(
         (res || []).map(async (order) => {
           const items = await Promise.all(

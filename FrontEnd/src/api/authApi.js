@@ -1,12 +1,11 @@
 class authApi {
     constructor() {
-        this.apiUrl = import.meta.env.VITE_API_BASE_URL + "Auth";
+        this.apiUrl = import.meta.env.VITE_API_BASE_URL + "auth";
     }
 
-    // Gọi API login
-    async login(email, password) {
+    async login({ email, password }) {
         try {
-            const response = await fetch(`${this.apiUrl}/login`, {
+            const response = await fetch(`${this.apiUrl}/tokens`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -14,50 +13,39 @@ class authApi {
                 body: JSON.stringify({ email, password }),
             });
 
+            const text = await response.text();
             if (!response.ok) {
+                console.error("❌ Login API failed:", response.status, text);
                 throw new Error("Login failed");
             }
 
-            return await response.json();
+            const json = JSON.parse(text);
+            return json;
         } catch (error) {
             console.error("Error in login:", error);
             throw error;
         }
     }
 
-    // Lấy danh sách user
-    async getAllUsers() {
-        try {
-            const response = await fetch(this.apiUrl);
-            if (!response.ok) {
-                throw new Error("Failed to fetch users");
-            }
-            return await response.json();
-        } catch (error) {
-            console.error("Error in getAllUsers:", error);
-            throw error;
-        }
-    }
 
-    // Đăng ký user mới
     async register(userData) {
         try {
-            const response = await fetch(`${this.apiUrl}/register`, {
+            const res = await fetch(`${this.apiUrl}/users`, {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(userData),
             });
 
-            if (!response.ok) {
+            const text = await res.text();
+            if (!res.ok) {
+                console.error("❌ Register API failed:", res.status, text);
                 throw new Error("Register failed");
             }
 
-            return await response.json();
-        } catch (error) {
-            console.error("Error in register:", error);
-            throw error;
+            return JSON.parse(text); // Trả JSON có field data
+        } catch (err) {
+            console.error("Error in register:", err);
+            throw err;
         }
     }
 }

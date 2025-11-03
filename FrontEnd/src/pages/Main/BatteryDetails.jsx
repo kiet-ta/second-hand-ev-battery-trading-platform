@@ -12,10 +12,8 @@ import itemApi from "../../api/itemApi";
 import userApi from "../../api/userApi";
 import orderItemApi from "../../api/orderItemApi";
 import reviewApi from "../../api/reviewApi";
-import { message } from "antd";
 import addressLocalApi from "../../api/addressLocalApi";
-import orderApi from "../../api/orderApi";
-
+import placeholder from "../../assets/images/placeholder.png"
 // Star rating component
 const StarRating = ({ rating }) => (
   <div className="flex items-center">
@@ -168,14 +166,12 @@ function BatteryDetails() {
 
     const userId = localStorage.getItem("userId");
     if (!userId) {
-      message.warning("Vui lòng đăng nhập trước khi mua hàng!");
       navigate("/login");
       return;
     }
 
     setIsProcessing(true);
     try {
-      // 1️⃣ Tạo OrderItem
       const orderItemPayload = {
         buyerId: userId,
         itemId: itemId,
@@ -187,55 +183,38 @@ function BatteryDetails() {
       if (!createdOrderItem?.orderItemId)
         throw new Error("Không thể tạo OrderItem.");
 
-      // 2️⃣ Lấy địa chỉ mặc định
       const allAddresses = await addressLocalApi.getAddressByUserId(userId);
       const defaultAddress =
         allAddresses.find((addr) => addr.isDefault) || allAddresses[0];
 
       if (!defaultAddress) {
-        message.warning("Vui lòng thêm địa chỉ giao hàng trong hồ sơ!");
         navigate("/profile/address");
         return;
       }
-
-      // 3️⃣ Tạo Order
-      const orderPayload = {
-        buyerId: userId,
-        addressId: defaultAddress.addressId,
-        orderItemIds: [createdOrderItem.orderItemId],
-        createdAt: new Date().toISOString().split("T")[0],
-        updatedAt: new Date().toISOString().split("T")[0],
+      const checkoutData = {
+        source: "buyNow",
+        totalAmount: item.price,
+        orderItems: [
+          {
+            id: itemId,
+            name: item.title || "Sản phẩm",
+            price: item.price,
+            quantity: 1,
+            image:
+              item.itemImage?.[0]?.imageUrl ||
+              "https://placehold.co/100x100/e2e8f0/374151?text=?",
+          },
+        ],
+        allAddresses,
+        selectedAddressId: defaultAddress.addressId,
       };
 
-      const createdOrder = await orderApi.postOrderNew(orderPayload);
-      if (!createdOrder?.orderId) throw new Error("Không thể tạo Order.");
+      localStorage.setItem("checkoutData", JSON.stringify(checkoutData));
 
-      // 4️⃣ Chuyển sang trang Checkout
-      navigate("/checkout", {
-        state: {
-          fromBuyNow: true,
-          orderId: createdOrder.orderId,
-          totalAmount: item.price,
-          orderItems: [
-            {
-              id: item.itemId || itemId,
-              name: item.title || "Sản phẩm",
-              price: item.price,
-              quantity: 1,
-              image:
-                imageUrls[selectedImage] ||
-                "https://placehold.co/100x100",
-            },
-          ],
-          allAddresses,
-          selectedAddressId: defaultAddress.addressId,
-        },
-      });
+      navigate("/checkout/buy-now", { state: checkoutData });
+
     } catch (err) {
       console.error("❌ Lỗi mua ngay:", err);
-      message.error("Không thể mua ngay. Vui lòng thử lại.");
-    } finally {
-      setIsProcessing(false);
     }
   };
 
@@ -393,7 +372,7 @@ function BatteryDetails() {
           {sellerProfile && (
             <Card className="p-6 rounded-2xl shadow-md border border-[#EAE6DA] bg-white/90 flex items-center gap-4">
               <img
-                src={sellerProfile.avatarProfile || "https://upload.wikimedia.org/wikipedia/commons/8/89/Portrait_Placeholder.png"}
+                src={sellerProfile.avatarProfile || placeholder}
                 alt={sellerProfile.fullName}
                 className="w-16 h-16 rounded-full object-cover"
               />

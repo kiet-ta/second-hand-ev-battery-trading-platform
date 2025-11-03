@@ -1,11 +1,11 @@
 import axios from "axios";
-const baseURL = import.meta.env.VITE_API_BASE_URL + "Chat";
+const baseURL = import.meta.env.VITE_API_BASE_URL + "chat";
 
 const chatApi = {
     createChatRoom: async (member1, member2) => {
         const token = localStorage.getItem('token');
         const payload = { members: [member1, member2] };
-        const response = await axios.post(`${baseURL}/rooms`, payload,{
+        const response = await axios.post(`${baseURL}/rooms`, payload, {
             headers: {
                 'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json'
@@ -14,11 +14,19 @@ const chatApi = {
         return response.data
     },
     getChatByID: async (chatId) => {
-        const response = await axios.get(`${baseURL}/rooms/${chatId}`)
+        const response = await axios.get(`${baseURL}/rooms/${chatId}`,
+            {
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                    'Content-Type': 'application/json'
+                }
+            }
+
+        )
         return response.data
     },
     getRoomByUserIDs: async (userId) => {
-        const response = await axios.get(`${baseURL}/users/${userId}/rooms`, 
+        const response = await axios.get(`${baseURL}/rooms`,
             {
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('token')}`,
@@ -30,10 +38,9 @@ const chatApi = {
     },
     sendChatMessage: async (payload) => {
         const token = localStorage.getItem('token');
-        const response = await axios.post(`${baseURL}/send`, payload,
+        const response = await axios.post(`${baseURL}/rooms/${payload.cid}/messages`, payload,
             {
                 headers: {
-                    // This line is essential for authorized endpoints
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
                 }

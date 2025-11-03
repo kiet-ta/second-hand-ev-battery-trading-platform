@@ -1,5 +1,5 @@
 import axios from "axios";
-const baseURL = import.meta.env.VITE_API_BASE_URL + "OrderItems";
+const baseURL = import.meta.env.VITE_API_BASE_URL + "order-items";
 const orderItemApi = {
     getOrderItem: async (userid) => {
         const response = await axios.get(baseURL + '/cart/' + userid);

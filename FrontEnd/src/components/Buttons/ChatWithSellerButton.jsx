@@ -15,10 +15,8 @@ const ChatWithSellerButton = ({ buyerId, sellerId, product }) => {
 
     setLoading(true);
     try {
-      // Step 1: Create or get existing room
       const room = await chatApi.createChatRoom(buyerId, sellerId);
 
-      // Step 2: Prepare text payload
       let messageText = "Xin chào!";
 
       if (type === "interest") {
@@ -59,14 +57,23 @@ const ChatWithSellerButton = ({ buyerId, sellerId, product }) => {
       <div className="flex gap-3">
         <button
           disabled={loading}
-          onClick={() => handleChat("normal")}
+          onClick={(e) => {
+            handleChat("normal");
+            e.preventDefault();
+            e.stopPropagation();
+          }}
           className="flex-1 bg-indigo-600 text-white font-semibold px-4 py-2 rounded-xl shadow hover:bg-indigo-700 transition"
         >
           {loading ? "Đang mở..." : "Nhắn tin"}
         </button>
         <button
           disabled={loading}
-          onClick={() => setShowConfirm(true)}
+          onClick={(e) => {
+            setShowConfirm(true)
+            e.preventDefault();
+            e.stopPropagation();
+
+          }}
           className="flex-1 bg-amber-500 text-white font-semibold px-4 py-2 rounded-xl shadow hover:bg-amber-600 transition"
         >
           {loading ? "Đang xử lý..." : "Quan tâm sản phẩm"}
@@ -101,13 +108,21 @@ const ChatWithSellerButton = ({ buyerId, sellerId, product }) => {
             </p>
             <div className="flex justify-end gap-3">
               <button
-                onClick={() => setShowConfirm(false)}
+                onClick={(e) => {
+                  setShowConfirm(false)
+                e.preventDefault();
+                e.stopPropagation();
+              }}
                 className="px-4 py-2 rounded-xl bg-gray-200 text-gray-700 font-medium hover:bg-gray-300 transition"
               >
                 Hủy
               </button>
               <button
-                onClick={() => handleChat("interest")}
+                onClick={(e) => {
+                  handleChat("interest")
+                  e.preventDefault();
+                  e.stopPropagation();
+                }}
                 disabled={loading}
                 className="px-4 py-2 rounded-xl bg-amber-500 text-white font-semibold hover:bg-amber-600 transition"
               >

@@ -15,7 +15,6 @@ export default function ChangePassword() {
     const [strength, setStrength] = useState({ label: "", color: "" });
     const baseURL = import.meta.env.VITE_API_BASE_URL;
 
-    // 🔍 Kiểm tra độ mạnh mật khẩu
     const checkPasswordStrength = (password) => {
         let score = 0;
         if (!password) return { label: "", color: "" };
@@ -56,7 +55,7 @@ export default function ChangePassword() {
 
         setLoading(true);
         try {
-            const res = await fetch(`${baseURL}Auth/change-password`, {
+            const res = await fetch(`${baseURL}auth/users/me/password`, {
                 method: "PUT",
                 headers: {
                     "Content-Type": "application/json",
@@ -77,7 +76,6 @@ export default function ChangePassword() {
             toast.success("✅ Mật khẩu đã được thay đổi thành công!");
             const rememberEmail = localStorage.getItem("rememberEmail");
             if (rememberEmail) {
-                // Cập nhật lại mật khẩu mới cho chức năng “ghi nhớ đăng nhập”
                 localStorage.setItem("rememberPassword", formData.newPassword);
             }
             setFormData({ oldPassword: "", newPassword: "", confirmPassword: "" });

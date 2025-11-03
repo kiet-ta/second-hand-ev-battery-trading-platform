@@ -34,6 +34,7 @@ namespace Application.Services
         private readonly IConfiguration _config;
         private readonly AppSetting _appSettings;
         private readonly ILogger<AuthService> _logger;
+        private readonly IUnitOfWork _uow;
 
         public AuthService(
             IUserRepository userRepository,
@@ -41,7 +42,8 @@ namespace Application.Services
             IOptionsMonitor<AppSetting> option,
             ILogger<AuthService> logger,
             IPasswordResetTokenRepository otpRepository,
-            IMailService emailSender)
+            IMailService emailSender,
+            IUnitOfWork uow)
         {
             _userRepository = userRepository;
             _config = config;
@@ -52,6 +54,7 @@ namespace Application.Services
             _logger = logger;
             _otpRepository = otpRepository;
             _emailSender = emailSender;
+            _uow = uow;
         }
 
         public static int GenerateUserId()
@@ -66,36 +69,49 @@ namespace Application.Services
 
         public async Task<AuthResponseDto> RegisterAsync(RegisterDto dto)
         {
-            // Validate input
             var validator = new RegisterValidator();
             var result = validator.Validate(dto);
             if (!result.IsValid)
                 throw new ValidationException(string.Join("; ", result.Errors.Select(e => e.ErrorMessage)));
-
-            // Business validate
-            if (await _userRepository.GetByEmailAsync(dto.Email) != null)
-                throw new ValidationException("Email already registered");
-
-            // Optional: check phone unique
-            //var existingUsers = await _userRepository.GetAllAsync();
-            //if (existingUsers.Any(u => u.Phone == dto.Phone))
-            //    throw new ValidationException("Phone number already used");
-
-            //  Hash password + Save
-            var user = new User
+            try
             {
-                UserId = GenerateUserId(),
-                FullName = dto.FullName.Trim(),
-                Email = dto.Email.ToLower(),
-                PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
-                Role = "buyer",
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow,
-                IsDeleted = false
-            };
+                if (await _uow.Users.GetByEmailAsync(dto.Email) != null)
+                    throw new ValidationException("Email already registered");
 
-            await _userRepository.AddAsync(user);
-            return GenerateToken(user);
+                var user = new User
+                {
+                    UserId = GenerateUserId(),
+                    FullName = dto.FullName.Trim(),
+                    Email = dto.Email.ToLower(),
+                    PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
+                    Role = "buyer",
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow,
+                    IsDeleted = false,
+                    KycStatus = "not_submitted",
+                    AccountStatus = "active",
+                    Paid = "pending"
+                };
+                await _uow.Users.AddAsync(user);
+                await _uow.SaveChangesAsync();
+                var sellected = await _userRepository.GetByIdAsync(user.UserId);
+                Console.WriteLine(sellected.UserId);
+                var wallet = new Wallet
+                {
+                    UserId = sellected.UserId,
+                    Balance = 0,
+                    HeldBalance = 0,
+                    Currency = "vnd",
+                    Status = "active",
+                    UpdatedAt = DateTime.UtcNow
+                };
+                await _uow.Wallets.AddAsync(wallet);
+                return GenerateToken(user);
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
         }
 
         public async Task<AuthResponseDto> LoginAsync(LoginDto dto)
@@ -181,7 +197,7 @@ namespace Application.Services
                 FullName = string.IsNullOrWhiteSpace(payload.Name) ? username : payload.Name,
                 Email = email,
                 PasswordHash = string.Empty, // No password for Google login
-                Role = "Buyer",
+                Role = "buyer",
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow,
                 IsDeleted = false,
@@ -189,6 +205,18 @@ namespace Application.Services
             };
 
             await _userRepository.AddAsync(newUser);
+
+            var sellected = await _userRepository.GetByIdAsync(newUser.UserId);
+            var wallet = new Wallet
+            {
+                UserId = sellected.UserId,
+                Balance = 0,
+                HeldBalance = 0,
+                Currency = "vnd",
+                Status = "active",
+                UpdatedAt = DateTime.UtcNow
+            };
+            await _uow.Wallets.AddAsync(wallet);
 
             _logger.LogInformation("New user created successfully: {UserId}", newUser.UserId);
 
@@ -228,7 +256,7 @@ namespace Application.Services
                 new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
                 new Claim(ClaimTypes.Email, user.Email),
                 new Claim(ClaimTypes.Name, user.FullName ?? string.Empty),
-                new Claim(ClaimTypes.Role, user.Role ?? "Buyer"),
+                new Claim(ClaimTypes.Role, user.Role ?? "buyer"),
                 new Claim("auth_provider", provider)
             };
 
@@ -251,7 +279,7 @@ namespace Application.Services
                 UserId = user.UserId,
                 FullName = user.FullName,
                 Email = user.Email,
-                Role = user.Role ?? "Buyer",
+                Role = user.Role ?? "buyer",
                 Token = tokenString,
                 ExpiresAt = expires,
                 AuthProvider = provider

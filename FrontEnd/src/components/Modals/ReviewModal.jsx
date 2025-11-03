@@ -19,6 +19,10 @@ export default function ReviewModal({ order, isOpen, onClose, onReviewSubmit }) 
         }
     };
 
+    const handleRemoveImage = (indexToRemove) => {
+        setReviewImages((prevImages) => prevImages.filter((_, index) => index !== indexToRemove));
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (rating === 0) {
@@ -52,17 +56,18 @@ export default function ReviewModal({ order, isOpen, onClose, onReviewSubmit }) 
     };
 
     return (
-        <div className="fixed inset-0 bg-gray-200/75 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-lg shadow-xl w-full max-w-lg p-6 relative">
+        <div className="fixed inset-0 bg-gray-200/75 flex items-center justify-center z-50 p-4 overflow-auto">
+            <div className="bg-white rounded-lg shadow-xl w-full max-w-md p-5 relative">
                 <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
                     <X size={24} />
                 </button>
 
-                <h2 className="text-2xl font-bold mb-4">Đánh giá sản phẩm</h2>
-                <div className="flex items-center gap-4 mb-6 pb-4 border-b">
-                    <img src={order.image} alt={order.title} className="w-20 h-20 rounded-md object-cover" />
+                <h2 className="text-xl font-bold mb-4">Đánh giá sản phẩm</h2>
+
+                <div className="flex items-center gap-4 mb-4 pb-4 border-b">
+                    <img src={order.image} alt={order.title} className="w-16 h-16 rounded-md object-cover" />
                     <div>
-                        <h3 className="font-semibold text-lg">{order.title}</h3>
+                        <h3 className="font-semibold text-base">{order.title}</h3>
                         <p className="text-sm text-gray-500">Mã đơn hàng: #{order.orderCode}</p>
                     </div>
                 </div>
@@ -85,12 +90,21 @@ export default function ReviewModal({ order, isOpen, onClose, onReviewSubmit }) 
                         ></textarea>
                     </div>
 
-                    <div className="mb-6">
+                    <div className="mb-4">
                         <label className="block text-gray-700 font-medium mb-2">Thêm hình ảnh ({reviewImages.length}/5)</label>
                         <ImageUploader onUploadSuccess={handleImageUpload} />
                         <div className="mt-2 flex gap-2 flex-wrap">
                             {reviewImages.map((url, index) => (
-                                <img key={index} src={url} alt={`review-img-${index}`} className="w-20 h-20 rounded-md object-cover border" />
+                                <div key={index} className="relative">
+                                    <img src={url} alt={`review-img-${index}`} className="w-16 h-16 rounded-md object-cover border" />
+                                    <button
+                                        type="button"
+                                        onClick={() => handleRemoveImage(index)}
+                                        className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-0.5"
+                                    >
+                                        <X size={12} />
+                                    </button>
+                                </div>
                             ))}
                         </div>
                     </div>

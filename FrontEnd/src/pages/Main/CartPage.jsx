@@ -69,7 +69,6 @@ function CartPage() {
                         if (!detail) return null;
 
                         let finalQuantity = orderItem.quantity;
-
                         if (orderItem.quantity > detail.quantity) {
                             finalQuantity = detail.quantity;
                             stockIssueDetected = true;
@@ -82,9 +81,7 @@ function CartPage() {
                             price: detail.price,
                             quantity: finalQuantity,
                             stock: detail.quantity,
-                            // Pass the full images array
                             images: detail.images || [],
-                            // Pass the itemType for linking
                             itemType: detail.itemType,
                             orderItemIdsToDelete: orderItem.orderItemIdsToDelete
                         };
@@ -187,7 +184,6 @@ function CartPage() {
 
     const handleDeleteSelected = async () => {
         if (selectedItemIds.length === 0) {
-            message.warning("Vui lòng chọn sản phẩm để xóa.");
             return;
         }
 
@@ -232,13 +228,12 @@ function CartPage() {
 
     const checkoutData = useMemo(() => {
         const selectedAddress = addresses.find(addr => addr.addressId === selectedAddressId);
-        // Prepare items for checkout, ensuring image is a single URL
         const itemsToPurchase = cartItems
             .filter(item => selectedItemIds.includes(item.id))
             .map(item => ({
                 ...item,
                 image: item.images?.[0]?.imageUrl || "https://placehold.co/100x100/e2e8f0/374151?text=?", // Pass only first image URL
-                images: undefined // Remove images array if not needed in checkout
+                images: undefined 
             }));
 
         return {
@@ -308,7 +303,7 @@ function CartPage() {
                 <div className="bg-white mt-6 p-4 shadow-md rounded-lg border border-[#E8E4DC]">
                     <div className="flex justify-between items-center border-b border-[#E8E4DC] pb-3 mb-4">
                         <h2 className="text-lg font-bold text-[#B8860B] flex items-center gap-2"><FiMapPin /> Địa chỉ giao hàng</h2>
-                        <Link to="/profile/address" className="text-[#B8860B] font-semibold hover:text-[#D4AF37] transition-colors">Quản lý địa chỉ</Link>
+                        <Link to="/profile/addresses" className="text-[#B8860B] font-semibold hover:text-[#D4AF37] transition-colors">Quản lý địa chỉ</Link>
                     </div>
                     {addresses.length > 0 ? (
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

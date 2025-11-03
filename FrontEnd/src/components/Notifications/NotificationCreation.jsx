@@ -1,4 +1,3 @@
-// src/pages/NotificationCreator.jsx (Final Code)
 import React, { useState } from "react";
 import notificationApi from "../../api/notificationApi";
 import { Send, CheckCircle, AlertTriangle } from "lucide-react";
@@ -39,7 +38,6 @@ export default function NotificationCreator() {
 
         setIsLoading(true);
 
-        // 🚨 CRITICAL: Payload must match NotificationRequest DTO exactly
         const apiPayload = {
             notiType: formData.notiType,
             senderId: parseInt(formData.senderId),
@@ -50,7 +48,6 @@ export default function NotificationCreator() {
         };
 
         try {
-            // The API call uses the POST method to hit /api/Notifications
             await notificationApi.createNotification(apiPayload); 
 
             setStatus({ message: "Thông báo đã được tạo và gửi thành công!", type: "success" });

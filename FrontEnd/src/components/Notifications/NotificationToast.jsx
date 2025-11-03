@@ -1,4 +1,3 @@
-// src/components/NotificationToast.jsx
 import React, { useEffect } from "react";
 import { X, Bell, CheckCircle, AlertTriangle, AlertCircle } from "lucide-react";
 

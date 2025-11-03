@@ -13,4 +13,6 @@ public interface ICommissionFeeRuleRepository
     Task UpdateAsync(CommissionFeeRule rule);
 
     Task DeleteAsync(int id);
+
+    Task<CommissionFeeRule?> GetActiveRuleByCodeAsync(string feeCode);
 }

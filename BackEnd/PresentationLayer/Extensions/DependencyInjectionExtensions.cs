@@ -1,6 +1,7 @@
 ﻿using Application.DTOs.PaymentDtos;
 using Application.IRepositories;
 using Application.IRepositories.IBiddingRepositories;
+using Application.IRepositories.IChatRepositories;
 using Application.IRepositories.IManageStaffRepositories;
 using Application.IRepositories.IPaymentRepositories;
 using Application.IServices;
@@ -10,6 +11,7 @@ using Application.Validations;
 using FluentValidation;
 using Infrastructure.Data;
 using Infrastructure.Repositories;
+using Infrastructure.Repositories.ChatRepositories;
 using Infrastructure.Repositories.ManageStaffRepositories;
 
 namespace PresentationLayer.Extensions;
@@ -48,7 +50,8 @@ public static class DependencyInjectionExtensions
         services.AddScoped<IComplaintService, ComplaintService>();
         services.AddScoped<IWalletService, WalletService>();
         services.AddSingleton<IProfanityCountService, ProfanityCountService>();
-        
+        services.AddScoped<ICommissionFeeRuleService, CommissionFeeRuleService>();
+        services.AddScoped<IReportService, ReportService>();
 
         //---Repositories
         services.AddScoped<IAuctionRepository, AuctionRepository>();
@@ -72,6 +75,7 @@ public static class DependencyInjectionExtensions
         services.AddScoped<IComplaintRepository, ComplaintRepository>();
         services.AddScoped<ICommissionFeeRuleRepository, CommissionFeeRuleRepository>();
         services.AddScoped<ITransactionRepository, TransactionRepository>();
+        services.AddScoped<ITransactionCommissionRepository, TransactionCommissionRepository>();
         services.AddScoped<IEmailRepository, EmailTemplateRepository>();
         services.AddScoped<IFavoriteRepository, FavoriteRepository>();
         services.AddScoped<IKYC_DocumentRepository, KYC_DocumentRepository>();
@@ -80,6 +84,8 @@ public static class DependencyInjectionExtensions
         services.AddScoped<INewsRepository, NewsRepository>();
         services.AddScoped<INotificationRepository, NotificationRepository>();
         services.AddScoped<IComplaintRepository, ComplaintRepository>();
+        services.AddScoped<IUserModerationRepository, FirebaseUserModerationRepository>();
+        services.AddScoped<IReportRepository, ReportRepository>();
 
         //IUnitOfWork
         services.AddScoped<IUnitOfWork, UnitOfWork>();

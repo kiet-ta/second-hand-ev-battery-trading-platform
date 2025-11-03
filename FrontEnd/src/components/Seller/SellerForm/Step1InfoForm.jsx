@@ -82,10 +82,8 @@ const Step1InfoForm = ({ setFormData: setGlobalFormData, nextStep, prevStep }) =
         await userApi.putUser(userID, updatedUser); 
         setUser(updatedUser);
         setEditMode(false);
-        message.success("Cập nhật thông tin thành công!");
       } catch (error) {
         console.error("Update failed:", error);
-        message.error("Cập nhật thất bại. Vui lòng thử lại.");
         return; // Stop if saving failed
       }
     }

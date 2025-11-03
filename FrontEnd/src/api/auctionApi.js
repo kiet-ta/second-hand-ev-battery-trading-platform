@@ -11,6 +11,10 @@ const auctionApi = {
         const response = await axios.get(`${baseURL}/item/${itemId}`)
         return response.data
     },
+    getAutionCreatedByUserID : async (userId) => {
+        const response = await axios.get(`${baseURL}/user/${userId}`)
+        return response.data
+    },
     postAuction: async (payload) => {
         const response = await axios.post(baseURL,payload)
         return response.data

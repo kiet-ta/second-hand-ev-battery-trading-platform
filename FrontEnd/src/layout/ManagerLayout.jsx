@@ -74,12 +74,10 @@ export default function ManagerLayout({ onRefresh, onAddStaff, children }) {
     const activeKey = getActiveKey();
 
     const handleLogout = () => {
-        // Giữ lại thông tin remember
         const rememberEmail = localStorage.getItem("rememberEmail");
         const rememberPassword = localStorage.getItem("rememberPassword");
 
         localStorage.clear(); // Xoá mọi thứ
-        // Ghi lại thông tin remember
         if (rememberEmail && rememberPassword) {
             localStorage.setItem("rememberEmail", rememberEmail);
             localStorage.setItem("rememberPassword", rememberPassword);
@@ -109,15 +107,6 @@ export default function ManagerLayout({ onRefresh, onAddStaff, children }) {
                     </div>
 
                     <div className="flex items-center gap-2">
-                        <div className="hidden md:flex items-center gap-2 px-3 py-2 border border-slate-200 rounded-xl bg-white">
-                            <Search size={16} className="opacity-70" />
-                            <input
-                                placeholder="Tìm kiếm…"
-                                className="outline-none text-sm w-44"
-                            />
-                            <Filter size={16} className="opacity-70" />
-                        </div>
-
                         <button
                             onClick={onRefresh}
                             className="flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-200 bg-white text-slate-700 text-sm hover:bg-slate-50"
@@ -187,12 +176,13 @@ export default function ManagerLayout({ onRefresh, onAddStaff, children }) {
 
                             {/* Cập nhật quy định hoa hồng */}
                             <button
-                                onClick={() => navigate("settings")}
+                                onClick={() => navigate("fee")}
                                 className="flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-200 text-sm text-slate-700 hover:bg-slate-50 text-left"
                             >
                                 <ClipboardList size={16} className="text-orange-500" />
                                 Cập nhật quy định hoa hồng
                             </button>
+
                         </div>
                     </Card>
                 </aside>

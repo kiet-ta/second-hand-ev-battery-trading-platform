@@ -1,5 +1,5 @@
 import axios from "axios";
-const baseURL = import.meta.env.VITE_API_BASE_URL + "User";
+const baseURL = import.meta.env.VITE_API_BASE_URL + "users";
 const userApi = {
     getUser: async () => {
         const response = await axios.get(baseURL);
@@ -10,7 +10,6 @@ const userApi = {
         const response = await axios.get(baseURL + '/' + id,
             {
                 headers: {
-                    // This line is essential for authorized endpoints
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
                 }

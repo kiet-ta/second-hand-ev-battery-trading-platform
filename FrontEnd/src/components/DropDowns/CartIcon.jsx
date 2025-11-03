@@ -14,7 +14,7 @@ export default function CartIcon() {
       if (!userId || !token) return;
 
       try {
-        const res = await fetch(`${BASE_URL}OrderItems/cart/${userId}`, {
+        const res = await fetch(`${BASE_URL}order-items/cart/${userId}`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",

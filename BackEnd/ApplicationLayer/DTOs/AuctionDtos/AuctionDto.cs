@@ -15,5 +15,6 @@ public class AuctionDto
     public DateTime StartTime { get; set; }
     public DateTime EndTime { get; set; }
     public string Status { get; set; } = string.Empty;
+    public int StepPrice { get; set; } = 0;
     public List<ItemImageDto>? Images { get; set; } = new();
 }

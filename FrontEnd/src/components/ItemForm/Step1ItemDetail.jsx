@@ -1,5 +1,5 @@
 import React from "react";
-import { Form, Input, InputNumber, Radio, Select, Checkbox, message } from "antd";
+import { Form, Input, InputNumber, Radio, Select, Checkbox } from "antd";
 import ImageUploadField from "../Seller/SellerForm/ImageUploadField"; // adjust path if needed
 
 const { TextArea } = Input;
@@ -40,7 +40,6 @@ export default function Step1ItemDetails({ form, onFinish, evData }) {
 
   const handleLicenseUpload = (url) => {
     form.setFieldsValue({ licenseUrl: url });
-    message.success("Đã tải lên ảnh giấy đăng ký xe");
   };
 
   return (
@@ -49,6 +48,7 @@ export default function Step1ItemDetails({ form, onFinish, evData }) {
       name="step1"
       onFinish={onFinish}
       layout="vertical"
+      scrollToFirstError={{ behavior: "smooth", block: "center" }}
       initialValues={{
         createAuction: false,
         hasAccessories: false,
@@ -116,7 +116,10 @@ export default function Step1ItemDetails({ form, onFinish, evData }) {
 
           {brand && (
             <Form.Item name="model" label="Mẫu xe" rules={[{ required: true }]}>
-              <Select placeholder="Chọn mẫu xe" onChange={() => form.setFieldsValue({ version: undefined })}>
+              <Select
+                placeholder="Chọn mẫu xe"
+                onChange={() => form.setFieldsValue({ version: undefined })}
+              >
                 {evModels.map((m) => (
                   <Option key={m} value={m}>{m}</Option>
                 ))}
@@ -171,7 +174,10 @@ export default function Step1ItemDetails({ form, onFinish, evData }) {
           <Form.Item
             name="licensePlate"
             label="Biển số xe"
-            rules={[{ required: true, message: "Vui lòng nhập biển số xe" }, { validator: validateLicensePlate }]}
+            rules={[
+              { required: true, message: "Vui lòng nhập biển số xe" },
+              { validator: validateLicensePlate },
+            ]}
           >
             <Input placeholder="VD: 30A-123.45" />
           </Form.Item>
@@ -227,11 +233,10 @@ export default function Step1ItemDetails({ form, onFinish, evData }) {
         </>
       )}
 
-      {/* AUCTION */}
+      {/* AUCTION OPTION */}
       <Form.Item name="createAuction" valuePropName="checked">
-                <Checkbox>Tạo phiên đấu giá cho sản phẩm này?</Checkbox>
+        <Checkbox>Tạo phiên đấu giá cho sản phẩm này?</Checkbox>
       </Form.Item>
     </Form>
   );
 }
-
