@@ -14,8 +14,7 @@ import orderItemApi from "../../api/orderItemApi";
 import reviewApi from "../../api/reviewApi";
 import { message } from "antd";
 import addressLocalApi from "../../api/addressLocalApi";
-import orderApi from "../../api/orderApi";
-
+import placeholder from "../../assets/images/placeholder.png"
 // Star rating component
 const StarRating = ({ rating }) => (
   <div className="flex items-center">
@@ -376,7 +375,7 @@ function BatteryDetails() {
           {sellerProfile && (
             <Card className="p-6 rounded-2xl shadow-md border border-[#EAE6DA] bg-white/90 flex items-center gap-4">
               <img
-                src={sellerProfile.avatarProfile || "https://upload.wikimedia.org/wikipedia/commons/8/89/Portrait_Placeholder.png"}
+                src={sellerProfile.avatarProfile || placeholder}
                 alt={sellerProfile.fullName}
                 className="w-16 h-16 rounded-full object-cover"
               />

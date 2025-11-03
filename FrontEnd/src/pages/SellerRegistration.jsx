@@ -9,9 +9,12 @@ import Step3_StoreInfo from "../components/Seller/SellerForm/Step3BusinessInfo";
 import Step4_Confirmation from "../components/Seller/SellerForm/Step4Confirmation";
 import userApi from "../api/userApi";
 import { useNavigate } from "react-router-dom";
+import useKycRedirect from "../hooks/useKycRedirect";
 
 const SellerRegistrationForm = () => {
   const navigate = useNavigate
+      useKycRedirect();
+  
 
   const [userId] = useState(localStorage.getItem("userId"));
   const [currentStep, setCurrentStep] = useState(1);
@@ -62,6 +65,7 @@ const SellerRegistrationForm = () => {
       const updatedUser = {
       ...user,
       bio: formData.bio,
+      kycStatus: "pending",
       updatedAt: new Date().toISOString(),
     };      
       await kycApi.postKYC(userId, kycPayload);

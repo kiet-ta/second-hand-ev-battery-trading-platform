@@ -21,7 +21,6 @@ export default function SellerDashboardLayout() {
         { id: "orders", icon: ShoppingBag, label: "Đơn hàng", path: "/seller/orders" },
         { id: "history", icon: Clock, label: "Lịch sử bán hàng", path: "/seller/history" },
         { id: "chat", icon: MessageSquare, label: "Tin nhắn", path: "/seller/chat" },
-        { id: "settings", icon: Settings, label: "Cài đặt", path: "/seller/settings" },
     ];
 
     const handleLogout = () => {

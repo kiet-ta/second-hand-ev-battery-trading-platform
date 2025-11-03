@@ -319,7 +319,7 @@ public class AuctionService : IAuctionService
             TotalBids = auction.TotalBids,
             StartTime = auction.StartTime,
             EndTime = auction.EndTime,
-            Status = auction.Status.ToUpper(),
+            Status = auction.Status,
             Images = image.Select(img => new ItemImageDto
             {
                 ImageId = img.ImageId,

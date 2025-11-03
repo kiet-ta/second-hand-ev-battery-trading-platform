@@ -8,6 +8,7 @@ import notificationApi from "../../api/notificationApi";
 import complaintApi from "../../api/complaintApi";
 import NotificationToast from "../Notifications/NotificationToast";
 import { uploadToCloudinary } from "../../utils/uploadToCloudinary";
+import placeholder from "../../assets/images/placeholder.png"
 
 const API_BASE_URL =
   import.meta.env.VITE_BACKEND_BASE_URL || "https://localhost:7000/";
@@ -62,7 +63,7 @@ export function ChatRoom({ currentUserId, initialRoomId }) {
         } catch {
           newProfiles[id] = {
             fullName: `User ${id}`,
-            avatarProfile: "/default-avatar.png",
+            avatarProfile: placeholder,
           };
         }
       }
@@ -244,7 +245,7 @@ Created At: ${msg.createdAt || new Date().toISOString()}
   const partnerName = chatPartner?.fullName || `User ${chatPartnerId || "..."}`;
   const partnerAvatar =
     chatPartner?.avatarProfile ||
-    "https://i.pinimg.com/736x/0b/4b/69/0b4b69fdcd89a4cd3c632e45e88a510a.jpg";
+    placeholder;
 
   // Image modal keyboard navigation
   useEffect(() => {
@@ -315,7 +316,7 @@ Created At: ${msg.createdAt || new Date().toISOString()}
                 }`}
               >
                 <img
-                  src={profile.avatarProfile}
+                  src={profile.avatarProfile || placeholder}
                   alt={profile.fullName}
                   className="w-10 h-10 rounded-full object-cover"
                 />

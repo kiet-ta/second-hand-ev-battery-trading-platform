@@ -45,10 +45,6 @@ const ProfileDropDown = ({ users, walletBalance }) => {
         },
         {
             key: "4",
-            label: <a href="/complaint">Gửi yêu cầu</a>,
-        },
-        {
-            key: "5",
             label: (
                 <a
                     href="#"

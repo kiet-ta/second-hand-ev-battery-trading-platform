@@ -1,5 +1,5 @@
 import axios from "axios";
-const baseURL = import.meta.env.VITE_API_BASE_URL + "kyc_document";
+const baseURL = import.meta.env.VITE_API_BASE_URL + "kyc-document";
 const kycApi = {
     postKYC: async (userid, payload) => {
         const response = await axios.post(baseURL + '/users/' + userid + '/kyc', payload);

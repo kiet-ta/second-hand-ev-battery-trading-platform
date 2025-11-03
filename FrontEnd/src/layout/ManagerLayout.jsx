@@ -107,15 +107,6 @@ export default function ManagerLayout({ onRefresh, onAddStaff, children }) {
                     </div>
 
                     <div className="flex items-center gap-2">
-                        <div className="hidden md:flex items-center gap-2 px-3 py-2 border border-slate-200 rounded-xl bg-white">
-                            <Search size={16} className="opacity-70" />
-                            <input
-                                placeholder="Tìm kiếm…"
-                                className="outline-none text-sm w-44"
-                            />
-                            <Filter size={16} className="opacity-70" />
-                        </div>
-
                         <button
                             onClick={onRefresh}
                             className="flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-200 bg-white text-slate-700 text-sm hover:bg-slate-50"

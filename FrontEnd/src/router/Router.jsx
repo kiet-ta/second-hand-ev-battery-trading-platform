@@ -61,7 +61,6 @@ import SellerDashboardContent from "../pages/Seller/SellerDashboardContent";
 import SellerBiddingPage from "../pages/Seller/SellerBiddingPage";
 import SellerOrdersPage from "../pages/Seller/SellerOrdersPage";
 import SellerHistoryPage from "../pages/Seller/SellerHistoryPage";
-import SellerSettingsPage from "../pages/Seller/SellerSettingsPage";
 
 /* ---------------------------
    Manager / Admin (Protected - manager/staff)
@@ -141,7 +140,6 @@ export const router = createBrowserRouter([
       { path: "wallet", element: <WalletTransactionPage /> },
       { path: "complaint", element: <ComplaintPage /> },
       { path: "compare", element: <CompareEVPage /> },
-      { path: "order-history", element: <OrderPage /> },
       { path: "pending-review", element: <SellerPendingReview /> },
       { path: "recharge", element: <RechargePage /> },
       { path: "checkout/buy-now", element: <BuyNowCheckoutPage /> }
@@ -167,7 +165,7 @@ export const router = createBrowserRouter([
           { path: "security", element: <SecuritySetting /> },
         ],
       },
-      { path: "purchase", element: <PurchaseSection /> },
+      { path: "purchase", element: <OrderPage /> },
       { path: "settings", element: <SettingsSection /> },
       { path: "chats", element: <ChatRoomWrapper /> },
     ],
@@ -185,7 +183,6 @@ export const router = createBrowserRouter([
           { path: "orders", element: <SellerOrdersPage /> },
           { path: "history", element: <SellerHistoryPage /> },
           { path: "chat", element: <ChatRoomWrapper /> },
-          { path: "settings", element: <SellerSettingsPage /> },
         ],
       },
     ],
@@ -200,8 +197,7 @@ export const router = createBrowserRouter([
         element: <ManagerDashboard />,
         children: [
           { index: true, element: <DashboardContent /> },
-          { path: "approvals", element: <SellerApprovalsContent /> },
-          { path: "kyc_management", element: <KycManagementPage /> },
+          { path: "approvals", element: <KycManagementPage /> },
           { path: "users", element: <UsersContent /> },
           { path: "products", element: <ProductModeration /> },
           { path: "complaints", element: <ComplaintsList /> },

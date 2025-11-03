@@ -115,7 +115,7 @@ function Footer() {
 
                 <div className={`mt-12 pt-8 border-t ${borderColor} flex flex-col sm:flex-row items-center justify-between`}>
                     <p className={`${textSecondary} text-sm`}>
-                        &copy; {new Date().getFullYear()} Cóc Mua Xe. Đã đăng ký bản quyền.
+                        &copy; {new Date().getFullYear()} Cóc Mua Xe. 
                     </p>
                 </div>
             </div>

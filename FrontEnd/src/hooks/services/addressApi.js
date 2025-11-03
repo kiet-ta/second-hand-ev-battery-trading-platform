@@ -45,7 +45,7 @@ const addressApi = {
 
     getUserAddresses: async (userId) => {
         try {
-            const res = await axios.get(`${ADDRESS_API_BASE}Address/user/${userId}`);
+            const res = await axios.get(`${ADDRESS_API_BASE}address/user/${userId}`);
             return res.data;
         } catch (err) {
             console.error("Lỗi load user addresses:", err);
@@ -55,7 +55,7 @@ const addressApi = {
 
     addAddress: async (address) => {
         try {
-            const res = await axios.post(`${ADDRESS_API_BASE}Address`, address);
+            const res = await axios.post(`${ADDRESS_API_BASE}address`, address);
             return res.data;
         } catch (err) {
             console.error("Lỗi thêm mới address:", err);

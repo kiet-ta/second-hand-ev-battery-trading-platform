@@ -13,6 +13,7 @@ import itemApi from "../../api/itemApi";
 import userApi from "../../api/userApi";
 import reviewApi from "../../api/reviewApi";
 import ChatWithSellerButton from "../../components/Buttons/ChatWithSellerButton";
+import  placeholder  from "../../assets/images/placeholder.png";
 
 // Star Rating Component
 const StarRating = ({ rating }) => (
@@ -332,7 +333,7 @@ function EVDetails() {
               <img
                 src={
                   sellerProfile.avatarProfile ||
-                  "https://upload.wikimedia.org/wikipedia/commons/8/89/Portrait_Placeholder.png"
+                  placeholder
                 }
                 alt={sellerProfile.fullName}
                 className="w-16 h-16 rounded-full object-cover"

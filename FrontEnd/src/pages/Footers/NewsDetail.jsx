@@ -6,6 +6,7 @@ import newsApi from "../../api/newsApi";
 import userApi from "../../api/userApi";
 import { Newspaper } from "lucide-react";
 import { Link } from "react-router-dom";
+import newsPlaceholder from "../../assets/images/news_placeholder.png"
 
 export default function NewsDetail() {
   const { newsId } = useParams();
@@ -63,7 +64,7 @@ export default function NewsDetail() {
         <div className="bg-white rounded-2xl border-2 border-[#C4B5A0]/50 shadow-lg overflow-hidden">
           {news.thumbnailUrl && (
             <img
-              src={news.thumbnailUrl}
+              src={news.thumbnailUrl || newsPlaceholder}
               alt={news.title}
               className="w-full h-96 object-cover"
             />

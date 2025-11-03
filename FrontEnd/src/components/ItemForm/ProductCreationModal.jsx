@@ -43,6 +43,7 @@ export default function ProductCreationModal({ onSuccess }) {
         status: "pending_pay",
         updatedBy: userID,
       };
+      console.log(basePayload)
 
       let createdItem;
 

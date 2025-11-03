@@ -38,7 +38,6 @@ export default function ComplaintList() {
       const res = await fetch(`${baseURL}complaint/all`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      if (!res.ok) throw new Error("Không thể tải complaint");
       const data = await res.json();
 
       const sorted = (data || []).sort((a, b) => {
@@ -51,7 +50,6 @@ export default function ComplaintList() {
       setFiltered(sorted);
     } catch (err) {
       console.error(err);
-      message.error("❌ Lỗi tải danh sách khiếu nại.");
     } finally {
       setLoading(false);
     }
@@ -110,7 +108,6 @@ export default function ComplaintList() {
       setModalVisible(false);
       fetchComplaints();
     } catch {
-      message.error("❌ Không thể cập nhật trạng thái.");
     }
   };
 
@@ -126,10 +123,8 @@ export default function ComplaintList() {
         body: JSON.stringify({ level: newLevel }),
       });
       if (!res.ok) throw new Error();
-      message.success(`⚡ Mức độ thay đổi thành "${newLevel}".`);
       setSelectedComplaint({ ...selectedComplaint, severityLevel: newLevel });
     } catch {
-      message.error("Không thể thay đổi mức độ.");
     }
   };
 

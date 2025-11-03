@@ -26,24 +26,6 @@ namespace Infrastructure.Repositories
             var order = await _context.Orders
         .FirstOrDefaultAsync(o => o.OrderId == id);
 
-            if (order != null)
-            {
-                // Load OrderItems -> OrderId
-                var orderItems = await _context.OrderItems
-                    .Where(oi => oi.OrderId == id)
-                    .ToListAsync();
-
-                // If you want return OrderDto
-                order = new Order
-                {
-                    OrderId = order.OrderId,
-                    BuyerId = order.BuyerId,
-                    AddressId = order.AddressId,
-                    Status = order.Status,
-                    CreatedAt = order.CreatedAt
-                };
-            }
-
             return order!;
         }
 

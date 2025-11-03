@@ -205,27 +205,63 @@ function CheckoutPage() {
 
             if (checkoutUrl && orderCode) {
                 setStatusMessage("Vui lòng hoàn tất thanh toán trong cửa sổ mới...");
+
+                // Prevent multiple popups
+                if (pollingIntervalRef.current) clearInterval(pollingIntervalRef.current);
+
                 const paymentWindow = window.open(
                     checkoutUrl,
                     "Thanh toán PayOS",
                     "width=800,height=600"
                 );
 
-                pollingIntervalRef.current = setInterval(() => {
-                    if (paymentWindow && paymentWindow.closed) {
+                if (!paymentWindow) {
+                    setStatusMessage("Không thể mở cửa sổ thanh toán. Hãy kiểm tra trình chặn popup.");
+                    setIsProcessing(false);
+                    return;
+                }
+
+                // Poll payment status every 3s
+                let attempts = 0;
+                pollingIntervalRef.current = setInterval(async () => {
+                    attempts++;
+
+                    if (paymentWindow.closed) {
                         clearInterval(pollingIntervalRef.current);
                         setIsProcessing(false);
-                        setStatusMessage("Thanh toán đã bị hủy bởi người dùng.");
-                        paymentApi
-                            .cancelPayment(orderCode, "User closed the payment window.")
-                            .then(() => {
-                                navigate("/payment/fail", {
-                                    state: { reason: "Bạn đã đóng cửa sổ thanh toán." },
-                                });
-                            });
+                        setStatusMessage("Bạn đã đóng cửa sổ thanh toán.");
+                        navigate("/payment/fail", {
+                            state: { reason: "Bạn đã hủy thanh toán bằng cách đóng cửa sổ." },
+                        });
                         return;
                     }
-                    checkPaymentStatus(orderCode, paymentWindow);
+
+                    try {
+                        const info = await paymentApi.getPaymentInfoByOrderCode(orderCode);
+                        if (info.status === "PAID") {
+                            clearInterval(pollingIntervalRef.current);
+                            paymentWindow.close();
+                            navigate("/payment/success", { state: { paymentInfo: info } });
+                        } else if (["FAILED", "CANCELLED"].includes(info.status)) {
+                            clearInterval(pollingIntervalRef.current);
+                            paymentWindow.close();
+                            navigate("/payment/fail", {
+                                state: { reason: `Thanh toán ${info.status.toLowerCase()}.` },
+                            });
+                        }
+                    } catch (err) {
+                        console.error("Payment status polling error:", err);
+                    }
+
+                    // Auto-stop after 3 minutes
+                    if (attempts > 60) {
+                        clearInterval(pollingIntervalRef.current);
+                        paymentWindow.close();
+                        setIsProcessing(false);
+                        navigate("/payment/fail", {
+                            state: { reason: "Thanh toán quá thời gian cho phép (timeout)." },
+                        });
+                    }
                 }, 3000);
             }
         } catch (error) {

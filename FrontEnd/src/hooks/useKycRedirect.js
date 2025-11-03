@@ -16,7 +16,8 @@ export default function useKycRedirect() {
         }
         
         const user = await userApi.getUserByID(userId);
-        const kycStatus = user?.kycStatus || "not_submitted";
+        console.log(user)
+        const kycStatus = user.kycStatus || "not_submitted";
         console.log("KYC Status:", kycStatus);
 
         if (location.pathname === "/pending-review" && kycStatus === "not_submitted") {

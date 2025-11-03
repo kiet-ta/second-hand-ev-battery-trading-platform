@@ -1,30 +1,25 @@
 import React, { useEffect, useState } from "react";
 import { Clock, Eye, Edit, Trash2, Loader2 } from "lucide-react";
+import auctionApi from "../../api/auctionApi";
 
 export default function SellerAuctionListPage() {
     const [auctions, setAuctions] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const baseURL = import.meta.env.VITE_API_BASE_URL;
 
-    const token = localStorage.getItem("token");
+    const userId = localStorage.getItem("userId");
 
     const fetchAuctions = async () => {
         try {
             setLoading(true);
-            const res = await fetch(`${baseURL}auction`, {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                    "Content-Type": "application/json",
-                },
-            });
+            const res = await auctionApi.getAutionCreatedByUserID(userId);
 
-            if (!res.ok) throw new Error("Không thể tải danh sách đấu giá");
+            // If auctionApi already returns data, remove `.ok` and `.json()` checks
+            const data = res?.data || res;
 
-            const data = await res.json();
             console.log("Kết quả API Đấu giá:", data);
 
-            setAuctions(Array.isArray(data.data) ? data.data : []);
+            setAuctions(Array.isArray(data) ? data : []);
         } catch (err) {
             console.error("Lỗi tải dữ liệu đấu giá:", err);
             setError(err.message);
@@ -36,7 +31,6 @@ export default function SellerAuctionListPage() {
     useEffect(() => {
         fetchAuctions();
     }, []);
-
 
     const formatPrice = (v) =>
         new Intl.NumberFormat("vi-VN").format(v || 0) + " ₫";
@@ -79,94 +73,86 @@ export default function SellerAuctionListPage() {
                     </p>
                 ) : (
                     <div className="space-y-4">
-                        {auctions.map((a) => (
-                            <div
-                                key={a.auctionId}
-                                className="flex items-center bg-white rounded-lg border border-gray-200 hover:shadow-md transition overflow-hidden"
-                            >
-                                {/* Ảnh */}
-                                <div className="w-48 h-36 flex-shrink-0">
-                                    <img
-                                        src={
-                                            a.imageUrl ||
-                                            "https://via.placeholder.com/150x100?text=Đấu+giá"
-                                        }
-                                        alt={a.title || "Sản phẩm đấu giá"}
-                                        className="w-full h-full object-cover"
-                                    />
-                                </div>
+                        {auctions.map((a) => {
+                            // ✅ Choose the first image from the array if available
+                            const imageUrl =
+                                a.images?.[0]?.imageUrl ||
+                                "https://via.placeholder.com/150x100?text=Đấu+giá";
 
-                                {/* Thông tin */}
-                                <div className="flex-1 px-6 py-4 flex flex-col justify-between">
-                                    <div className="flex justify-between items-start">
-                                        <h3 className="text-lg font-medium text-gray-900">
-                                            {a.title || "Phiên đấu giá chưa đặt tên"}
-                                        </h3>
-                                        <span
-                                            className={`text-xs px-2 py-1 rounded font-medium ${getStatusColor(
-                                                a.status
-                                            )}`}
-                                        >
-                                            {a.status?.toUpperCase() || "KHÔNG XÁC ĐỊNH"}
-                                        </span>
+                            return (
+                                <div
+                                    key={a.auctionId}
+                                    className="flex items-center bg-white rounded-lg border border-gray-200 hover:shadow-md transition overflow-hidden"
+                                >
+                                    {/* Ảnh */}
+                                    <div className="w-48 h-36 flex-shrink-0">
+                                        <img
+                                            src={imageUrl}
+                                            alt={a.title || "Sản phẩm đấu giá"}
+                                            className="w-full h-full object-cover"
+                                        />
                                     </div>
 
-                                    <div className="flex justify-between items-center mt-2 text-sm text-gray-600">
-                                        <div>
-                                            <p>
-                                                Giá khởi điểm:{" "}
-                                                <span className="font-medium text-gray-800">
-                                                    {formatPrice(a.startingPrice)}
-                                                </span>
-                                            </p>
-                                            <p>
-                                                Giá hiện tại:{" "}
-                                                <span className="text-gray-900 font-semibold">
-                                                    {formatPrice(a.currentPrice)}
-                                                </span>
-                                            </p>
+                                    {/* Thông tin */}
+                                    <div className="flex-1 px-6 py-4 flex flex-col justify-between">
+                                        <div className="flex justify-between items-start">
+                                            <h3 className="text-lg font-medium text-gray-900">
+                                                {a.title || "Phiên đấu giá chưa đặt tên"}
+                                            </h3>
+                                            <span
+                                                className={`text-xs px-2 py-1 rounded font-medium ${getStatusColor(
+                                                    a.status
+                                                )}`}
+                                            >
+                                                {a.status?.toUpperCase() || "KHÔNG XÁC ĐỊNH"}
+                                            </span>
                                         </div>
 
-                                        <div className="text-right">
-                                            <p>
-                                                Số lượt đặt giá:{" "}
-                                                <span className="font-medium">{a.totalBids || 0}</span>
-                                            </p>
-
-                                            {/*Thêm thời gian bắt đầu & kết thúc */}
-                                            <div className="flex flex-col text-xs text-gray-400 mt-1 space-y-1">
-                                                <p className="flex items-center justify-end gap-1">
-                                                    <Clock className="w-4 h-4 text-gray-500" />
-                                                    Bắt đầu: {formatTime(a.startTime)}
+                                        <div className="flex justify-between items-center mt-2 text-sm text-gray-600">
+                                            <div>
+                                                <p>
+                                                    Giá khởi điểm:{" "}
+                                                    <span className="font-medium text-gray-800">
+                                                        {formatPrice(a.startingPrice)}
+                                                    </span>
                                                 </p>
-                                                <p className="flex items-center justify-end gap-1">
-                                                    <Clock className="w-4 h-4 text-gray-500" />
-                                                    Kết thúc: {formatTime(a.endTime)}
+                                                <p>
+                                                    Giá hiện tại:{" "}
+                                                    <span className="text-gray-900 font-semibold">
+                                                        {formatPrice(a.currentPrice)}
+                                                    </span>
                                                 </p>
                                             </div>
-                                        </div>
-                                    </div>
 
-                                    {/* Hành động */}
-                                    <div className="flex justify-end items-center gap-4 mt-3 text-sm">
-                                        <button className="flex items-center gap-1 text-gray-700 hover:text-indigo-600">
-                                            <Eye className="w-4 h-4" /> Xem chi tiết
-                                        </button>
-                                        <button className="flex items-center gap-1 text-gray-700 hover:text-green-600">
-                                            <Edit className="w-4 h-4" /> Chỉnh sửa
-                                        </button>
-                                        <button className="flex items-center gap-1 text-gray-700 hover:text-red-600">
-                                            <Trash2 className="w-4 h-4" /> Xóa
-                                        </button>
+                                            <div className="text-right">
+                                                <p>
+                                                    Số lượt đặt giá:{" "}
+                                                    <span className="font-medium">
+                                                        {a.totalBids || 0}
+                                                    </span>
+                                                </p>
+
+                                                {/* Thời gian bắt đầu & kết thúc */}
+                                                <div className="flex flex-col text-xs text-gray-400 mt-1 space-y-1">
+                                                    <p className="flex items-center justify-end gap-1">
+                                                        <Clock className="w-4 h-4 text-gray-500" />
+                                                        Bắt đầu: {formatTime(a.startTime)}
+                                                    </p>
+                                                    <p className="flex items-center justify-end gap-1">
+                                                        <Clock className="w-4 h-4 text-gray-500" />
+                                                        Kết thúc: {formatTime(a.endTime)}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+
                                     </div>
                                 </div>
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
                 )}
             </div>
-
-
         </div>
     );
 }

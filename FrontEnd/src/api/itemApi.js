@@ -31,11 +31,11 @@ const itemApi = {
         return response.data;
     },
     postItemEV: async (data) => {
-        const response = await axios.post(linkBaseURL + "ev-details" + "/detail/ev", data);
+        const response = await axios.post(linkBaseURL + "ev-details", data);
         return response.data;
     },
     postItemBattery: async (data) => {
-        const response = await axios.post(linkBaseURL + "battery-details" + "/detail/battery", data);
+        const response = await axios.post(linkBaseURL + "battery-details", data);
         return response.data;
     },
     putItem: async (itemId, itemData) => {

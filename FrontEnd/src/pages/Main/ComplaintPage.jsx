@@ -25,7 +25,6 @@ export default function ComplaintPage() {
         const data = await res.json();
         setComplaints(data);
       } catch {
-        message.error("Không thể tải danh sách khiếu nại của bạn.");
       } finally {
         setFetching(false);
       }
@@ -36,7 +35,6 @@ export default function ComplaintPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!form.reason || !form.description) {
-      message.warning("Vui lòng điền đầy đủ lý do và mô tả khiếu nại.");
       return;
     }
 
