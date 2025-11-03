@@ -206,6 +206,18 @@ namespace Application.Services
 
             await _userRepository.AddAsync(newUser);
 
+            var sellected = await _userRepository.GetByIdAsync(newUser.UserId);
+            var wallet = new Wallet
+            {
+                UserId = sellected.UserId,
+                Balance = 0,
+                HeldBalance = 0,
+                Currency = "vnd",
+                Status = "active",
+                UpdatedAt = DateTime.UtcNow
+            };
+            await _uow.Wallets.AddAsync(wallet);
+
             _logger.LogInformation("New user created successfully: {UserId}", newUser.UserId);
 
             return GenerateToken(newUser, provider: "google");
@@ -244,7 +256,7 @@ namespace Application.Services
                 new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
                 new Claim(ClaimTypes.Email, user.Email),
                 new Claim(ClaimTypes.Name, user.FullName ?? string.Empty),
-                new Claim(ClaimTypes.Role, user.Role ?? "Buyer"),
+                new Claim(ClaimTypes.Role, user.Role ?? "buyer"),
                 new Claim("auth_provider", provider)
             };
 
@@ -267,7 +279,7 @@ namespace Application.Services
                 UserId = user.UserId,
                 FullName = user.FullName,
                 Email = user.Email,
-                Role = user.Role ?? "Buyer",
+                Role = user.Role ?? "buyer",
                 Token = tokenString,
                 ExpiresAt = expires,
                 AuthProvider = provider
