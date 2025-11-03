@@ -1,5 +1,6 @@
 ﻿using Application.IRepositories;
 using Application.IRepositories.IBiddingRepositories;
+using Application.IRepositories.IPaymentRepositories;
 using Microsoft.EntityFrameworkCore.Storage;
 
 namespace Infrastructure.Data;
@@ -30,7 +31,9 @@ public class UnitOfWork : IUnitOfWork
             IUserRepository userRepository,
             IOrderRepository orderRepository,
             IOrderItemRepository orderItemRepository,
-            IAddressRepository addressRepository
+            IAddressRepository addressRepository,
+	    IPaymentRepository paymentRepository,
+	    ICommissionFeeRuleRepository commissionFeeRuleRepository
         )
     {
         _context = context;
@@ -43,6 +46,8 @@ public class UnitOfWork : IUnitOfWork
         Orders = orderRepository;
         OrderItems = orderItemRepository;
         Address = addressRepository;
+	Payments = paymentRepository;
+	CommissionFeeRules = commissionFeeRuleRepository;
     }
 
     public async Task BeginTransactionAsync(CancellationToken cancellationToken = default)

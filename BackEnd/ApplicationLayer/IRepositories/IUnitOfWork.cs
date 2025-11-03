@@ -1,5 +1,5 @@
 ﻿using Application.IRepositories.IBiddingRepositories;
-
+using Application.IRepositories.IPaymentRepositories;
 namespace Application.IRepositories;
 
 public interface IUnitOfWork
@@ -12,8 +12,10 @@ public interface IUnitOfWork
     IUserRepository Users { get; }
     IOrderRepository Orders { get; }
     IOrderItemRepository OrderItems { get; }
-
+    IPaymentRepository Payments { get; }
     IAddressRepository Address { get; }
+    ICommissionFeeRuleRepository CommissionFeeRules { get; }
+
     Task BeginTransactionAsync(CancellationToken cancellationToken = default);
 
     Task CommitTransactionAsync(CancellationToken cancellationToken = default);

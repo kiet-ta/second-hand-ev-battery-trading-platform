@@ -11,15 +11,8 @@ public interface IPaymentRepository
 
     Task UpdatePaymentStatusAsync(int paymentId, string status);
 
-    Task<Wallet> GetWalletByUserIdAsync(int userId);
-
-    Task DeductWalletBalanceAsync(Wallet wallet, decimal amount, int paymentId);
-
     Task<PaymentInfoDto> GetPaymentInfoByOrderCodeAsync(long orderCode);
 
-    Task UpdateRelatedEntitiesAsync(List<PaymentDetailDto> details);
-
     Task<IEnumerable<(int Year, int Month, decimal Total)>> GetRevenueByMonthAsync(int monthsRange);
-
-    Task SaveChangesAsync();
+    Task<Payment?> GetByOrderIdAsync(int orderId);
 }

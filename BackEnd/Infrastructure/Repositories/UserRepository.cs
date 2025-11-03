@@ -44,7 +44,6 @@ public class UserRepository : IUserRepository
     public async Task AddAsync(User user)
     {
         await _context.Users.AddAsync(user);
-        await _context.SaveChangesAsync();
     }
 
     public async Task<List<(string Role, int Count)>> GetUsersByRoleAsync()
@@ -58,11 +57,11 @@ public class UserRepository : IUserRepository
         return result;
     }
 
-    public async Task UpdateAsync(User user)
+    public Task UpdateAsync(User user)
     {
         user.UpdatedAt = DateTime.Now;
         _context.Users.Update(user);
-        await _context.SaveChangesAsync();
+        return Task.CompletedTask;
     }
 
     public async Task UpdateAvatarAsync(int userId, string avatarUrl)
