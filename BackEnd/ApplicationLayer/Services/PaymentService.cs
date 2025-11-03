@@ -91,7 +91,7 @@ public class PaymentService : IPaymentService
 
             order.Status = "completed";
             order.UpdatedAt = DateTime.UtcNow;
-            _unitOfWork.Orders.UpdateAsync(order);
+            await _unitOfWork.Orders.UpdateAsync(order);
 
             var sellerTransaction = new WalletTransaction
             {
@@ -157,6 +157,7 @@ public class PaymentService : IPaymentService
                 TotalAmount = request.TotalAmount,
                 Method = request.Method,
                 Status = "pending",
+                PaymentType = "order_purchase",
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
             };
@@ -208,7 +209,7 @@ public class PaymentService : IPaymentService
             }
             else if (request.Method == "payos")
             {
-                // Chỉ save Payment và PaymentDetails, not "touch" wallet
+                // only save Payment and PaymentDetails, not "touch" wallet
                 await _unitOfWork.CommitTransactionAsync();
 
                 var items = request.Details.Select(d => new ItemData(
@@ -280,34 +281,64 @@ public class PaymentService : IPaymentService
         if (data.code != "00" || data.desc != "success")
             return;
 
-        // "Read" "data" before "start" "transaction"
         var info = await _unitOfWork.Payments.GetPaymentInfoByOrderCodeAsync(data.orderCode);
         if (info == null || info.Status == "completed")
+        {
+            Console.WriteLine($"[Webhook] Bỏ qua, đơn hàng đã xử lý: {data.orderCode}");
             return;
+        }
 
         await _unitOfWork.BeginTransactionAsync();
         try
         {
             await _unitOfWork.Payments.UpdatePaymentStatusAsync(info.PaymentId, "completed");
 
-            bool isRegistrationPayment = info.Details.Count == 1 &&
-                                         info.Details.First().ItemId == null &&
-                                         info.Details.First().OrderId == null;
+            bool isSimplePayment = info.Details.Count == 1 &&
+                                     info.Details.First().ItemId == null &&
+                                     info.Details.First().OrderId == null;
 
-            if (isRegistrationPayment)
+            if (isSimplePayment)
             {
-                var user = await _unitOfWork.Users.GetByIdAsync(info.UserId);
-                if (user != null)
+                var rules = await _unitOfWork.CommissionFeeRules.GetAllAsync();
+                var registrationFeeRule = rules.FirstOrDefault(r => r.FeeCode == "SELLER_REG_FEE" && r.IsActive);
+
+                if (registrationFeeRule != null && info.TotalAmount == registrationFeeRule.FeeValue)
                 {
-                    user.Paid = "registing";
-                    await _unitOfWork.Users.UpdateAsync(user);
+                    Console.WriteLine($"[Webhook] Xử lý Phí Đăng ký Seller cho PaymentId: {info.PaymentId}");
+                    var user = await _unitOfWork.Users.GetByIdAsync(info.UserId);
+                    if (user != null)
+                    {
+                        user.Paid = "registing";
+                        await _unitOfWork.Users.UpdateAsync(user);
+                    }
+                }
+                else
+                {
+                    Console.WriteLine($"[Webhook] Xử lý Nạp tiền (Deposit) cho PaymentId: {info.PaymentId}");
+
+                    var userWallet = await _unitOfWork.Wallets.GetWalletByUserIdAsync(info.UserId);
+                    if (userWallet == null)
+                        throw new Exception($"Không tìm thấy ví cho UserId: {info.UserId}");
+
+                    await _unitOfWork.Wallets.UpdateBalanceAsync(userWallet.WalletId, info.TotalAmount);
+
+                    var transaction = new WalletTransaction
+                    {
+                        WalletId = userWallet.WalletId,
+                        Amount = info.TotalAmount,
+                        Type = "deposit",
+                        RefId = info.PaymentId, 
+                        CreatedAt = DateTime.UtcNow
+                    };
+                    await _unitOfWork.WalletTransactions.CreateTransactionAsync(transaction);
                 }
             }
             else if (info.Details.Any(d => d.Amount > 0))
             {
+                Console.WriteLine($"[Webhook] Xử lý Mua hàng (Escrow) cho PaymentId: {info.PaymentId}");
+
                 await UpdateRelatedEntitiesInternalAsync(info.Details);
 
-                // Logic Escrow
                 if (!int.TryParse(_config["AppSettings:SystemWalletUserId"], out int systemWalletUserId))
                     throw new Exception("SystemWalletUserId is not configured");
 
@@ -329,11 +360,13 @@ public class PaymentService : IPaymentService
             }
 
             await _unitOfWork.CommitTransactionAsync();
+            Console.WriteLine($"[Webhook] Xử lý thành công PaymentId: {info.PaymentId}");
         }
-        catch (Exception)
+        catch (Exception ex)
         {
             await _unitOfWork.RollbackTransactionAsync();
-            throw;
+            Console.WriteLine($"[Webhook] Xử lý thất bại PaymentId: {info.PaymentId}. Lỗi: {ex.Message}");
+            throw; 
         }
     }
 
@@ -349,6 +382,7 @@ public class PaymentService : IPaymentService
         if (registrationFeeRule == null)
             throw new Exception("Registration fee for Seller not configured yet.");
 
+        //set fee to caculate actual value
         var feeAmount = registrationFeeRule.FeeValue;
         long orderCode = _uniqueIDGenerator.CreateUnique53BitId();
 
@@ -361,6 +395,7 @@ public class PaymentService : IPaymentService
                 OrderCode = orderCode,
                 TotalAmount = feeAmount,
                 Method = "payos",
+                PaymentType = "seller_registration",
                 Status = "pending",
                 CreatedAt = DateTime.UtcNow
             };
@@ -418,6 +453,7 @@ public class PaymentService : IPaymentService
                 TotalAmount = amount,
                 Method = "payos",
                 Status = "pending",
+                PaymentType = "deposit",
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow,
             };

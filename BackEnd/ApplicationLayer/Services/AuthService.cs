@@ -92,8 +92,10 @@ namespace Application.Services
                     AccountStatus = "active",
                     Paid = "pending"
                 };
-                await _userRepository.AddAsync(user);
+                await _uow.Users.AddAsync(user);
+                await _uow.SaveChangesAsync();
                 var sellected = await _userRepository.GetByIdAsync(user.UserId);
+                Console.WriteLine(sellected.UserId);
                 var wallet = new Wallet
                 {
                     UserId = sellected.UserId,

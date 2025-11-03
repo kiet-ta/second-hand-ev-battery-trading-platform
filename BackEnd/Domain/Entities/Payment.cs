@@ -18,7 +18,7 @@ public class Payment
     public string Method { get; set; } = null!;
 
     public string Status { get; set; } = null!;
-
+    public string PaymentType { get; set; }
     public DateTime? ExpiredAt { get; set; }
 
     public DateTime CreatedAt { get; set; }

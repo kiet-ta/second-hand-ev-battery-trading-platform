@@ -46,7 +46,7 @@ namespace Infrastructure.Data.Configurations
                 .HasColumnType("datetime")
                 .HasColumnName("updated_at");
             entity.Property(e => e.UserId).HasColumnName("user_id");
-
+            entity.Property(e => e.PaymentType).HasColumnName("payment_type");
             entity.HasOne<User>().WithMany()
                 .HasForeignKey(d => d.UserId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
