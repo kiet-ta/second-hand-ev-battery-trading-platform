@@ -23,11 +23,10 @@ public class PaymentService : IPaymentService
     private readonly IUserRepository _userRepository;
     private readonly IItemRepository _itemRepository;
     private readonly IUniqueIDGenerator _uniqueIDGenerator;
-    private readonly IIdGenerator<long> _idGenerator;
     private readonly IUnitOfWork _uow;
 
     public PaymentService(PayOS payOS, IPaymentRepository paymentRepository, IWalletRepository walletRepository, IConfiguration config, ICommissionFeeRuleRepository commissionRuleRepo,
-    IUserRepository userRepository, IItemRepository itemRepository, IIdGenerator<long> idGenerator, IUniqueIDGenerator uniqueIDGenerator, IUnitOfWork uow)
+    IUserRepository userRepository, IItemRepository itemRepository, IUniqueIDGenerator uniqueIDGenerator, IUnitOfWork uow)
     {
         _payOS = payOS;
         _paymentRepository = paymentRepository;
@@ -37,7 +36,6 @@ public class PaymentService : IPaymentService
         _userRepository = userRepository;
         _itemRepository = itemRepository;
         _uniqueIDGenerator = uniqueIDGenerator;
-        _idGenerator = idGenerator;
         _uow = uow;
     }
 
