@@ -57,6 +57,11 @@ public class UnitOfWork : IUnitOfWork
 
     public async Task BeginTransactionAsync(CancellationToken cancellationToken = default)
     {
+        if (_currentTransaction == null)
+        {
+            return;
+        }
+
         if (_currentTransaction != null)
         {
             throw new InvalidOperationException("A transaction is already in progress.");

@@ -166,21 +166,20 @@ public class AuctionService : IAuctionService
 
     public async Task PlaceBidAsync(int auctionId, int userId, decimal bidAmount)
     {
-        await _unitOfWork.BeginTransactionAsync();
         try
         {
+            await _unitOfWork.BeginTransactionAsync();
+
             var auction = await _unitOfWork.Auctions.GetByIdAsync(auctionId);
 
             if (auction == null || auction.Status != "ongoing" || DateTime.Now < auction.StartTime || DateTime.Now > auction.EndTime)
             {
-                await _unitOfWork.RollbackTransactionAsync();
                 throw new InvalidOperationException("Auction is not active or has ended."); // 400 Bad Request
             }
             var currentPrice = auction.CurrentPrice ?? auction.StartingPrice;
             decimal requiredMinimumBid = currentPrice + auction.StepPrice;
             if (bidAmount < requiredMinimumBid)
             {
-                await _unitOfWork.RollbackTransactionAsync();
                 throw new ArgumentException($"Bid amount must be at least {requiredMinimumBid:N0} (current price + step price)."); // 400 Bad Request
             }
 
@@ -188,7 +187,6 @@ public class AuctionService : IAuctionService
             var wallet = await _unitOfWork.Wallets.GetWalletByUserIdAsync(userId);
             if (wallet == null)
             {
-                await _unitOfWork.RollbackTransactionAsync();
                 throw new InvalidOperationException($"User wallet for user ID {userId} not found.");
             }
 
@@ -201,7 +199,6 @@ public class AuctionService : IAuctionService
             {
                 if (bidAmount <= previousUserActiveBid.BidAmount)
                 {
-                    await _unitOfWork.RollbackTransactionAsync();
                     throw new ArgumentException($"Your new bid must be higher than your current highest bid ({previousUserActiveBid.BidAmount:N0}).");
                 }
                 previousHeldAmount = previousUserActiveBid.BidAmount;
