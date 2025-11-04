@@ -70,7 +70,6 @@ public class AuctionRepository : IAuctionRepository
         {
             auction.TotalBids = await _context.Bids.CountAsync(b => b.AuctionId == auctionId && b.Status != "cancelled");
             auction.UpdatedAt = DateTime.Now;
-            await _context.SaveChangesAsync();
         }
     }
 

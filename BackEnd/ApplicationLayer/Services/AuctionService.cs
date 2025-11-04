@@ -5,6 +5,7 @@ using Application.IRepositories.IBiddingRepositories;
 using Application.IServices;
 using Domain.Entities;
 using Microsoft.Extensions.Logging;
+using System.Text.Json;
 
 namespace Application.Services;
 
@@ -21,7 +22,7 @@ public class AuctionService : IAuctionService
     private readonly IUserRepository _userRepository;
     private readonly IUnitOfWork _unitOfWork;
     private readonly ILogger<AuctionService> _logger;
-
+    private readonly INotificationService _notificationService;
     public AuctionService(
         IAuctionRepository auctionRepository,
         IBidRepository bidRepository,
@@ -33,6 +34,7 @@ public class AuctionService : IAuctionService
         IUserRepository userRepository,
         IItemImageRepository itemImageRepository,
         IUnitOfWork unitOfWork,
+        INotificationService notificationService,
         ILogger<AuctionService> logger)
     {
         _auctionRepository = auctionRepository;
@@ -46,6 +48,7 @@ public class AuctionService : IAuctionService
         _itemImageRepository = itemImageRepository;
         _unitOfWork = unitOfWork;
         _logger = logger;
+        _notificationService = notificationService;
     }
 
     public async Task<IEnumerable<BidderHistoryDto>> GetBidderHistoryAsync(int auctionId)
@@ -166,27 +169,38 @@ public class AuctionService : IAuctionService
 
     public async Task PlaceBidAsync(int auctionId, int userId, decimal bidAmount)
     {
+        User user; 
+
+        await _unitOfWork.BeginTransactionAsync();
         try
         {
-            await _unitOfWork.BeginTransactionAsync();
-
             var auction = await _unitOfWork.Auctions.GetByIdAsync(auctionId);
 
             if (auction == null || auction.Status != "ongoing" || DateTime.Now < auction.StartTime || DateTime.Now > auction.EndTime)
             {
+                await _unitOfWork.RollbackTransactionAsync();
                 throw new InvalidOperationException("Auction is not active or has ended."); // 400 Bad Request
             }
             var currentPrice = auction.CurrentPrice ?? auction.StartingPrice;
             decimal requiredMinimumBid = currentPrice + auction.StepPrice;
             if (bidAmount < requiredMinimumBid)
             {
+                await _unitOfWork.RollbackTransactionAsync();
                 throw new ArgumentException($"Bid amount must be at least {requiredMinimumBid:N0} (current price + step price)."); // 400 Bad Request
+            }
+
+            user = await _userRepository.GetByIdAsync(userId);
+            if (user == null)
+            {
+                await _unitOfWork.RollbackTransactionAsync();
+                throw new KeyNotFoundException($"User with ID {userId} not found.");
             }
 
             // Get wallet and check available balance
             var wallet = await _unitOfWork.Wallets.GetWalletByUserIdAsync(userId);
             if (wallet == null)
             {
+                await _unitOfWork.RollbackTransactionAsync();
                 throw new InvalidOperationException($"User wallet for user ID {userId} not found.");
             }
 
@@ -199,8 +213,11 @@ public class AuctionService : IAuctionService
             {
                 if (bidAmount <= previousUserActiveBid.BidAmount)
                 {
+                    await _unitOfWork.RollbackTransactionAsync();
                     throw new ArgumentException($"Your new bid must be higher than your current highest bid ({previousUserActiveBid.BidAmount:N0}).");
                 }
+                
+                // get the amouth before to add more the price for continue to hold
                 previousHeldAmount = previousUserActiveBid.BidAmount;
                 amountToHoldNow = bidAmount - previousHeldAmount; 
             }
@@ -232,7 +249,7 @@ public class AuctionService : IAuctionService
                 UserId = userId,
                 BidAmount = bidAmount,
                 BidTime = DateTime.Now,
-                Status = "active" 
+                Status = "active"
             };
             int newBidId = await _unitOfWork.Bids.PlaceBidAsync(newBid);
             newBid.BidId = newBidId;
@@ -243,8 +260,8 @@ public class AuctionService : IAuctionService
                 Amount = -amountToHoldNow,
                 Type = "hold",
                 CreatedAt = DateTime.Now,
-                RefId = newBid.BidId, 
-                AuctionId = auctionId 
+                RefId = newBid.BidId,
+                AuctionId = auctionId
             };
             await _unitOfWork.WalletTransactions.CreateTransactionAsync(holdTransaction);
             _logger.LogInformation("Created 'hold' transaction {TransactionId} for Bid {BidId} (Amount: {Amount})", holdTransaction.TransactionId, newBid.BidId, amountToHoldNow);
@@ -255,6 +272,7 @@ public class AuctionService : IAuctionService
                 _logger.LogInformation("Updated previous bid {PreviousBidId} for User {UserId} to 'outbid'.", previousUserActiveBid.BidId, userId);
             }
 
+            // Total previous highest bid
             var overallPreviousHighestBid = await _unitOfWork.Bids.GetHighestActiveBidAsync(auctionId, excludeBidId: newBidId);
 
             if (overallPreviousHighestBid != null && overallPreviousHighestBid.UserId != userId)
@@ -274,6 +292,47 @@ public class AuctionService : IAuctionService
             _logger.LogError(ex, "Error during PlaceBidAsync for Auction {AuctionId}, User {UserId}. Rolling back transaction.", auctionId, userId);
             await _unitOfWork.RollbackTransactionAsync();
             throw;
+        }
+
+        // SEE notification: notice for others
+        try
+        {
+            var bidUpdatePayload = new
+            {
+                notiType = "BID_UPDATE",
+                auctionId = auctionId,
+                newPrice = bidAmount,
+                winnerId = userId,
+                winnerName = user.FullName
+            };
+
+            // Serialize payload
+            string message = JsonSerializer.Serialize(bidUpdatePayload);
+            var allBidsForAuction = await _unitOfWork.Bids.GetBidsByAuctionIdAsync(auctionId);
+            var interestedUserIds = allBidsForAuction
+                .Select(b => b.UserId)
+                .Distinct()
+                .ToList();
+
+
+            foreach (var interestedUserId in interestedUserIds)
+            {
+                _ = Task.Run(async () => {
+                    try
+                    {
+                        await _notificationService.SendNotificationAsync(interestedUserId.ToString(), message);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "Failed to send BID_UPDATE SSE to User {UserId} for Auction {AuctionId}", interestedUserId, auctionId);
+                    }
+                });
+            }
+
+            _logger.LogInformation("Finished dispatching BID_UPDATE SSE for Auction {AuctionId}", auctionId);
+        } catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to broadcast bid update notification after successful bid for Auction {AuctionId}.", auctionId);
         }
     }
 
