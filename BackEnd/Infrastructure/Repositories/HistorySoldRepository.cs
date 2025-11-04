@@ -193,7 +193,8 @@ namespace Infrastructure.Repositories
                                 FullName = u.FullName,
                                 Phone = u.Phone,
                                 Address = a != null ? $"{a.Street}, {a.Ward}, {a.District}, {a.Province}" : null
-                            } : null
+                            } : null,
+                            OrderId = o != null ? o.OrderId : (int?)null
                         };
 
             return await query.ToListAsync();
@@ -249,6 +250,7 @@ namespace Infrastructure.Repositories
                                 Phone = u.Phone,
                                 Address = a != null ? $"{a.Street}, {a.Ward}, {a.District}, {a.Province}" : null
                             } : null,
+                            OrderId = o != null ? o.OrderId : (int?)null,
 
                             // Gán trạng thái đã tính toán
                             Status = isSold ? "sold" :
@@ -304,7 +306,8 @@ namespace Infrastructure.Repositories
                                 FullName = u.FullName,
                                 Phone = u.Phone,
                                 Address = a != null ? $"{a.Street}, {a.Ward}, {a.District}, {a.Province}" : null
-                            } : null
+                            } : null,
+                            OrderId = o != null ? o.OrderId : (int?)null
                         };
 
             return await query.ToListAsync();
@@ -361,6 +364,7 @@ namespace Infrastructure.Repositories
                                 Phone = u.Phone,
                                 Address = a != null ? $"{a.Street}, {a.Ward}, {a.District}, {a.Province}" : null
                             } : null,
+                            OrderId = o != null ? o.OrderId : (int?)null,
 
                             Status = isSold ? "sold" :
                                      isProcessing ? "processing" :

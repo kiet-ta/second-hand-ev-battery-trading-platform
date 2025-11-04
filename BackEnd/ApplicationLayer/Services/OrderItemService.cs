@@ -43,7 +43,8 @@ namespace Application.Services
             if (items == null)
                 throw new Exception($"Failed to retrieve cart items for buyer ID {buyerId}.");
             if (!items.Any())
-                throw new Exception($"No items found in cart for buyer ID {buyerId}.");
+                //throw new Exception($"No items found in cart for buyer ID {buyerId}.");
+                return Enumerable.Empty<OrderItemDto>();
 
             return items.Select(o => new OrderItemDto
             {

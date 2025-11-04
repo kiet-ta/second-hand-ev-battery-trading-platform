@@ -63,7 +63,10 @@ namespace Infrastructure.Repositories
             var kyc = await _context.KycDocuments.FindAsync(id);
             if (kyc == null) return;
 
-            kyc.Status = status; 
+            if (!string.Equals(kyc.Status, "pending", StringComparison.OrdinalIgnoreCase))
+                return;
+
+            kyc.Status = status;
             kyc.Note = note;
             _context.KycDocuments.Update(kyc);
             await _context.SaveChangesAsync();
