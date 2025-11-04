@@ -308,7 +308,7 @@ namespace Application.Services
             user.UpdatedAt = DateTime.UtcNow;
 
             await _userRepository.UpdateAsync(user);
-
+            await _userRepository.SaveChangesAsync();
             return true;
         }
 
@@ -360,6 +360,7 @@ namespace Application.Services
 
             user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.NewPassword);
             await _userRepository.UpdateAsync(user);
+            await _userRepository.SaveChangesAsync();
         }
 
         private string GenerateOtp()

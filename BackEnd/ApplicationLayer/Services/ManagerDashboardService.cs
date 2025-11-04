@@ -180,6 +180,7 @@ namespace Application.Services
                 user.Role = "seller";
                 user.KycStatus = "approved";
                 await _userRepo.UpdateAsync(user);
+                await _userRepo.SaveChangesAsync();
             }
         }
 

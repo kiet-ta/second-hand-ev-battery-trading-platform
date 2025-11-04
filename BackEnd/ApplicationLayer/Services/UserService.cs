@@ -164,6 +164,7 @@ namespace Application.Services
             existing.UpdatedAt = DateTime.UtcNow;
 
             await _userRepository.UpdateAsync(existing);
+            await _userRepository.SaveChangesAsync();
         }
 
         public async Task DeleteUserAsync(int id)
@@ -208,6 +209,7 @@ namespace Application.Services
             user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
             user.UpdatedAt = DateTime.UtcNow;
             await _userRepository.UpdateAsync(user);
+            await _userRepository.SaveChangesAsync();
 
             return true;
         }
