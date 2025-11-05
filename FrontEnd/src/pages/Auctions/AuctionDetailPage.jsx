@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
+import { HubConnectionBuilder } from "@microsoft/signalr";
 import {
   Spin,
   InputNumber,
@@ -19,7 +20,6 @@ import userApi from "../../api/userApi";
 import itemApi from "../../api/itemApi";
 
 const LOGGED_IN_USER_ID = localStorage.getItem("userId");
-
 const useCountdown = (endTimeStr) => {
   const calculateTimeRemaining = useCallback(() => {
     if (!endTimeStr) return { time: "N/A", isFinished: true };
@@ -29,13 +29,22 @@ const useCountdown = (endTimeStr) => {
     if (distance < 0) return { time: "00h 00m 00s", isFinished: true };
 
     const days = Math.floor(distance / (1000 * 60 * 60 * 24));
-    const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const hours = Math.floor(
+      (distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60),
+    );
     const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
     const seconds = Math.floor((distance % (1000 * 60)) / 1000);
     const pad = (n) => String(n).padStart(2, "0");
 
-    if (days > 0) return { time: `${days}d ${pad(hours)}h ${pad(minutes)}m`, isFinished: false };
-    return { time: `${pad(hours)}h ${pad(minutes)}m ${pad(seconds)}s`, isFinished: false };
+    if (days > 0)
+      return {
+        time: `${days}d ${pad(hours)}h ${pad(minutes)}m`,
+        isFinished: false,
+      };
+    return {
+      time: `${pad(hours)}h ${pad(minutes)}m ${pad(seconds)}s`,
+      isFinished: false,
+    };
   }, [endTimeStr]);
 
   const [countdown, setCountdown] = useState(calculateTimeRemaining);
@@ -53,6 +62,7 @@ function AuctionDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
 
+  const [connection, setConnection] = useState(null);
   const [auction, setAuction] = useState(null);
   const [sellerProfile, setSellerProfile] = useState(null);
   const [bidHistory, setBidHistory] = useState([]);
@@ -61,19 +71,111 @@ function AuctionDetailPage() {
   const [isBidding, setIsBidding] = useState(false);
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState("");
+  const stepPrice =
+    auction?.stepPrice && auction.stepPrice > 0 ? auction.stepPrice : 100000;
 
   const countdown = useCountdown(auction?.endTime);
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      console.error("No access token found. SignalR cannot authenticate.");
+      setErrorMsg("Bạn chưa đăng nhập. Không thể kết nối real-time.");
+      return;
+    }
+    // 1. Create the connection
+    const newConnection = new HubConnectionBuilder()
+      .withUrl("https://localhost:7272/auctionHub", {
+        accessTokenFactory: () => token,
+      }) // Make sure this URL is correct
+      .withAutomaticReconnect()
+      .build();
+
+    setConnection(newConnection);
+
+    // 2. Start the connection
+    newConnection
+      .start()
+      .then(() => {
+        console.log("Real-time connection established.");
+        setConnection(newConnection);
+      })
+      .catch((err) => console.error("Connection failed: ", err));
+
+    // 3. MUST HAVE: Clean up (disconnect) when component unmounts
+    return () => {
+      if (newConnection) {
+        // We stop the connection, no need to invoke LeaveGroup here
+        // The server (SignalR Hub) should handle disconnects automatically
+        newConnection.stop();
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    // Only join group if we have a connection AND an auctionId
+    if (connection && auction?.auctionId) {
+      connection
+        .invoke("JoinAuctionGroup", auction.auctionId.toString())
+        .then(() => console.log(`Joined auction group: ${auction.auctionId}`))
+        .catch((err) => console.error("Failed to join group: ", err));
+
+      // Return a cleanup function to leave the group
+      return () => {
+        if (connection) {
+          connection
+            .invoke("LeaveAuctionGroup", auction.auctionId.toString())
+            .then(() => console.log(`Left auction group: ${auction.auctionId}`))
+            .catch((err) => console.error("Failed to leave group: ", err));
+        }
+      };
+    }
+  }, [connection, auction?.auctionId]); // Depends on connection and auctionId
+
+  // --- SignalR Event Listener (Lifecycle: When connection/stepPrice changes) ---
+  useEffect(() => {
+    if (connection) {
+      const handleNewBid = (newBidData) => {
+        // newBidData is what the SERVER broadcasts.
+        // e.g., { fullName: "User B", bidAmount: 550000, bidTime: "..." }
+        console.log("Received new bid:", newBidData);
+
+        // Update the state with the new data from server (the source of truth)
+        setAuction((previousAuction) => ({
+          ...previousAuction,
+          currentPrice: newBidData.bidAmount,
+        }));
+
+        // Add to bid history
+        setBidHistory((previousHistory) => [newBidData, ...previousHistory]);
+
+        // Update the next bid amount in the input
+        // We use stepPrice from the component state, which is correct.
+        setBidAmount(newBidData.bidAmount + stepPrice);
+      };
+
+      // 1. Listen for "ReceiveNewBid" event from server
+      connection.on("ReceiveCurrentState", handleNewBid);
+
+      // Clean up the listener
+      return () => {
+        connection.off("ReceiveCurrentState", handleNewBid);
+      };
+    }
+  }, [connection, stepPrice]); // This dependency is correct.
 
   const fetchBidHistory = useCallback(async (auctionId) => {
     try {
       const res = await auctionApi.getBiddingHistory(auctionId);
       if (Array.isArray(res)) {
-        const sorted = res.sort((a, b) => new Date(b.bidTime) - new Date(a.bidTime));
+        const sorted = res.sort(
+          (a, b) => new Date(b.bidTime) - new Date(a.bidTime),
+        );
         setBidHistory(sorted);
       } else {
         setBidHistory([]);
       }
-    } catch {
+    } catch (error) {
+      console.error("Failed to fetch bid history:", error);
       setBidHistory([]);
     }
   }, []);
@@ -82,11 +184,13 @@ function AuctionDetailPage() {
     try {
       setLoading(true);
       const auctionData = await auctionApi.getAuctionByItemId(id);
-      if (!auctionData) return;
+      if (!auctionData) throw new Error("Auction not found");
 
       setAuction(auctionData);
       const step = auctionData.stepPrice > 0 ? auctionData.stepPrice : 100000;
-      setBidAmount((auctionData.currentPrice || auctionData.startingPrice) + step);
+      setBidAmount(
+        (auctionData.currentPrice || auctionData.startingPrice) + step,
+      );
 
       const itemData = await itemApi.getItemById(auctionData.itemId);
       const seller = await userApi.getUserByID(itemData.updatedBy);
@@ -107,7 +211,6 @@ function AuctionDetailPage() {
     fetchAuctionDetails();
   }, [fetchAuctionDetails]);
 
-  const stepPrice = auction?.stepPrice && auction.stepPrice > 0 ? auction.stepPrice : 100000;
   const getMinBid = () =>
     (auction?.currentPrice || auction?.startingPrice || 0) + stepPrice;
 
@@ -116,7 +219,10 @@ function AuctionDetailPage() {
       navigate("/login");
       return;
     }
-
+    if (!auction) {
+      setErrorMsg("Auction data is not ready.");
+      return;
+    }
     const minBid = getMinBid();
     if (bidAmount < minBid) {
       setErrorMsg(`Giá đặt phải tối thiểu ${minBid.toLocaleString("vi-VN")} đ`);
@@ -127,32 +233,19 @@ function AuctionDetailPage() {
       return;
     }
 
+    if (!connection) {
+      setErrorMsg("Real-time service is not connected. Please refresh.");
+      return;
+    }
     try {
       setIsBidding(true);
       setErrorMsg("");
 
-      const payload = { userId: LOGGED_IN_USER_ID, bidAmount };
-      await auctionApi.bidAuction(auction.auctionId, payload);
-
-      // ✅ Update UI instantly
-      setAuction((prev) => ({
-        ...prev,
-        currentPrice: bidAmount,
-      }));
-
-      setBidHistory((prev) => [
-        {
-          bidAmount,
-          fullName: "Bạn",
-          bidTime: new Date().toISOString(),
-        },
-        ...prev,
-      ]);
-
-      // ✅ Auto increment next bid
-      setBidAmount(bidAmount + stepPrice);
+      await connection.invoke("PlaceBid", auction.auctionId, bidAmount);
     } catch (err) {
-      setErrorMsg("Không thể đặt giá. Vui lòng thử lại.");
+      console.error("Failed to place bid via real-time:", err);
+      // The server can 'throw' an error back via SignalR
+      setErrorMsg(err.message || "Không thể đặt giá. Vui lòng thử lại.");
     } finally {
       setIsBidding(false);
     }
@@ -184,19 +277,26 @@ function AuctionDetailPage() {
       <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-5 gap-8">
         {/* LEFT SIDE */}
         <div className="lg:col-span-3">
-          <Card bordered={false} className="shadow-lg rounded-lg overflow-hidden">
+          <Card
+            bordered={false}
+            className="shadow-lg rounded-lg overflow-hidden"
+          >
             {images.length > 0 ? (
               <Carousel autoplay arrows className="rounded-lg">
                 {images.map((url, idx) => (
                   <div key={idx}>
-                    <img src={url} alt={`image-${idx}`} className="w-full object-cover aspect-[3/2]" />
+                    <img
+                      src={url}
+                      alt={`image-${idx}`}
+                      className="w-full object-cover aspect-[3/2]"
+                    />
                   </div>
                 ))}
               </Carousel>
             ) : (
               <img
                 src={`https://placehold.co/600x400/E8E4DC/2C2C2C?text=${encodeURIComponent(
-                  auction.title || "No Image"
+                  auction.title || "No Image",
                 )}`}
                 alt="No Image"
                 className="w-full object-cover aspect-[3/2]"
@@ -205,8 +305,12 @@ function AuctionDetailPage() {
           </Card>
 
           <Card bordered={false} className="shadow-lg p-6 rounded-lg mt-6">
-            <h2 className="text-2xl font-bold border-b pb-4 mb-4">Mô Tả Chi Tiết</h2>
-            <p className="text-gray-700 leading-relaxed">{auction.description || "Không có mô tả."}</p>
+            <h2 className="text-2xl font-bold border-b pb-4 mb-4">
+              Mô Tả Chi Tiết
+            </h2>
+            <p className="text-gray-700 leading-relaxed">
+              {auction.description || "Không có mô tả."}
+            </p>
             <p className="mt-4 text-gray-700">
               <span className="font-semibold">Bước giá:</span>{" "}
               {stepPrice.toLocaleString("vi-VN")} đ
@@ -219,7 +323,9 @@ function AuctionDetailPage() {
           <Card bordered={false} className="shadow-lg p-6 rounded-lg">
             <h1 className="text-3xl font-bold mb-2">{auction.title}</h1>
             <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200 text-center">
-              <p className="text-sm font-medium text-gray-600">Thời gian còn lại</p>
+              <p className="text-sm font-medium text-gray-600">
+                Thời gian còn lại
+              </p>
               <div className="flex items-center justify-center gap-2 mt-1">
                 <FiClock className="text-2xl text-[#B8860B]" />
                 <span className="text-3xl font-extrabold text-[#B8860B]">
@@ -236,7 +342,9 @@ function AuctionDetailPage() {
                     {displayPrice.toLocaleString("vi-VN")} đ
                   </p>
                 </div>
-                <Tag color="gold">Bước giá: {stepPrice.toLocaleString("vi-VN")} đ</Tag>
+                <Tag color="gold">
+                  Bước giá: {stepPrice.toLocaleString("vi-VN")} đ
+                </Tag>
               </div>
             </div>
 
@@ -271,7 +379,9 @@ function AuctionDetailPage() {
                   onChange={setBidAmount}
                   min={getMinBid()}
                   step={stepPrice}
-                  formatter={(v) => `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+                  formatter={(v) =>
+                    `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                  }
                   parser={(v) => (v ? parseInt(v.replace(/\D/g, "")) : 0)}
                   addonAfter="VND"
                   disabled={!isOngoing}
@@ -334,11 +444,20 @@ function AuctionDetailPage() {
                     <List.Item>
                       <List.Item.Meta
                         avatar={
-                          <Avatar style={{ backgroundColor: "#B8860B", color: "white" }}>
+                          <Avatar
+                            style={{
+                              backgroundColor: "#B8860B",
+                              color: "white",
+                            }}
+                          >
                             {bid.fullName?.[0] || "U"}
                           </Avatar>
                         }
-                        title={<span className="font-semibold">{bid.fullName || "Người dùng ẩn danh"}</span>}
+                        title={
+                          <span className="font-semibold">
+                            {bid.fullName || "Người dùng ẩn danh"}
+                          </span>
+                        }
                         description={
                           <div className="text-sm text-gray-500">
                             {new Date(bid.bidTime).toLocaleString("vi-VN")}
@@ -346,7 +465,10 @@ function AuctionDetailPage() {
                         }
                       />
                       <div className="text-right">
-                        <Tag color="gold" className="text-base font-semibold px-3 py-1 rounded-lg">
+                        <Tag
+                          color="gold"
+                          className="text-base font-semibold px-3 py-1 rounded-lg"
+                        >
                           {bid.bidAmount.toLocaleString("vi-VN")} đ
                         </Tag>
                       </div>

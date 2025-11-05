@@ -13,7 +13,7 @@ public interface IAuctionService
 
     Task<CreateAuctionResponse> CreateAuctionAsync(CreateAuctionRequest request);
 
-    Task PlaceBidAsync(int auctionId, int userId, decimal bidAmount);
+    Task <BidderHistoryDto> PlaceBidAsync(int auctionId, int userId, decimal bidAmount);
 
     Task UpdateAuctionStatusesAsync();
 

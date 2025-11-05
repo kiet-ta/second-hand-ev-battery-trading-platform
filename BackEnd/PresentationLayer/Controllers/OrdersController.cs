@@ -75,5 +75,23 @@ namespace PresentationLayer.Controllers
             var result = await _orderService.CreateOrderAsync(request);
             return Ok(result);
         }
+
+        [HttpPut("{id}/confirm-shipping")]
+        [Authorize(Roles = "Seller")]
+        public async Task<IActionResult> ConfirmShipping(int id)
+        {
+            var sellerId = 0; // TODO: Lấy sellerId từ JWT
+            await _orderService.ConfirmOrderShippingAsync(id, sellerId);
+            return Ok(new { Message = "Order status updated to Shipped." });
+        }
+
+        [HttpPut("{id}/confirm-delivery")]
+        [Authorize(Roles = "Buyer")]
+        public async Task<IActionResult> ConfirmDelivery(int id)
+        {
+            var buyerId = 0; // TODO: Lấy buyerId từ JWT
+            await _orderService.ConfirmOrderDeliveryAsync(id, buyerId);
+            return Ok(new { Message = "Order completed and funds released to seller." });
+        }
     }
 }
