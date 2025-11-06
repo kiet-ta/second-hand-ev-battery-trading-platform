@@ -70,7 +70,7 @@ public static class InfrastructureExtensions
 
         //    return new IdGenerator(1, options);
         //});
-
+        services.AddHostedService<AuctionStatusUpdaterJob>();
         return services;
     }
 }

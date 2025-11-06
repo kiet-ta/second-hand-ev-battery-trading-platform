@@ -15,6 +15,7 @@ namespace Application.DTOs.ItemDtos
         public decimal Price { get; set; }
         public int Quantity { get; set; } = 1;
         public string Status { get; set; } = "active";
+        public string Moderation { get; set; } = "not_submitted";
         public int? UpdatedBy { get; set; }
         public string LicenseUrl { get; set; }
 

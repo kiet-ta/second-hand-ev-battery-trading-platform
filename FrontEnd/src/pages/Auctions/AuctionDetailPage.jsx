@@ -213,8 +213,9 @@ function AuctionDetailPage() {
 
   const getMinBid = () =>
     (auction?.currentPrice || auction?.startingPrice || 0) + stepPrice;
-
   const handlePlaceBid = async () => {
+    
+    console.log(LOGGED_IN_USER_ID)
     if (!LOGGED_IN_USER_ID) {
       navigate("/login");
       return;
@@ -250,6 +251,7 @@ function AuctionDetailPage() {
       setIsBidding(false);
     }
   };
+
 
   if (loading)
     return (
