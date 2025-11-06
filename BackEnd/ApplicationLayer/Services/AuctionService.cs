@@ -357,6 +357,7 @@ public class AuctionService : IAuctionService
             CurrentPrice = auction.CurrentPrice,
             TotalBids = auction.TotalBids,
             StartTime = auction.StartTime,
+            StepPrice = auction.StepPrice,
             EndTime = auction.EndTime,
             Status = auction.Status,
             Images = image.Select(img => new ItemImageDto

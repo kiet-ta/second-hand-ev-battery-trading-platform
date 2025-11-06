@@ -41,7 +41,9 @@ namespace Application.Services
                 Status = dto.Status,
                 UpdatedBy = dto.UpdatedBy,
                 CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
+                UpdatedAt = DateTime.UtcNow,
+                Moderation = dto.Moderation
+
             };
 
             await _itemRepo.AddAsync(item, ct);

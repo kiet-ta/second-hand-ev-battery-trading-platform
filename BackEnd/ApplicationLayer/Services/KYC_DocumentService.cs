@@ -74,7 +74,7 @@ namespace Application.Services
             kycDoc.VerifiedBy = dto.VerifiedBy;
 
   
-            await _kycRepo.SetUserKYCStatusAsync(user.UserId, "approved", "seller");
+            await _kycRepo.SetUserKYCStatusAsync(user.UserId, "approved", "buyer");
         }
 
         public async Task RejectKycAsync(int kycId, ApproveKyc_DocumentDTO dto)

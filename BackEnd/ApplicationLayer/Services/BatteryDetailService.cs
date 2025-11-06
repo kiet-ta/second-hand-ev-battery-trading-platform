@@ -86,6 +86,7 @@ namespace Application.Services
                 Quantity = dto.Quantity,
                 Status = dto.Status,
                 UpdatedBy = dto.UpdatedBy,
+                Moderation = dto.Moderation
                 //CreatedAt = DateTime.UtcNow,
                 //UpdatedAt = DateTime.UtcNow
             };

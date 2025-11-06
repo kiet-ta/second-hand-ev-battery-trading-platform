@@ -57,7 +57,7 @@ namespace Infrastructure.Repositories
             return query.AsNoTracking(); // Optimized for read-only queries
         }
 
-        public async Task<PagedResultItem<ItemSearchDto>> SearchItemsAsync(
+        public async Task<PagedResultItem<ItemDto>> SearchItemsAsync(
             string itemType,
             string title,
             decimal? minPrice,
@@ -75,7 +75,7 @@ namespace Infrastructure.Repositories
                             on i.UpdatedBy equals u.UserId into gj
                         from user in gj.DefaultIfEmpty()
                         where i.IsDeleted == false && i.Status == "active"
-                        select new ItemSearchDto
+                        select new ItemDto
                         {
                             ItemId = i.ItemId,
                             ItemType = i.ItemType,
@@ -96,7 +96,6 @@ namespace Infrastructure.Repositories
                                     ImageId = img.ImageId,
                                     ImageUrl = img.ImageUrl
                                 }).ToList(),
-                            ItemDetail = null
                         };
 
             // Filter by itemType
@@ -163,7 +162,6 @@ namespace Infrastructure.Repositories
                             LicenseUrl = d.LicenseUrl
                         })
                         .FirstOrDefaultAsync();
-                    item.ItemDetail = detail;
                 }
                 else if (item.ItemType == "battery")
                 {
@@ -177,11 +175,10 @@ namespace Infrastructure.Repositories
                             ChargeCycles = d.ChargeCycles
                         })
                         .FirstOrDefaultAsync();
-                    item.ItemDetail = detail;
                 }
             }
 
-            return new PagedResultItem<ItemSearchDto>
+            return new PagedResultItem<ItemDto>
             {
                 Page = page,
                 PageSize = pageSize,
@@ -560,7 +557,8 @@ namespace Infrastructure.Repositories
                             {
                                 ImageId = img.ImageId,
                                 ImageUrl = img.ImageUrl
-                            }).ToList()
+                            }).ToList(),
+                            Moderation = i.Moderation
                         };
 
             return await query.ToListAsync();
