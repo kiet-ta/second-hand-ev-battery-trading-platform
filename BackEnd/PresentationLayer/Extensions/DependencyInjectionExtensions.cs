@@ -13,6 +13,7 @@ using Infrastructure.Data;
 using Infrastructure.Repositories;
 using Infrastructure.Repositories.ChatRepositories;
 using Infrastructure.Repositories.ManageStaffRepositories;
+using PresentationLayer.Hubs;
 
 namespace PresentationLayer.Extensions;
 
@@ -52,7 +53,8 @@ public static class DependencyInjectionExtensions
         services.AddSingleton<IProfanityCountService, ProfanityCountService>();
         services.AddScoped<ICommissionFeeRuleService, CommissionFeeRuleService>();
         services.AddScoped<IReportService, ReportService>();
-
+        services.AddScoped<IAuctionHubService, AuctionHubService>();
+        
         //---Repositories
         services.AddScoped<IAuctionRepository, AuctionRepository>();
         services.AddScoped<IAddressRepository, AddressRepository>();

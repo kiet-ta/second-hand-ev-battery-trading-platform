@@ -90,7 +90,7 @@ public class UnitOfWork : IUnitOfWork
     {
         if (_currentTransaction == null)
         {
-            throw new InvalidOperationException("No transaction in progress to roll back.");
+            return;
         }
         try
         {
