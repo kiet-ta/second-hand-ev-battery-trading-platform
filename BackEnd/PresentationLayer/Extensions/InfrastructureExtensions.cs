@@ -57,6 +57,8 @@ public static class InfrastructureExtensions
         // Singletons
         services.AddSingleton<IUserContextService, UserContextService>();
 
+        //      Job update status auction
+        services.AddHostedService<AuctionStatusUpdaterJob>();
         // Idgenerator
         //services.AddSingleton<IIdGenerator<long>>(provider =>
         //{

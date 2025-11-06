@@ -6,6 +6,7 @@ using Application.IRepositories.IBiddingRepositories;
 using Application.IServices;
 using Domain.Entities;
 using Microsoft.Extensions.Logging;
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 
 namespace Application.Services;
@@ -55,6 +56,7 @@ public class AuctionService : IAuctionService
         _userContextService = userContextService;
     }
 
+    private DateTime now = DateTime.Now;
     public async Task<IEnumerable<BidderHistoryDto>> GetBidderHistoryAsync(int auctionId)
     {
         var auctionExists = await _auctionRepository.GetByIdAsync(auctionId);
@@ -150,10 +152,10 @@ public class AuctionService : IAuctionService
             CurrentPrice = null,
             StartTime = request.StartTime,
             EndTime = request.EndTime,
-            Status = DateTime.UtcNow >= request.StartTime ? "ongoing" : "upcoming",
+            Status = DateTime.Now >= request.StartTime ? "ongoing" : "upcoming",
             TotalBids = 0,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
+            CreatedAt = DateTime.Now,
+            UpdatedAt = DateTime.Now
         };
 
         await _auctionRepository.CreateAsync(auction);
@@ -181,7 +183,7 @@ public class AuctionService : IAuctionService
         {
             var auction = await _unitOfWork.Auctions.GetByIdAsync(auctionId);
 
-            if (auction == null || auction.Status != "ongoing" || DateTime.Now < auction.StartTime || DateTime.Now > auction.EndTime)
+            if (auction == null || auction.Status != "ongoing" || now < auction.StartTime || now > auction.EndTime)
             {
                 await _unitOfWork.RollbackTransactionAsync();
                 throw new InvalidOperationException("Auction is not active or has ended.");
@@ -248,7 +250,7 @@ public class AuctionService : IAuctionService
                 AuctionId = auctionId,
                 UserId = userId,
                 BidAmount = bidAmount,
-                BidTime = DateTime.Now,
+                BidTime = now,
                 Status = "active"
             };
             int newBidId = await _unitOfWork.Bids.PlaceBidAsync(newBid);
@@ -259,7 +261,7 @@ public class AuctionService : IAuctionService
                 WalletId = wallet.WalletId,
                 Amount = -amountToHoldNow,
                 Type = "hold",
-                CreatedAt = DateTime.Now,
+                CreatedAt = now,
                 RefId = newBid.BidId,
                 AuctionId = auctionId
             };
@@ -294,7 +296,7 @@ public class AuctionService : IAuctionService
             await _unitOfWork.CommitTransactionAsync();
             _logger.LogInformation("Successfully placed bid {BidId} for User {UserId} in Auction {AuctionId}. Amount: {BidAmount}. Transaction committed.", newBid.BidId, userId, auctionId, bidAmount);
 
-            // notification for user outbit
+            // notification for user outbid
             if (previousHighestBid != null)
             {
                 var outbidMessage = $"You have been outbid on auction #{auctionId}. The new price is {bidAmount:N0}đ.";
@@ -321,8 +323,6 @@ public class AuctionService : IAuctionService
     }
     public async Task UpdateAuctionStatusesAsync()
     {
-        var now = DateTime.Now;
-
         var upcomingAuctions = await _auctionRepository.GetUpcomingAuctionsAsync();
 
         foreach (var auction in upcomingAuctions)
@@ -356,6 +356,7 @@ public class AuctionService : IAuctionService
             StartingPrice = auction.StartingPrice,
             CurrentPrice = auction.CurrentPrice,
             TotalBids = auction.TotalBids,
+            StepPrice = auction.StepPrice,
             StartTime = auction.StartTime,
             StepPrice = auction.StepPrice,
             EndTime = auction.EndTime,
@@ -399,7 +400,6 @@ public class AuctionService : IAuctionService
         if (auction == null)
             throw new KeyNotFoundException("Auction not found."); //404
 
-        var now = DateTime.Now;
         string status;
 
         if (now < auction.StartTime)
@@ -422,8 +422,6 @@ public class AuctionService : IAuctionService
     {
         var auctions = await _auctionRepository.GetAllAsync(page, pageSize);
         var totalCount = await _auctionRepository.GetTotalCountAsync();
-
-        var now = DateTime.UtcNow;
 
         foreach (var a in auctions)
         {

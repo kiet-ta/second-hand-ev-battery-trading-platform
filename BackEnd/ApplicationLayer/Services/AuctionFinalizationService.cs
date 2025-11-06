@@ -14,7 +14,7 @@ public class AuctionFinalizationService : IAuctionFinalizationService
     
 
     private const string AuctionSellerFeeCode = "AUCTION_SELLER_FEE"; // FIXME: mock value
-    private const string AuctionNotificationType = "activities";
+    private const string AuctionNotificationType = "auction";
 
     public AuctionFinalizationService(IUnitOfWork unitOfWork, ILogger<AuctionFinalizationService> logger, INotificationService notificationService)
     {
@@ -38,13 +38,17 @@ public class AuctionFinalizationService : IAuctionFinalizationService
                 await _unitOfWork.RollbackTransactionAsync(); // Rollback
                 return;
             }
-            if (auction.Status != "ended")
-            {
-                _logger.LogWarning("Attempted to finalize auction {AuctionId} but its status is '{Status}', not 'ended'. Skipping.", auctionId, auction.Status);
-                await _unitOfWork.RollbackTransactionAsync();
-                return; 
-            }
 
+            if (auction.Status != "ongoing")
+            {
+                _logger.LogWarning("Attempted to finalize auction {AuctionId} but its status is '{Status}', not 'ongoing'. Skipping.", auctionId, auction.Status);
+                await _unitOfWork.RollbackTransactionAsync();
+                return;
+            }
+            auction.Status = "ended";
+            auction.UpdatedAt = DateTime.Now; 
+            await _unitOfWork.Auctions.Update(auction); 
+            _logger.LogInformation("Auction {AuctionId} status updated to 'ended' within transaction.", auctionId);
 
             // get highest bid and is active (not outbid by itself or others)
             var winningBid = await _unitOfWork.Bids.GetHighestActiveBidAsync(auctionId);

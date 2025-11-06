@@ -5,6 +5,7 @@ namespace Application.IRepositories;
 
 public interface IAuctionRepository
 {
+    Task Update(Auction auction);
     Task<Auction?> GetByIdAsync(int auctionId);
 
     Task<Auction?> GetByItemIdAsync(int itemId);

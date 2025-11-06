@@ -91,7 +91,7 @@ namespace PresentationLayer.Controllers
                 content = request.Message,
                 notiType = request.NotiType, // For tab filtering
                 type = "general", // For inner filtering
-                time = DateTime.UtcNow.ToString("dd/MM/yyyy HH:mm")
+                time = DateTime.Now.ToString("dd/MM/yyyy HH:mm")
             };
 
             string jsonMessage = JsonSerializer.Serialize(ssePayload);
