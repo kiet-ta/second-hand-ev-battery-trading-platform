@@ -55,7 +55,7 @@ jobs:
       - name: Clean npm cache
         run: cd FrontEnd && npm cache clean --force
         
-      - run: cd FrontEnd && npm ci
+      - run: cd FrontEnd && npm i
       - run: cd FrontEnd && npm run lint || true
       - run: cd FrontEnd && npm run build
       - uses: actions/upload-artifact@v4
@@ -93,17 +93,19 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: List directory contents
-        run: ls -la  # Kiểm tra thư mục root
+        run: ls -la 
       - name: List BackEnd contents
-        run: ls -la ./BackEnd  # Kiểm tra nội dung thư mục BackEnd
+        run: ls -la ./BackEnd
       - name: Build and push Docker image
         uses: docker/build-push-action@v4
         with:
-          context: ./BackEnd  # Sử dụng thư mục BackEnd làm context
-          file: ./BackEnd/Dockerfile  # Đường dẫn tới Dockerfile
+          context: ./BackEnd 
+          file: ./BackEnd/Dockerfile 
           push: true
           tags: tak1stprogrammer/backend:latest
-
+      - name: Trigger Render Backend Deploy
+        if: success() # Chỉ chạy khi push image thành công
+        run: curl "${{ secrets.RENDER_BACKEND_HOOK_URL }}"
   # ---------- Cleanup old artifacts ----------
   cleanup:
     if: always()
