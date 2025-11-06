@@ -71,7 +71,7 @@ public class UserRepository : IUserRepository
             throw new Exception("User not found");
 
         user.AvatarProfile = avatarUrl;
-        user.UpdatedAt = DateTime.UtcNow;
+        user.UpdatedAt = DateTime.Now;
 
         _context.Users.Update(user);
     }
@@ -100,7 +100,7 @@ public class UserRepository : IUserRepository
 
     public async Task<double> GetMonthlyGrowthAsync()
     {
-        var now = DateTime.UtcNow;
+        var now = DateTime.Now;
         var prevMonth = now.AddMonths(-1);
 
         var currentMonthUsers = await _context.Users.CountAsync(u =>

@@ -30,7 +30,7 @@ public class WalletRepository : IWalletRepository
 
     public void Update(Wallet wallet)
     {
-        // Đánh dấu là đã chỉnh sửa
+        // markup was modified
         _context.Entry(wallet).State = EntityState.Modified;
     }
 
@@ -42,12 +42,18 @@ public class WalletRepository : IWalletRepository
 
     public async Task<bool> UpdateBalanceAsync(int walletId, decimal amountChange)
     {
-         var affectedRows = await _context.Wallets
-             .Where(w => w.WalletId == walletId)
-             .ExecuteUpdateAsync(updates => updates
-                 .SetProperty(w => w.Balance, w => w.Balance + amountChange)
-                 .SetProperty(w => w.UpdatedAt, DateTime.UtcNow));
-        return affectedRows > 0;
+        var wallet = await _context.Wallets.FindAsync(walletId);
+        if (wallet == null) return false;
+
+        if (amountChange < 0 && (wallet.Balance < -amountChange))
+        {
+            return false; 
+        }
+
+        wallet.Balance += amountChange;
+        wallet.UpdatedAt = DateTime.Now;
+        _context.Wallets.Update(wallet);
+        return true;
     }
 
     public async Task AddWalletTransactionAsync(WalletTransaction transaction)
@@ -57,16 +63,32 @@ public class WalletRepository : IWalletRepository
     }
     public async Task<bool> UpdateBalanceAndHeldAsync(int walletId, decimal balanceChange, decimal heldChange)
     {
-        // using ExecuteUpdateAsync to ensure atomic and performance
-        var affectedRows = await _context.Wallets
-            .Where(w => w.WalletId == walletId)
-            // Ensure sufficient available balance if deducting money
-            .Where(w => balanceChange >= 0 || (w.Balance - w.HeldBalance) >= -balanceChange)
-            .ExecuteUpdateAsync(updates => updates
-                .SetProperty(w => w.Balance, w => w.Balance + balanceChange)
-                .SetProperty(w => w.HeldBalance, w => w.HeldBalance + heldChange) // update held balance
-                .SetProperty(w => w.UpdatedAt, DateTime.UtcNow)); // update timestamp
+        var wallet = await _context.Wallets.FindAsync(walletId);
+        if (wallet == null)
+        {
+            return false;
+        }
 
-        return affectedRows > 0;
+        // Check available balance (important when making a deposit)
+        if (balanceChange < 0 && (wallet.Balance - wallet.HeldBalance) < -balanceChange)
+        {
+            return false; // Insufficient available balance
+        }
+
+        // Check when refunding (heldChange is negative)
+        if (heldChange < 0 && (wallet.HeldBalance < -heldChange))
+        {
+            return false; // Logic error: trying to release more than the amount held
+        }
+
+        // Apply changes
+        wallet.Balance += balanceChange;
+        wallet.HeldBalance += heldChange;
+        wallet.UpdatedAt = DateTime.Now;
+
+        // Notify UnitOfWork
+        _context.Wallets.Update(wallet);
+
+        return true;
     }
 }

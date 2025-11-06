@@ -54,7 +54,7 @@ public static class DependencyInjectionExtensions
         services.AddScoped<ICommissionFeeRuleService, CommissionFeeRuleService>();
         services.AddScoped<IReportService, ReportService>();
         services.AddScoped<IAuctionHubService, AuctionHubService>();
-        
+        services.AddScoped<IAuctionFinalizationService, AuctionFinalizationService>();
         //---Repositories
         services.AddScoped<IAuctionRepository, AuctionRepository>();
         services.AddScoped<IAddressRepository, AddressRepository>();

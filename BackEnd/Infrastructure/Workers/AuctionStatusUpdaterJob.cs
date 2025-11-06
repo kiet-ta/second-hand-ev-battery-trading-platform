@@ -25,7 +25,8 @@ public class AuctionStatusUpdaterJob : BackgroundService
 
         while (!stoppingToken.IsCancellationRequested)
         {
-            _logger.LogInformation("AuctionStatusUpdaterJob running at: {time}", DateTimeOffset.Now);
+            var now = DateTime.Now;
+            _logger.LogInformation("AuctionStatusUpdaterJob running at: {time}", now);
 
             try
             {
@@ -34,8 +35,6 @@ public class AuctionStatusUpdaterJob : BackgroundService
                     var auctionRepository = scope.ServiceProvider.GetRequiredService<IAuctionRepository>();
                     var finalizationService = scope.ServiceProvider.GetRequiredService<IAuctionFinalizationService>();
                     var context = scope.ServiceProvider.GetRequiredService<EvBatteryTradingContext>(); // DbContext to update status
-
-                    var now = DateTime.Now;
 
                     var upcomingAuctions = await auctionRepository.GetUpcomingAuctionsAsync();
                     foreach (var auction in upcomingAuctions)
@@ -54,15 +53,8 @@ public class AuctionStatusUpdaterJob : BackgroundService
                     foreach (var auction in endedAuctions)
                     {
                         _logger.LogInformation($"Found ended Auction {auction.AuctionId}. Updating status and triggering finalization.");
-                        // update status before finalize
-                        // Use ExecuteUpdateAsync avoid load all entity if not need
-                        await context.Auctions
-                                .Where(a => a.AuctionId == auction.AuctionId && a.Status == "ongoing") // Double check status
-                                .ExecuteUpdateAsync(updates => updates.SetProperty(a => a.Status, "ended"), stoppingToken); //
 
-                        // Call the service to process (don't await directly so the job doesn't block for a long time)
-                        // If you need to ensure sequential processing, then await
-                        // If you want to run in parallel (be careful with transactions), use Task.Run or another way
+                        //call service
                         try
                         {
                             await finalizationService.FinalizeAuctionAsync(auction.AuctionId);
@@ -80,8 +72,8 @@ public class AuctionStatusUpdaterJob : BackgroundService
                 _logger.LogError(ex, "An error occurred executing AuctionStatusUpdaterJob.");
             }
 
-            // delay 1 minute before next check
-            await Task.Delay(TimeSpan.FromMinutes(1), stoppingToken);
+            // delay 5 second before next check
+            await Task.Delay(TimeSpan.FromSeconds(5), stoppingToken);
         }
         _logger.LogInformation("AuctionStatusUpdaterJob is stopping.");
     }

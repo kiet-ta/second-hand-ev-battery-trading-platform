@@ -45,7 +45,7 @@ namespace Infrastructure.Repositories
                 Title = noti.Title,
                 Message = noti.Message,
                 IsRead = false,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.Now
             }).ToList();
 
             await _context.Notifications.AddRangeAsync(notifications);
@@ -132,7 +132,7 @@ namespace Infrastructure.Repositories
                 Title = noti.Title,
                 Message = noti.Message,
                 IsRead = false,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.Now
             };
             await _context.Notifications.AddAsync(notification);
             await _context.SaveChangesAsync();
