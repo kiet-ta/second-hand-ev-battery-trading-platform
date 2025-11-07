@@ -1,6 +1,7 @@
 ﻿using Application.DTOs.ItemDtos;
 using Application.IRepositories;
 using Application.IServices;
+using Domain.Common.Constants;
 using Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -13,15 +14,13 @@ namespace Application.Services
 {
     public class EVDetailService : IEVDetailService
     {
-        private readonly IItemRepository _itemRepo;
-        private readonly IEVDetailRepository _evRepo;
-        //private readonly IUnitOfWork _uow;
+        private readonly IUnitOfWork _unitOfWork;
+   
 
-        public EVDetailService(IItemRepository itemRepo, IEVDetailRepository evRepo) //, IUnitOfWork uow)
+        public EVDetailService(IUnitOfWork unitOfWork) 
         {
-            _itemRepo = itemRepo ?? throw new ArgumentNullException(nameof(itemRepo));
-            _evRepo = evRepo ?? throw new ArgumentNullException(nameof(evRepo));
-            //_uow = uow;
+     
+            _unitOfWork = unitOfWork ;
         }
 
         public async Task<EVDetailDto> CreateAsync(CreateEvDetailDto dto, CancellationToken ct = default)
@@ -32,7 +31,7 @@ namespace Application.Services
 
             var item = new Item
             {
-                ItemType = "ev",
+                ItemType = ItemType.Ev.ToString(),
                 CategoryId = dto.CategoryId,
                 Title = dto.Title,
                 Description = dto.Description,
@@ -44,8 +43,8 @@ namespace Application.Services
                 UpdatedAt = DateTime.Now
             };
 
-            await _itemRepo.AddAsync(item, ct);
-            await _itemRepo.SaveChangesAsync(); // Save to get ItemId if DB generates it
+            await _unitOfWork.Items.AddAsync(item, ct);
+            await _unitOfWork.Items.SaveChangesAsync(); // Save to get ItemId if DB generates it
             if (item.ItemId <= 0)
                 throw new InvalidOperationException("Failed to generate ItemId.");
 
@@ -69,13 +68,13 @@ namespace Application.Services
 
             // If ItemId identity is generated on DB, you must SaveChanges() after AddAsync(item) to get item.ItemId.
             // Approach: save once now, then add ev detail, then save again.
-            await _itemRepo.SaveChangesAsync();
+            await _unitOfWork.Items.SaveChangesAsync();
 
             ev.ItemId = item.ItemId;
-            await _evRepo.AddAsync(ev, ct);
+            await _unitOfWork.EVDetails.AddAsync(ev, ct);
             try
             {
-                await _itemRepo.SaveChangesAsync();
+                await _unitOfWork.Items.SaveChangesAsync();
             }
             catch (DbUpdateException ex) when (IsUniqueConstraintViolation(ex))
             {
@@ -88,23 +87,23 @@ namespace Application.Services
 
         public async Task<bool> DeleteAsync(int itemId, CancellationToken ct = default)
         {
-            if (!await _evRepo.ExistsAsync(itemId, ct))
+            if (!await _unitOfWork.EVDetails.ExistsAsync(itemId, ct))
                 throw new InvalidOperationException("EV detail not found.");
 
-            await _evRepo.DeleteAsync(itemId, ct);
-            await _itemRepo.SaveChangesAsync();
+            await _unitOfWork.EVDetails.DeleteAsync(itemId, ct);
+            await _unitOfWork.Items.SaveChangesAsync();
             return true;
         }
 
         public async Task<IEnumerable<EVDetailDto>> GetAllAsync(CancellationToken ct = default)
         {
-            var evs = await _evRepo.GetAllAsync(ct)
+            var evs = await _unitOfWork.EVDetails.GetAllAsync(ct)
                 ?? throw new InvalidOperationException("Failed to retrieve EV details."); 
 
             var result = new List<EVDetailDto>();
             foreach (var e in evs)
             {
-                var item = await _itemRepo.GetByIdAsync(e.ItemId, ct)
+                var item = await _unitOfWork.Items.GetByIdAsync(e.ItemId, ct)
                     ?? throw new InvalidOperationException($"Item not found for ItemId {e.ItemId}");
                 result.Add(MapToDto(e, item));
             }
@@ -113,16 +112,16 @@ namespace Application.Services
 
         public async Task<EVDetailDto?> GetByIdAsync(int itemId, CancellationToken ct = default)
         {
-            var e = await _evRepo.GetByIdAsync(itemId, ct);
+            var e = await _unitOfWork.EVDetails.GetByIdAsync(itemId, ct);
             if (e == null) return null;
-            var item = await _itemRepo.GetByIdAsync(itemId, ct)
+            var item = await _unitOfWork.Items.GetByIdAsync(itemId, ct)
                 ?? throw new InvalidOperationException($"Item not found for ItemId {itemId}");
             return MapToDto(e, item);
         }
 
         public async Task<bool> UpdateAsync(int itemId, UpdateEvDetailDto dto, CancellationToken ct = default)
         {
-            var existing = await _evRepo.GetByIdAsync(itemId, ct);
+            var existing = await _unitOfWork.EVDetails.GetByIdAsync(itemId, ct);
             if (existing == null)
                 throw new InvalidOperationException("EV detail not found."); 
 
@@ -141,12 +140,12 @@ namespace Application.Services
             if (dto.LicenseUrl != null) existing.LicenseUrl = dto.LicenseUrl;
             existing.UpdatedAt = DateTime.Now;
 
-            _evRepo.Update(existing);
+            _unitOfWork.EVDetails.Update(existing);
 
             // update Item fields if supplied
             if (dto.Title != null || dto.Price.HasValue || dto.Quantity.HasValue || dto.Status != null)
             {
-                var item = await _itemRepo.GetByIdAsync(itemId, ct)
+                var item = await _unitOfWork.Items.GetByIdAsync(itemId, ct)
                     ?? throw new InvalidOperationException($"Item not found for ItemId {itemId}");
 
                 if (dto.Title != null) item.Title = dto.Title;
@@ -154,12 +153,12 @@ namespace Application.Services
                 if (dto.Quantity.HasValue) item.Quantity = dto.Quantity.Value;
                 if (dto.Status != null) item.Status = dto.Status;
 
-                _itemRepo.Update(item);
+                _unitOfWork.Items.Update(item);
             }
 
             try
             {
-                await _itemRepo.SaveChangesAsync();
+                await _unitOfWork.Items.SaveChangesAsync();
             }
             catch (DbUpdateException ex) when (IsUniqueConstraintViolation(ex))
             {
@@ -171,7 +170,7 @@ namespace Application.Services
 
         public async Task<IEnumerable<ItemDto>> GetLatestEVsAsync(int count)
         {
-            var items = await _evRepo.GetLatestEVsAsync(count);
+            var items = await _unitOfWork.EVDetails.GetLatestEVsAsync(count);
             if (items == null)
                 throw new Exception("No EV items found.");
 
@@ -179,7 +178,7 @@ namespace Application.Services
 
             foreach (var item in items)
             {
-                var images = await _itemRepo.GetByItemIdAsync(item.ItemId);
+                var images = await _unitOfWork.Items.GetByItemIdAsync(item.ItemId);
 
                 result.Add(new ItemDto
                 {
@@ -210,7 +209,7 @@ namespace Application.Services
 
         public async Task<IEnumerable<EVDetailDto>> SearchEvDetailAsync(EVSearchRequestDto request)
         {
-            var result = await _evRepo.SearchEvDetailAsync(request);
+            var result = await _unitOfWork.EVDetails.SearchEvDetailAsync(request);
             return result.Select(e => new EVDetailDto
             {
                 ItemId = e.ItemId,

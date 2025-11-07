@@ -2,6 +2,7 @@
 using Application.DTOs.ItemDtos;
 using Application.IRepositories;
 using Application.IServices;
+using Domain.Common.Constants;
 using Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
@@ -12,11 +13,12 @@ namespace Application.Services
 {
     public class HistorySoldService : IHistorySoldService
     {
-        private readonly IHistorySoldRepository _repository;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public HistorySoldService(IHistorySoldRepository repository)
+        public HistorySoldService(IUnitOfWork unitOfWork)
         {
-            _repository = repository ?? throw new ArgumentNullException(nameof(repository));
+
+            _unitOfWork = unitOfWork;
         }
 
         public async Task<List<object>> GetAllSellerItemsAsync(int sellerId)
@@ -24,7 +26,7 @@ namespace Application.Services
             if (sellerId <= 0)
                 throw new ArgumentException("Invalid seller ID");
 
-            var seller = await _repository.GetSellerByIdAsync(sellerId);
+            var seller = await _unitOfWork.HistorySolds.GetSellerByIdAsync(sellerId);
             if (seller == null)
                 throw new KeyNotFoundException($"Seller with ID {sellerId} not found");
 
@@ -33,7 +35,7 @@ namespace Application.Services
             var processing = await GetProcessingItemsAsync(sellerId);
             var canceled = await GetCanceledItemsAsync(sellerId);
 
-            var allItems = await _repository.GetAllSellerItemsAsync(sellerId);
+            var allItems = await _unitOfWork.HistorySolds.GetAllSellerItemsAsync(sellerId);
             if (allItems == null)
                 throw new Exception("Failed to fetch seller items");
 
@@ -69,12 +71,12 @@ namespace Application.Services
             if (sellerId <= 0)
                 throw new ArgumentException("Invalid seller ID");
 
-            var seller = await _repository.GetSellerByIdAsync(sellerId);
+            var seller = await _unitOfWork.HistorySolds.GetSellerByIdAsync(sellerId);
 
             if (seller == null)
                 throw new KeyNotFoundException($"Seller with ID {sellerId} not found");
 
-            var allItemsQuery = _repository.GetAllSellerItemsQueryable(sellerId);
+            var allItemsQuery = _unitOfWork.HistorySolds.GetAllSellerItemsQueryable(sellerId);
 
             var totalCount = await allItemsQuery.CountAsync();
             if (totalCount == 0)
@@ -94,11 +96,11 @@ namespace Application.Services
 
         public async Task<List<object>> GetProcessingItemsAsync(int sellerId)
         {
-            var seller = await _repository.GetSellerByIdAsync(sellerId);
+            var seller = await _unitOfWork.HistorySolds.GetSellerByIdAsync(sellerId);
             if (seller == null)
                 throw new KeyNotFoundException($"Seller with ID {sellerId} not found");
 
-            var items = await _repository.GetProcessingItemsAsync(sellerId);
+            var items = await _unitOfWork.HistorySolds.GetProcessingItemsAsync(sellerId);
             if (items == null)
                 throw new Exception("Failed to fetch processing items");
 
@@ -117,11 +119,11 @@ namespace Application.Services
 
         public async Task<List<object>> GetPendingPaymentItemsAsync(int sellerId)
         {
-            var seller = await _repository.GetSellerByIdAsync(sellerId);
+            var seller = await _unitOfWork.HistorySolds.GetSellerByIdAsync(sellerId);
             if (seller == null)
                 throw new KeyNotFoundException($"Seller with ID {sellerId} not found");
 
-            var items = await _repository.GetPendingPaymentItemsAsync(sellerId);
+            var items = await _unitOfWork.HistorySolds.GetPendingPaymentItemsAsync(sellerId);
             if (items == null)
                 throw new Exception("Failed to fetch pending payment items");
 
@@ -140,11 +142,11 @@ namespace Application.Services
 
         public async Task<List<object>> GetSoldItemsAsync(int sellerId)
         {
-            var seller = await _repository.GetSellerByIdAsync(sellerId);
+            var seller = await _unitOfWork.HistorySolds.GetSellerByIdAsync(sellerId);
             if (seller == null)
                 throw new KeyNotFoundException($"Seller with ID {sellerId} not found");
 
-            var items = await _repository.GetSoldItemsAsync(sellerId);
+            var items = await _unitOfWork.HistorySolds.GetSoldItemsAsync(sellerId);
             if (items == null)
                 throw new Exception("Failed to fetch sold items");
 
@@ -163,11 +165,11 @@ namespace Application.Services
 
         public async Task<List<object>> GetCanceledItemsAsync(int sellerId)
         {
-            var seller = await _repository.GetSellerByIdAsync(sellerId);
+            var seller = await _unitOfWork.HistorySolds.GetSellerByIdAsync(sellerId);
             if (seller == null)
                 throw new KeyNotFoundException($"Seller with ID {sellerId} not found");
 
-            var items = await _repository.GetCanceledItemsAsync(sellerId);
+            var items = await _unitOfWork.HistorySolds.GetCanceledItemsAsync(sellerId);
             if (items == null)
                 throw new Exception("Failed to fetch canceled items");
 
@@ -191,19 +193,19 @@ namespace Application.Services
 
             var result = new List<object>();
 
-            var batteryItems = items.Where(i => i.ItemType == "battery").ToList();
+            var batteryItems = items.Where(i => i.ItemType == ItemType.Battery.ToString()).ToList();
             if (batteryItems.Any())
             {
-                var mappedBatteryItems = await _repository.MapToBatteryItemsAsync(batteryItems);
+                var mappedBatteryItems = await _unitOfWork.HistorySolds.MapToBatteryItemsAsync(batteryItems);
                 if (mappedBatteryItems == null)
                     throw new Exception("Failed to map battery items");
                 result.AddRange(mappedBatteryItems);
             }
 
-            var evItems = items.Where(i => i.ItemType == "ev").ToList();
+            var evItems = items.Where(i => i.ItemType == ItemType.Ev.ToString()).ToList();
             if (evItems.Any())
             {
-                var mappedEVItems = await _repository.MapToEVItemsAsync(evItems);
+                var mappedEVItems = await _unitOfWork.HistorySolds.MapToEVItemsAsync(evItems);
                 if (mappedEVItems == null)
                     throw new Exception("Failed to map EV items");
                 result.AddRange(mappedEVItems);
@@ -219,22 +221,22 @@ namespace Application.Services
             var result = new List<object>();
 
             // Tách query theo loại item
-            var batteryItemsQuery = itemsQuery.Where(i => i.ItemType == "battery");
+            var batteryItemsQuery = itemsQuery.Where(i => i.ItemType == ItemType.Battery.ToString());
 
             // Chỉ query nếu có tồn tại
             if (await batteryItemsQuery.AnyAsync())
             {
                 // Truyền IQueryable<Item> (đã phân trang) vào repository
-                var mappedBatteryItems = await _repository.MapToBatteryItemsAsync(batteryItemsQuery);
+                var mappedBatteryItems = await _unitOfWork.HistorySolds.MapToBatteryItemsAsync(batteryItemsQuery);
                 if (mappedBatteryItems == null)
                     throw new Exception("Failed to map battery items");
                 result.AddRange(mappedBatteryItems);
             }
 
-            var evItemsQuery = itemsQuery.Where(i => i.ItemType == "ev");
+            var evItemsQuery = itemsQuery.Where(i => i.ItemType == ItemType.Ev.ToString());
             if (await evItemsQuery.AnyAsync())
             {
-                var mappedEVItems = await _repository.MapToEVItemsAsync(evItemsQuery);
+                var mappedEVItems = await _unitOfWork.HistorySolds.MapToEVItemsAsync(evItemsQuery);
                 if (mappedEVItems == null)
                     throw new Exception("Failed to map EV items");
                 result.AddRange(mappedEVItems);

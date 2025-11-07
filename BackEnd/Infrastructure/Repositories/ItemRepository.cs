@@ -2,6 +2,7 @@
 using Application.DTOs.ItemDtos.BatteryDto;
 using Application.DTOs.UserDtos;
 using Application.IRepositories;
+using Domain.Common.Constants;
 using Domain.Entities;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -74,8 +75,8 @@ namespace Infrastructure.Repositories
                         join u in _context.Users
                             on i.UpdatedBy equals u.UserId into gj
                         from user in gj.DefaultIfEmpty()
-                        where i.IsDeleted == false && i.Status == "active"
-                        select new ItemDto
+                        where i.IsDeleted == false && i.Status == ItemStatus.Active_ItemStatus.ToString()
+                        select new ItemSearchDto
                         {
                             ItemId = i.ItemId,
                             ItemType = i.ItemType,
@@ -99,7 +100,7 @@ namespace Infrastructure.Repositories
                         };
 
             // Filter by itemType
-            if (!string.IsNullOrWhiteSpace(itemType) && itemType.ToLower() != "all")
+            if (!string.IsNullOrWhiteSpace(itemType) && itemType.ToLower() != "all") //?????
             {
                 query = query.Where(i => i.ItemType == itemType.Trim().ToLower());
             }
@@ -163,7 +164,7 @@ namespace Infrastructure.Repositories
                         })
                         .FirstOrDefaultAsync();
                 }
-                else if (item.ItemType == "battery")
+                else if (item.ItemType == ItemType.Battery.ToString())
                 {
                     var detail = await _context.BatteryDetails
                         .Where(d => d.ItemId == item.ItemId)
@@ -224,7 +225,7 @@ namespace Infrastructure.Repositories
         public async Task<IEnumerable<Item>> GetLatestEVsAsync(int count)
         {
             return await _context.Items
-                .Where(x => x.ItemType == "ev" && !(x.IsDeleted == true) && x.Status == "active")
+                .Where(x => x.ItemType == ItemType.Ev.ToString() && !(x.IsDeleted == true) && x.Status == ItemStatus.Active_ItemStatus.ToString())
                 .OrderByDescending(x => x.CreatedAt)
                 .Take(count)
                 .ToListAsync();
@@ -233,7 +234,7 @@ namespace Infrastructure.Repositories
         public async Task<IEnumerable<Item>> GetLatestBatteriesAsync(int count)
         {
             return await _context.Items
-                .Where(x => x.ItemType == "battery" && !(x.IsDeleted == true) && x.Status == "active")
+                .Where(x => x.ItemType == ItemType.Battery.ToString() && !(x.IsDeleted == true) && x.Status == ItemStatus.Active_ItemStatus.ToString())
                 .OrderByDescending(x => x.CreatedAt)
                 .Take(count)
                 .ToListAsync();
@@ -324,7 +325,7 @@ namespace Infrastructure.Repositories
             var baseQuery = from payment in _context.Payments
                             join pd in _context.PaymentDetails on payment.PaymentId equals pd.PaymentId
                             join item in _context.Items on pd.ItemId equals item.ItemId
-                            where payment.UserId == userId && payment.Status == "completed"
+                            where payment.UserId == userId && payment.Status == PaymentStatus.Completed_PaymentStatus.ToString()
                             // Left Join EV_Detail
                             join ev in _context.EVDetails on item.ItemId equals ev.ItemId into evJoin
                             from ev in evJoin.DefaultIfEmpty()
@@ -402,7 +403,7 @@ namespace Infrastructure.Repositories
                             join oi in _context.OrderItems on pd.OrderId equals oi.OrderId
                             join o in _context.Orders on oi.OrderId equals o.OrderId
                             join item in _context.Items on pd.ItemId equals item.ItemId
-                            where payment.UserId == userId && payment.Status == "completed" && o.Status == "completed"
+                            where payment.UserId == userId && payment.Status == PaymentStatus.Completed_PaymentStatus.ToString() && o.Status == OrderStatus.Completed_Order.ToString()
                             // Left Join EV_Detail
                             join ev in _context.EVDetails on item.ItemId equals ev.ItemId into evJoin
                             from ev in evJoin.DefaultIfEmpty()
@@ -494,7 +495,7 @@ namespace Infrastructure.Repositories
                                     where
                                         i.UpdatedBy == sellerId &&
                                         //o.Status == "completed" //&& 
-                                        p.Status == "completed"
+                                        p.Status == PaymentStatus.Completed_PaymentStatus.ToString()
                                     select pd.PaymentDetailId;
 
             var totalProductLinesSold = await productLinesQuery.CountAsync();
@@ -525,7 +526,7 @@ namespace Infrastructure.Repositories
             return await _context.Items
                 .Where(i => i.UpdatedBy == sellerId
                             && !i.IsDeleted
-                            && i.Status == "active")
+                            && i.Status == ItemStatus.Active_ItemStatus.ToString())
                 .AsNoTracking()
                 .ToListAsync();
         }
@@ -535,7 +536,7 @@ namespace Infrastructure.Repositories
             return await _context.Items
                 .CountAsync(i => i.UpdatedBy == sellerId
                                  && !i.IsDeleted
-                                 && i.Status == "active");
+                                 && i.Status == ItemStatus.Active_ItemStatus.ToString());
         }
 
         public async Task<IEnumerable<ItemSellerDto>> GetItemsBySellerIdAsync(int sellerId)
@@ -570,7 +571,7 @@ namespace Infrastructure.Repositories
         public async Task<int> CountActiveAsync()
         {
             return await _context.Items
-                .CountAsync(i => i.Status == "active" && i.IsDeleted == false);
+                .CountAsync(i => i.Status == ItemStatus.Active_ItemStatus.ToString() && i.IsDeleted == false);
         }
 
         public async Task<IEnumerable<(string ItemType, int Count)>> GetItemTypeCountsAsync()

@@ -1,4 +1,5 @@
 ﻿using Application.IRepositories.IBiddingRepositories;
+using Domain.Common.Constants;
 using Domain.Entities;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -46,7 +47,7 @@ public class WalletTransactionRepository : IWalletTransactionRepository
     {
         // Find the only 'hold' transaction associated with this BidId
         return await _context.WalletTransactions
-            .Where(wt => wt.Type == "hold" && wt.RefId == bidId)
+            .Where(wt => wt.Type == WalletTransactionType.Hold.ToString() && wt.RefId == bidId)
             .OrderByDescending(wt => wt.CreatedAt) // ensure to get hold transaction
             .FirstOrDefaultAsync();
     }
