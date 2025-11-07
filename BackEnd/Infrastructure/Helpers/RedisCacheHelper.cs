@@ -1,4 +1,6 @@
 ﻿using Application.IHelpers;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.Extensions.Configuration;
 using StackExchange.Redis;
 using System;
@@ -9,72 +11,50 @@ using System.Text.Json;
 
 namespace Infrastructure.Helpers
 {
-    public class RedisCacheHelper : IRedisCacheHelper
+    public class CacheResultAttribute : Attribute, IAsyncActionFilter
     {
-        private readonly ConnectionMultiplexer _redis;
-        private readonly IDatabase _db;
-        private readonly int _defaultExpiryMinutes;
+        private readonly int _durationMinutes;
 
-        public RedisCacheHelper(IConfiguration configuration)
+        public CacheResultAttribute(int durationMinutes = 0)
         {
-            var host = configuration["Redis:Host"];
-            var port = configuration["Redis:Port"];
-            _defaultExpiryMinutes = int.TryParse(configuration["Redis:DefaultExpiryMinutes"], out var m) ? m : 5;
-
-            _redis = ConnectionMultiplexer.Connect($"{host}:{port}");
-            _db = _redis.GetDatabase();
+            _durationMinutes = durationMinutes;
         }
 
-        public void SetObject<T>(string key, T obj, TimeSpan? expiry = null)
+        public async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
         {
-            var json = JsonSerializer.Serialize(obj);
-            var bytes = Compress(Encoding.UTF8.GetBytes(json));
-            _db.StringSet(key, bytes, expiry ?? TimeSpan.FromMinutes(_defaultExpiryMinutes));
-        }
+            var cache = context.HttpContext.RequestServices.GetService(typeof(IRedisCacheHelper)) as IRedisCacheHelper;
+            var config = context.HttpContext.RequestServices.GetService(typeof(IConfiguration)) as IConfiguration;
+            if (cache == null || config == null) { await next(); return; }
 
-        public T? GetObject<T>(string key)
-        {
-            var bytes = _db.StringGet(key);
-            if (bytes.IsNull) return default;
-            var json = Encoding.UTF8.GetString(Decompress(bytes));
-            return JsonSerializer.Deserialize<T>(json);
-        }
+            int defaultExpiryMinutes = config.GetValue<int>("Redis:DefaultExpiryMinutes", 10);
+            TimeSpan expiry = TimeSpan.FromMinutes(_durationMinutes > 0 ? _durationMinutes : defaultExpiryMinutes);
 
-        public bool RemoveKey(string key) => _db.KeyDelete(key);
+            var path = context.HttpContext.Request.Path.ToString();
+            var argsDic = context.ActionArguments.OrderBy(k => k.Key)
+                              .ToDictionary(k => k.Key, v => v.Value);
+            var argsJson = JsonSerializer.Serialize(argsDic);
+            var key = $"{path}:{ComputeSha256Hash(argsJson)}";
 
-        public bool Exists(string key) => _db.KeyExists(key);
-
-        private static byte[] Compress(byte[] data)
-        {
-            using var ms = new MemoryStream();
-            using (var gzip = new GZipStream(ms, CompressionLevel.Optimal))
+            var cachedData = cache.GetObject<string>(key);
+            if (cachedData != null)
             {
-                gzip.Write(data, 0, data.Length);
+                context.Result = new ContentResult { Content = cachedData, ContentType = "application/json", StatusCode = 200 };
+                return;
             }
-            return ms.ToArray();
+
+            var executedContext = await next();
+
+            if (executedContext.Result is ObjectResult objectResult)
+            {
+                cache.SetObject(key, objectResult.Value, expiry);
+            }
         }
 
-        private static byte[] Decompress(byte[] data)
+        private static string ComputeSha256Hash(string raw)
         {
-            using var ms = new MemoryStream(data);
-            using var gzip = new GZipStream(ms, CompressionMode.Decompress);
-            using var outStream = new MemoryStream();
-            gzip.CopyTo(outStream);
-            return outStream.ToArray();
+            using var sha = System.Security.Cryptography.SHA256.Create();
+            var bytes = sha.ComputeHash(Encoding.UTF8.GetBytes(raw));
+            return Convert.ToHexString(bytes);
         }
-        public string? GetObjectDecoded(string key)
-        {
-            var bytes = _db.StringGet(key);
-            if (bytes.IsNull) return null;
-
-            using var ms = new MemoryStream(bytes);
-            using var gzip = new GZipStream(ms, CompressionMode.Decompress);
-            using var outStream = new MemoryStream();
-            gzip.CopyTo(outStream);
-
-            var json = Encoding.UTF8.GetString(outStream.ToArray());
-            return json;
-        }
-        
     }
 }
