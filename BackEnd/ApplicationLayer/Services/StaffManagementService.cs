@@ -24,7 +24,7 @@ public class StaffManagementService : IStaffManagementService
 
     public static int GenerateUserId()
     {
-        var now = DateTime.UtcNow;
+        var now = DateTime.Now;
         string timestamp = now.ToString("yyyyMMddHHmmss");
         int random = new Random().Next(100, 999);
         string combined = timestamp + random.ToString();

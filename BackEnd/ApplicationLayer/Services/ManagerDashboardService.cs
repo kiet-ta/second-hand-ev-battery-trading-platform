@@ -29,7 +29,7 @@ namespace Application.Services
 
         public async Task<ManagerDashboardMetricsDto> GetMetricsAsync()
         {
-            var now = DateTime.UtcNow;
+            var now = DateTime.Now;
 
             var revenueThisMonth = await _unitOfWork.Orders.GetRevenueThisMonthAsync(now);
             var totalUsers = await _unitOfWork.Users.CountAsync();
@@ -155,7 +155,7 @@ namespace Application.Services
 
             doc.Status = KycStatus.Approved_KycStatus.ToString();
             doc.VerifiedBy = staffId;
-            doc.VerifiedAt = DateTime.UtcNow;
+            doc.VerifiedAt = DateTime.Now;
 
             await _unitOfWork.KycDocuments.UpdateAsync(doc);
 
@@ -182,7 +182,7 @@ namespace Application.Services
 
             doc.Status = KycStatus.Rejected_KycStatus.ToString();
             doc.VerifiedBy = staffId;
-            doc.VerifiedAt = DateTime.UtcNow;
+            doc.VerifiedAt = DateTime.Now;
             doc.Note = note;
 
             await _unitOfWork.KycDocuments.UpdateAsync(doc);

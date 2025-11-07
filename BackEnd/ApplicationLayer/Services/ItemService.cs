@@ -247,7 +247,7 @@ namespace Application.Services
             return result;
         }
 
-        public async Task<PagedResultItem<ItemSearchDto>> SearchItemsAsync(
+        public async Task<PagedResultItem<ItemDto>> SearchItemsAsync(
         string itemType,
         string title,
         decimal? minPrice,
@@ -374,6 +374,7 @@ namespace Application.Services
                 ItemId = e.ItemId,
                 Brand = e.Brand,
                 Capacity = e.Capacity,
+                Condition = e.Condition,
                 Voltage = e.Voltage,
                 ChargeCycles = e.ChargeCycles
             });

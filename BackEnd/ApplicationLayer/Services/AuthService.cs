@@ -60,7 +60,7 @@ namespace Application.Services
 
         public static int GenerateUserId()
         {
-            var now = DateTime.UtcNow;
+            var now = DateTime.Now;
             string timestamp = now.ToString("yyyyMMddHHmmss");
             int random = new Random().Next(100, 999);
             string combined = timestamp + random.ToString();
@@ -250,7 +250,7 @@ namespace Application.Services
         {
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.UTF8.GetBytes(_jwtSecret);
-            var expires = DateTime.UtcNow.AddHours(24); // 24 hours token
+            var expires = DateTime.Now.AddHours(24); // 24 hours token
 
             var claims = new List<Claim>
             {
@@ -306,7 +306,7 @@ namespace Application.Services
                 throw new UnauthorizedAccessException("The current password is incorrect.");
 
             user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
-            user.UpdatedAt = DateTime.UtcNow;
+            user.UpdatedAt = DateTime.Now;
 
             await _userRepository.UpdateAsync(user);
             await _userRepository.SaveChangesAsync();
@@ -324,7 +324,7 @@ namespace Application.Services
             {
                 UserId = user.UserId,
                 OtpCode = otp,
-                ExpirationTime = DateTime.UtcNow.AddMinutes(5)
+                ExpirationTime = DateTime.Now.AddMinutes(5)
             };
 
             await _otpRepository.CreateAsync(token);
@@ -383,7 +383,7 @@ namespace Application.Services
             if (token == null)
                 throw new Exception("Invalid OTP code.");
 
-            if (token.ExpirationTime < DateTime.UtcNow)
+            if (token.ExpirationTime < DateTime.Now)
                 throw new Exception("Your OTP has expired. Please request a new one.");
 
             await _otpRepository.MarkAsUsedAsync(token);

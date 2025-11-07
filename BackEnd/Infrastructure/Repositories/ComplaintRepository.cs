@@ -93,7 +93,7 @@ namespace Infrastructure.Repositories
             if (complaint == null) return false;
 
             complaint.Status = status.ToLower();
-            complaint.UpdatedAt = DateTime.UtcNow;
+            complaint.UpdatedAt = DateTime.Now;
             complaint.AssignTo = assignTo;
 
             await _context.SaveChangesAsync();
@@ -109,7 +109,7 @@ namespace Infrastructure.Repositories
             if (complaint == null) return false;
 
             complaint.SeverityLevel = level.ToLower();
-            complaint.UpdatedAt = DateTime.UtcNow;
+            complaint.UpdatedAt = DateTime.Now;
             complaint.AssignTo = assignTo;
 
             await _context.SaveChangesAsync();
@@ -124,7 +124,7 @@ namespace Infrastructure.Repositories
             if (complaint == null) return false;
 
             complaint.IsDeleted = true;
-            complaint.UpdatedAt = DateTime.UtcNow;
+            complaint.UpdatedAt = DateTime.Now;
             complaint.AssignTo = userId;
 
             await _context.SaveChangesAsync();

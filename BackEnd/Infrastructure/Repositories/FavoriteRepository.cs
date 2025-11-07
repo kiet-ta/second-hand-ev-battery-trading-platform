@@ -85,6 +85,7 @@ namespace Infrastructure.Repositories
                         {
                             Brand = d.Brand,
                             Capacity = d.Capacity,
+                            Condition = d.Condition,
                             Voltage = d.Voltage,
                             ChargeCycles = d.ChargeCycles
                         })

@@ -125,7 +125,9 @@ export default function LoginPage() {
             const data = await authApi.login({ email: email.trim(), password: password.trim() });
             const res = data.data;
             const newUser = { ...res, token: res.token };
-
+            localStorage.clear("userId")
+            localStorage.clear("token")
+            localStorage.clear("user")
             localStorage.setItem("userId", res.userId);
             localStorage.setItem("token", res.token);
             localStorage.setItem("user", JSON.stringify(newUser));

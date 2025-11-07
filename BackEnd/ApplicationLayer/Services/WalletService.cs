@@ -114,7 +114,7 @@ public class WalletService : IWalletService
             Amount = -request.Amount, // set negative amount to show subtraction
             Type = request.Type, // withdraw or payment
             RefId = request.RefId,
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateTime.Now
         };
 
         var transactionId = await _unitOfWork.WalletTransactions.CreateTransactionAsync(transaction);

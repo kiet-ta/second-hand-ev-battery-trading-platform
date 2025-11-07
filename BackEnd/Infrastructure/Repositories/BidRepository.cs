@@ -55,12 +55,16 @@ public async Task<Bid?> GetUserHighestActiveBidAsync(int auctionId, int userId)
 
     public async Task<bool> UpdateBidStatusAsync(int bidId, string status)
     {
-        // Sử dụng ExecuteUpdateAsync để hiệu quả hơn
-        var affectedRows = await _context.Bids
-            .Where(b => b.BidId == bidId)
-            .ExecuteUpdateAsync(updates => updates.SetProperty(b => b.Status, status));
+        var bid = await _context.Bids.FindAsync(bidId);
+        if (bid == null)
+        {
+            return false;
+        }
 
-        return affectedRows > 0; // Trả về true nếu có dòng nào được cập nhật
+        bid.Status = status;
+        _context.Bids.Update(bid);
+
+        return true;
     }
     public async Task<IEnumerable<Bid>> GetAllLoserActiveOrOutbidBidsAsync(int auctionId, int winnerId)
     {

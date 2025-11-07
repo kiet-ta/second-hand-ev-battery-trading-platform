@@ -14,11 +14,14 @@ namespace Application.DTOs.ItemDtos.BatteryDto
         public string? Description { get; set; }
         public decimal? Price { get; set; }
         public int Quantity { get; set; } = 1;
-        public string Status { get; set; } = ItemStatus.Active_ItemStatus.ToString();
+        public string Status { get; set; } = "active";
+
+        public string Moderation { get; set; } = "not_submitted";
         public int? UpdatedBy { get; set; }
 
         public string? Brand { get; set; }
         public int? Capacity { get; set; }
+        public string Condition { get; set; }
         public decimal? Voltage { get; set; }
         public int? ChargeCycles { get; set; }
     }

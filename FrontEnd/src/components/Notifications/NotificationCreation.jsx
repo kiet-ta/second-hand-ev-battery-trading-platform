@@ -40,8 +40,6 @@ export default function NotificationCreator() {
 
         const apiPayload = {
             notiType: formData.notiType,
-            senderId: parseInt(formData.senderId),
-            senderRole: formData.senderRole,
             title: formData.title,
             message: formData.message,
             targetUserId: formData.targetUserId // 🎯 Send the required field

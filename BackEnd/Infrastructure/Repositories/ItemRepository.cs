@@ -58,7 +58,7 @@ namespace Infrastructure.Repositories
             return query.AsNoTracking(); // Optimized for read-only queries
         }
 
-        public async Task<PagedResultItem<ItemSearchDto>> SearchItemsAsync(
+        public async Task<PagedResultItem<ItemDto>> SearchItemsAsync(
             string itemType,
             string title,
             decimal? minPrice,
@@ -97,7 +97,6 @@ namespace Infrastructure.Repositories
                                     ImageId = img.ImageId,
                                     ImageUrl = img.ImageUrl
                                 }).ToList(),
-                            ItemDetail = null
                         };
 
             // Filter by itemType
@@ -164,7 +163,6 @@ namespace Infrastructure.Repositories
                             LicenseUrl = d.LicenseUrl
                         })
                         .FirstOrDefaultAsync();
-                    item.ItemDetail = detail;
                 }
                 else if (item.ItemType == ItemType.Battery.ToString())
                 {
@@ -174,15 +172,15 @@ namespace Infrastructure.Repositories
                         {
                             Brand = d.Brand,
                             Capacity = d.Capacity,
+                            Condition = d.Condition,
                             Voltage = d.Voltage,
                             ChargeCycles = d.ChargeCycles
                         })
                         .FirstOrDefaultAsync();
-                    item.ItemDetail = detail;
                 }
             }
 
-            return new PagedResultItem<ItemSearchDto>
+            return new PagedResultItem<ItemDto>
             {
                 Page = page,
                 PageSize = pageSize,
@@ -361,6 +359,7 @@ namespace Infrastructure.Repositories
                     Color = x.ev.Color,
                     Mileage = x.ev.Mileage,
                     Capacity = x.bat.Capacity,
+                    Condition = x.bat.Condition,
                     Voltage = x.bat.Voltage,
                     ChargeCycles = x.bat.ChargeCycles,
                     ItemAmount = x.pd.Amount,
@@ -438,6 +437,7 @@ namespace Infrastructure.Repositories
                     Color = x.ev.Color,
                     Mileage = x.ev.Mileage,
                     Capacity = x.bat.Capacity,
+                    Condition = x.bat.Condition,
                     Voltage = x.bat.Voltage,
                     ChargeCycles = x.bat.ChargeCycles,
                     ItemAmount = x.pd.Amount,
@@ -561,7 +561,8 @@ namespace Infrastructure.Repositories
                             {
                                 ImageId = img.ImageId,
                                 ImageUrl = img.ImageUrl
-                            }).ToList()
+                            }).ToList(),
+                            Moderation = i.Moderation
                         };
 
             return await query.ToListAsync();
@@ -652,6 +653,7 @@ namespace Infrastructure.Repositories
                                          ItemId = b.ItemId,
                                          Brand = b.Brand,
                                          Capacity = b.Capacity,
+                                         Condition = b.Condition,
                                          Voltage = b.Voltage,
                                          ChargeCycles = b.ChargeCycles,
                                          UpdatedAt = b.UpdatedAt,
@@ -721,6 +723,7 @@ namespace Infrastructure.Repositories
                                          ItemId = b.ItemId,
                                          Brand = b.Brand,
                                          Capacity = b.Capacity,
+                                         Condition = b.Condition,
                                          Voltage = b.Voltage,
                                          ChargeCycles = b.ChargeCycles,
                                          UpdatedAt = b.UpdatedAt,
@@ -777,6 +780,9 @@ namespace Infrastructure.Repositories
 
             if (request.Capacity.HasValue)
                 query = query.Where(b => b.Capacity == request.Capacity);
+
+            if (!string.IsNullOrEmpty(request.Condition))
+                query = query.Where(b => b.Condition == request.Condition);
 
             if (request.Voltage.HasValue)
                 query = query.Where(b => b.Voltage == request.Voltage);

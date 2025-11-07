@@ -10,8 +10,8 @@ public class CommissionFeeRule
     public string TargetRole { get; set; } = CommissionFeeRuleTargetRole.Seller_CommissionFeeRule.ToString(); 
     public string FeeType { get; set; } = CommissionFeeType.Percentage.ToString(); 
     public decimal FeeValue { get; set; }
-    public DateTime EffectiveFrom { get; set; } = DateTime.UtcNow;
+    public DateTime EffectiveFrom { get; set; } = DateTime.Now;
     public DateTime? EffectiveTo { get; set; }
     public bool IsActive { get; set; } = true;
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime CreatedAt { get; set; } = DateTime.Now;
 }

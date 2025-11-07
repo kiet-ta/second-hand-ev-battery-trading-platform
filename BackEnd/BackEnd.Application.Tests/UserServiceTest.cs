@@ -156,7 +156,7 @@ public class UserServiceTest
             Email = "new@example.com",
             PasswordHash = "already_hashed_password"
         };
-        var beforeDate = DateTime.UtcNow.AddSeconds(-1);
+        var beforeDate = DateTime.Now.AddSeconds(-1);
 
         // Act
         await _userService.AddUserAsync(newUser);
@@ -224,7 +224,7 @@ public class UserServiceTest
             KycStatus = "approved",
             AccountStatus = "ban"
         };
-        var beforeDate = DateTime.UtcNow.AddSeconds(-1);
+        var beforeDate = DateTime.Now.AddSeconds(-1);
 
         // Act
         await _userService.UpdateUserAsync(updatedUserDto);
@@ -345,7 +345,7 @@ public class UserServiceTest
             .ReturnsAsync((User)null);
 
         var newUser = new User { Email = "newdate@example.com", PasswordHash = "hash" };
-        var beforeDate = DateTime.UtcNow.AddSeconds(-1); // Thêm 1s buffer
+        var beforeDate = DateTime.Now.AddSeconds(-1); // Thêm 1s buffer
 
         // Act
         await _userService.AddUserAsync(newUser);

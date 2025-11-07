@@ -83,11 +83,11 @@ public class PaymentService : IPaymentService
             decimal netAmountForSeller = totalOrderAmount - commissionAmount;
 
             sellerWallet.Balance += netAmountForSeller;
-            sellerWallet.UpdatedAt = DateTime.UtcNow;
+            sellerWallet.UpdatedAt = DateTime.Now;
             _unitOfWork.Wallets.Update(sellerWallet);
 
             managerWallet.Balance += commissionAmount;
-            managerWallet.UpdatedAt = DateTime.UtcNow;
+            managerWallet.UpdatedAt = DateTime.Now;
             _unitOfWork.Wallets.Update(managerWallet);
 
             order.Status = OrderStatus.Completed_Order.ToString();
@@ -100,7 +100,7 @@ public class PaymentService : IPaymentService
                 Amount = netAmountForSeller,
                 Type = WalletTransactionType.Released_WalletTransaction.ToString(),
                 OrderId = orderId,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.Now
             };
             await _unitOfWork.WalletTransactions.AddAsync(sellerTransaction);
 
@@ -110,7 +110,7 @@ public class PaymentService : IPaymentService
                 Amount = commissionAmount,
                 Type = WalletTransactionType.Payment.ToString(),
                 OrderId = orderId,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.Now
             };
             await _unitOfWork.WalletTransactions.AddAsync(managerTransaction);
 
@@ -121,7 +121,7 @@ public class PaymentService : IPaymentService
                 TransactionId = managerTransaction.TransactionId,
                 RuleId = commissionRule.RuleId,
                 AppliedValue = commissionAmount,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.Now
             };
             await _unitOfWork.TransactionCommission.AddAsync(commissionLog);
 
@@ -182,7 +182,7 @@ public class PaymentService : IPaymentService
                     throw new ArgumentException("Insufficient wallet balance");
 
                 wallet.Balance -= request.TotalAmount;
-                wallet.UpdatedAt = DateTime.UtcNow;
+                wallet.UpdatedAt = DateTime.Now;
                 await _unitOfWork.Wallets.UpdateBalanceAsync(wallet.WalletId, -request.TotalAmount);
 
                 var walletTransaction = new WalletTransaction
@@ -191,7 +191,7 @@ public class PaymentService : IPaymentService
                     Amount = -request.TotalAmount,
                     Type = WalletTransactionType.Payment.ToString(),
                     RefId = payment.PaymentId,
-                    CreatedAt = DateTime.UtcNow
+                    CreatedAt = DateTime.Now
                 };
                 await _unitOfWork.WalletTransactions.CreateTransactionAsync(walletTransaction);
 
@@ -329,7 +329,7 @@ public class PaymentService : IPaymentService
                         Amount = info.TotalAmount,
                         Type = WalletTransactionType.Deposit_WalletTransaction.ToString(),
                         RefId = info.PaymentId, 
-                        CreatedAt = DateTime.UtcNow
+                        CreatedAt = DateTime.Now
                     };
                     await _unitOfWork.WalletTransactions.CreateTransactionAsync(transaction);
                 }
@@ -355,7 +355,7 @@ public class PaymentService : IPaymentService
                     Amount = info.TotalAmount,
                     Type = WalletTransactionType.Hold.ToString(),
                     RefId = info.PaymentId,
-                    CreatedAt = DateTime.UtcNow
+                    CreatedAt = DateTime.Now
                 };
                 await _unitOfWork.WalletTransactions.CreateTransactionAsync(transaction);
             }

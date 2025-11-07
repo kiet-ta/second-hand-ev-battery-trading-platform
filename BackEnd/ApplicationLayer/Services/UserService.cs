@@ -64,8 +64,8 @@ namespace Application.Services
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
                 Phone = dto.Phone,
                 Role = dto.Role,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.Now,
+                UpdatedAt = DateTime.Now
             };
 
             await _unitOfWork.Users.AddAsync(newUser);
@@ -88,7 +88,7 @@ namespace Application.Services
                     new Claim(ClaimTypes.Email, user.Email),
                     new Claim(ClaimTypes.Role, user.Role)
                 }),
-                Expires = DateTime.UtcNow.AddHours(2),
+                Expires = DateTime.Now.AddHours(2),
                 Issuer = _jwtIssuer,
                 Audience = _jwtAudience,
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256)
@@ -163,7 +163,7 @@ namespace Application.Services
             existing.KycStatus = user.KycStatus;
             existing.AccountStatus = user.AccountStatus;
             existing.YearOfBirth = user.YearOfBirth;
-            existing.UpdatedAt = DateTime.UtcNow;
+            existing.UpdatedAt = DateTime.Now;
 
             await _unitOfWork.Users.UpdateAsync(existing);
             await _unitOfWork.Users.SaveChangesAsync();

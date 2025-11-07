@@ -39,8 +39,8 @@ namespace Application.Services
                 Quantity = dto.Quantity,
                 Status = dto.Status,
                 UpdatedBy = dto.UpdatedBy,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.Now,
+                UpdatedAt = DateTime.Now
             };
 
             await _unitOfWork.Items.AddAsync(item, ct);
@@ -63,7 +63,7 @@ namespace Application.Services
                 IsRegistrationValid = dto.IsRegistrationValid,
                 Mileage = dto.Mileage,
                 LicenseUrl = dto.LicenseUrl,
-                UpdatedAt = DateTime.UtcNow
+                UpdatedAt = DateTime.Now
             };
 
             // If ItemId identity is generated on DB, you must SaveChanges() after AddAsync(item) to get item.ItemId.
@@ -138,7 +138,7 @@ namespace Application.Services
             if (dto.IsRegistrationValid.HasValue) existing.IsRegistrationValid = dto.IsRegistrationValid.Value;
             if (dto.Mileage.HasValue) existing.Mileage = dto.Mileage.Value;
             if (dto.LicenseUrl != null) existing.LicenseUrl = dto.LicenseUrl;
-            existing.UpdatedAt = DateTime.UtcNow;
+            existing.UpdatedAt = DateTime.Now;
 
             _unitOfWork.EVDetails.Update(existing);
 

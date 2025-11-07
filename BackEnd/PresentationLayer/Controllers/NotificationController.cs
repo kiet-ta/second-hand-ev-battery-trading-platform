@@ -5,6 +5,7 @@ using Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 using System.Text.Json;
 
 namespace PresentationLayer.Controllers
@@ -68,18 +69,25 @@ namespace PresentationLayer.Controllers
             {
                 return BadRequest(ModelState);
             }
+            var userIdClaim = User.FindFirst("user_id")?.Value;
+            if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int senderId))
+                return Unauthorized(new { message = "User ID not found or invalid in token." });
+
+
+            var roleClaim = User.FindFirst(ClaimTypes.Role)?.Value;
+            if (string.IsNullOrEmpty(roleClaim))
+                return Unauthorized(new { message = "User role not found in token." });
+            string senderRole = roleClaim;
 
             var serviceDto = new CreateNotificationDTO
             {
                 NotiType = request.NotiType,
-                //SenderId = request.SenderId,
-                //SenderRole = request.SenderRole,
                 Title = request.Title,
                 Message = request.Message,
                 TargetUserId = request.TargetUserId
             };
 
-            var dbSuccess = await _notificationService.AddNewNotification(serviceDto, 0, "");
+            var dbSuccess = await _notificationService.AddNewNotification(serviceDto, senderId, roleClaim);
 
             if (!dbSuccess)
                 return StatusCode(500, new { message = "Error saving Notification to database." });
@@ -91,7 +99,7 @@ namespace PresentationLayer.Controllers
                 content = request.Message,
                 notiType = request.NotiType, // For tab filtering
                 type = "general", // For inner filtering
-                time = DateTime.UtcNow.ToString("dd/MM/yyyy HH:mm")
+                time = DateTime.Now.ToString("dd/MM/yyyy HH:mm")
             };
 
             string jsonMessage = JsonSerializer.Serialize(ssePayload);

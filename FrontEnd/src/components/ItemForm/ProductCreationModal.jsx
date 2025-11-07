@@ -54,6 +54,8 @@ export default function ProductCreationModal({ onSuccess }) {
     if (!itemInfo) return;
 
     setIsLoading(true);
+    const moderationState = itemInfo.createAuction ? "pending" : "not_submitted";
+
     try {
       const basePayload = {
         title: itemInfo.title,
@@ -61,6 +63,7 @@ export default function ProductCreationModal({ onSuccess }) {
         price: itemInfo.price,
         quantity: itemInfo.quantity || 1,
         status: "pending_pay",
+        moderation: moderationState,
         updatedBy: userID,
       };
 

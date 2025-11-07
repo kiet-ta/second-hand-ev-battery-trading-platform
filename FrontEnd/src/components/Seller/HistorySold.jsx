@@ -508,14 +508,13 @@ export default function HistorySold() {
                                 Đóng
                             </button>
 
-                            {selectedSale.status?.toLowerCase() === "processing" && (
+                            {(selectedSale.status?.toLowerCase() === "processing" ||selectedSale.status?.toLowerCase() === "pending_approval") && (
                                 <button
                                     disabled={confirming}
                                     onClick={async () => {
                                         const confirmed = confirm("Xác nhận đơn hàng này đã được giao?");
                                         if (!confirmed) return;
                                         try {
-                                            console.log(selectedSale)
                                             setConfirming(true);
                                             await orderApi.putOrder(selectedSale.orderId, {
                                                 ...selectedSale,
