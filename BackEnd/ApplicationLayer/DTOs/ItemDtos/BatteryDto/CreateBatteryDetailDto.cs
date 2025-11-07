@@ -16,7 +16,7 @@ namespace Application.DTOs.ItemDtos.BatteryDto
         public int Quantity { get; set; } = 1;
         public string Status { get; set; } = "active";
 
-        public string Moderation { get; set; } = "not_submitted";
+        public string Moderation { get; set; } = ItemModeration.Not_Submitted_Tag.ToString();
         public int? UpdatedBy { get; set; }
 
         public string? Brand { get; set; }
