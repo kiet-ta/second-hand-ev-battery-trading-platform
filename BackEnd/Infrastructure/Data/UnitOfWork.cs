@@ -66,10 +66,6 @@ public class UnitOfWork : IUnitOfWork
 
     public async Task CommitTransactionAsync(CancellationToken cancellationToken = default)
     {
-        if (_currentTransaction == null)
-        {
-            throw new InvalidOperationException("No transaction in progress to commit.");
-        }
         try
         {
             await _context.SaveChangesAsync(cancellationToken);
@@ -94,7 +90,7 @@ public class UnitOfWork : IUnitOfWork
     {
         if (_currentTransaction == null)
         {
-            throw new InvalidOperationException("No transaction in progress to roll back.");
+            return;
         }
         try
         {

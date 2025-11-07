@@ -12,5 +12,8 @@ const orderItemApi = {
     deleteOrderItem: async (itemId) => {
         await axios.delete(baseURL + `/${itemId}`)
     },
+    putOrderItem: async (orderId, payload) => {
+        await axios.put(`${baseURL}/${orderId}`,payload)
+    }
 };
 export default orderItemApi;

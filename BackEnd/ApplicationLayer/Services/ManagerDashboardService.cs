@@ -42,7 +42,7 @@ namespace Application.Services
 
         public async Task<ManagerDashboardMetricsDto> GetMetricsAsync()
         {
-            var now = DateTime.UtcNow;
+            var now = DateTime.Now;
 
             var revenueThisMonth = await _orderRepo.GetRevenueThisMonthAsync(now);
             var totalUsers = await _userRepo.CountAsync();
@@ -168,7 +168,7 @@ namespace Application.Services
 
             doc.Status = "approved";
             doc.VerifiedBy = staffId;
-            doc.VerifiedAt = DateTime.UtcNow;
+            doc.VerifiedAt = DateTime.Now;
 
             await _kycRepo.UpdateAsync(doc);
 
@@ -180,6 +180,7 @@ namespace Application.Services
                 user.Role = "seller";
                 user.KycStatus = "approved";
                 await _userRepo.UpdateAsync(user);
+                await _userRepo.SaveChangesAsync();
             }
         }
 
@@ -194,7 +195,7 @@ namespace Application.Services
 
             doc.Status = "rejected";
             doc.VerifiedBy = staffId;
-            doc.VerifiedAt = DateTime.UtcNow;
+            doc.VerifiedAt = DateTime.Now;
             doc.Note = note;
 
             await _kycRepo.UpdateAsync(doc);

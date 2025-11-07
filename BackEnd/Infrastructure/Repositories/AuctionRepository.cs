@@ -47,7 +47,11 @@ public class AuctionRepository : IAuctionRepository
         await _context.SaveChangesAsync();
         return auction.AuctionId;
     }
-
+    public Task Update(Auction auction)
+    {
+        _context.Update(auction); 
+        return Task.CompletedTask;
+    }
     public async Task UpdateCurrentPriceAsync(Auction auction)
     {
         auction.UpdatedAt = DateTime.Now;
@@ -70,7 +74,6 @@ public class AuctionRepository : IAuctionRepository
         {
             auction.TotalBids = await _context.Bids.CountAsync(b => b.AuctionId == auctionId && b.Status != "cancelled");
             auction.UpdatedAt = DateTime.Now;
-            await _context.SaveChangesAsync();
         }
     }
 
@@ -110,7 +113,7 @@ public class AuctionRepository : IAuctionRepository
         .ToListAsync();
 
         // help most accurate display
-        var now = DateTime.UtcNow;
+        var now = DateTime.Now;
         foreach (var a in result)
         {
             a.Status = now < a.StartTime ? "upcoming" :
@@ -158,7 +161,7 @@ public class AuctionRepository : IAuctionRepository
             .Where(a => a.AuctionId == auctionId)
             .ExecuteUpdateAsync(updates => updates
                 .SetProperty(a => a.CurrentPrice, newPrice)
-                .SetProperty(a => a.UpdatedAt, DateTime.UtcNow)); //update timestamp
+                .SetProperty(a => a.UpdatedAt, DateTime.Now)); //update timestamp
 
         return affectedRows > 0;
     }

@@ -82,15 +82,15 @@ public class PaymentService : IPaymentService
             decimal netAmountForSeller = totalOrderAmount - commissionAmount;
 
             sellerWallet.Balance += netAmountForSeller;
-            sellerWallet.UpdatedAt = DateTime.UtcNow;
+            sellerWallet.UpdatedAt = DateTime.Now;
             _unitOfWork.Wallets.Update(sellerWallet);
 
             managerWallet.Balance += commissionAmount;
-            managerWallet.UpdatedAt = DateTime.UtcNow;
+            managerWallet.UpdatedAt = DateTime.Now;
             _unitOfWork.Wallets.Update(managerWallet);
 
             order.Status = "completed";
-            order.UpdatedAt = DateTime.UtcNow;
+            order.UpdatedAt = DateTime.Now;
             await _unitOfWork.Orders.UpdateAsync(order);
 
             var sellerTransaction = new WalletTransaction
@@ -99,7 +99,7 @@ public class PaymentService : IPaymentService
                 Amount = netAmountForSeller,
                 Type = "release",
                 OrderId = orderId,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.Now
             };
             await _unitOfWork.WalletTransactions.AddAsync(sellerTransaction);
 
@@ -109,7 +109,7 @@ public class PaymentService : IPaymentService
                 Amount = commissionAmount,
                 Type = "payment",
                 OrderId = orderId,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.Now
             };
             await _unitOfWork.WalletTransactions.AddAsync(managerTransaction);
 
@@ -120,7 +120,7 @@ public class PaymentService : IPaymentService
                 TransactionId = managerTransaction.TransactionId,
                 RuleId = commissionRule.RuleId,
                 AppliedValue = commissionAmount,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.Now
             };
             await _unitOfWork.TransactionCommission.AddAsync(commissionLog);
 
@@ -158,8 +158,8 @@ public class PaymentService : IPaymentService
                 Method = request.Method,
                 Status = "pending",
                 PaymentType = "order_purchase",
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.Now,
+                UpdatedAt = DateTime.Now
             };
             payment = await _unitOfWork.Payments.AddPaymentAsync(payment);
 
@@ -181,7 +181,7 @@ public class PaymentService : IPaymentService
                     throw new ArgumentException("Insufficient wallet balance");
 
                 wallet.Balance -= request.TotalAmount;
-                wallet.UpdatedAt = DateTime.UtcNow;
+                wallet.UpdatedAt = DateTime.Now;
                 await _unitOfWork.Wallets.UpdateBalanceAsync(wallet.WalletId, -request.TotalAmount);
 
                 var walletTransaction = new WalletTransaction
@@ -190,7 +190,7 @@ public class PaymentService : IPaymentService
                     Amount = -request.TotalAmount,
                     Type = "payment",
                     RefId = payment.PaymentId,
-                    CreatedAt = DateTime.UtcNow
+                    CreatedAt = DateTime.Now
                 };
                 await _unitOfWork.WalletTransactions.CreateTransactionAsync(walletTransaction);
 
@@ -328,7 +328,7 @@ public class PaymentService : IPaymentService
                         Amount = info.TotalAmount,
                         Type = "deposit",
                         RefId = info.PaymentId, 
-                        CreatedAt = DateTime.UtcNow
+                        CreatedAt = DateTime.Now
                     };
                     await _unitOfWork.WalletTransactions.CreateTransactionAsync(transaction);
                 }
@@ -354,7 +354,7 @@ public class PaymentService : IPaymentService
                     Amount = info.TotalAmount,
                     Type = "hold",
                     RefId = info.PaymentId,
-                    CreatedAt = DateTime.UtcNow
+                    CreatedAt = DateTime.Now
                 };
                 await _unitOfWork.WalletTransactions.CreateTransactionAsync(transaction);
             }
@@ -397,7 +397,7 @@ public class PaymentService : IPaymentService
                 Method = "payos",
                 PaymentType = "seller_registration",
                 Status = "pending",
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.Now
             };
             payment = await _unitOfWork.Payments.AddPaymentAsync(payment);
             await _unitOfWork.SaveChangesAsync(); //save to get PaymentId
@@ -454,8 +454,8 @@ public class PaymentService : IPaymentService
                 Method = "payos",
                 Status = "pending",
                 PaymentType = "deposit",
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow,
+                CreatedAt = DateTime.Now,
+                UpdatedAt = DateTime.Now,
             };
             paymentRecord = await _unitOfWork.Payments.AddPaymentAsync(paymentRecord);
             await _unitOfWork.SaveChangesAsync(); // save to get PaymentId
@@ -519,7 +519,7 @@ public class PaymentService : IPaymentService
                 if (order != null)
                 {
                     order.Status = "paid";
-                    order.UpdatedAt = DateTime.UtcNow;
+                    order.UpdatedAt = DateTime.Now;
                 }
             }
             if (detail.ItemId.HasValue)
@@ -528,7 +528,7 @@ public class PaymentService : IPaymentService
                 if (item != null)
                 {
                     item.Status = "sold";
-                    item.UpdatedAt = DateTime.UtcNow;
+                    item.UpdatedAt = DateTime.Now;
                 }
             }
         }

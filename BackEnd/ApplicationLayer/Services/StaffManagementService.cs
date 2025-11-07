@@ -29,7 +29,7 @@ public class StaffManagementService : IStaffManagementService
 
     public static int GenerateUserId()
     {
-        var now = DateTime.UtcNow;
+        var now = DateTime.Now;
         string timestamp = now.ToString("yyyyMMddHHmmss");
         int random = new Random().Next(100, 999);
         string combined = timestamp + random.ToString();
@@ -75,7 +75,7 @@ public class StaffManagementService : IStaffManagementService
             Role = "staff",
             AccountStatus = "active",
             KycStatus = "not_submitted",
-            CreatedAt = DateTime.UtcNow,
+            CreatedAt = DateTime.Now,
             IsDeleted = false
         };
 

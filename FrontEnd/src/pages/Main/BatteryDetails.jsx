@@ -125,7 +125,7 @@ function BatteryDetails() {
     price?.toLocaleString("vi-VN", { style: "currency", currency: "VND" }) ||
     "N/A";
 
-  const handleAddToCart = async () => {
+  const handleAddToCart = useCallback(async () => {
     const buyerId = parseInt(localStorage.getItem("userId"), 10);
     if (isNaN(buyerId)) {
       setFeedback({ type: "error", msg: "Vui lòng đăng nhập để tiếp tục." });
@@ -138,28 +138,75 @@ function BatteryDetails() {
       return;
     }
 
-    const payload = {
-      buyerId,
-      itemId,
-      quantity,
-      price: item.price,
-    };
+    setIsProcessing(true);
 
     try {
-      await orderItemApi.postOrderItem(payload);
-      setFeedback({
-        type: "success",
-        msg: `${quantity} x ${item.title} đã được thêm vào giỏ hàng.`,
-      });
+      // 🔹 Try to get current order items (handle 404 as empty)
+      let existingOrderItems = [];
+      try {
+        const res = await orderItemApi.getOrderItem(buyerId);
+        existingOrderItems = Array.isArray(res) ? res : [];
+      } catch (err) {
+        if (err.response && err.response.status === 404) {
+          existingOrderItems = [];
+        } else throw err;
+      }
+
+      // 🔹 Check if this item already exists in cart
+      const existingItem = existingOrderItems.find(
+        (oi) => oi.itemId === itemId
+      );
+
+      if (existingItem) {
+        // 🔹 Fetch latest item data to check stock
+        const itemData = await itemApi.getItemById(itemId);
+        const availableStock = itemData?.quantity ?? 0;
+        const newQuantity = existingItem.quantity + quantity;
+
+        if (newQuantity > availableStock) {
+          setFeedback({
+            type: "error",
+            msg: `Số lượng trong kho không đủ. Chỉ còn ${availableStock} sản phẩm.`,
+          });
+          return;
+        }
+
+        // ✅ Update (PUT)
+        const payload = {
+          quantity: newQuantity,
+          price: item.price,
+        };
+
+        await orderItemApi.putOrderItem(existingItem.orderItemId, payload);
+        setFeedback({
+          type: "success",
+          msg: `Đã cập nhật số lượng sản phẩm trong giỏ hàng (${newQuantity}).`,
+        });
+      } else {
+        // 🆕 Create (POST)
+        const payload = {
+          buyerId,
+          itemId,
+          quantity,
+          price: item.price,
+        };
+
+        await orderItemApi.postOrderItem(payload);
+        setFeedback({
+          type: "success",
+          msg: `${quantity} x ${item.title} đã được thêm vào giỏ hàng.`,
+        });
+      }
     } catch (error) {
-      console.error(error);
+      console.error("❌ Add to cart error:", error);
       setFeedback({
         type: "error",
         msg: "Không thể thêm vào giỏ hàng. Vui lòng thử lại.",
       });
+    } finally {
+      setIsProcessing(false);
     }
-  };
-
+  }, [item, itemId, quantity, navigate]);
   const handleBuyNow = async (e) => {
     e.preventDefault();
     e.stopPropagation();

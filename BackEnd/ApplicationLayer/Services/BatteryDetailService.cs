@@ -33,6 +33,7 @@ namespace Application.Services
                 ItemId = b.ItemId,
                 Brand = b.Brand,
                 Capacity = b.Capacity,
+                Condition = b.Condition,
                 Voltage = b.Voltage,
                 ChargeCycles = b.ChargeCycles,
                 UpdatedAt = b.UpdatedAt
@@ -49,6 +50,7 @@ namespace Application.Services
                 ItemId = b.ItemId,
                 Brand = b.Brand,
                 Capacity = b.Capacity,
+                Condition = b.Condition,
                 Voltage = b.Voltage,
                 ChargeCycles = b.ChargeCycles,
                 UpdatedAt = b.UpdatedAt
@@ -64,6 +66,7 @@ namespace Application.Services
                 ItemId = e.ItemId,
                 Brand = e.Brand,
                 Capacity = e.Capacity,
+                Condition = e.Condition,
                 Voltage = e.Voltage,
                 ChargeCycles = e.ChargeCycles,
                 Title = item?.Title,
@@ -86,8 +89,8 @@ namespace Application.Services
                 Quantity = dto.Quantity,
                 Status = dto.Status,
                 UpdatedBy = dto.UpdatedBy,
-                //CreatedAt = DateTime.UtcNow,
-                //UpdatedAt = DateTime.UtcNow
+                //CreatedAt = DateTime.Now,
+                //UpdatedAt = DateTime.Now
             };
 
             await _itemRepository.AddAsync(item);
@@ -98,6 +101,7 @@ namespace Application.Services
                 ItemId = item.ItemId,
                 Brand = dto.Brand ?? throw new ArgumentException("Brand cannot be null.", nameof(dto.Brand)),
                 Capacity = dto.Capacity,
+                Condition = dto.Condition,
                 Voltage = dto.Voltage,
                 ChargeCycles = dto.ChargeCycles,
             };
@@ -116,6 +120,7 @@ namespace Application.Services
 
             existing.Brand = dto.Brand ?? throw new ArgumentException("Brand cannot be null.", nameof(dto.Brand));
             existing.Capacity = dto.Capacity;
+            existing.Condition = dto.Condition;
             existing.Voltage = dto.Voltage;
             existing.ChargeCycles = dto.ChargeCycles;
             //existing.UpdatedAt = DateTime.Now;
@@ -180,6 +185,7 @@ namespace Application.Services
                 ItemId = e.ItemId,
                 Brand = e.Brand,
                 Capacity = e.Capacity,
+                Condition = e.Condition,
                 Voltage = e.Voltage,
                 ChargeCycles = e.ChargeCycles
             });

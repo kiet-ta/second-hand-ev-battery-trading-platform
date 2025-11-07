@@ -3,6 +3,7 @@ using Application.DTOs.ItemDtos;
 using Application.IRepositories;
 using Application.IServices;
 using Domain.Entities;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,11 +16,14 @@ namespace Application.Services
     {
         private readonly IOrderRepository _orderRepository;
         private readonly IOrderItemRepository _orderItemRepository;
-
-        public OrderService(IOrderRepository orderRepository, IOrderItemRepository orderItemRepository)
+        private readonly IUnitOfWork _unitOfWork;
+        private readonly ILogger<OrderService> _logger;
+        public OrderService(IOrderRepository orderRepository, IOrderItemRepository orderItemRepository, IUnitOfWork unitOfWork, ILogger<OrderService> logger)
         {
             _orderRepository = orderRepository;
             _orderItemRepository = orderItemRepository;
+            _unitOfWork = unitOfWork;
+            _logger = logger;
         }
 
         public async Task<OrderDto> GetOrderByIdAsync(int id)
@@ -168,6 +172,84 @@ namespace Application.Services
             };
 
             return response;
+        }
+        public async Task ConfirmOrderShippingAsync(int orderId, int sellerId)
+        {
+            // TODO: Validate sellerId (ensure correct seller of this order)
+            var order = await _orderRepository.GetByIdAsync(orderId);
+            if (order == null) throw new Exception("Order not found.");
+
+            // Check correct flow
+            if (order.Status != "paid")
+                throw new InvalidOperationException("Order is not in 'paid' state.");
+
+            order.Status = "shipped";
+            order.UpdatedAt = DateTime.Now;
+            await _orderRepository.UpdateAsync(order);
+
+            // TODO: Send notification to Buyer "Order is being delivered"
+        }
+        public async Task ConfirmOrderDeliveryAsync(int orderId, int buyerId)
+        {
+            await _unitOfWork.BeginTransactionAsync();
+            try
+            {
+                var order = await _orderRepository.GetByIdAsync(orderId);
+                if (order == null) throw new Exception("Order not found.");
+                if (order.BuyerId != buyerId) throw new Exception("Unauthorized."); // Check correct Buyer
+
+                // Check correct flow
+                if (order.Status != "shipped")
+                    throw new InvalidOperationException("Order is not in 'shipped' state.");
+
+                // 1. Get information (Seller, amount)
+                var orderItem = (await _unitOfWork.OrderItems.GetByOrderIdAsync(orderId)).FirstOrDefault();
+                if (orderItem == null) throw new InvalidOperationException("Order item not found.");
+
+                decimal orderAmount = orderItem.Price; // This is the amount the buyer paid.
+                var itemWithSeller = await _unitOfWork.Items.GetItemAndSellerByItemIdAsync(orderItem.ItemId);
+                if (itemWithSeller?.Seller == null) throw new InvalidOperationException("Seller not found.");
+
+                int sellerId = itemWithSeller.Seller.UserId;
+                var sellerWallet = await _unitOfWork.Wallets.GetWalletByUserIdAsync(sellerId);
+                if (sellerWallet == null) throw new InvalidOperationException("Seller wallet not found.");
+
+                // 2. Payout Calculation (The "final boss" logic)
+                decimal commissionFee = 0; // TODO: commission
+                decimal amountToSeller = orderAmount - commissionFee;
+
+                // 3.Transfer money to Seller wallet
+                bool updateSellerWallet = await _unitOfWork.Wallets.UpdateBalanceAsync(sellerWallet.WalletId, amountToSeller);
+                if (!updateSellerWallet)
+                    throw new Exception($"Failed to update seller wallet {sellerWallet.WalletId}.");
+
+                // 4. Create "Payout" Transaction for Seller
+                var payoutTransaction = new WalletTransaction
+                {
+                    WalletId = sellerWallet.WalletId,
+                    Amount = amountToSeller,
+                    Type = "payout",
+                    CreatedAt = DateTime.Now,
+                    RefId = order.OrderId
+                };
+                await _unitOfWork.WalletTransactions.CreateTransactionAsync(payoutTransaction);
+
+                _logger.LogInformation($"Released {amountToSeller} to Seller {sellerId} for Order {orderId}.");
+
+                // 5. Update Order Status
+                order.Status = "completed";
+                order.UpdatedAt = DateTime.Now;
+                await _orderRepository.UpdateAsync(order);
+
+                await _unitOfWork.CommitTransactionAsync();
+                // TODO: Send notification to Seller "You have received the money"
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error completing Order {OrderId}. Rolling back.", orderId);
+                await _unitOfWork.RollbackTransactionAsync();
+                throw;
+            }
         }
     }
 }

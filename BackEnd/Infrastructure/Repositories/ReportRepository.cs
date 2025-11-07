@@ -62,7 +62,7 @@ namespace Infrastructure.Repositories
                     break;
                 case "approved":
                     if (day <= 0) day = 1; 
-                    report.BanAt = DateTime.UtcNow;
+                    report.BanAt = DateTime.Now;
                     report.Duration = day;
                     report.UnbanAt = report.BanAt.Value.AddDays(report.Duration.Value);
                     break;

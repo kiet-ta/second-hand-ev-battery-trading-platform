@@ -40,7 +40,7 @@ namespace BackEnd.Application.Tests
                 BuyerId = 2,
                 AddressId = 3,
                 Status = "pending",
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.Now
             };
             _orderRepoMock.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(order);
 
@@ -119,8 +119,8 @@ namespace BackEnd.Application.Tests
             {
                 BuyerId = 5,
                 AddressId = 99,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.Now,
+                UpdatedAt = DateTime.Now
             };
 
             Order capturedOrder = null; // Variable to capture the entity
@@ -256,7 +256,7 @@ namespace BackEnd.Application.Tests
                 BuyerId = 1,
                 AddressId = 2,
                 OrderItemIds = new List<int> { 10, 20 },
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.Now
             };
 
             var itemsToUpdate = new List<OrderItem>

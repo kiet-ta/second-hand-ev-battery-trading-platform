@@ -62,7 +62,7 @@ namespace Infrastructure.Repositories
             {
                 Title = dto.Title,
                 Status =  "pending",
-                PublishDate = DateTime.UtcNow,
+                PublishDate = DateTime.Now,
                 Category = dto.Category,
                 Summary = dto.Summary,
                 AuthorId = dto.AuthorId,

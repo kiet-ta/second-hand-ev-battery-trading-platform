@@ -33,7 +33,7 @@ public class PaymentRepository : IPaymentRepository
         if (payment != null)
         {
             payment.Status = status;
-            payment.UpdatedAt = DateTime.UtcNow;
+            payment.UpdatedAt = DateTime.Now;
             await _context.SaveChangesAsync();
         }
     }
@@ -70,7 +70,7 @@ public class PaymentRepository : IPaymentRepository
 
     public async Task<IEnumerable<(int Year, int Month, decimal Total)>> GetRevenueByMonthAsync(int monthsRange)
     {
-        var startDate = DateTime.UtcNow.AddMonths(-monthsRange + 1);
+        var startDate = DateTime.Now.AddMonths(-monthsRange + 1);
 
         var query = await _context.Payments
             .Where(o => o.Status == "completed" && o.CreatedAt >= startDate)
