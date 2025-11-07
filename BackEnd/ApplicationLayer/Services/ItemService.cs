@@ -373,6 +373,7 @@ namespace Application.Services
                 ItemId = e.ItemId,
                 Brand = e.Brand,
                 Capacity = e.Capacity,
+                Condition = e.Condition,
                 Voltage = e.Voltage,
                 ChargeCycles = e.ChargeCycles
             });
