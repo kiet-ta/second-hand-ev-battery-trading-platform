@@ -3,6 +3,7 @@ using Application.DTOs.UserDtos;
 using Application.IRepositories;
 using Application.IServices;
 using Application.Validations;
+using Domain.Common.Constants;
 using Domain.Entities;
 using FluentValidation;
 using Google.Apis.Auth;
@@ -84,13 +85,13 @@ namespace Application.Services
                     FullName = dto.FullName.Trim(),
                     Email = dto.Email.ToLower(),
                     PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
-                    Role = "buyer",
+                    Role = UserRole.Buyer.ToString(),
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow,
                     IsDeleted = false,
-                    KycStatus = "not_submitted",
-                    AccountStatus = "active",
-                    Paid = "pending"
+                    KycStatus = KycStatus.Not_submitted_KycDocument.ToString(),
+                    AccountStatus = UserStatus.Active_UserStatus.ToString(),
+                    Paid = UserPaid.Pending_Pay.ToString()
                 };
                 await _uow.Users.AddAsync(user);
                 await _uow.SaveChangesAsync();
@@ -102,7 +103,7 @@ namespace Application.Services
                     Balance = 0,
                     HeldBalance = 0,
                     Currency = "vnd",
-                    Status = "active",
+                    Status = UserStatus.Active_UserStatus.ToString(),
                     UpdatedAt = DateTime.UtcNow
                 };
                 await _uow.Wallets.AddAsync(wallet);
@@ -197,7 +198,7 @@ namespace Application.Services
                 FullName = string.IsNullOrWhiteSpace(payload.Name) ? username : payload.Name,
                 Email = email,
                 PasswordHash = string.Empty, // No password for Google login
-                Role = "buyer",
+                Role = UserRole.Buyer.ToString(),
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow,
                 IsDeleted = false,
@@ -214,7 +215,7 @@ namespace Application.Services
                 Balance = 0,
                 HeldBalance = 0,
                 Currency = "vnd",
-                Status = "active",
+                Status = UserStatus.Active_UserStatus.ToString(),
                 UpdatedAt = DateTime.UtcNow
             };
             await _uow.Wallets.AddAsync(wallet);
@@ -257,7 +258,7 @@ namespace Application.Services
                 new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
                 new Claim(ClaimTypes.Email, user.Email),
                 new Claim(ClaimTypes.Name, user.FullName ?? string.Empty),
-                new Claim(ClaimTypes.Role, user.Role ?? "buyer"),
+                new Claim(ClaimTypes.Role, user.Role ?? UserRole.Buyer.ToString()),
                 new Claim("auth_provider", provider)
             };
 
@@ -280,7 +281,7 @@ namespace Application.Services
                 UserId = user.UserId,
                 FullName = user.FullName,
                 Email = user.Email,
-                Role = user.Role ?? "buyer",
+                Role = user.Role ?? UserRole.Buyer.ToString(),
                 Token = tokenString,
                 ExpiresAt = expires,
                 AuthProvider = provider

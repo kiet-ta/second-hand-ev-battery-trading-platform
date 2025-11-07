@@ -1,4 +1,5 @@
 ﻿using Application.DTOs.ItemDtos.BatteryDto;
+using Domain.Common.Constants;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -33,7 +34,7 @@ namespace Application.DTOs.ItemDtos
 
         public List<ItemImageDto>? Images { get; set; } = new();
         public string? SellerName { get; set; }
-        public string Status { get; set; } = "active";
+        public string Status { get; set; } = ItemStatus.Active_ItemStatus.ToString();
         //public bool? IsDeleted { get; set; }
     }
 }
