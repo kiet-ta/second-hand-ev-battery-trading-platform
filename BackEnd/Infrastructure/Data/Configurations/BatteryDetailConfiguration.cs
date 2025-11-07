@@ -28,6 +28,9 @@ namespace Infrastructure.Data.Configurations
             entity.Property(e => e.UpdatedAt)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnName("updated_at");
+            entity.Property(e => e.Condition)
+                .HasMaxLength(50)
+                .HasColumnName("condition");
             entity.Property(e => e.Voltage)
                 .HasColumnType("decimal(5, 2)")
                 .HasColumnName("voltage");
