@@ -34,7 +34,7 @@ namespace Application.Services
             return true;
         }
 
-        public async Task<News> GetNewsById(int id)
+        public async Task<News> GetByNewsId(int id)
         {
             return await _unitOfWork.News.GetNewsByIdAsync(id);
         }

@@ -76,7 +76,7 @@ namespace Infrastructure.Repositories
                             on i.UpdatedBy equals u.UserId into gj
                         from user in gj.DefaultIfEmpty()
                         where i.IsDeleted == false && i.Status == ItemStatus.Active_ItemStatus.ToString()
-                        select new ItemSearchDto
+                        select new ItemDto
                         {
                             ItemId = i.ItemId,
                             ItemType = i.ItemType,
@@ -263,6 +263,7 @@ namespace Infrastructure.Repositories
                             Price = i.Price,
                             Moderation = i.Moderation,
                             Quantity = i.Quantity,
+                            Status = i.Status,
                             CreatedAt = i.CreatedAt,
                             UpdatedAt = i.UpdatedAt,
                             UpdatedBy = i.UpdatedBy,
@@ -303,6 +304,7 @@ namespace Infrastructure.Repositories
                             Price = i.Price,
                             Quantity = i.Quantity,
                             Moderation = i.Moderation,
+                            Status = i.Status,
                             CreatedAt = i.CreatedAt,
                             UpdatedAt = i.UpdatedAt,
                             UpdatedBy = i.UpdatedBy,
@@ -612,6 +614,7 @@ namespace Infrastructure.Repositories
                         Description = i.Description,
                         Price = i.Price,
                         Quantity = i.Quantity,
+                        Status = i.Status,
                         CreatedAt = i.CreatedAt,
                         UpdatedAt = i.UpdatedAt,
                         UpdatedBy = i.UpdatedBy,

@@ -8,6 +8,7 @@ using Application.IServices;
 using Application.Mappings;
 using Application.Services;
 using Application.Validations;
+using Domain.Entities;
 using FluentValidation;
 using Infrastructure.Data;
 using Infrastructure.Repositories;
