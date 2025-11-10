@@ -59,9 +59,9 @@ function SearchPage() {
     : filters.itemType === 'Battery'
       ? batteryPriceRanges
       : [...electricCarPriceRanges, ...batteryPriceRanges].reduce((acc, range) => {
-          if (!acc.find(r => r.label === range.label)) acc.push(range);
-          return acc;
-        }, []);
+        if (!acc.find(r => r.label === range.label)) acc.push(range);
+        return acc;
+      }, []);
 
   // --- Fetch all items + details ---
   const fetchItems = useCallback(async () => {
@@ -169,8 +169,17 @@ function SearchPage() {
             .filter(v => v !== null && v !== undefined && v !== '')
         ),
       ];
-      if (values.length > 0) options[key] = values.sort();
+
+      if (values.length > 0) {
+        options[key] = values.sort((a, b) => {
+          if (typeof a === "number" && typeof b === "number") {
+            return a - b;
+          }
+          return String(a).localeCompare(String(b), "vi", { sensitivity: "base" });
+        });
+      }
     });
+
 
     setDetailFilters(options);
   }, [itemList, filters.itemType]);

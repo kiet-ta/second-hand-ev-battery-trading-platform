@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import CarAuctionCard from "../../components/Cards/CardBidding";
 import auctionApi from "../../api/auctionApi";
+import PropTypes from "prop-types";
+
 
 function AuctionMainPage() {
   const [items, setItems] = useState([]);
@@ -66,7 +68,7 @@ function AuctionMainPage() {
               startingPrice={item.startingPrice}
               startTime={item.startTime}
               endTime={item.endTime}
-              status={item.status} 
+              status={item.status}
               imageUrls={item.images}
             />
           ))
@@ -79,5 +81,24 @@ function AuctionMainPage() {
     </div>
   );
 }
+CarAuctionCard.propTypes = {
+  auctionID: PropTypes.number.isRequired,
+  id: PropTypes.number.isRequired,
+  title: PropTypes.string.isRequired,
+  category: PropTypes.string.isRequired,
+  currentBid: PropTypes.number,
+  startingPrice: PropTypes.number,
+  startTime: PropTypes.string,
+  endTime: PropTypes.string,
+  status: PropTypes.string,
+  imageUrls: PropTypes.arrayOf(
+    PropTypes.shape({
+      imageUrl: PropTypes.string,
+    })
+  ),
+
+  className: PropTypes.string,
+};
+
 
 export default AuctionMainPage;
