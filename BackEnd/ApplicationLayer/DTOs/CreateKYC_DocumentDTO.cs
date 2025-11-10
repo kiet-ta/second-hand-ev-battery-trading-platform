@@ -1,5 +1,4 @@
-﻿using Domain.Common.Constants;
-using System;
+﻿using System;
 
 namespace Application.DTOs
 {
@@ -17,7 +16,7 @@ namespace Application.DTOs
         public string? StoreName { get; set; }
         public int? StorePhone { get; set; }
         public string? StoreLogoUrl { get; set; }
-        public string Status { get; set; } = ComplaintStatus.Pending_ComplaintStatus.ToString();
+        public string Status { get; set; } = "pending";
 
     }
 }

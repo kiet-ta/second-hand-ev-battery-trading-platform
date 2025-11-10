@@ -13,17 +13,15 @@ namespace Application.Services
 {
     public class UserService : IUserService
     {
-
+        private readonly IUserRepository _userRepository;
         private readonly string _jwtSecret;
         private readonly string _jwtIssuer;
         private readonly string _jwtAudience;
         private readonly IConfiguration _config;
-        private readonly IUnitOfWork _unitOfWork;
 
-
-        public UserService(IConfiguration config, IUnitOfWork unitOfWork)
+        public UserService(IUserRepository userRepository, IConfiguration config)
         {
-            _unitOfWork = unitOfWork;
+            _userRepository = userRepository;
             _config = config;
             _jwtSecret = config["Jwt:Key"] ?? throw new ArgumentNullException("Jwt:Key", "JWT key is missing from configuration.");
             _jwtIssuer = config["Jwt:Issuer"] ?? throw new ArgumentNullException("Jwt:Issuer", "JWT issuer is missing from configuration.");
@@ -32,7 +30,7 @@ namespace Application.Services
 
         public async Task<List<UserRoleCountDto>> GetUsersByRoleAsync()
         {
-            var data = await _unitOfWork.Users.GetUsersByRoleAsync();
+            var data = await _userRepository.GetUsersByRoleAsync();
             if (data == null || !data.Any())
                 throw new InvalidOperationException("No users found by role.");
 
@@ -51,7 +49,7 @@ namespace Application.Services
             if (string.IsNullOrWhiteSpace(dto.Email) || string.IsNullOrWhiteSpace(dto.Password))
                 throw new ArgumentException("Email and password are required.");
 
-            var existingUser = await _unitOfWork.Users.GetByEmailAsync(dto.Email);
+            var existingUser = await _userRepository.GetByEmailAsync(dto.Email);
             if (existingUser != null)
                 throw new InvalidOperationException("Email already registered.");
 
@@ -68,7 +66,7 @@ namespace Application.Services
                 UpdatedAt = DateTime.Now
             };
 
-            await _unitOfWork.Users.AddAsync(newUser);
+            await _userRepository.AddAsync(newUser);
             return GenerateToken(newUser);
         }
 
@@ -106,7 +104,7 @@ namespace Application.Services
 
         public async Task<IEnumerable<User>> GetAllUsersAsync()
         {
-            var users = await _unitOfWork.Users.GetAllAsync();
+            var users = await _userRepository.GetAllAsync();
             if (users == null)
                 throw new InvalidOperationException("No users found.");
 
@@ -118,7 +116,7 @@ namespace Application.Services
             if (id <= 0)
                 throw new ArgumentException("Invalid user ID.");
 
-            var user = await _unitOfWork.Users.GetByIdAsync(id);
+            var user = await _userRepository.GetByIdAsync(id);
             if (user == null)
                 throw new KeyNotFoundException($"User with ID {id} not found.");
 
@@ -129,7 +127,7 @@ namespace Application.Services
         {
             if (string.IsNullOrWhiteSpace(email))
                 throw new ArgumentException("Email cannot be empty.");
-            return _unitOfWork.Users.GetByEmailAsync(email);
+            return _userRepository.GetByEmailAsync(email);
         }
 
         public async Task AddUserAsync(User user)
@@ -137,13 +135,13 @@ namespace Application.Services
             if (user == null)
                 throw new ArgumentNullException(nameof(user), "User data cannot be null.");
 
-            var existing = await _unitOfWork.Users.GetByEmailAsync(user.Email);
+            var existing = await _userRepository.GetByEmailAsync(user.Email);
             if (existing != null)
                 throw new InvalidOperationException("Email already exists.");
 
-            user.CreatedAt = DateTime.UtcNow;
-            user.UpdatedAt = DateTime.UtcNow;
-            await _unitOfWork.Users.AddAsync(user);
+            user.CreatedAt = DateTime.Now;
+            user.UpdatedAt = DateTime.Now;
+            await _userRepository.AddAsync(user);
         }
 
         public async Task UpdateUserAsync(User user)
@@ -151,7 +149,7 @@ namespace Application.Services
             if (user == null)
                 throw new ArgumentNullException(nameof(user), "User data cannot be null.");
 
-            var existing = await _unitOfWork.Users.GetByIdAsync(user.UserId);
+            var existing = await _userRepository.GetByIdAsync(user.UserId);
             if (existing == null)
                 throw new KeyNotFoundException($"User with ID {user.UserId} not found.");
 
@@ -165,8 +163,8 @@ namespace Application.Services
             existing.YearOfBirth = user.YearOfBirth;
             existing.UpdatedAt = DateTime.Now;
 
-            await _unitOfWork.Users.UpdateAsync(existing);
-            await _unitOfWork.Users.SaveChangesAsync();
+            await _userRepository.UpdateAsync(existing);
+            await _userRepository.SaveChangesAsync();
         }
 
         public async Task DeleteUserAsync(int id)
@@ -174,7 +172,7 @@ namespace Application.Services
             if (id <= 0)
                 throw new ArgumentException("Invalid user ID.");
 
-            await _unitOfWork.Users.DeleteAsync(id);
+            await _userRepository.DeleteAsync(id);
         }
 
         public async Task<string?> GetAvatarAsync(int userId)
@@ -182,7 +180,7 @@ namespace Application.Services
             if (userId <= 0)
                 throw new ArgumentException("Invalid user ID.");
 
-            var user = await _unitOfWork.Users.GetByIdAsync(userId);
+            var user = await _userRepository.GetByIdAsync(userId);
             if (user == null)
                 throw new KeyNotFoundException($"User with ID {userId} not found.");
 
@@ -200,7 +198,7 @@ namespace Application.Services
             if (request.NewPassword != request.ConfirmPassword)
                 throw new ArgumentException("Confirmation password does not match.");
 
-            var user = await _unitOfWork.Users.GetByIdAsync(userId);
+            var user = await _userRepository.GetByIdAsync(userId);
             if (user == null || user.IsDeleted)
                 throw new KeyNotFoundException($"User with ID {userId} not found or has been deleted.");
 
@@ -209,9 +207,9 @@ namespace Application.Services
                 throw new UnauthorizedAccessException("The current password is incorrect.");
 
             user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
-            user.UpdatedAt = DateTime.UtcNow;
-            await _unitOfWork.Users.UpdateAsync(user);
-            await _unitOfWork.Users.SaveChangesAsync();
+            user.UpdatedAt = DateTime.Now;
+            await _userRepository.UpdateAsync(user);
+            await _userRepository.SaveChangesAsync();
 
             return true;
         }
@@ -221,7 +219,7 @@ namespace Application.Services
             if (page <= 0 || pageSize <= 0)
                 throw new ArgumentException("Page and page size must be greater than zero.");
 
-            var (users, totalCount) = await _unitOfWork.Users.GetAllPagedAsync(page, pageSize);
+            var (users, totalCount) = await _userRepository.GetAllPagedAsync(page, pageSize);
 
             if (users == null)
                 throw new InvalidOperationException("Failed to retrieve user list.");

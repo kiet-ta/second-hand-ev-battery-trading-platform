@@ -1,5 +1,4 @@
 ﻿using Application.DTOs;
-using Domain.Common.Constants;
 using Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -112,7 +111,7 @@ namespace PresentationLayer.Controllers
                     StoreName = kycDto.StoreName,
                     StorePhone = kycDto.StorePhone,
                     StoreLogoUrl = kycDto.StoreLogoUrl,
-                    Status = KycStatus.Pending_KycStatus.ToString(),
+                    Status = "pending",
                 };
 
                 await _kycService.CreateKycDocumentAsync(kyc, userId);

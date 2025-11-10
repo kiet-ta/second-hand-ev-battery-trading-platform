@@ -1,5 +1,4 @@
 ﻿using Application.DTOs.SignalRDtos;
-using Application.IRepositories;
 using Application.IRepositories.IChatRepositories;
 using Application.IServices;
 using Domain.Entities;
@@ -14,17 +13,17 @@ namespace Application.Services
 {
     public class ChatService : IChatService
     {
+        private readonly IChatRepository _repo;
         private readonly IUserContextService _userContext;
         private readonly IProfanityFilterService _filterService;
-        private readonly IUnitOfWork _unitOfWork;
+        private readonly IUserModerationRepository _modRepo;
 
-
-        public ChatService(IUserContextService userContext, IProfanityFilterService filterService, IUnitOfWork unitOfWork)
+        public ChatService(IChatRepository repo, IUserContextService userContext, IProfanityFilterService filterService, IUserModerationRepository modRepo)
         {
+            _repo = repo;
             _userContext = userContext;
             _filterService = filterService;
-            _unitOfWork = unitOfWork;
-
+            _modRepo = modRepo;
         }
 
         public async Task<ChatRoomDto> EnsureRoomAsync(long[] members)
@@ -43,7 +42,7 @@ namespace Application.Services
             Console.WriteLine($"Creating/Getting room with Cid: {cid} for members [{sorted[0]}, {sorted[1]}]");
 
             // Check room exist 
-            var room = await _unitOfWork.Chats.GetRoomRawAsync(cid);
+            var room = await _repo.GetRoomRawAsync(cid);
 
             if (room == null)
             {
@@ -52,7 +51,7 @@ namespace Application.Services
                     Cid = cid,
                     Members = sorted.ToList()
                 };
-                await _unitOfWork.Chats.SaveRoomRawAsync(room);
+                await _repo.SaveRoomRawAsync(room);
                 Console.WriteLine($"Room {cid} created successfully");
             }
             else
@@ -71,7 +70,7 @@ namespace Application.Services
                 throw new UnauthorizedAccessException("You can only send messages as yourself");
 
             // Validate room exists and user are member
-            var room = await _unitOfWork.Chats.GetRoomRawAsync(dto.Cid);
+            var room = await _repo.GetRoomRawAsync(dto.Cid);
             if (room == null)
                 throw new ArgumentException($"Room {dto.Cid} does not exist");
 
@@ -87,11 +86,11 @@ namespace Application.Services
             if (filterResult.WasProfane)
             {
                 Console.WriteLine($"User {dto.From} sent a profane message.");
-                await _unitOfWork.UserModerations.AddProfanityLogAsync(dto.From, DateTimeOffset.UtcNow);
+                await _modRepo.AddProfanityLogAsync(dto.From, DateTimeOffset.UtcNow);
 
                 // 3. (Tùy chọn) Kiểm tra ngay lập tức
                 // Bạn có thể lấy count ngay bây giờ để quyết định cấm chat, v.v.
-                int profanityCount = await _unitOfWork.UserModerations.GetProfanityCountAsync(dto.From, TimeSpan.FromHours(1));
+                int profanityCount = await _modRepo.GetProfanityCountAsync(dto.From, TimeSpan.FromHours(1));
                 Console.WriteLine($"User {dto.From} profanity count in last 1h: {profanityCount}");
 
                 if (profanityCount > 5) // Ví dụ: Cấm chat nếu chửi bậy quá 5 lần/giờ
@@ -110,7 +109,7 @@ namespace Application.Services
                 CreatedAt = DateTimeOffset.UtcNow
             };
 
-            await _unitOfWork.Chats.AppendMessageAsync(dto.Cid, msg);
+            await _repo.AppendMessageAsync(dto.Cid, msg);
             Console.WriteLine($"Message sent: {msg.Id} from {msg.From} to {msg.To}");
 
             return msg; // return message to ChatHub able to broadcast
@@ -118,11 +117,11 @@ namespace Application.Services
 
         public async Task<ChatRoomDto?> GetRoomAsync(long cid)
         {
-            var room = await _unitOfWork.Chats.GetRoomRawAsync(cid);
+            var room = await _repo.GetRoomRawAsync(cid);
             if (room == null) return null;
 
             // Load messages from Firebase
-            var messages = await _unitOfWork.Chats.GetMessagesAsync(cid, limit: 100);
+            var messages = await _repo.GetMessagesAsync(cid, limit: 100);
             var messageDtos = messages.Select(m => new MessageDto(
                 m.Id,
                 m.From,
@@ -136,17 +135,17 @@ namespace Application.Services
 
         public async Task<IEnumerable<ChatRoomDto>> GetRoomsForUserAsync(long userId)
         {
-            var rooms = await _unitOfWork.Chats.QueryRoomsByMemberAsync(userId);
+            var rooms = await _repo.QueryRoomsByMemberAsync(userId);
             return rooms.Select(r => new ChatRoomDto(r.Cid, r.Members.ToArray(), Array.Empty<MessageDto>()));
         }
 
         public async Task<IEnumerable<MessageDto>> GetMessagesAsync(long cid, int limit = 50)
         {
-            var room = await _unitOfWork.Chats.GetRoomRawAsync(cid);
+            var room = await _repo.GetRoomRawAsync(cid);
             if (room == null)
                 throw new ArgumentException($"Room {cid} does not exist");
 
-            var messages = await _unitOfWork.Chats.GetMessagesAsync(cid, limit);
+            var messages = await _repo.GetMessagesAsync(cid, limit);
             return messages.Select(m => new MessageDto(
                 m.Id,
                 m.From,
@@ -158,7 +157,7 @@ namespace Application.Services
 
         public async Task<IEnumerable<ChatRoomSummaryDto>> GetRoomsByUserIdAsync(long userId)
         {
-            var roomIds = await _unitOfWork.Chats.GetRoomIdsByUserIdAsync(userId);
+            var roomIds = await _repo.GetRoomIdsByUserIdAsync(userId);
 
             var roomTasks = new List<Task<ChatRoomSummaryDto?>>();
 
@@ -179,10 +178,10 @@ namespace Application.Services
         {
             try
             {
-                var room = await _unitOfWork.Chats.GetRoomRawAsync(cid);
+                var room = await _repo.GetRoomRawAsync(cid);
                 if (room == null) return null;
 
-                var lastMessage = await _unitOfWork.Chats.GetLastMessageAsync(cid);
+                var lastMessage = await _repo.GetLastMessageAsync(cid);
 
                 MessageDto? lastMessageDto = null;
                 if (lastMessage != null)

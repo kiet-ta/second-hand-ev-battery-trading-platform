@@ -1,6 +1,5 @@
 ﻿using Application.DTOs;
 using Application.IRepositories;
-using Domain.Common.Constants;
 using Domain.Entities;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -53,15 +52,15 @@ namespace Infrastructure.Repositories
             report.AssigneeId = assigneeId;
             report.Status = status;
 
-            switch (status)
+            switch (status.ToLower())
             {
-                case "Pending_ReportStatus":
-                case "Rejected_ReportStatus":
+                case "pending":
+                case "rejected":
                     report.BanAt = null;
                     report.UnbanAt = null;
                     report.Duration = null;
                     break;
-                case "Approved_ReportStatus":
+                case "approved":
                     if (day <= 0) day = 1; 
                     report.BanAt = DateTime.Now;
                     report.Duration = day;
@@ -87,7 +86,7 @@ namespace Infrastructure.Repositories
                 Detail = createReportDto.Detail,
                 AssigneeId = null,
                 CreatedAt = DateTime.Now,
-                Status = ReportStatus.Pending_ReportStatus.ToString(),
+                Status = "pending",
                 Duration = null,
                 BanAt = null,
                 UnbanAt = null

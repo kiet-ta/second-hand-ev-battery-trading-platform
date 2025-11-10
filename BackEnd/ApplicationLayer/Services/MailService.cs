@@ -14,16 +14,14 @@ namespace Application.Services
 {
     public class MailService : IMailService
     {
-        private readonly IUnitOfWork _unitOfWork;
-
         private readonly MailSettings _settings;
+        private readonly IEmailRepository _templateRepository;
 
-        public MailService(IOptions<MailSettings> settings, IUnitOfWork unitOfWork)
+        public MailService(IOptions<MailSettings> settings, IEmailRepository templateRepository)
         {
 
             _settings = settings?.Value ?? throw new ArgumentNullException(nameof(settings));
-
-            _unitOfWork = unitOfWork;
+            _templateRepository = templateRepository ?? throw new ArgumentNullException(nameof(templateRepository));
         }
 
         public async Task SendWelcomeMailAsync(WelcomeDto request, string url)
@@ -32,7 +30,7 @@ namespace Application.Services
             if (string.IsNullOrWhiteSpace(request.To)) throw new ArgumentException("Recipient email cannot be empty.", nameof(request.To));
             if (string.IsNullOrWhiteSpace(url)) throw new ArgumentException("URL cannot be empty.", nameof(url));
 
-            var template = await _unitOfWork.Emails.GetWelcomeTemplate(request.To, url)
+            var template = await _templateRepository.GetWelcomeTemplate(request.To, url)
                 ?? throw new InvalidOperationException("Welcome email template not found.");
 
             var message = CreateMessage(request.To, "Welcome to Cóc Mua Xe!", template);
@@ -46,7 +44,7 @@ namespace Application.Services
             if (string.IsNullOrWhiteSpace(reason)) throw new ArgumentException("Ban reason cannot be empty.", nameof(reason));
             if (string.IsNullOrWhiteSpace(url)) throw new ArgumentException("URL cannot be empty.", nameof(url));
 
-            var template = await _unitOfWork.Emails.GetBanTemplate(request.To, reason, url)
+            var template = await _templateRepository.GetBanTemplate(request.To, reason, url)
                 ?? throw new InvalidOperationException("Ban email template not found.");
 
             var message = CreateMessage(request.To, "Your Account Has Been Suspended", template);
@@ -60,7 +58,7 @@ namespace Application.Services
             if (string.IsNullOrWhiteSpace(orderId)) throw new ArgumentException("Order ID cannot be empty.", nameof(orderId));
             if (string.IsNullOrWhiteSpace(url)) throw new ArgumentException("URL cannot be empty.", nameof(url));
 
-            var template = await _unitOfWork.Emails.GetPurchaseSuccessTemplate(request.To, orderId, url)
+            var template = await _templateRepository.GetPurchaseSuccessTemplate(request.To, orderId, url)
                 ?? throw new InvalidOperationException("Purchase success template not found.");
 
             var message = CreateMessage(request.To, $"Order #{orderId} Successfully Placed", template);
@@ -75,7 +73,7 @@ namespace Application.Services
             if (string.IsNullOrWhiteSpace(reason)) throw new ArgumentException("Failure reason cannot be empty.", nameof(reason));
             if (string.IsNullOrWhiteSpace(url)) throw new ArgumentException("URL cannot be empty.", nameof(url));
 
-            var template = await _unitOfWork.Emails.GetPurchaseFailedTemplate(request.To, orderId, reason, url)
+            var template = await _templateRepository.GetPurchaseFailedTemplate(request.To, orderId, reason, url)
                 ?? throw new InvalidOperationException("Purchase failed template not found.");
 
             var message = CreateMessage(request.To, $"Order #{orderId} Failed", template);
@@ -90,7 +88,7 @@ namespace Application.Services
             if (string.IsNullOrWhiteSpace(request.ActionUrl)) throw new ArgumentException("Action URL cannot be empty.", nameof(request.ActionUrl));
             if (string.IsNullOrWhiteSpace(logoUrl)) throw new ArgumentException("Logo URL cannot be empty.", nameof(logoUrl));
 
-            var template = await _unitOfWork.Emails.GetNewStaffTemplateAsync(
+            var template = await _templateRepository.GetNewStaffTemplateAsync(
                 request.To, request.Password, request.ActionUrl, logoUrl)
                 ?? throw new InvalidOperationException("New staff template not found.");
 
@@ -105,8 +103,8 @@ namespace Application.Services
             if (string.IsNullOrWhiteSpace(staffName)) throw new ArgumentException("Staff name cannot be empty.", nameof(staffName));
             if (string.IsNullOrWhiteSpace(staffRole)) throw new ArgumentException("Staff role cannot be empty.", nameof(staffRole));
   
-            var user = await _unitOfWork.Emails.GetUserByComplaintId(dto.complaintId);
-            string htmlContent = await _unitOfWork.Emails.SendResponseEmailToUser(dto, staffName, staffRole);
+            var user = await _templateRepository.GetUserByComplaintId(dto.complaintId);
+            string htmlContent = await _templateRepository.SendResponseEmailToUser(dto, staffName, staffRole);
 
             var message = CreateMessage(user.Email, $"Phản hồi khiếu nại #{dto.complaintId}", htmlContent);
             await SendAsync(message);
@@ -162,7 +160,7 @@ namespace Application.Services
             if (string.IsNullOrWhiteSpace(systemUrl))
                 throw new ArgumentException("System URL cannot be empty.", nameof(systemUrl));
 
-            var template = await _unitOfWork.Emails.GetForgotPasswordTemplate(
+            var template = await _templateRepository.GetForgotPasswordTemplate(
                 email: toEmail,
                 to: toEmail,
                 otp: otp,
@@ -181,7 +179,7 @@ namespace Application.Services
             if (string.IsNullOrWhiteSpace(loginUrl))
                 throw new ArgumentException("Login URL cannot be empty.", nameof(loginUrl));
 
-            var template = await _unitOfWork.Emails.GetPasswordChangedTemplate(
+            var template = await _templateRepository.GetPasswordChangedTemplate(
                 email: toEmail,
                 to: toEmail,
                 loginUrl: loginUrl

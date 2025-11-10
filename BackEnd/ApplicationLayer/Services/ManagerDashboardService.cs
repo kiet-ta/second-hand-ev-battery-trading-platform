@@ -2,7 +2,6 @@
 using Application.IRepositories;
 using Application.IRepositories.IPaymentRepositories;
 using Application.IServices;
-using Domain.Common.Constants;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -15,26 +14,40 @@ namespace Application.Services
 {
     public class ManagerDashboardService : IManagerDashboardService
     {
+        private readonly IUserRepository _userRepo;
+        private readonly IItemRepository _itemRepo;
+        private readonly IOrderRepository _orderRepo;
         private readonly IComplaintRepository _complaintRepo;
-        private readonly IUnitOfWork _unitOfWork;
-
+        private readonly IPaymentRepository _paymentRepo;
+        private readonly ITransactionRepository _transactionRepository;
+        private readonly IKYC_DocumentRepository _kycRepo;
 
         public ManagerDashboardService(
+            IUserRepository userRepo,
+            IItemRepository itemRepo,
+            IOrderRepository orderRepo,
             IComplaintRepository complaintRepo, 
-            IUnitOfWork unitOfWork)
+            IPaymentRepository paymentRepo,
+            ITransactionRepository transactionRepository,
+            IKYC_DocumentRepository kycRepo)
         {
+            _userRepo = userRepo;
+            _itemRepo = itemRepo;
+            _orderRepo = orderRepo;
             _complaintRepo = complaintRepo;
-            _unitOfWork = unitOfWork;
+            _paymentRepo = paymentRepo;
+            _transactionRepository = transactionRepository;
+            _kycRepo = kycRepo;
         }
 
         public async Task<ManagerDashboardMetricsDto> GetMetricsAsync()
         {
             var now = DateTime.Now;
 
-            var revenueThisMonth = await _unitOfWork.Orders.GetRevenueThisMonthAsync(now);
-            var totalUsers = await _unitOfWork.Users.CountAsync();
-            var activeListings = await _unitOfWork.Items.CountActiveAsync();
-            var growth = await _unitOfWork.Users.GetMonthlyGrowthAsync();
+            var revenueThisMonth = await _orderRepo.GetRevenueThisMonthAsync(now);
+            var totalUsers = await _userRepo.CountAsync();
+            var activeListings = await _itemRepo.CountActiveAsync();
+            var growth = await _userRepo.GetMonthlyGrowthAsync();
 
             return new ManagerDashboardMetricsDto
             {
@@ -54,7 +67,7 @@ namespace Application.Services
                 int.TryParse(range.TrimEnd('m'), out monthsRange);
             }
 
-            var data = await _unitOfWork.Payments.GetRevenueByMonthAsync(monthsRange);
+            var data = await _paymentRepo.GetRevenueByMonthAsync(monthsRange);
             if (data == null)
                 throw new Exception("Failed to retrieve revenue data.");
             var result = data.Select(d => new RevenueByMonthDto
@@ -71,7 +84,7 @@ namespace Application.Services
             var endDate = DateTime.Now; // dùng local time thay vì UTC
             var startDate = endDate.AddMonths(-monthsRange + 1).Date; // bắt đầu từ đầu tháng đó
 
-            var orders = await _unitOfWork.Orders.GetOrdersWithinRangeAsync(startDate, endDate);
+            var orders = await _orderRepo.GetOrdersWithinRangeAsync(startDate, endDate);
             if (orders == null)
                 throw new Exception("Failed to fetch order data.");
             var grouped = orders
@@ -103,7 +116,7 @@ namespace Application.Services
         public async Task<IEnumerable<ProductDistributionDto>> GetProductDistributionAsync()
         {
 
-            var itemCounts = await _unitOfWork.Items.GetItemTypeCountsAsync();
+            var itemCounts = await _itemRepo.GetItemTypeCountsAsync();
             if (itemCounts == null)
                 throw new Exception("Failed to fetch product distribution data.");
             int total = itemCounts.Sum(x => x.Count);
@@ -127,7 +140,7 @@ namespace Application.Services
 
         public async Task<List<LatestTransactionDto>> GetLatestTransactionsAsync(int limit)
         {
-            var transactions = await _unitOfWork.Transactions.GetLatestTransactionsAsync(limit);
+            var transactions = await _transactionRepository.GetLatestTransactionsAsync(limit);
             if (transactions == null)
                 throw new Exception("Failed to fetch latest transactions.");
 
@@ -136,7 +149,7 @@ namespace Application.Services
 
         public async Task<List<SellerPendingApprovalDto>> GetPendingApprovalsAsync()
         {
-            var pending = await _unitOfWork.KycDocuments.GetPendingApprovalsAsync();
+            var pending = await _kycRepo.GetPendingApprovalsAsync();
             if (pending == null)
                 throw new Exception("Failed to fetch pending approvals.");
 
@@ -146,54 +159,54 @@ namespace Application.Services
 
         public async Task ApproveAsync(int docId, int staffId)
         {
-            var doc = await _unitOfWork.KycDocuments.GetKycByIdAsync(docId);
+            var doc = await _kycRepo.GetKycByIdAsync(docId);
             if (doc == null)
                 throw new KeyNotFoundException("KYC document not found.");
 
-            if (doc.Status != KycStatus.Pending_KycStatus.ToString())
+            if (doc.Status != "pending")
                 throw new InvalidOperationException("Document already processed.");
 
-            doc.Status = KycStatus.Approved_KycStatus.ToString();
+            doc.Status = "approved";
             doc.VerifiedBy = staffId;
             doc.VerifiedAt = DateTime.Now;
 
-            await _unitOfWork.KycDocuments.UpdateAsync(doc);
+            await _kycRepo.UpdateAsync(doc);
 
-            var user = await _unitOfWork.Users.GetByIdAsync(doc.UserId);
+            var user = await _userRepo.GetByIdAsync(doc.UserId);
             if (user == null)
                 throw new Exception("Associated user not found for KYC document.");
             if (user != null)
             {
-                user.Role = UserRole.Seller.ToString();
-                user.KycStatus = KycStatus.Approved_KycStatus.ToString();
-                await _unitOfWork.Users.UpdateAsync(user);
-                await _unitOfWork.Users.SaveChangesAsync();
+                user.Role = "seller";
+                user.KycStatus = "approved";
+                await _userRepo.UpdateAsync(user);
+                await _userRepo.SaveChangesAsync();
             }
         }
 
         public async Task RejectAsync(int docId, int staffId, string? note)
         {
-            var doc = await _unitOfWork.KycDocuments.GetKycByIdAsync(docId);
+            var doc = await _kycRepo.GetKycByIdAsync(docId);
             if (doc == null)
                 throw new KeyNotFoundException("KYC document not found.");
 
-            if (doc.Status != KycStatus.Pending_KycStatus.ToString())
+            if (doc.Status != "pending")
                 throw new InvalidOperationException("Document already processed.");
 
-            doc.Status = KycStatus.Rejected_KycStatus.ToString();
+            doc.Status = "rejected";
             doc.VerifiedBy = staffId;
             doc.VerifiedAt = DateTime.Now;
             doc.Note = note;
 
-            await _unitOfWork.KycDocuments.UpdateAsync(doc);
+            await _kycRepo.UpdateAsync(doc);
 
-            var user = await _unitOfWork.Users.GetByIdAsync(doc.UserId);
+            var user = await _userRepo.GetByIdAsync(doc.UserId);
             if (user == null)
                 throw new Exception("Associated user not found for KYC document.");
             if (user != null)
             {
-                user.KycStatus = KycStatus.Rejected_KycStatus.ToString();
-                await _unitOfWork.Users.UpdateAsync(user);
+                user.KycStatus = "rejected";
+                await _userRepo.UpdateAsync(user);
             }
         }
     }

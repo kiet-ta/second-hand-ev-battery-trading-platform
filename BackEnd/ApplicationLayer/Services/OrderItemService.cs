@@ -11,11 +11,11 @@ namespace Application.Services
 {
     public class OrderItemService : IOrderItemService
     {
-        private readonly IUnitOfWork _unitOfWork;
+        private readonly IOrderItemRepository _orderItemRepository;
 
-        public OrderItemService(IUnitOfWork unitOfWork)
+        public OrderItemService(IOrderItemRepository orderItemRepository)
         {
-            _unitOfWork = unitOfWork;
+            _orderItemRepository = orderItemRepository;
         }
 
         public async Task<OrderItemDto> CreateOrderItemAsync(CreateOrderItemRequest request)
@@ -26,7 +26,7 @@ namespace Application.Services
             if (request.Quantity <= 0)
                 throw new ArgumentException("Quantity must be greater than 0.", nameof(request.Quantity));
 
-            var result = await _unitOfWork.OrderItems.CreateOrderItemAsync(request);
+            var result = await _orderItemRepository.CreateOrderItemAsync(request);
             if (result == null)
                 throw new Exception("Failed to create order item. Repository returned null.");
 
@@ -39,7 +39,7 @@ namespace Application.Services
             if (buyerId <= 0)
                 throw new ArgumentException("Invalid buyer ID.", nameof(buyerId));
 
-            var items = await _unitOfWork.OrderItems.GetCartItemsByBuyerIdAsync(buyerId);
+            var items = await _orderItemRepository.GetCartItemsByBuyerIdAsync(buyerId);
             if (items == null)
                 throw new Exception($"Failed to retrieve cart items for buyer ID {buyerId}.");
             if (!items.Any())
@@ -60,7 +60,7 @@ namespace Application.Services
             if (dto == null)
                 throw new ArgumentNullException(nameof(dto), "Update data cannot be null.");
 
-            var orderItem = await _unitOfWork.OrderItems.GetByIdAsync(id);
+            var orderItem = await _orderItemRepository.GetByIdAsync(id);
             if (orderItem == null)
                 throw new KeyNotFoundException($"Order item with ID {id} not found.");
 
@@ -75,7 +75,7 @@ namespace Application.Services
             orderItem.Quantity = dto.Quantity;
             orderItem.Price = dto.Price;
 
-            await _unitOfWork.OrderItems.UpdateAsync(orderItem);
+            await _orderItemRepository.UpdateAsync(orderItem);
             return true;
         }
 
@@ -84,7 +84,7 @@ namespace Application.Services
             if (id <= 0)
                 throw new ArgumentException("Invalid order item ID.", nameof(id));
 
-            var orderItem = await _unitOfWork.OrderItems.GetByIdAsync(id);
+            var orderItem = await _orderItemRepository.GetByIdAsync(id);
             if (orderItem == null)
                 throw new KeyNotFoundException($"Order item with ID {id} not found.");
 
@@ -92,7 +92,7 @@ namespace Application.Services
                 throw new InvalidOperationException("Order item already deleted.");
 
             orderItem.IsDeleted = true;
-            await _unitOfWork.OrderItems.UpdateAsync(orderItem);
+            await _orderItemRepository.UpdateAsync(orderItem);
             return true;
         }
     }

@@ -10,11 +10,11 @@ namespace Application.Services
 {
     public class ReviewService : IReviewService
     {
-        private readonly IUnitOfWork _unitOfWork;
+        private readonly IReviewRepository _reviewRepository;
 
-        public ReviewService(IReviewRepository reviewRepository, IUnitOfWork unitOfWork)
+        public ReviewService(IReviewRepository reviewRepository)
         {
-            _unitOfWork = unitOfWork;
+            _reviewRepository = reviewRepository ?? throw new ArgumentNullException(nameof(reviewRepository));
         }
 
         public async Task<ReviewResponseDto> CreateReviewAsync(CreateReviewDto dto, int id)
@@ -31,7 +31,7 @@ namespace Application.Services
             if (string.IsNullOrWhiteSpace(dto.Comment))
                 throw new ArgumentException("Review comment cannot be empty.");
 
-            var result = await _unitOfWork.Reviews.CreateReviewAsync(dto, id);
+            var result = await _reviewRepository.CreateReviewAsync(dto, id);
             if (result == null)
                 throw new InvalidOperationException("Failed to create review.");
 
@@ -43,7 +43,7 @@ namespace Application.Services
             if (targetUserId <= 0)
                 throw new ArgumentException("Target user ID must be greater than 0.");
 
-            var reviews = await _unitOfWork.Reviews.GetReviewsByTargetUserIdAsync(targetUserId);
+            var reviews = await _reviewRepository.GetReviewsByTargetUserIdAsync(targetUserId);
             if (reviews == null || reviews.Count == 0)
                 throw new KeyNotFoundException("No reviews found for the specified user.");
 
@@ -55,7 +55,7 @@ namespace Application.Services
             if (itemId <= 0)
                 throw new ArgumentException("Item ID must be greater than 0.");
 
-            var reviews = await _unitOfWork.Reviews.GetReviewAsync(itemId);
+            var reviews = await _reviewRepository.GetReviewAsync(itemId);
             if (reviews == null || reviews.Count == 0)
                 throw new KeyNotFoundException("No reviews found for this item.");
 

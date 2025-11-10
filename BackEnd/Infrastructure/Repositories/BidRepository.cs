@@ -1,5 +1,4 @@
 ﻿using Application.IRepositories.IBiddingRepositories;
-using Domain.Common.Constants;
 using Domain.Entities;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -31,7 +30,7 @@ public class BidRepository : IBidRepository
 public async Task<Bid?> GetUserHighestActiveBidAsync(int auctionId, int userId)
     {
         return await _context.Bids
-            .Where(b => b.AuctionId == auctionId && b.UserId == userId && b.Status == BidStatus.Active_BidStatus.ToString())
+            .Where(b => b.AuctionId == auctionId && b.UserId == userId && b.Status == "active")
             .OrderByDescending(b => b.BidAmount)
             .ThenBy(b => b.BidTime)
             .FirstOrDefaultAsync();
@@ -40,7 +39,7 @@ public async Task<Bid?> GetUserHighestActiveBidAsync(int auctionId, int userId)
     public async Task<Bid?> GetHighestActiveBidAsync(int auctionId, int? excludeBidId = null)
     {
         var query = _context.Bids
-            .Where(b => b.AuctionId == auctionId && b.Status == BidStatus.Active_BidStatus.ToString());
+            .Where(b => b.AuctionId == auctionId && b.Status == "active");
 
         if (excludeBidId.HasValue)
         {
@@ -68,15 +67,13 @@ public async Task<Bid?> GetUserHighestActiveBidAsync(int auctionId, int userId)
     }
     public async Task<IEnumerable<Bid>> GetAllLoserActiveOrOutbidBidsAsync(int auctionId, int winnerId)
     {
-        // Lấy bid cao nhất (đang active hoặc đã outbid) của mỗi người thua cuộc
-        var loserLatestBids = await _context.Bids
-            .Where(b => b.AuctionId == auctionId
-                        && b.UserId != winnerId
-                        && (b.Status == BidStatus.Active_BidStatus.ToString() || b.Status == BidStatus.OutBid.ToString())) // Chỉ lấy bid chưa released/cancelled
-            .GroupBy(b => b.UserId)
-            .Select(g => g.OrderByDescending(b => b.BidAmount).ThenBy(b => b.BidTime).First()) // Lấy bid mới nhất (cao nhất) của mỗi user thua
-            .ToListAsync();
+        // get all bid was 'outbid' and 'active' to released to the loser
+        var loserBids = await _context.Bids
+                .Where(b => b.AuctionId == auctionId
+                            && b.UserId != winnerId
+                            && (b.Status == "active" || b.Status == "outbid")) 
+                .ToListAsync();
 
-        return loserLatestBids;
+        return loserBids;
     }
 }

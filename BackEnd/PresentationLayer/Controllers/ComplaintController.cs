@@ -1,6 +1,5 @@
 ﻿using Application.DTOs;
 using Application.IServices;
-using Domain.Common.Constants;
 using Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -125,11 +124,11 @@ namespace PresentationLayer.Controllers
 
             if (mailSent)
             {
-                await _complaintService.UpdateStatusComplaint(dto.complaintId, ComplaintStatus.Resolved.ToString(), userId);
+                await _complaintService.UpdateStatusComplaint(dto.complaintId, "resolved", userId);
                 return Ok(new
                 {
                     complaintId = dto.complaintId,
-                    newStatus = ComplaintStatus.Resolved.ToString(),
+                    newStatus = "resolved",
                     assignedTo = userId
                 });
             }

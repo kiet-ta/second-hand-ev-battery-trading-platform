@@ -1,5 +1,4 @@
-﻿using Domain.Common.Constants;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -21,7 +20,7 @@ namespace Domain.Entities
 
         public DateTime EndTime { get; set; }
 
-        public string Status { get; set; } = ItemStatus.Active_ItemStatus.ToString(); // active, ended, cancelled
+        public string Status { get; set; } = "active"; // active, ended, cancelled
 
         public DateTime CreatedAt { get; set; } = DateTime.Now;
     }

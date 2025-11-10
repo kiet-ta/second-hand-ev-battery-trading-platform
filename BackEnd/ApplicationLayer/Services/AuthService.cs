@@ -3,7 +3,6 @@ using Application.DTOs.UserDtos;
 using Application.IRepositories;
 using Application.IServices;
 using Application.Validations;
-using Domain.Common.Constants;
 using Domain.Entities;
 using FluentValidation;
 using Google.Apis.Auth;
@@ -85,13 +84,13 @@ namespace Application.Services
                     FullName = dto.FullName.Trim(),
                     Email = dto.Email.ToLower(),
                     PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
-                    Role = UserRole.Buyer.ToString(),
-                    CreatedAt = DateTime.UtcNow,
-                    UpdatedAt = DateTime.UtcNow,
+                    Role = "buyer",
+                    CreatedAt = DateTime.Now,
+                    UpdatedAt = DateTime.Now,
                     IsDeleted = false,
-                    KycStatus = KycStatus.Not_submitted_KycDocument.ToString(),
-                    AccountStatus = UserStatus.Active_UserStatus.ToString(),
-                    Paid = UserPaid.Pending_Pay.ToString()
+                    KycStatus = "not_submitted",
+                    AccountStatus = "active",
+                    Paid = "pending"
                 };
                 await _uow.Users.AddAsync(user);
                 await _uow.SaveChangesAsync();
@@ -103,8 +102,8 @@ namespace Application.Services
                     Balance = 0,
                     HeldBalance = 0,
                     Currency = "vnd",
-                    Status = UserStatus.Active_UserStatus.ToString(),
-                    UpdatedAt = DateTime.UtcNow
+                    Status = "active",
+                    UpdatedAt = DateTime.Now
                 };
                 await _uow.Wallets.AddAsync(wallet);
                 return GenerateToken(user);
@@ -198,9 +197,9 @@ namespace Application.Services
                 FullName = string.IsNullOrWhiteSpace(payload.Name) ? username : payload.Name,
                 Email = email,
                 PasswordHash = string.Empty, // No password for Google login
-                Role = UserRole.Buyer.ToString(),
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow,
+                Role = "buyer",
+                CreatedAt = DateTime.Now,
+                UpdatedAt = DateTime.Now,
                 IsDeleted = false,
                 AvatarProfile = payload.Picture // Save Google profile picture
             };
@@ -215,8 +214,8 @@ namespace Application.Services
                 Balance = 0,
                 HeldBalance = 0,
                 Currency = "vnd",
-                Status = UserStatus.Active_UserStatus.ToString(),
-                UpdatedAt = DateTime.UtcNow
+                Status = "active",
+                UpdatedAt = DateTime.Now
             };
             await _uow.Wallets.AddAsync(wallet);
 
@@ -258,7 +257,7 @@ namespace Application.Services
                 new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
                 new Claim(ClaimTypes.Email, user.Email),
                 new Claim(ClaimTypes.Name, user.FullName ?? string.Empty),
-                new Claim(ClaimTypes.Role, user.Role ?? UserRole.Buyer.ToString()),
+                new Claim(ClaimTypes.Role, user.Role ?? "buyer"),
                 new Claim("auth_provider", provider)
             };
 
@@ -281,7 +280,7 @@ namespace Application.Services
                 UserId = user.UserId,
                 FullName = user.FullName,
                 Email = user.Email,
-                Role = user.Role ?? UserRole.Buyer.ToString(),
+                Role = user.Role ?? "buyer",
                 Token = tokenString,
                 ExpiresAt = expires,
                 AuthProvider = provider

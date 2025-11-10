@@ -1,6 +1,5 @@
 ﻿using Application.DTOs.ManageCompanyDtos;
 using Application.IRepositories;
-using Domain.Common.Constants;
 using Domain.Entities;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -64,7 +63,7 @@ namespace Infrastructure.Repositories
             var kyc = await _context.KycDocuments.FindAsync(id);
             if (kyc == null) return;
 
-            if (!string.Equals(kyc.Status, KycStatus.Pending_KycStatus.ToString(), StringComparison.OrdinalIgnoreCase))
+            if (!string.Equals(kyc.Status, "pending", StringComparison.OrdinalIgnoreCase))
                 return;
 
             kyc.Status = status;
@@ -89,8 +88,7 @@ namespace Infrastructure.Repositories
         {
             var query = _context.KycDocuments
                 .AsNoTracking()
-                .Where(k => k.Status == KycStatus.Pending_KycStatus
-                .ToString())
+                .Where(k => k.Status == "pending")
                 .Join(
                     _context.Users.AsNoTracking(),
                     k => k.UserId,
@@ -125,7 +123,7 @@ namespace Infrastructure.Repositories
         {
             return await _context.KycDocuments
                 .AsNoTracking()
-                .Where(k => k.Status == KycStatus.Pending_KycStatus.ToString())
+                .Where(k => k.Status == "pending")
                 .ToListAsync();
         }
 

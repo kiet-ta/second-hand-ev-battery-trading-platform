@@ -1,7 +1,6 @@
 ﻿using Application.DTOs;
 using Application.DTOs.ItemDtos;
 using Application.IRepositories;
-using Domain.Common.Constants;
 using Domain.Entities;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -25,10 +24,10 @@ namespace Infrastructure.Repositories
             return await _context.Users
                 .Where(u =>
                     u.UserId == id &&
-                    u.Role == UserRole.Seller.ToString() &&
+                    u.Role == "seller" &&
                     !(u.IsDeleted == true) &&
-                    u.KycStatus == KycStatus.Approved_KycStatus.ToString() &&
-                    u.AccountStatus != UserStatus.Ban.ToString()
+                    u.KycStatus == "approved" &&
+                    u.AccountStatus != "ban"
                 )
                 .FirstOrDefaultAsync();
         }
@@ -56,7 +55,7 @@ namespace Infrastructure.Repositories
                         .Join(_context.Orders, oi => oi.OrderId, o => o.OrderId, (oi, o) => new { oi, o })
                         .Any(joined =>
                             joined.oi.ItemId == item.ItemId &&
-                            (joined.o.Status == OrderStatus.Paid.ToString() || joined.o.Status == OrderStatus.Shipped.ToString()))
+                            (joined.o.Status == "paid" || joined.o.Status == "shipped"))
                 )
                 .ToListAsync();
 
@@ -78,7 +77,7 @@ namespace Infrastructure.Repositories
                         .Join(_context.Payments, pd => pd.PaymentId, p => p.PaymentId, (pd, p) => new { pd, p })
                         .Any(joined =>
                             joined.pd.ItemId == item.ItemId &&
-                            joined.p.Status == PaymentStatus.Pending_PaymentStatus.ToString())
+                            joined.p.Status == "pending")
                 )
                 .ToListAsync();
 
@@ -104,12 +103,9 @@ namespace Infrastructure.Repositories
                                   (pd, p) => new { pd, p })
                             .Any(joined =>
                                 joined.pd.ItemId == item.ItemId &&
-                                (joined.p.Status == PaymentStatus.Failed_PaymentStatus
-                                .ToString()||
-                                 joined.p.Status == PaymentStatus.Refunded
-                                .ToString() ||
-                                 joined.p.Status == PaymentStatus.Expired
-                                .ToString()))
+                                (joined.p.Status == "failed" ||
+                                 joined.p.Status == "refunded" ||
+                                 joined.p.Status == "expired"))
                         ||
                         _context.OrderItems
                             .Join(_context.Orders,
@@ -118,7 +114,7 @@ namespace Infrastructure.Repositories
                                   (oi, o) => new { oi, o })
                             .Any(joined =>
                                 joined.oi.ItemId == item.ItemId &&
-                                joined.o.Status == OrderStatus.Cancelled_Order.ToString())
+                                joined.o.Status == "canceled")
                     )
                 )
                 .ToListAsync();
@@ -141,7 +137,7 @@ namespace Infrastructure.Repositories
                         .Join(_context.Payments, pd => pd.PaymentId, p => p.PaymentId, (pd, p) => new { pd, p })
                         .Any(joined =>
                             joined.pd.ItemId == item.ItemId &&
-                            joined.p.Status == PaymentStatus.Completed_PaymentStatus.ToString())
+                            joined.p.Status == "completed")
                 )
                 .ToListAsync();
 
@@ -229,8 +225,8 @@ namespace Infrastructure.Repositories
                         let isProcessing = !isSold && _context.OrderItems.Any(oi_p => oi_p.ItemId == item.ItemId && _context.Orders.Any(o_p => o_p.OrderId == oi_p.OrderId && (o_p.Status == "paid" || o_p.Status == "shipped")))
                         let isPending = !isSold && !isProcessing && _context.OrderItems.Any(pd_pe => pd_pe.ItemId == item.ItemId && _context.Orders.Any(p_pe => p_pe.OrderId == pd_pe.OrderId && p_pe.Status == "pending"))
                         let isCanceled = !isSold && !isProcessing && !isPending &&
-                                         (_context.PaymentDetails.Any(pd_c => pd_c.ItemId == item.ItemId && _context.Payments.Any(p_c => p_c.PaymentId == pd_c.PaymentId && (p_c.Status == PaymentStatus.Failed_PaymentStatus.ToString() || p_c.Status == PaymentStatus.Refunded.ToString() || p_c.Status == PaymentStatus.Expired.ToString())))
-                                          || _context.OrderItems.Any(oi_c => oi_c.ItemId == item.ItemId && _context.Orders.Any(o_c => o_c.OrderId == oi_c.OrderId && o_c.Status == OrderStatus.Cancelled_Order.ToString())))
+                                         (_context.PaymentDetails.Any(pd_c => pd_c.ItemId == item.ItemId && _context.Payments.Any(p_c => p_c.PaymentId == pd_c.PaymentId && (p_c.Status == "failed" || p_c.Status == "refunded" || p_c.Status == "expired")))
+                                          || _context.OrderItems.Any(oi_c => oi_c.ItemId == item.ItemId && _context.Orders.Any(o_c => o_c.OrderId == oi_c.OrderId && o_c.Status == "canceled")))
 
                         select new BatteryItemDto
                         {
@@ -342,8 +338,8 @@ namespace Infrastructure.Repositories
                         let isProcessing = !isSold && _context.OrderItems.Any(oi_p => oi_p.ItemId == item.ItemId && _context.Orders.Any(o_p => o_p.OrderId == oi_p.OrderId && (o_p.Status == "paid" || o_p.Status == "shipped")))
                         let isPending = !isSold && !isProcessing && _context.OrderItems.Any(pd_pe => pd_pe.ItemId == item.ItemId && _context.Orders.Any(p_pe => p_pe.OrderId == pd_pe.OrderId && p_pe.Status == "pending"))
                         let isCanceled = !isSold && !isProcessing && !isPending &&
-                                         (_context.PaymentDetails.Any(pd_c => pd_c.ItemId == item.ItemId && _context.Payments.Any(p_c => p_c.PaymentId == pd_c.PaymentId && (p_c.Status == PaymentStatus.Failed_PaymentStatus.ToString()) || p_c.Status == PaymentStatus.Refunded.ToString() || p_c.Status == PaymentStatus.Expired.ToString()))
-                                          || _context.OrderItems.Any(oi_c => oi_c.ItemId == item.ItemId && _context.Orders.Any(o_c => o_c.OrderId == oi_c.OrderId && o_c.Status == OrderStatus.Cancelled_Order.ToString())))
+                                         (_context.PaymentDetails.Any(pd_c => pd_c.ItemId == item.ItemId && _context.Payments.Any(p_c => p_c.PaymentId == pd_c.PaymentId && (p_c.Status == "failed" || p_c.Status == "refunded" || p_c.Status == "expired")))
+                                          || _context.OrderItems.Any(oi_c => oi_c.ItemId == item.ItemId && _context.Orders.Any(o_c => o_c.OrderId == oi_c.OrderId && o_c.Status == "canceled")))
 
                         select new EVItemDto
                         {

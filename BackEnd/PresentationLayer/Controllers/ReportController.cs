@@ -1,6 +1,5 @@
 ﻿using Application.DTOs;
 using Application.IServices;
-using Domain.Common.Constants;
 using Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -75,7 +74,7 @@ namespace PresentationLayer.Controllers
             return CreatedAtAction(nameof(GetReportById), new { id = report.Id }, report);
         }
         [HttpPut("{id}/status")]
-        [Authorize(Roles = "Staff,Manager")]
+        [Authorize(Roles = "staff,manager")]
         public async Task<IActionResult> UpdateReportStatus(
            int id,
            [FromQuery] string status,
@@ -105,7 +104,7 @@ namespace PresentationLayer.Controllers
  
             await _notificationService.SendNotificationAsync(dto.Message);
             Console.WriteLine("Realtime notification sent successfully.");
-            if (status == ReportStatus.Approved_ReportStatus.ToString())
+            if (status == "approved")
             {
                 if (!int.TryParse(dto.TargetUserId, out int targetUserId))
                     return BadRequest(new { message = "TargetUserId must be a valid integer." });

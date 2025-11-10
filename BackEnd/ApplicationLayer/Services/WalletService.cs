@@ -1,9 +1,7 @@
 ﻿using Application.DTOs;
 using Application.DTOs.WalletDtos;
-using Application.IRepositories;
 using Application.IRepositories.IBiddingRepositories;
 using Application.IServices;
-using Domain.Common.Constants;
 using Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
@@ -11,16 +9,18 @@ namespace Application.Services;
 
 public class WalletService : IWalletService
 {
-    private readonly IUnitOfWork _unitOfWork;
+    private readonly IWalletRepository _walletRepository;
+    private readonly IWalletTransactionRepository _walletTransactionRepository;
 
-    public WalletService( IUnitOfWork unitOfWork)
+    public WalletService(IWalletRepository walletRepository, IWalletTransactionRepository walletTransactionRepository)
     {
-        _unitOfWork = unitOfWork;
+        _walletRepository = walletRepository;
+        _walletTransactionRepository = walletTransactionRepository;
     }
 
     public async Task<WalletDto> GetWalletByUserIdAsync(int userId)
     {
-        var wallet = await _unitOfWork.Wallets.GetWalletByUserIdAsync(userId);
+        var wallet = await _walletRepository.GetWalletByUserIdAsync(userId);
         if (wallet == null)
         {
             return null;
@@ -37,7 +37,7 @@ public class WalletService : IWalletService
 
     public async Task<IEnumerable<WalletTransactionDto>> GetTransactionsByWalletIdAsync(int walletId)
     {
-        var transactions = await _unitOfWork.WalletTransactions.GetTransactionsByWalletIdAsync(walletId);
+        var transactions = await _walletTransactionRepository.GetTransactionsByWalletIdAsync(walletId);
 
         // Map danh sách Transaction entities sang DTOs
         return transactions.Select(t => new WalletTransactionDto
@@ -57,23 +57,23 @@ public class WalletService : IWalletService
             throw new ArgumentException("Deposit amount must be greater than 0");
         }
 
-        var wallet = await _unitOfWork.Wallets.GetWalletByUserIdAsync(userId);
+        var wallet = await _walletRepository.GetWalletByUserIdAsync(userId);
         if (wallet == null)
         {
             throw new KeyNotFoundException("User wallet not found");
         }
 
-        var success = await _unitOfWork.Wallets.UpdateBalanceAsync(wallet.WalletId, amount);
+        var success = await _walletRepository.UpdateBalanceAsync(wallet.WalletId, amount);
         if (!success) return false;
 
         var transaction = new WalletTransaction
         {
             WalletId = wallet.WalletId,
             Amount = amount,
-            Type = WalletTransactionType.Deposit_WalletTransaction.ToString(),
+            Type = "deposit",
             CreatedAt = DateTime.Now
         };
-        await _unitOfWork.WalletTransactions.CreateTransactionAsync(transaction);
+        await _walletTransactionRepository.CreateTransactionAsync(transaction);
 
         return true;
     }
@@ -85,12 +85,12 @@ public class WalletService : IWalletService
             throw new ArgumentException("Withdrawal amount must be greater than 0.");
         }
 
-        if (request.Type != WalletTransactionType.Withdraw.ToString() && request.Type != WalletTransactionType.Payment.ToString())
+        if (request.Type != "withdraw" && request.Type != "payment")
         {
             throw new ArgumentException("Invalid transaction type. Must be 'withdraw' or 'payment'.");
         }
 
-        var wallet = await _unitOfWork.Wallets.GetWalletByUserIdAsync(request.UserId);
+        var wallet = await _walletRepository.GetWalletByUserIdAsync(request.UserId);
         if (wallet == null)
         {
             throw new KeyNotFoundException("User wallet not found.");
@@ -102,7 +102,7 @@ public class WalletService : IWalletService
         }
 
         // distract money in wallet
-        var success = await _unitOfWork.Wallets.UpdateBalanceAsync(wallet.WalletId, -request.Amount);
+        var success = await _walletRepository.UpdateBalanceAsync(wallet.WalletId, -request.Amount);
         if (!success)
         {
             throw new Exception("Failed to update wallet balance.");
@@ -117,7 +117,7 @@ public class WalletService : IWalletService
             CreatedAt = DateTime.Now
         };
 
-        var transactionId = await _unitOfWork.WalletTransactions.CreateTransactionAsync(transaction);
+        var transactionId = await _walletTransactionRepository.CreateTransactionAsync(transaction);
         transaction.TransactionId = transactionId;
 
         return new WalletTransactionDto

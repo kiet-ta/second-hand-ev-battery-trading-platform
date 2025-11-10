@@ -1,5 +1,3 @@
-using Domain.Common.Constants;
-
 namespace Domain.Entities;
 
 public class CommissionFeeRule
@@ -7,8 +5,8 @@ public class CommissionFeeRule
     public int RuleId { get; set; }
     public string FeeCode { get; set; } = string.Empty;
     public string FeeName { get; set; } = string.Empty;
-    public string TargetRole { get; set; } = CommissionFeeRuleTargetRole.Seller_CommissionFeeRule.ToString(); 
-    public string FeeType { get; set; } = CommissionFeeType.Percentage.ToString(); 
+    public string TargetRole { get; set; } = "seller";
+    public string FeeType { get; set; } = "percentage";
     public decimal FeeValue { get; set; }
     public DateTime EffectiveFrom { get; set; } = DateTime.Now;
     public DateTime? EffectiveTo { get; set; }
