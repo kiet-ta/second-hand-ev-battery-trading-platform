@@ -11,7 +11,7 @@ namespace Application.IServices;
 public interface INewsService
 {
     Task<IEnumerable<News>> GetAllNewsAsync(int page, int pageSize);
-    Task<News> GetBynewsId(int id);
+    Task<News> GetByNewsId(int id);
     Task<bool> ApproveNewsAsync(int newsId);
     Task<bool> CancelNewsAsync(int newsId);
     Task<bool> AddNewsAsync(CreateNewsDto dto);

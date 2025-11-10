@@ -80,12 +80,12 @@ namespace Application.Services
                     Quantity = item.Quantity,
                     Moderation = item.Moderation,
 
-                    //Status = item.Status,
+                    Status = item.Status,
                     CreatedAt = item.CreatedAt,
                     UpdatedAt = item.UpdatedAt,
                     UpdatedBy = item.UpdatedBy,
                     //IsVerified = item.IsVerified,
-                    //IsDeleted = item.IsDeleted,
+                    IsDeleted = item.IsDeleted,
                     Images = images.Select(img => new ItemImageDto
                     {
                         ImageId = img.ImageId,
@@ -191,12 +191,12 @@ namespace Application.Services
                     Price = item.Price,
                     Moderation = item.Moderation,
                     Quantity = item.Quantity,
-                    //Status = item.Status,
+                    Status = item.Status,
                     CreatedAt = item.CreatedAt,
                     UpdatedAt = item.UpdatedAt,
                     UpdatedBy = item.UpdatedBy,
                     //IsVerified = item.IsVerified,
-                    //IsDeleted = item.IsDeleted,
+                    IsDeleted = item.IsDeleted,
                     Images = images.Select(img => new ItemImageDto
                     {
                         ImageId = img.ImageId,
@@ -229,12 +229,12 @@ namespace Application.Services
                     Moderation = item.Moderation,
 
                     Quantity = item.Quantity,
-                    //Status = item.Status,
+                    Status = item.Status,
                     CreatedAt = item.CreatedAt,
                     UpdatedAt = item.UpdatedAt,
                     UpdatedBy = item.UpdatedBy,
                     //IsVerified = item.IsVerified,
-                    //IsDeleted = item.IsDeleted,
+                    IsDeleted = item.IsDeleted,
                     Images = images.Select(img => new ItemImageDto
                     {
                         ImageId = img.ImageId,

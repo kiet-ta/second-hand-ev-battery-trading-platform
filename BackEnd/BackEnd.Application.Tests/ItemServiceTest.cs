@@ -8,22 +8,22 @@ namespace BackEnd.Application.Tests
 {
     public class ItemServiceTest
     {
-        private readonly Mock<IItemRepository> _repoMock;
+        private readonly Mock<IUnitOfWork> _repoMock;
         private readonly ItemService _itemService;
         private Item _capturedItem;
 
         public ItemServiceTest()
         {
-            _repoMock = new Mock<IItemRepository>();
+            _repoMock = new Mock<IUnitOfWork>();
             _capturedItem = null;
 
-            _repoMock.Setup(repo => repo.AddAsync(It.IsAny<Item>(), It.IsAny<CancellationToken?>()))
+            _repoMock.Setup(repo => repo.Items.AddAsync(It.IsAny<Item>(), It.IsAny<CancellationToken?>()))
                 .Callback<Item, CancellationToken?>((item, ct) =>
                 {
                     _capturedItem = item;
                 });
 
-            _repoMock.Setup(repo => repo.Update(It.IsAny<Item>()))
+            _repoMock.Setup(repo => repo.Items.Update(It.IsAny<Item>()))
                 .Callback<Item>(item =>
                 {
                     _capturedItem = item;
@@ -40,8 +40,8 @@ namespace BackEnd.Application.Tests
             var item = new Item { ItemId = 1, Title = "Test Item", Price = 1000 };
             var images = new List<ItemImage> { new ItemImage { ImageId = 1, ImageUrl = "url.jpg" } };
 
-            _repoMock.Setup(repo => repo.GetByIdAsync(1, null)).ReturnsAsync(item);
-            _repoMock.Setup(repo => repo.GetByItemIdAsync(1)).ReturnsAsync(images);
+            _repoMock.Setup(repo => repo.Items.GetByIdAsync(1, null)).ReturnsAsync(item);
+            _repoMock.Setup(repo => repo.Items.GetByItemIdAsync(1)).ReturnsAsync(images);
 
             // Act
             var result = await _itemService.GetByIdAsync(1);
@@ -58,7 +58,7 @@ namespace BackEnd.Application.Tests
         public async Task TC_ITEM_002_GetByIdAsync_WithInvalidId_ShouldThrowKeyNotFoundException()
         {
             // Arrange
-            _repoMock.Setup(repo => repo.GetByIdAsync(999, null))
+            _repoMock.Setup(repo => repo.Items.GetByIdAsync(999, null))
                 .ReturnsAsync((Item)null); // Repo trả null
 
             // Act
@@ -79,9 +79,9 @@ namespace BackEnd.Application.Tests
                 new Item { ItemId = 1, Title = "Item 1" },
                 new Item { ItemId = 2, Title = "Item 2" }
             };
-            _repoMock.Setup(repo => repo.GetAllAsync()).ReturnsAsync(items);
-            _repoMock.Setup(repo => repo.GetByItemIdAsync(1)).ReturnsAsync(new List<ItemImage>());
-            _repoMock.Setup(repo => repo.GetByItemIdAsync(2)).ReturnsAsync(new List<ItemImage>());
+            _repoMock.Setup(repo => repo.Items.GetAllAsync()).ReturnsAsync(items);
+            _repoMock.Setup(repo => repo.Items.GetByItemIdAsync(1)).ReturnsAsync(new List<ItemImage>());
+            _repoMock.Setup(repo => repo.Items.GetByItemIdAsync(2)).ReturnsAsync(new List<ItemImage>());
 
             // Act
             var result = await _itemService.GetAllAsync();
@@ -109,9 +109,9 @@ namespace BackEnd.Application.Tests
             var result = await _itemService.CreateAsync(itemDto);
 
             // Assert
-            _repoMock.Verify(repo => repo.AddAsync(It.IsAny<Item>(), null), Times.Once);
-            _repoMock.Verify(repo => repo.SaveChangesAsync(), Times.Exactly(2));
-            _repoMock.Verify(repo => repo.AddImageAsync(It.Is<ItemImage>(img =>
+            _repoMock.Verify(repo => repo.Items.AddAsync(It.IsAny<Item>(), null), Times.Once);
+            _repoMock.Verify(repo => repo.Items.SaveChangesAsync(), Times.Exactly(2));
+            _repoMock.Verify(repo => repo.Items.AddImageAsync(It.Is<ItemImage>(img =>
                 img.ImageUrl == "new.jpg"
             )), Times.Once);
 
@@ -127,7 +127,7 @@ namespace BackEnd.Application.Tests
         {
             // Arrange
             var existingItem = new Item { ItemId = 1, Title = "Old Title" };
-            _repoMock.Setup(repo => repo.GetByIdAsync(1, null)).ReturnsAsync(existingItem);
+            _repoMock.Setup(repo => repo.Items.GetByIdAsync(1, null)).ReturnsAsync(existingItem);
 
             var updatedDto = new ItemDto
             {
@@ -142,8 +142,8 @@ namespace BackEnd.Application.Tests
 
             // Assert
             Assert.True(result);
-            _repoMock.Verify(repo => repo.Update(It.IsAny<Item>()), Times.Once);
-            _repoMock.Verify(repo => repo.SaveChangesAsync(), Times.Once);
+            _repoMock.Verify(repo => repo.Items.Update(It.IsAny<Item>()), Times.Once);
+            _repoMock.Verify(repo => repo.Items.SaveChangesAsync(), Times.Once);
 
             Assert.NotNull(_capturedItem);
             Assert.Equal("Updated Title", _capturedItem.Title);
@@ -157,7 +157,7 @@ namespace BackEnd.Application.Tests
         public async Task TC_ITEM_006_UpdateAsync_WithInvalidId_ShouldThrowKeyNotFoundException()
         {
             // Arrange
-            _repoMock.Setup(repo => repo.GetByIdAsync(999, null))
+            _repoMock.Setup(repo => repo.Items.GetByIdAsync(999, null))
                 .ReturnsAsync((Item)null);
 
             var updatedDto = new ItemDto { Title = "Updated Title" };
@@ -176,15 +176,15 @@ namespace BackEnd.Application.Tests
         {
             // Arrange
             var existingItem = new Item { ItemId = 1 };
-            _repoMock.Setup(repo => repo.GetByIdAsync(1, null)).ReturnsAsync(existingItem);
+            _repoMock.Setup(repo => repo.Items.GetByIdAsync(1, null)).ReturnsAsync(existingItem);
 
             // Act
             var result = await _itemService.DeleteAsync(1);
 
             // Assert
             Assert.True(result);
-            _repoMock.Verify(repo => repo.Delete(existingItem), Times.Once);
-            _repoMock.Verify(repo => repo.SaveChangesAsync(), Times.Once);
+            _repoMock.Verify(repo => repo.Items.Delete(existingItem), Times.Once);
+            _repoMock.Verify(repo => repo.Items.SaveChangesAsync(), Times.Once);
         }
 
         //  TC_ITEM_008: "Verify deleting an item with a non-existent ID"
@@ -192,7 +192,7 @@ namespace BackEnd.Application.Tests
         public async Task TC_ITEM_008_DeleteAsync_WithInvalidId_ShouldThrowKeyNotFoundException()
         {
             // Arrange
-            _repoMock.Setup(repo => repo.GetByIdAsync(999, null))
+            _repoMock.Setup(repo => repo.Items.GetByIdAsync(999, null))
                 .ReturnsAsync((Item)null);
             // Act
             Func<Task> act = () => _itemService.DeleteAsync(999); // Service throw
@@ -208,8 +208,8 @@ namespace BackEnd.Application.Tests
         {
             // Arrange
             var evItems = new List<Item> { new Item { ItemId = 1, ItemType = "EV", Title = "EV 1" } };
-            _repoMock.Setup(repo => repo.GetLatestEVsAsync(5)).ReturnsAsync(evItems);
-            _repoMock.Setup(repo => repo.GetByItemIdAsync(1)).ReturnsAsync(new List<ItemImage>());
+            _repoMock.Setup(repo => repo.Items.GetLatestEVsAsync(5)).ReturnsAsync(evItems);
+            _repoMock.Setup(repo => repo.Items.GetByItemIdAsync(1)).ReturnsAsync(new List<ItemImage>());
 
             // Act
             var result = await _itemService.GetLatestEVsAsync(5);
@@ -226,8 +226,8 @@ namespace BackEnd.Application.Tests
         {
             // Arrange
             var batteryItems = new List<Item> { new Item { ItemId = 3, ItemType = "Battery", Title = "Battery 1" } };
-            _repoMock.Setup(repo => repo.GetLatestBatteriesAsync(5)).ReturnsAsync(batteryItems);
-            _repoMock.Setup(repo => repo.GetByItemIdAsync(3)).ReturnsAsync(new List<ItemImage>());
+            _repoMock.Setup(repo => repo.Items.GetLatestBatteriesAsync(5)).ReturnsAsync(batteryItems);
+            _repoMock.Setup(repo => repo.Items.GetByItemIdAsync(3)).ReturnsAsync(new List<ItemImage>());
 
             // Act
             var result = await _itemService.GetLatestBatteriesAsync(5);
@@ -251,7 +251,7 @@ namespace BackEnd.Application.Tests
                 PageSize = 10
             };
 
-            _repoMock.Setup(repo => repo.SearchItemsAsync(
+            _repoMock.Setup(repo => repo.Items.SearchItemsAsync(
                 "ev",       // itemType (TC_ITEM_011)
                 "Tesla",    // title (TC_ITEM_012)
                 1000,       // minPrice (TC_ITEM_013)
@@ -267,7 +267,7 @@ namespace BackEnd.Application.Tests
                 "ev", "Tesla", 1000, 5000, 1, 10, "Price", "asc");
 
             // Assert
-            _repoMock.Verify(repo => repo.SearchItemsAsync(
+            _repoMock.Verify(repo => repo.Items.SearchItemsAsync(
                 "ev", "Tesla", 1000, 5000, 1, 10, "Price", "asc"
             ), Times.Once);
 
@@ -282,7 +282,7 @@ namespace BackEnd.Application.Tests
         {
             // Arrange
             var itemDetail = new ItemWithDetailDto { ItemId = 1, Title = "Test Item" };
-            _repoMock.Setup(repo => repo.GetItemWithDetailsAsync(1)).ReturnsAsync(itemDetail);
+            _repoMock.Setup(repo => repo.Items.GetItemWithDetailsAsync(1)).ReturnsAsync(itemDetail);
 
             // Act
             var result = await _itemService.GetItemWithDetailsAsync(1);
@@ -297,7 +297,7 @@ namespace BackEnd.Application.Tests
         public async Task TC_ITEM_019_GetItemWithDetailsAsync_WithInvalidId_ShouldThrowKeyNotFoundException()
         {
             // Arrange
-            _repoMock.Setup(repo => repo.GetItemWithDetailsAsync(999))
+            _repoMock.Setup(repo => repo.Items.GetItemWithDetailsAsync(999))
                 .ReturnsAsync((ItemWithDetailDto)null);
 
             // Act
@@ -314,7 +314,7 @@ namespace BackEnd.Application.Tests
         {
             // Arrange
             var items = new List<ItemWithDetailDto> { new ItemWithDetailDto { ItemId = 1 } };
-            _repoMock.Setup(repo => repo.GetAllItemsWithDetailsAsync()).ReturnsAsync(items);
+            _repoMock.Setup(repo => repo.Items.GetAllItemsWithDetailsAsync()).ReturnsAsync(items);
 
             // Act
             var result = await _itemService.GetAllItemsWithDetailsAsync();
@@ -339,7 +339,7 @@ namespace BackEnd.Application.Tests
             var result = await _itemService.CreateAsync(itemDto);
 
             // Assert
-            _repoMock.Verify(repo => repo.AddAsync(It.IsAny<Item>(), null), Times.Once);
+            _repoMock.Verify(repo => repo.Items.AddAsync(It.IsAny<Item>(), null), Times.Once);
 
             Assert.NotNull(_capturedItem);
             Assert.Equal("Test Item", _capturedItem.Title);

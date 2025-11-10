@@ -22,23 +22,61 @@ public class UnitOfWork : IUnitOfWork
     public ICommissionFeeRuleRepository CommissionFeeRule { get;}
     public ITransactionCommissionRepository TransactionCommission { get; }
     public IAddressRepository Address { get; }
-    public IPaymentRepository Payments { get; }
-    public ICommissionFeeRuleRepository CommissionFeeRules { get; }
+    public IPaymentRepository Payments { get; } 
+    public IBidRepository ItemBiddings { get; }
+    public IChatRepository Chats { get; }   
+    public IUserModerationRepository UserModerations { get; }
+    public IPermissionRepository Permissions { get; }
+    public IStaffPermissionRepository StaffPermissions { get; }
+    public IPaymentDetailRepository PaymentDetails  { get; }
+    public IBatteryDetailRepository BatteryDetails { get; }
+    public IComplaintRepository Complaints { get; }
+    public IEmailRepository Emails { get; }
+    public IEVDetailRepository EVDetails { get; }
+    public IFavoriteRepository Favorites{ get; }
+    public IHistorySoldRepository HistorySolds { get; }
+    public IItemImageRepository ItemImages { get; }
+    public IKYC_DocumentRepository KycDocuments { get; }
+    public INewsRepository News { get; }
+    public INotificationRepository Notifications { get; }
+    public IPasswordResetTokenRepository PasswordResetTokens{ get; }
+    public IReportRepository Reports{ get; }
+    public IReviewRepository Reviews { get; }
+    public ITransactionRepository Transactions { get; }
     public UnitOfWork(
-            EvBatteryTradingContext context,
-            IAuctionRepository auctionRepository,
-            IBidRepository bidRepository,
-            IWalletRepository walletRepository,
-            IWalletTransactionRepository walletTransactionRepository,
-            IItemRepository itemRepository,
-            IUserRepository userRepository,
-            IOrderRepository orderRepository,
-            IOrderItemRepository orderItemRepository,
-            IAddressRepository addressRepository,
-            IPaymentRepository paymentRepository,
-            ICommissionFeeRuleRepository commissionFeeRuleRepository,
-            ITransactionCommissionRepository transactionCommissionRepository
-        )
+           EvBatteryTradingContext context,
+           IAuctionRepository auctionRepository,
+           IBidRepository bidRepository,
+           IWalletRepository walletRepository,
+           IWalletTransactionRepository walletTransactionRepository,
+           IItemRepository itemRepository,
+           IUserRepository userRepository,
+           IOrderRepository orderRepository,
+           IOrderItemRepository orderItemRepository,
+           ICommissionFeeRuleRepository commissionFeeRuleRepository,
+           ITransactionCommissionRepository transactionCommissionRepository,
+           IAddressRepository addressRepository,
+           IPaymentRepository paymentRepository,
+           IChatRepository chatRepository,
+           IUserModerationRepository userModerationRepository,
+           IPermissionRepository permissionRepository,
+           IStaffPermissionRepository staffPermissionRepository,
+           IPaymentDetailRepository paymentDetailRepository,
+           IBatteryDetailRepository batteryDetailRepository,
+           IComplaintRepository complaintRepository,
+           IEmailRepository emailRepository,
+           IEVDetailRepository evDetailRepository,
+           IFavoriteRepository favoriteRepository,
+           IHistorySoldRepository historySoldRepository,
+           IItemImageRepository itemImageRepository,
+           IKYC_DocumentRepository kycDocumentRepository,
+           INewsRepository newsRepository,
+           INotificationRepository notificationRepository,
+           IPasswordResetTokenRepository passwordResetTokenRepository,
+           IReportRepository reportRepository,
+           IReviewRepository reviewRepository,
+           ITransactionRepository transactionRepository
+       )
     {
         _context = context;
         Auctions = auctionRepository;
@@ -51,8 +89,25 @@ public class UnitOfWork : IUnitOfWork
         OrderItems = orderItemRepository;
         Address = addressRepository;
         Payments = paymentRepository;
-        CommissionFeeRules = commissionFeeRuleRepository;
-        TransactionCommission = transactionCommissionRepository;      
+        Chats = chatRepository;
+        UserModerations = userModerationRepository;
+        Permissions = permissionRepository;
+        StaffPermissions = staffPermissionRepository;
+        PaymentDetails = paymentDetailRepository;
+        BatteryDetails = batteryDetailRepository;
+        Complaints = complaintRepository;
+        Emails = emailRepository;
+        EVDetails = evDetailRepository;
+        Favorites = favoriteRepository;
+        HistorySolds = historySoldRepository;
+        ItemImages = itemImageRepository;
+        KycDocuments = kycDocumentRepository;
+        News = newsRepository;
+        Notifications = notificationRepository;
+        PasswordResetTokens = passwordResetTokenRepository;
+        Reports = reportRepository;
+        Reviews = reviewRepository;
+        Transactions = transactionRepository;
     }
 
     public async Task BeginTransactionAsync(CancellationToken cancellationToken = default)

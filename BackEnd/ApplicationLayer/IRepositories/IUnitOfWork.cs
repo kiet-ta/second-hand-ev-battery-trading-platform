@@ -17,6 +17,27 @@ public interface IUnitOfWork
     ITransactionCommissionRepository TransactionCommission { get; }
 
     IAddressRepository Address { get; }
+    IPaymentRepository Payments { get; }
+    IBidRepository ItemBiddings { get; }
+    IChatRepository Chats { get; }
+    IUserModerationRepository UserModerations { get; }
+    IPermissionRepository Permissions { get; }
+    IStaffPermissionRepository StaffPermissions { get; }
+    IPaymentDetailRepository PaymentDetails { get; }
+    IBatteryDetailRepository BatteryDetails { get; }
+    IComplaintRepository Complaints { get; }
+    IEmailRepository Emails { get; }
+    IEVDetailRepository EVDetails { get; }
+    IFavoriteRepository Favorites { get; }
+    IHistorySoldRepository HistorySolds { get; }
+    IItemImageRepository ItemImages { get; }
+    IKYC_DocumentRepository KycDocuments { get; }
+    INewsRepository News { get; }
+    INotificationRepository Notifications { get; }
+    IPasswordResetTokenRepository PasswordResetTokens { get; }
+    IReportRepository Reports { get; }
+    IReviewRepository Reviews { get; }
+    ITransactionRepository Transactions { get; }
 
     Task BeginTransactionAsync(CancellationToken cancellationToken = default);
 
