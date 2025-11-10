@@ -1,5 +1,6 @@
 ﻿using Application.IRepositories;
 using Application.IServices;
+using Domain.Common.Constants;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -42,7 +43,7 @@ public class AuctionStatusUpdaterJob : BackgroundService
                         if (auction.StartTime <= now)
                         {
                             _logger.LogInformation($"Updating Auction {auction.AuctionId} status to ongoing.");
-                            await auctionRepository.UpdateStatusAsync(auction, "ongoing");
+                            await auctionRepository.UpdateStatusAsync(auction, AuctionStatus.Ongoing.ToString());
                         }
                     }
 
@@ -53,6 +54,11 @@ public class AuctionStatusUpdaterJob : BackgroundService
                     foreach (var auction in endedAuctions)
                     {
                         _logger.LogInformation($"Found ended Auction {auction.AuctionId}. Updating status and triggering finalization.");
+                        // update status before finalize
+                        // Use ExecuteUpdateAsync avoid load all entity if not need
+                        await context.Auctions
+                                .Where(a => a.AuctionId == auction.AuctionId && a.Status == AuctionStatus.Ongoing.ToString()) // Double check status
+                                .ExecuteUpdateAsync(updates => updates.SetProperty(a => a.Status, AuctionStatus.Ended.ToString()), stoppingToken); //
 
                         //call service
                         try

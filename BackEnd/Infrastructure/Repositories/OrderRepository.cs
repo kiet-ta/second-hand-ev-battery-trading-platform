@@ -1,6 +1,7 @@
 ﻿using Application.DTOs;
 using Application.DTOs.ItemDtos;
 using Application.IRepositories;
+using Domain.Common.Constants;
 using Domain.Entities;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -150,7 +151,7 @@ namespace Infrastructure.Repositories
         public async Task<decimal> GetRevenueThisMonthAsync(DateTime now)
         {
             return await _context.Wallets
-                .Where(o => o.UserId == 4 && o.UpdatedAt.Month == now.Month && o.UpdatedAt.Year == now.Year && o.Status == "active")
+                .Where(o => o.UserId == 4 && o.UpdatedAt.Month == now.Month && o.UpdatedAt.Year == now.Year && o.Status == WalletStatus.Active_WalletStatus.ToString())
                 .SumAsync(o => (decimal?)o.Balance) ?? 0;
         }
 
@@ -158,7 +159,7 @@ namespace Infrastructure.Repositories
         {
             return await _context.Orders
                 .AsNoTracking()
-                .Where(o => o.Status == "completed" && o.CreatedAt >= startDate && o.CreatedAt <= endDate)
+                .Where(o => o.Status == OrderStatus.Completed_Order.ToString() && o.CreatedAt >= startDate && o.CreatedAt <= endDate)
                 .ToListAsync();
         }
     }

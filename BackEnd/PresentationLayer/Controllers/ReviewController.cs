@@ -2,6 +2,7 @@
 using Application.DTOs.ReviewDtos;
 using Application.IServices;
 using Application.Services;
+using Domain.Common.Constants;
 using Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
@@ -53,7 +54,7 @@ namespace PresentationLayer.Controllers
                     notification = new CreateNotificationDTO
                     {
                         TargetUserId = userId.ToString(),
-                        NotiType = "activities",
+                        NotiType = NotificationType.Activities.ToString(),
                         Title = "Inappropriate Comment",
                         Message = "Warning: You have used inappropriate language in your review.",
                     };
@@ -64,7 +65,7 @@ namespace PresentationLayer.Controllers
                     notification = new CreateNotificationDTO
                     {
                         TargetUserId = userId.ToString(),
-                        NotiType = "activities",
+                        NotiType = NotificationType.Activities.ToString(),
                         Title = "Inappropriate Comment",
                         Message = "You have been banned from comment due to repeated inappropriate language.",
                       
@@ -72,7 +73,7 @@ namespace PresentationLayer.Controllers
                     await _kycdocumentService.WarningUserAsync(userId);
                     return Ok("Badword");
                 }
-                await _notificationService.AddNewNotification(notification, 4, "staff");
+                await _notificationService.AddNewNotification(notification, 4, UserRole.Staff.ToString());
                 await _notificationService.SendNotificationAsync(notification.Message, userId.ToString());
             }
             var review = await _reviewService.CreateReviewAsync(dto, userId);

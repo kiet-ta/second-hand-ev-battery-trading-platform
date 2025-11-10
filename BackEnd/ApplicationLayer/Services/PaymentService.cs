@@ -2,6 +2,7 @@
 using Application.IHelpers;
 using Application.IRepositories;
 using Application.IServices;
+using Domain.Common.Constants;
 using Domain.Entities;
 using Microsoft.Extensions.Configuration;
 using Net.payOS;
@@ -42,7 +43,7 @@ public class PaymentService : IPaymentService
             if (order.BuyerId != buyerId)
                 throw new Exception("Bạn không phải chủ đơn hàng này.");
 
-            if (order.Status != "shipped")
+            if (order.Status != OrderStatus.Shipped.ToString   ())
                 throw new Exception($"Không thể xác nhận đơn hàng ở trạng thái: {order.Status}.");
 
             var orderItems = await _unitOfWork.OrderItems.GetByOrderIdAsync(orderId);
@@ -70,7 +71,7 @@ public class PaymentService : IPaymentService
                 throw new Exception("Không tìm thấy quy tắc hoa hồng 'FEE001'.");
 
             decimal commissionAmount = 0;
-            if (commissionRule.FeeType == "percentage")
+            if (commissionRule.FeeType == CommissionFeeType.Percentage.ToString())
             {
                 commissionAmount = totalOrderAmount * (commissionRule.FeeValue / 100);
             }
@@ -89,15 +90,15 @@ public class PaymentService : IPaymentService
             managerWallet.UpdatedAt = DateTime.Now;
             _unitOfWork.Wallets.Update(managerWallet);
 
-            order.Status = "completed";
-            order.UpdatedAt = DateTime.Now;
+            order.Status = OrderStatus.Completed_Order.ToString();
+            order.UpdatedAt = DateTime.UtcNow;
             await _unitOfWork.Orders.UpdateAsync(order);
 
             var sellerTransaction = new WalletTransaction
             {
                 WalletId = sellerWallet.WalletId,
                 Amount = netAmountForSeller,
-                Type = "release",
+                Type = WalletTransactionType.Released_WalletTransaction.ToString(),
                 OrderId = orderId,
                 CreatedAt = DateTime.Now
             };
@@ -107,7 +108,7 @@ public class PaymentService : IPaymentService
             {
                 WalletId = managerWallet.WalletId,
                 Amount = commissionAmount,
-                Type = "payment",
+                Type = WalletTransactionType.Payment.ToString(),
                 OrderId = orderId,
                 CreatedAt = DateTime.Now
             };
@@ -156,10 +157,10 @@ public class PaymentService : IPaymentService
                 OrderCode = orderCode,
                 TotalAmount = request.TotalAmount,
                 Method = request.Method,
-                Status = "pending",
-                PaymentType = "order_purchase",
-                CreatedAt = DateTime.Now,
-                UpdatedAt = DateTime.Now
+                Status = PaymentStatus.Pending_PaymentStatus.ToString(),
+                PaymentType = "order_purchase", // status gì đây
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
             };
             payment = await _unitOfWork.Payments.AddPaymentAsync(payment);
 
@@ -188,7 +189,7 @@ public class PaymentService : IPaymentService
                 {
                     WalletId = wallet.WalletId,
                     Amount = -request.TotalAmount,
-                    Type = "payment",
+                    Type = WalletTransactionType.Payment.ToString(),
                     RefId = payment.PaymentId,
                     CreatedAt = DateTime.Now
                 };
@@ -204,7 +205,7 @@ public class PaymentService : IPaymentService
                 {
                     PaymentId = payment.PaymentId,
                     OrderCode = orderCode,
-                    Status = "completed"
+                    Status = PaymentStatus.Completed_PaymentStatus.ToString()
                 };
             }
             else if (request.Method == "payos")
@@ -235,7 +236,7 @@ public class PaymentService : IPaymentService
                     PaymentId = payment.PaymentId,
                     OrderCode = result.orderCode,
                     CheckoutUrl = result.checkoutUrl,
-                    Status = "pending"
+                    Status = PaymentStatus.Pending_PaymentStatus.ToString()
                 };
             }
 
@@ -271,7 +272,7 @@ public class PaymentService : IPaymentService
             await _payOS.cancelPaymentLink(orderCode, reason);
         }
 
-        await _unitOfWork.Payments.UpdatePaymentStatusAsync(info.PaymentId, "failed");
+        await _unitOfWork.Payments.UpdatePaymentStatusAsync(info.PaymentId, PaymentStatus.Failed_PaymentStatus.ToString());
         await _unitOfWork.SaveChangesAsync();
     }
 
@@ -282,7 +283,7 @@ public class PaymentService : IPaymentService
             return;
 
         var info = await _unitOfWork.Payments.GetPaymentInfoByOrderCodeAsync(data.orderCode);
-        if (info == null || info.Status == "completed")
+        if (info == null || info.Status == PaymentStatus.Completed_PaymentStatus.ToString())
         {
             Console.WriteLine($"[Webhook] Bỏ qua, đơn hàng đã xử lý: {data.orderCode}");
             return;
@@ -291,7 +292,7 @@ public class PaymentService : IPaymentService
         await _unitOfWork.BeginTransactionAsync();
         try
         {
-            await _unitOfWork.Payments.UpdatePaymentStatusAsync(info.PaymentId, "completed");
+            await _unitOfWork.Payments.UpdatePaymentStatusAsync(info.PaymentId, PaymentStatus.Completed_PaymentStatus.ToString());
 
             bool isSimplePayment = info.Details.Count == 1 &&
                                      info.Details.First().ItemId == null &&
@@ -308,7 +309,7 @@ public class PaymentService : IPaymentService
                     var user = await _unitOfWork.Users.GetByIdAsync(info.UserId);
                     if (user != null)
                     {
-                        user.Paid = "registing";
+                        user.Paid = UserPaid.Registering.ToString();
                         await _unitOfWork.Users.UpdateAsync(user);
                     }
                 }
@@ -326,7 +327,7 @@ public class PaymentService : IPaymentService
                     {
                         WalletId = userWallet.WalletId,
                         Amount = info.TotalAmount,
-                        Type = "deposit",
+                        Type = WalletTransactionType.Deposit_WalletTransaction.ToString(),
                         RefId = info.PaymentId, 
                         CreatedAt = DateTime.Now
                     };
@@ -352,7 +353,7 @@ public class PaymentService : IPaymentService
                 {
                     WalletId = systemWallet.WalletId,
                     Amount = info.TotalAmount,
-                    Type = "hold",
+                    Type = WalletTransactionType.Hold.ToString(),
                     RefId = info.PaymentId,
                     CreatedAt = DateTime.Now
                 };
@@ -377,7 +378,7 @@ public class PaymentService : IPaymentService
         var registrationFeeRule = rules.FirstOrDefault(r => r.FeeCode == "SELLER_REG_FEE" && r.IsActive);
         var user = await _unitOfWork.Users.GetByIdAsync(request.UserId);
 
-        if (user.Role != "seller" || user.Paid == "registering" || user.Paid == "account-maintenance-fee")
+        if (user.Role != UserRole.Seller.ToString()|| user.Paid == UserPaid.Registering.ToString() || user.Paid == "account-maintenance-fee")
             throw new InvalidOperationException("User is not a seller or has paid the fee.");
         if (registrationFeeRule == null)
             throw new Exception("Registration fee for Seller not configured yet.");
@@ -395,9 +396,9 @@ public class PaymentService : IPaymentService
                 OrderCode = orderCode,
                 TotalAmount = feeAmount,
                 Method = "payos",
-                PaymentType = "seller_registration",
-                Status = "pending",
-                CreatedAt = DateTime.Now
+                PaymentType = "seller_registration", // ?????
+                Status = PaymentStatus.Pending_PaymentStatus.ToString(),
+                CreatedAt = DateTime.UtcNow
             };
             payment = await _unitOfWork.Payments.AddPaymentAsync(payment);
             await _unitOfWork.SaveChangesAsync(); //save to get PaymentId
@@ -428,7 +429,7 @@ public class PaymentService : IPaymentService
                 PaymentId = payment.PaymentId,
                 OrderCode = result.orderCode,
                 CheckoutUrl = result.checkoutUrl,
-                Status = "pending"
+                Status = PaymentStatus.Pending_PaymentStatus.ToString()
             };
         }
         catch (Exception)
@@ -452,10 +453,10 @@ public class PaymentService : IPaymentService
                 OrderCode = depositOrderCode,
                 TotalAmount = amount,
                 Method = "payos",
-                Status = "pending",
-                PaymentType = "deposit",
-                CreatedAt = DateTime.Now,
-                UpdatedAt = DateTime.Now,
+                Status = PaymentStatus.Pending_PaymentStatus.ToString(),
+                PaymentType = PaymentType.Deposit_PaymentType.ToString(),
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
             };
             paymentRecord = await _unitOfWork.Payments.AddPaymentAsync(paymentRecord);
             await _unitOfWork.SaveChangesAsync(); // save to get PaymentId
@@ -498,7 +499,7 @@ public class PaymentService : IPaymentService
                 PaymentId = paymentRecord.PaymentId,
                 OrderCode = payOSResult.orderCode,
                 CheckoutUrl = payOSResult.checkoutUrl,
-                Status = "pending"
+                Status = PaymentStatus.Pending_PaymentStatus.ToString()
             };
         }
         catch (Exception ex)
@@ -518,8 +519,8 @@ public class PaymentService : IPaymentService
                 var order = await _unitOfWork.Orders.GetByIdAsync(detail.OrderId.Value);
                 if (order != null)
                 {
-                    order.Status = "paid";
-                    order.UpdatedAt = DateTime.Now;
+                    order.Status = OrderStatus.Paid.ToString();
+                    order.UpdatedAt = DateTime.UtcNow;
                 }
             }
             if (detail.ItemId.HasValue)
@@ -527,8 +528,8 @@ public class PaymentService : IPaymentService
                 var item = await _unitOfWork.Items.GetByIdAsync(detail.ItemId.Value);
                 if (item != null)
                 {
-                    item.Status = "sold";
-                    item.UpdatedAt = DateTime.Now;
+                    item.Status = ItemStatus.Sold.ToString();
+                    item.UpdatedAt = DateTime.UtcNow;
                 }
             }
         }

@@ -15,12 +15,12 @@ namespace Application.Services
     public class UploadService : IUploadService
     {
         private readonly Cloudinary _cloudinary;
-        private readonly IUserRepository _userRepository;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public UploadService(Cloudinary cloudinary, IUserRepository userRepository)
+        public UploadService(Cloudinary cloudinary, IUnitOfWork unitOfWork)
         {
             _cloudinary = cloudinary;
-            _userRepository = userRepository;
+            _unitOfWork = unitOfWork;
         }
 
         public async Task<string> UploadAvatarAsync(int userId, IFormFile file)
@@ -43,8 +43,8 @@ namespace Application.Services
 
             string avatarUrl = uploadResult.SecureUrl.ToString();
 
-            await _userRepository.UpdateAvatarAsync(userId, avatarUrl);
-            await _userRepository.SaveChangesAsync();
+            await _unitOfWork.Users.UpdateAvatarAsync(userId, avatarUrl);
+            await _unitOfWork.Users.SaveChangesAsync();
 
             return avatarUrl;
         }

@@ -1,6 +1,7 @@
 ﻿using Application.DTOs;
 using Application.IRepositories;
 using Application.IServices;
+using Domain.Common.Constants;
 using Domain.Entities;
 using Microsoft.Extensions.Logging;
 
@@ -61,7 +62,7 @@ public class AuctionFinalizationService : IAuctionFinalizationService
                 var itemNoBids = await _unitOfWork.Items.GetByIdAsync(auction.ItemId);
                 if (itemNoBids != null && itemNoBids.Status == "pending_auction") // Giả sử có status này
                 {
-                    itemNoBids.Status = "active";
+                    itemNoBids.Status = ItemStatus.Active_ItemStatus.ToString();
                     _unitOfWork.Items.Update(itemNoBids);
                     await _unitOfWork.SaveChangesAsync(); // Save changes to item status
                     _logger.LogInformation($"Updated Item {auction.ItemId} status back to active as auction had no bids.");
@@ -137,7 +138,7 @@ public class AuctionFinalizationService : IAuctionFinalizationService
             {
                 BuyerId = winnerId,
                 AddressId = winnerAddress.AddressId, 
-                Status = "paid", 
+                Status = OrderStatus.Paid.ToString(), 
                 CreatedAt = DateTime.Now,
                 UpdatedAt = DateTime.Now
             };
@@ -149,7 +150,7 @@ public class AuctionFinalizationService : IAuctionFinalizationService
             {
                 WalletId = winnerWallet.WalletId,
                 Amount = -winningAmount, 
-                Type = "payment",
+                Type = WalletTransactionType.Payment.ToString(),
                 CreatedAt = DateTime.Now,
                 RefId = newOrder.OrderId,
                 AuctionId = auctionId,
@@ -212,7 +213,7 @@ public class AuctionFinalizationService : IAuctionFinalizationService
                 {
                     WalletId = holdTransaction.WalletId,
                     Amount = amountToRelease, // Positive numbers
-                    Type = "release",
+                    Type = WalletTransactionType.Released_WalletTransaction.ToString(),
                     CreatedAt = DateTime.Now,
                     RefId = loserBid.BidId, // Link to losing bid
                     AuctionId = auctionId

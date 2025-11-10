@@ -12,21 +12,22 @@ namespace Application.Services;
 
 public class CommissionFeeRuleService : ICommissionFeeRuleService
 {
-    private readonly ICommissionFeeRuleRepository _repository;
+    private readonly IUnitOfWork _unitOfWork;
 
-    public CommissionFeeRuleService(ICommissionFeeRuleRepository repository)
+    public CommissionFeeRuleService(IUnitOfWork unitOfWork)
     {
-        _repository = repository;
+
+        _unitOfWork = unitOfWork;
     }
-    public async Task<IEnumerable<CommissionFeeRule>> GetAllAsync() => await _repository.GetAllAsync();
-    public async Task<CommissionFeeRule?> GetByIdAsync(int id) => await _repository.GetByIdAsync(id);
-    public async Task AddAsync(CommissionFeeRule rule) => await _repository.AddAsync(rule);
+    public async Task<IEnumerable<CommissionFeeRule>> GetAllAsync() => await _unitOfWork.CommissionFeeRules.GetAllAsync();
+    public async Task<CommissionFeeRule?> GetByIdAsync(int id) => await _unitOfWork.CommissionFeeRules.GetByIdAsync(id);
+    public async Task AddAsync(CommissionFeeRule rule) => await _unitOfWork.CommissionFeeRules.AddAsync(rule);
     public async Task<CommissionFeeRule> ToggleStatusAsync(CommissionFeeRule rule)
     {
         if (rule == null)
             throw new ArgumentNullException(nameof(rule));
         rule.IsActive = !rule.IsActive;
-        await _repository.UpdateAsync(rule);
+        await _unitOfWork.CommissionFeeRules.UpdateAsync(rule);
         return rule;
     }
 }

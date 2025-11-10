@@ -94,7 +94,6 @@ public class UnitOfWork : IUnitOfWork
         TransactionCommission = transactionCommissionRepository;
         Address = addressRepository;
         Payments = paymentRepository;
-
         Chats = chatRepository;
         UserModerations = userModerationRepository;
         Permissions = permissionRepository;

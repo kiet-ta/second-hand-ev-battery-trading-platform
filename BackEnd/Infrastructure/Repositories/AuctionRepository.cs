@@ -1,6 +1,7 @@
 using Application.DTOs.AuctionDtos;
 using Application.DTOs.ItemDtos;
 using Application.IRepositories;
+using Domain.Common.Constants;
 using Domain.Entities;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -20,7 +21,7 @@ public class AuctionRepository : IAuctionRepository
         await _context.Auctions.FirstOrDefaultAsync(a => a.ItemId == itemId);
 
     public async Task<IEnumerable<Auction>> GetActiveAuctionsAsync() =>
-        await _context.Auctions.Where(a => a.Status == "ongoing").ToListAsync();
+        await _context.Auctions.Where(a => a.Status == AuctionStatus.Ongoing.ToString()).ToListAsync();
 
     public async Task<(IEnumerable<Auction> auctions, int total)> GetAuctionsWithPaginationAsync(int page, int pageSize, string? status = null)
     {
@@ -72,14 +73,14 @@ public class AuctionRepository : IAuctionRepository
         var auction = await GetByIdAsync(auctionId);
         if (auction != null)
         {
-            auction.TotalBids = await _context.Bids.CountAsync(b => b.AuctionId == auctionId && b.Status != "cancelled");
+            auction.TotalBids = await _context.Bids.CountAsync(b => b.AuctionId == auctionId && b.Status != AuctionStatus.Cancelled_AuctionStatus.ToString());
             auction.UpdatedAt = DateTime.Now;
         }
     }
 
     public async Task<IEnumerable<Auction>> GetUpcomingAuctionsAsync()
       => await _context.Auctions
-            .Where(a => a.Status == "upcoming")
+            .Where(a => a.Status == AuctionStatus.Upcoming.ToString())
             .ToListAsync();
 
     public async Task<List<AuctionDto>> GetAllAsync(int page, int pageSize)
@@ -116,8 +117,8 @@ public class AuctionRepository : IAuctionRepository
         var now = DateTime.Now;
         foreach (var a in result)
         {
-            a.Status = now < a.StartTime ? "upcoming" :
-                       now >= a.StartTime && now < a.EndTime ? "ongoing" : "ended";
+            a.Status = now < a.StartTime ? AuctionStatus.Upcoming.ToString() :
+                       now >= a.StartTime && now < a.EndTime ? AuctionStatus.Ongoing.ToString() : AuctionStatus.Ended.ToString();
         }
         return result;
     }
@@ -150,7 +151,7 @@ public class AuctionRepository : IAuctionRepository
     public async Task<IEnumerable<Auction>> GetEndedAuctionsToFinalizeAsync(DateTime currentTime)
     {
         return await _context.Auctions
-                             .Where(a => a.EndTime < currentTime && a.Status == "ongoing")
+                             .Where(a => a.EndTime < currentTime && a.Status == AuctionStatus.Ongoing.ToString())
                              .ToListAsync();
     }
 
