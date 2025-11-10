@@ -1,5 +1,7 @@
 ﻿using Application.IRepositories;
 using Application.IRepositories.IBiddingRepositories;
+using Application.IRepositories.IChatRepositories;
+using Application.IRepositories.IManageStaffRepositories;
 using Application.IRepositories.IPaymentRepositories;
 using Microsoft.EntityFrameworkCore.Storage;
 
@@ -19,7 +21,7 @@ public class UnitOfWork : IUnitOfWork
     public IUserRepository Users { get; }
     public IOrderRepository Orders { get; }
     public IOrderItemRepository OrderItems { get; }
-    public ICommissionFeeRuleRepository CommissionFeeRule { get;}
+    public ICommissionFeeRuleRepository CommissionFeeRules { get;}
     public ITransactionCommissionRepository TransactionCommission { get; }
     public IAddressRepository Address { get; }
     public IPaymentRepository Payments { get; } 
@@ -79,6 +81,7 @@ public class UnitOfWork : IUnitOfWork
        )
     {
         _context = context;
+
         Auctions = auctionRepository;
         Bids = bidRepository;
         Wallets = walletRepository;
@@ -87,8 +90,11 @@ public class UnitOfWork : IUnitOfWork
         Users = userRepository;
         Orders = orderRepository;
         OrderItems = orderItemRepository;
+        CommissionFeeRules = commissionFeeRuleRepository;
+        TransactionCommission = transactionCommissionRepository;
         Address = addressRepository;
         Payments = paymentRepository;
+
         Chats = chatRepository;
         UserModerations = userModerationRepository;
         Permissions = permissionRepository;
