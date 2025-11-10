@@ -26,14 +26,15 @@ export default function AddCompareModal({ open, onClose, BASE }) {
                 const data = await res.json();
 
                 const existing = getCompareList();
-                const existingIds = existing.map((x) => x.itemId);
+                const existingIds = new Set(existing.map((x) => x.itemId));
 
                 const filtered = data.filter(
-                    (it) => !existingIds.includes(it.itemId)
+                    (it) => !existingIds.has(it.itemId)
                 );
+
                 setItems(filtered);
             } catch (err) {
-                console.error("❌ Lỗi khi tải danh sách xe/pin:", err);
+                console.error("Lỗi khi tải danh sách xe/pin:", err);
             } finally {
                 setLoading(false);
             }
@@ -229,7 +230,7 @@ export default function AddCompareModal({ open, onClose, BASE }) {
                             <div className="flex flex-wrap gap-2">
                                 {activeTags.map((tag, i) => (
                                     <span
-                                        key={i}
+                                        key={tag}
                                         className="flex items-center gap-1 bg-[#FFF5CC] text-[#B8860B] px-3 py-1 rounded-full text-xs font-medium border border-[#D4AF37]/30"
                                     >
                                         {tag}
