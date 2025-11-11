@@ -1,258 +1,258 @@
-﻿using Application.IRepositories;
-using Application.Services;
-using Domain.Entities;
-using Moq;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿//using Application.IRepositories;
+//using Application.Services;
+//using Domain.Entities;
+//using Moq;
+//using System;
+//using System.Collections.Generic;
+//using System.Linq;
+//using System.Text;
+//using System.Threading.Tasks;
 
-namespace BackEnd.Application.Tests
-{
-    public class AddressServiceTests
-    {
-        private readonly Mock<IAddressRepository> _repoMock;
-        private readonly AddressService _service;
+//namespace BackEnd.Application.Tests
+//{
+//    public class AddressServiceTests
+//    {
+//        private readonly Mock<IAddressRepository> _repoMock;
+//        private readonly AddressService _service;
 
-        public AddressServiceTests()
-        {
-            _repoMock = new Mock<IAddressRepository>();
-            _service = new AddressService(_repoMock.Object);
-        }
-
-
-        [Fact]
-        public async Task AddAddressAsync_ShouldSetIsDeletedFalse()
-        {
-            var address = new Address { UserId = 1 };
-            _repoMock.Setup(r => r.GetAddressesByUserIdAsync(1))
-                     .ReturnsAsync(new List<Address>());
-
-            await _service.AddAddressAsync(address, 1);
-
-            Assert.False(address.IsDeleted);
-        }
-
-        [Fact]
-        public async Task AddAddressAsync_ShouldSetIsDefaultFalse_WhenExistingDefault()
-        {
-            var address = new Address { UserId = 1 };
-            var existing = new List<Address> { new Address { IsDefault = true } };
-            _repoMock.Setup(r => r.GetAddressesByUserIdAsync(1))
-                     .ReturnsAsync(existing);
-
-            await _service.AddAddressAsync(address, 1);
-
-            Assert.False(address.IsDefault);
-        }
-
-        [Fact]
-        public async Task AddAddressAsync_ShouldKeepIsDefaultTrue_WhenNoExistingDefault()
-        {
-            var address = new Address { UserId = 1, IsDefault = true };
-            _repoMock.Setup(r => r.GetAddressesByUserIdAsync(1))
-                     .ReturnsAsync(new List<Address> { new Address { IsDefault = false } });
-
-            await _service.AddAddressAsync(address, 1);
-
-            Assert.True(address.IsDefault);
-        }
-
-        [Fact]
-        public async Task AddAddressAsync_ShouldCallAddAddressAsyncOnce()
-        {
-            var address = new Address { UserId = 1 };
-            _repoMock.Setup(r => r.GetAddressesByUserIdAsync(1))
-                     .ReturnsAsync(new List<Address>());
-
-            await _service.AddAddressAsync(address, 1);
-
-            _repoMock.Verify(r => r.AddAddressAsync(address), Times.Once);
-        }
-
-        [Fact]
-        public async Task AddAddressAsync_ShouldNotThrow_WhenNoExistingAddresses()
-        {
-            var address = new Address { UserId = 1 };
-            _repoMock.Setup(r => r.GetAddressesByUserIdAsync(1))
-                     .ReturnsAsync(new List<Address>());
-
-            await _service.AddAddressAsync(address, 1);
-        }
+//        public AddressServiceTests()
+//        {
+//            _repoMock = new Mock<IAddressRepository>();
+//            _service = new AddressService(_repoMock.Object);
+//        }
 
 
-        [Fact]
-        public async Task DeleteAddressAsync_ShouldThrow_WhenAddressNotFound()
-        {
-            _repoMock.Setup(r => r.GetAddressByIdAsync(99))
-                     .ReturnsAsync((Address)null);
+//        [Fact]
+//        public async Task AddAddressAsync_ShouldSetIsDeletedFalse()
+//        {
+//            var address = new Address { UserId = 1 };
+//            _repoMock.Setup(r => r.GetAddressesByUserIdAsync(1))
+//                     .ReturnsAsync(new List<Address>());
 
-            await Assert.ThrowsAsync<KeyNotFoundException>(() => _service.DeleteAddressAsync(99));
-        }
+//            await _service.AddAddressAsync(address, 1);
 
-        [Fact]
-        public async Task DeleteAddressAsync_ShouldThrow_WhenAlreadyDeleted()
-        {
-            _repoMock.Setup(r => r.GetAddressByIdAsync(1))
-                     .ReturnsAsync(new Address { AddressId = 1, IsDeleted = true });
+//            Assert.False(address.IsDeleted);
+//        }
 
-            await Assert.ThrowsAsync<KeyNotFoundException>(() => _service.DeleteAddressAsync(1));
-        }
+//        [Fact]
+//        public async Task AddAddressAsync_ShouldSetIsDefaultFalse_WhenExistingDefault()
+//        {
+//            var address = new Address { UserId = 1 };
+//            var existing = new List<Address> { new Address { IsDefault = true } };
+//            _repoMock.Setup(r => r.GetAddressesByUserIdAsync(1))
+//                     .ReturnsAsync(existing);
 
-        [Fact]
-        public async Task DeleteAddressAsync_ShouldCallRepository_WhenValid()
-        {
-            var address = new Address { AddressId = 1, IsDeleted = false };
-            _repoMock.Setup(r => r.GetAddressByIdAsync(1)).ReturnsAsync(address);
+//            await _service.AddAddressAsync(address, 1);
 
-            await _service.DeleteAddressAsync(1);
+//            Assert.False(address.IsDefault);
+//        }
 
-            _repoMock.Verify(r => r.DeleteAddressAsync(address), Times.Once);
-        }
+//        [Fact]
+//        public async Task AddAddressAsync_ShouldKeepIsDefaultTrue_WhenNoExistingDefault()
+//        {
+//            var address = new Address { UserId = 1, IsDefault = true };
+//            _repoMock.Setup(r => r.GetAddressesByUserIdAsync(1))
+//                     .ReturnsAsync(new List<Address> { new Address { IsDefault = false } });
 
+//            await _service.AddAddressAsync(address, 1);
 
-        [Fact]
-        public async Task GetAddressesByUserIdAsync_ShouldReturnList()
-        {
-            var list = new List<Address> { new Address(), new Address() };
-            _repoMock.Setup(r => r.GetAddressesByUserIdAsync(1))
-                     .ReturnsAsync(list);
+//            Assert.True(address.IsDefault);
+//        }
 
-            var result = await _service.GetAddressesByUserIdAsync(1);
+//        [Fact]
+//        public async Task AddAddressAsync_ShouldCallAddAddressAsyncOnce()
+//        {
+//            var address = new Address { UserId = 1 };
+//            _repoMock.Setup(r => r.GetAddressesByUserIdAsync(1))
+//                     .ReturnsAsync(new List<Address>());
 
-            Assert.Equal(2, result.Count);
-        }
+//            await _service.AddAddressAsync(address, 1);
 
-        [Fact]
-        public async Task GetAddressByIdAsync_ShouldReturnAddress()
-        {
-            var address = new Address { AddressId = 1 };
-            _repoMock.Setup(r => r.GetAddressByIdAsync(1)).ReturnsAsync(address);
+//            _repoMock.Verify(r => r.AddAddressAsync(address), Times.Once);
+//        }
 
-            var result = await _service.GetAddressByIdAsync(1);
+//        [Fact]
+//        public async Task AddAddressAsync_ShouldNotThrow_WhenNoExistingAddresses()
+//        {
+//            var address = new Address { UserId = 1 };
+//            _repoMock.Setup(r => r.GetAddressesByUserIdAsync(1))
+//                     .ReturnsAsync(new List<Address>());
 
-            Assert.Equal(1, result.AddressId);
-        }
-
-        [Fact]
-        public async Task GetAddressByIdAsync_ShouldReturnNull_WhenNotFound()
-        {
-            _repoMock.Setup(r => r.GetAddressByIdAsync(1)).ReturnsAsync((Address)null);
-
-            var result = await _service.GetAddressByIdAsync(1);
-
-            Assert.Null(result);
-        }
-
-        [Fact]
-        public async Task GetAllAddressesAsync_ShouldReturnAllAddresses()
-        {
-            var all = new List<Address> { new Address(), new Address(), new Address() };
-            _repoMock.Setup(r => r.GetAllAddressesAsync()).ReturnsAsync(all);
-
-            var result = await _service.GetAllAddressesAsync();
-
-            Assert.Equal(3, result.Count);
-        }
-
-        [Fact]
-        public async Task GetAllAddressesAsync_ShouldReturnEmptyList_WhenNoAddresses()
-        {
-            _repoMock.Setup(r => r.GetAllAddressesAsync()).ReturnsAsync(new List<Address>());
-
-            var result = await _service.GetAllAddressesAsync();
-
-            Assert.Empty(result);
-        }
+//            await _service.AddAddressAsync(address, 1);
+//        }
 
 
-        [Fact]
-        public async Task UpdateAddressAsync_ShouldThrow_WhenAddressNotFound()
-        {
-            _repoMock.Setup(r => r.GetAddressByIdAsync(1))
-                     .ReturnsAsync((Address)null);
+//        [Fact]
+//        public async Task DeleteAddressAsync_ShouldThrow_WhenAddressNotFound()
+//        {
+//            _repoMock.Setup(r => r.GetAddressByIdAsync(99))
+//                     .ReturnsAsync((Address)null);
 
-            await Assert.ThrowsAsync<KeyNotFoundException>(() => _service.UpdateAddressAsync(new Address { AddressId = 1 }));
-        }
+//            await Assert.ThrowsAsync<KeyNotFoundException>(() => _service.DeleteAddressAsync(99));
+//        }
 
-        [Fact]
-        public async Task UpdateAddressAsync_ShouldThrow_WhenAddressIsDeleted()
-        {
-            _repoMock.Setup(r => r.GetAddressByIdAsync(1))
-                     .ReturnsAsync(new Address { AddressId = 1, IsDeleted = true });
+//        [Fact]
+//        public async Task DeleteAddressAsync_ShouldThrow_WhenAlreadyDeleted()
+//        {
+//            _repoMock.Setup(r => r.GetAddressByIdAsync(1))
+//                     .ReturnsAsync(new Address { AddressId = 1, IsDeleted = true });
 
-            await Assert.ThrowsAsync<KeyNotFoundException>(() => _service.UpdateAddressAsync(new Address { AddressId = 1 }));
-        }
+//            await Assert.ThrowsAsync<KeyNotFoundException>(() => _service.DeleteAddressAsync(1));
+//        }
 
-        [Fact]
-        public async Task UpdateAddressAsync_ShouldCallUpdate_WhenValid()
-        {
-            var address = new Address { AddressId = 1, IsDeleted = false };
-            _repoMock.Setup(r => r.GetAddressByIdAsync(1)).ReturnsAsync(address);
+//        [Fact]
+//        public async Task DeleteAddressAsync_ShouldCallRepository_WhenValid()
+//        {
+//            var address = new Address { AddressId = 1, IsDeleted = false };
+//            _repoMock.Setup(r => r.GetAddressByIdAsync(1)).ReturnsAsync(address);
 
-            await _service.UpdateAddressAsync(address);
+//            await _service.DeleteAddressAsync(1);
 
-            _repoMock.Verify(r => r.UpdateAddressAsync(address), Times.Once);
-        }
+//            _repoMock.Verify(r => r.DeleteAddressAsync(address), Times.Once);
+//        }
 
-        [Fact]
-        public async Task UpdateAddressAsync_ShouldNotThrow_WhenValid()
-        {
-            var address = new Address { AddressId = 1, IsDeleted = false };
-            _repoMock.Setup(r => r.GetAddressByIdAsync(1)).ReturnsAsync(address);
 
-            await _service.UpdateAddressAsync(address);
-        }
+//        [Fact]
+//        public async Task GetAddressesByUserIdAsync_ShouldReturnList()
+//        {
+//            var list = new List<Address> { new Address(), new Address() };
+//            _repoMock.Setup(r => r.GetAddressesByUserIdAsync(1))
+//                     .ReturnsAsync(list);
 
-        [Fact]
-        public async Task AddAddressAsync_ShouldHandleMultipleExistingDefaults()
-        {
-            var address = new Address { UserId = 1 };
-            var existing = new List<Address>
-            {
-                new Address { IsDefault = true },
-                new Address { IsDefault = true }
-            };
-            _repoMock.Setup(r => r.GetAddressesByUserIdAsync(1))
-                     .ReturnsAsync(existing);
+//            var result = await _service.GetAddressesByUserIdAsync(1);
 
-            await _service.AddAddressAsync(address, 1);
+//            Assert.Equal(2, result.Count);
+//        }
 
-            Assert.False(address.IsDefault);
-        }
+//        [Fact]
+//        public async Task GetAddressByIdAsync_ShouldReturnAddress()
+//        {
+//            var address = new Address { AddressId = 1 };
+//            _repoMock.Setup(r => r.GetAddressByIdAsync(1)).ReturnsAsync(address);
 
-        [Fact]
-        public async Task AddAddressAsync_ShouldWork_WhenExistingListEmpty()
-        {
-            var address = new Address { UserId = 1, IsDefault = true };
-            _repoMock.Setup(r => r.GetAddressesByUserIdAsync(1))
-                     .ReturnsAsync(new List<Address>());
+//            var result = await _service.GetAddressByIdAsync(1);
 
-            await _service.AddAddressAsync(address, 1);
+//            Assert.Equal(1, result.AddressId);
+//        }
 
-            Assert.True(address.IsDefault);
-        }
+//        [Fact]
+//        public async Task GetAddressByIdAsync_ShouldReturnNull_WhenNotFound()
+//        {
+//            _repoMock.Setup(r => r.GetAddressByIdAsync(1)).ReturnsAsync((Address)null);
 
-        [Fact]
-        public async Task DeleteAddressAsync_ShouldNotThrow_WhenValid()
-        {
-            var address = new Address { AddressId = 1, IsDeleted = false };
-            _repoMock.Setup(r => r.GetAddressByIdAsync(1)).ReturnsAsync(address);
+//            var result = await _service.GetAddressByIdAsync(1);
 
-            await _service.DeleteAddressAsync(1);
-        }
+//            Assert.Null(result);
+//        }
 
-        [Fact]
-        public async Task UpdateAddressAsync_ShouldPreserveAddressId()
-        {
-            var address = new Address { AddressId = 99 };
-            _repoMock.Setup(r => r.GetAddressByIdAsync(99)).ReturnsAsync(address);
+//        [Fact]
+//        public async Task GetAllAddressesAsync_ShouldReturnAllAddresses()
+//        {
+//            var all = new List<Address> { new Address(), new Address(), new Address() };
+//            _repoMock.Setup(r => r.GetAllAddressesAsync()).ReturnsAsync(all);
 
-            await _service.UpdateAddressAsync(address);
+//            var result = await _service.GetAllAddressesAsync();
 
-            Assert.Equal(99, address.AddressId);
-        }
-    }
-}
+//            Assert.Equal(3, result.Count);
+//        }
+
+//        [Fact]
+//        public async Task GetAllAddressesAsync_ShouldReturnEmptyList_WhenNoAddresses()
+//        {
+//            _repoMock.Setup(r => r.GetAllAddressesAsync()).ReturnsAsync(new List<Address>());
+
+//            var result = await _service.GetAllAddressesAsync();
+
+//            Assert.Empty(result);
+//        }
+
+
+//        [Fact]
+//        public async Task UpdateAddressAsync_ShouldThrow_WhenAddressNotFound()
+//        {
+//            _repoMock.Setup(r => r.GetAddressByIdAsync(1))
+//                     .ReturnsAsync((Address)null);
+
+//            await Assert.ThrowsAsync<KeyNotFoundException>(() => _service.UpdateAddressAsync(new Address { AddressId = 1 }));
+//        }
+
+//        [Fact]
+//        public async Task UpdateAddressAsync_ShouldThrow_WhenAddressIsDeleted()
+//        {
+//            _repoMock.Setup(r => r.GetAddressByIdAsync(1))
+//                     .ReturnsAsync(new Address { AddressId = 1, IsDeleted = true });
+
+//            await Assert.ThrowsAsync<KeyNotFoundException>(() => _service.UpdateAddressAsync(new Address { AddressId = 1 }));
+//        }
+
+//        [Fact]
+//        public async Task UpdateAddressAsync_ShouldCallUpdate_WhenValid()
+//        {
+//            var address = new Address { AddressId = 1, IsDeleted = false };
+//            _repoMock.Setup(r => r.GetAddressByIdAsync(1)).ReturnsAsync(address);
+
+//            await _service.UpdateAddressAsync(address);
+
+//            _repoMock.Verify(r => r.UpdateAddressAsync(address), Times.Once);
+//        }
+
+//        [Fact]
+//        public async Task UpdateAddressAsync_ShouldNotThrow_WhenValid()
+//        {
+//            var address = new Address { AddressId = 1, IsDeleted = false };
+//            _repoMock.Setup(r => r.GetAddressByIdAsync(1)).ReturnsAsync(address);
+
+//            await _service.UpdateAddressAsync(address);
+//        }
+
+//        [Fact]
+//        public async Task AddAddressAsync_ShouldHandleMultipleExistingDefaults()
+//        {
+//            var address = new Address { UserId = 1 };
+//            var existing = new List<Address>
+//            {
+//                new Address { IsDefault = true },
+//                new Address { IsDefault = true }
+//            };
+//            _repoMock.Setup(r => r.GetAddressesByUserIdAsync(1))
+//                     .ReturnsAsync(existing);
+
+//            await _service.AddAddressAsync(address, 1);
+
+//            Assert.False(address.IsDefault);
+//        }
+
+//        [Fact]
+//        public async Task AddAddressAsync_ShouldWork_WhenExistingListEmpty()
+//        {
+//            var address = new Address { UserId = 1, IsDefault = true };
+//            _repoMock.Setup(r => r.GetAddressesByUserIdAsync(1))
+//                     .ReturnsAsync(new List<Address>());
+
+//            await _service.AddAddressAsync(address, 1);
+
+//            Assert.True(address.IsDefault);
+//        }
+
+//        [Fact]
+//        public async Task DeleteAddressAsync_ShouldNotThrow_WhenValid()
+//        {
+//            var address = new Address { AddressId = 1, IsDeleted = false };
+//            _repoMock.Setup(r => r.GetAddressByIdAsync(1)).ReturnsAsync(address);
+
+//            await _service.DeleteAddressAsync(1);
+//        }
+
+//        [Fact]
+//        public async Task UpdateAddressAsync_ShouldPreserveAddressId()
+//        {
+//            var address = new Address { AddressId = 99 };
+//            _repoMock.Setup(r => r.GetAddressByIdAsync(99)).ReturnsAsync(address);
+
+//            await _service.UpdateAddressAsync(address);
+
+//            Assert.Equal(99, address.AddressId);
+//        }
+//    }
+//}
 

@@ -47,11 +47,11 @@ namespace PresentationLayer.Controllers
 
             if (containsBadWords)
             {
-                CreateNotificationDTO notification;
+                CreateNotificationDto notification;
 
                 if (count == 1)
                 {
-                    notification = new CreateNotificationDTO
+                    notification = new CreateNotificationDto
                     {
                         TargetUserId = userId.ToString(),
                         NotiType = NotificationType.Activities.ToString(),
@@ -62,7 +62,7 @@ namespace PresentationLayer.Controllers
                 }
                 else 
                 {
-                    notification = new CreateNotificationDTO
+                    notification = new CreateNotificationDto
                     {
                         TargetUserId = userId.ToString(),
                         NotiType = NotificationType.Activities.ToString(),

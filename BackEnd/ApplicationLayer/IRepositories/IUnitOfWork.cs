@@ -18,14 +18,12 @@ public interface IUnitOfWork
     ITransactionCommissionRepository TransactionCommission { get; }
     IAddressRepository Address { get; }
     IPaymentRepository Payments { get; }
-    IItemBiddingRepository ItemBiddings { get; }
     IChatRepository Chats { get; }
     IUserModerationRepository UserModerations { get; }
     IPermissionRepository Permissions { get; }
     IStaffPermissionRepository StaffPermissions { get; }
     IPaymentDetailRepository PaymentDetails { get; }
     IBatteryDetailRepository BatteryDetails { get; }
-    ICategoryRepository Categories { get; }
     IComplaintRepository Complaints { get; }
     IEmailRepository Emails { get; }
     IEVDetailRepository EVDetails { get; }

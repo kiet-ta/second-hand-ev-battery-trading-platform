@@ -25,14 +25,12 @@ public class UnitOfWork : IUnitOfWork
     public ITransactionCommissionRepository TransactionCommission { get; }
     public IAddressRepository Address { get; }
     public IPaymentRepository Payments { get; } 
-    public IItemBiddingRepository ItemBiddings { get; }
     public IChatRepository Chats { get; }   
     public IUserModerationRepository UserModerations { get; }
     public IPermissionRepository Permissions { get; }
     public IStaffPermissionRepository StaffPermissions { get; }
     public IPaymentDetailRepository PaymentDetails  { get; }
     public IBatteryDetailRepository BatteryDetails { get; }
-    public ICategoryRepository Categories { get; }
     public IComplaintRepository Complaints { get; }
     public IEmailRepository Emails { get; }
     public IEVDetailRepository EVDetails { get; }
@@ -60,14 +58,12 @@ public class UnitOfWork : IUnitOfWork
            ITransactionCommissionRepository transactionCommissionRepository,
            IAddressRepository addressRepository,
            IPaymentRepository paymentRepository,
-           IItemBiddingRepository itemBiddingRepository,
            IChatRepository chatRepository,
            IUserModerationRepository userModerationRepository,
            IPermissionRepository permissionRepository,
            IStaffPermissionRepository staffPermissionRepository,
            IPaymentDetailRepository paymentDetailRepository,
            IBatteryDetailRepository batteryDetailRepository,
-           ICategoryRepository categoryRepository,
            IComplaintRepository complaintRepository,
            IEmailRepository emailRepository,
            IEVDetailRepository evDetailRepository,
@@ -97,14 +93,12 @@ public class UnitOfWork : IUnitOfWork
         TransactionCommission = transactionCommissionRepository;
         Address = addressRepository;
         Payments = paymentRepository;
-        ItemBiddings = itemBiddingRepository;
         Chats = chatRepository;
         UserModerations = userModerationRepository;
         Permissions = permissionRepository;
         StaffPermissions = staffPermissionRepository;
         PaymentDetails = paymentDetailRepository;
         BatteryDetails = batteryDetailRepository;
-        Categories = categoryRepository;
         Complaints = complaintRepository;
         Emails = emailRepository;
         EVDetails = evDetailRepository;
