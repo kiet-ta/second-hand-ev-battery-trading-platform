@@ -1,35 +1,182 @@
-import React from "react";
-import { CheckCircleOutlined, ClockCircleOutlined } from "@ant-design/icons";
-import { Button } from "antd";
+import React, { useEffect, useState } from "react";
+import {
+  CheckCircleOutlined,
+  ClockCircleOutlined,
+  CloseCircleOutlined,
+} from "@ant-design/icons";
+import { Button, Spin } from "antd";
 import { useNavigate } from "react-router-dom";
-import useKycRedirect from "../../hooks/useKycRedirect";
+import userApi from "../../api/userApi";
+import walletApi from "../../api/walletApi";
+import useKycRedirect from '../../hooks/useKycRedirect';
 
 const SellerPendingReview = () => {
-  useKycRedirect();
+  useKycRedirect()
+  const [status, setStatus] = useState("loading");
+  const [wallet, setWallet] = useState(null);
+  const [user, setUser] = useState(null);
+  const [message, setMessage] = useState("");
   const navigate = useNavigate();
+  useEffect(() => {
+    const fetchStatus = async () => {
+      const id = localStorage.getItem("userId");
+      if (!id) return;
+
+      try {
+        const userData = await userApi.getUserByID(id);
+        if (!userData) {
+          setStatus("error");
+          setMessage("Không tìm thấy thông tin người dùng.");
+          return;
+        }
+
+        setUser(userData);
+
+        if (userData.kycStatus === "rejected") {
+          setStatus("rejected");
+          setMessage("Hồ sơ KYC của bạn đã bị từ chối. Vui lòng kiểm tra lại thông tin và gửi lại.");
+          return;
+        }
+
+        if (userData.kycStatus === "pending") {
+          setStatus("pending");
+          setMessage("Hồ sơ của bạn đang được xét duyệt.");
+          return;
+        }
+
+        if (userData.kycStatus === "approved") {
+          if (userData.paid === "pending") {
+            const w = await walletApi.getWalletByUser(id);
+            setWallet(w);
+            setStatus("needPayment");
+            setMessage("Vui lòng thanh toán 100.000đ để hoàn tất kích hoạt tài khoản người bán.");
+          } else {
+            setStatus("approved");
+            setMessage("Tài khoản của bạn đã được kích hoạt đầy đủ!");
+          }
+        }
+      } catch (error) {
+        setStatus("error");
+        setMessage("Không thể tải thông tin tài khoản.");
+      }
+    };
+
+    fetchStatus();
+  }, []);
+
+  const handlePay = async () => {
+    try {
+      const id = localStorage.getItem("userId");
+      if (!wallet || wallet.balance < 100000) {
+        setMessage("Số dư ví không đủ để thanh toán 100.000đ.");
+        return;
+      }
+
+      // Withdraw from wallet
+      await walletApi.withdrawWallet({
+        userId: id,
+        amount: 100000,
+        type: "withdraw",
+        ref: "seller-activation",
+        description: "Thanh toán kích hoạt tài khoản người bán",
+      });
+
+      // Update user with all fields
+      const updatedUser = {
+        ...user,
+        role: "seller",
+        paid: "paid",
+        updatedAt: new Date().toISOString(),
+      };
+      await userApi.putUser(id, updatedUser);
+
+      // Update state
+      setWallet((prev) => ({ ...prev, balance: prev.balance - 100000 }));
+      setUser(updatedUser);
+      setStatus("approved");
+      setMessage("Thanh toán thành công! Tài khoản người bán đã được kích hoạt.");
+    } catch (error) {
+      setMessage("Giao dịch thất bại, vui lòng thử lại.");
+    }
+  };
+
+  const formatVND = (v) => v?.toLocaleString("vi-VN", { style: "currency", currency: "VND" });
+
+  if (status === "loading") {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <Spin size="large" />
+      </div>
+    );
+  }
 
   return (
-    <div className="flex flex-col items-center justify-center bg-gray-50 p-6">
+    <div className="flex flex-col items-center justify-center bg-gray-50 p-6 min-h-screen">
       <div className="bg-white shadow-lg rounded-xl p-8 max-w-md w-full text-center">
-        <ClockCircleOutlined className="text-yellow-500 text-6xl mb-4" />
-        <h1 className="text-2xl font-bold text-gray-800 mb-2">
-          Hồ sơ của bạn đang được xét duyệt
-        </h1>
-        <p className="text-gray-600 mb-6">
-          Cảm ơn bạn đã gửi thông tin xác minh. Hệ thống đang kiểm tra hồ sơ của bạn.
-          Vui lòng chờ thông báo kết quả trong thời gian sớm nhất.
+        {status === "pending" && (
+          <>
+            <ClockCircleOutlined className="text-yellow-500 text-6xl mb-4" />
+            <h1 className="text-2xl font-bold text-gray-800 mb-2">
+              Hồ sơ đang xét duyệt
+            </h1>
+          </>
+        )}
+
+        {status === "rejected" && (
+          <>
+            <CloseCircleOutlined className="text-red-500 text-6xl mb-4" />
+            <h1 className="text-2xl font-bold text-red-600 mb-2">
+              Hồ sơ bị từ chối
+            </h1>
+          </>
+        )}
+
+        {status === "needPayment" && (
+          <>
+            <CheckCircleOutlined className="text-green-500 text-6xl mb-4" />
+            <h1 className="text-2xl font-bold text-gray-800 mb-2">
+              Xác minh thành công
+            </h1>
+            <p className="text-gray-600 mb-2">
+              {wallet ? `Số dư hiện tại: ${formatVND(wallet.balance)}` : "Đang tải số dư..."}
+            </p>
+            <Button
+              type="primary"
+              className="bg-[#D4AF37] text-black font-semibold mt-3"
+              onClick={handlePay}
+            >
+              Thanh toán 100.000đ
+            </Button>
+          </>
+        )}
+
+        {status === "approved" && (
+          <>
+            <CheckCircleOutlined className="text-green-500 text-6xl mb-4" />
+            <h1 className="text-2xl font-bold text-gray-800 mb-2">
+              Tài khoản đã kích hoạt
+            </h1>
+            <Button type="primary" onClick={() => navigate("/")}>
+              Về trang chủ
+            </Button>
+          </>
+        )}
+
+        <p
+          className={`mt-4 text-sm font-medium ${
+            status === "rejected"
+              ? "text-red-500"
+              : status === "pending"
+              ? "text-yellow-600"
+              : "text-green-600"
+          }`}
+        >
+          {message}
         </p>
 
-        <div className="flex justify-center space-x-4">
-          <Button type="primary" onClick={() => navigate("/")}>
-            Về trang chủ
-          </Button>
-          <Button onClick={() => navigate("/profile")}>Xem hồ sơ</Button>
-        </div>
-
-        <div className="mt-6 text-gray-400 text-sm flex items-center justify-center">
-          <CheckCircleOutlined className="mr-1" /> 
-          Hệ thống sẽ gửi thông báo sau khi xét duyệt xong.
+        <div className="mt-6 text-gray-400 text-xs">
+          {status === "pending" && "Hệ thống sẽ gửi thông báo sau khi xét duyệt xong."}
+          {status === "rejected" && "Bạn có thể cập nhật hồ sơ và gửi lại."}
         </div>
       </div>
     </div>
