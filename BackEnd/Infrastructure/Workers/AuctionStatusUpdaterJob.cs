@@ -72,8 +72,8 @@ public class AuctionStatusUpdaterJob : BackgroundService
                 _logger.LogError(ex, "An error occurred executing AuctionStatusUpdaterJob.");
             }
 
-            // delay 5 second before next check
-            await Task.Delay(TimeSpan.FromSeconds(5), stoppingToken);
+            // delay 1 minute before next check
+            await Task.Delay(TimeSpan.FromMinutes(1), stoppingToken);
         }
         _logger.LogInformation("AuctionStatusUpdaterJob is stopping.");
     }

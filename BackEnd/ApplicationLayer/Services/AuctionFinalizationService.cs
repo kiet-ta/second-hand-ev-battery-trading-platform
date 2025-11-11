@@ -1,6 +1,7 @@
 ﻿using Application.DTOs;
 using Application.IRepositories;
 using Application.IServices;
+using Domain.Common.Constants;
 using Domain.Entities;
 using Microsoft.Extensions.Logging;
 
@@ -70,7 +71,7 @@ public class AuctionFinalizationService : IAuctionFinalizationService
                 return;
             }
 
-            // Đánh dấu bid thắng cuộc
+            // mark bid win
             await _unitOfWork.Bids.UpdateBidStatusAsync(winningBid.BidId, "winner");
             _logger.LogInformation($"Auction {auctionId} winner: User {winningBid.UserId} with Bid {winningBid.BidId} amount {winningBid.BidAmount}");
 
@@ -78,7 +79,7 @@ public class AuctionFinalizationService : IAuctionFinalizationService
             var winningAmount = winningBid.BidAmount;
             var itemId = auction.ItemId;
 
-            // --- Xử lý người bán (Lấy seller, tính phí, chuyển tiền) ---
+            // --- handle seller (get seller, calculate fee, checkout) ---
             var itemWithSeller = await _unitOfWork.Items.GetItemAndSellerByItemIdAsync(itemId);
             if (itemWithSeller?.Seller == null || itemWithSeller.Item == null)
             {
@@ -119,7 +120,7 @@ public class AuctionFinalizationService : IAuctionFinalizationService
             _logger.LogInformation($"Updated Item {itemId} status to sold");
 
             // create Order
-            var winnerAddress = await _unitOfWork.Address.GetAddressDefaultByUserId(winnerId); // get default default
+            var winnerAddress = await _unitOfWork.Address.GetAddressDefaultByUserId(winnerId); // get default 
             if (winnerAddress == null)
             {
                 _logger.LogWarning("Winner {WinnerId} does not have a default address.", winnerId);
@@ -225,8 +226,7 @@ public class AuctionFinalizationService : IAuctionFinalizationService
 
                 // Send refund notification
                 await SendNotificationAsync(
-                        senderId: null, receiverId: loserBid.UserId,
-                        title: $"Đấu giá #{auctionId} kết thúc - Hoàn tiền",
+                        receiverId: loserBid.UserId,
                         message: $"Số tiền {amountToRelease:N0}đ đã được hoàn lại vào ví của bạn từ phiên đấu giá cho sản phẩm '{itemEntityToUpdate.Title}'.");
             }
             // --- End of loser processing ---
@@ -237,13 +237,11 @@ public class AuctionFinalizationService : IAuctionFinalizationService
 
             // Send notification to winner and seller (after successful commit)
             await SendNotificationAsync(
-                    senderId: null, receiverId: winnerId,
-                    title: $"Chúc mừng! Bạn đã thắng đấu giá #{auctionId}",
+                    receiverId: winnerId,
                     message: $"Bạn đã thắng phiên đấu giá cho sản phẩm '{itemEntityToUpdate.Title}' với giá {winningAmount:N0}đ. Đơn hàng #{newOrder.OrderId} đã được tạo.");
 
             await SendNotificationAsync(
-                senderId: null, receiverId: sellerId,
-                title: $"Sản phẩm '{itemEntityToUpdate.Title}' đã được bán qua đấu giá #{auctionId}",
+                receiverId: sellerId,
                 message: $"Bạn có đơn hàng mới #{newOrder.OrderId}. Hãy chuẩn bị hàng và giao cho người mua.");
         }
         catch (Exception ex)
@@ -254,19 +252,19 @@ public class AuctionFinalizationService : IAuctionFinalizationService
         }
     }
 
-    private async Task SendNotificationAsync(int? senderId, int receiverId, string title, string message)
+    private async Task SendNotificationAsync(int receiverId, string message)
     {
         try
         {
             var notificationDto = new CreateNotificationDTO
             {
                 NotiType = AuctionNotificationType,
-                //SenderId = senderId,
                 TargetUserId = receiverId.ToString(),
-                Title = title,
                 Message = message
             };
-            await _notificationService.AddNewNotification(notificationDto, 0,"");
+            await _notificationService.SendNotificationAsync(notificationDto.Message, notificationDto.TargetUserId);
+            await _notificationService.AddNewNotification(notificationDto, null, UserRole.buyer.ToString().ToLower());
+            await _notificationService.AddNewNotification(notificationDto, null, UserRole.seller.ToString().ToLower());
         }
         catch (Exception ex)
         {

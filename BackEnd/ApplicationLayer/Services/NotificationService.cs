@@ -114,7 +114,7 @@ namespace Application.Services
             await Task.WhenAll(tasks);
         }
 
-        public async Task<bool> AddNewNotification(CreateNotificationDTO noti, int senderId, string role)
+        public async Task<bool> AddNewNotification(CreateNotificationDTO noti, int? senderId, string role)
         {
             using var scope = _scopeFactory.CreateScope();
             var repo = scope.ServiceProvider.GetRequiredService<INotificationRepository>();

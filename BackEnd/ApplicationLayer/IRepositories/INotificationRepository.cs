@@ -17,7 +17,7 @@ namespace Application.IRepositories
         Task<List<Notification>> GetNotificationBySenderIdAsync(int senderId);
         Task<bool> DeleteNotificationAsync(int id);
         Task<List<Notification>> GetAllNotificationsAsync();
-        Task AddNotificationAsync(CreateNotificationDTO noti, int senderId, string role);
+        Task AddNotificationAsync(CreateNotificationDTO noti, int? senderId, string role);
         Task<bool> MarkNotificationAsReadAsync(int id);
         Task<List<Notification>> GetNotificationsByReadStatusAsync(bool isRead);
     }
