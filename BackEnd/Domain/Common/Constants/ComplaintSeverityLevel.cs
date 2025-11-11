@@ -4,13 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Domain.Common.Constants;
-
-public enum UserRole
+namespace Domain.Common.Constants
 {
-    None,
-    Buyer,
-    Seller,
-    Staff,
-    Manager
+    public enum ComplaintSeverityLevel
+    {
+        Low, High, Medium
+    }
 }

@@ -1,4 +1,6 @@
 ﻿using Application.IRepositories.IBiddingRepositories;
+using Application.IRepositories.IChatRepositories;
+using Application.IRepositories.IManageStaffRepositories;
 using Application.IRepositories.IPaymentRepositories;
 namespace Application.IRepositories;
 
@@ -17,7 +19,7 @@ public interface IUnitOfWork
     ITransactionCommissionRepository TransactionCommission { get; }
 
     IAddressRepository Address { get; }
-    IPaymentRepository Payments { get; }
+    //IPaymentRepository Payments { get; }
     IBidRepository ItemBiddings { get; }
     IChatRepository Chats { get; }
     IUserModerationRepository UserModerations { get; }

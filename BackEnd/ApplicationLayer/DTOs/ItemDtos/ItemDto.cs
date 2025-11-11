@@ -12,7 +12,7 @@ namespace Application.DTOs.ItemDtos
     {
         public int ItemId { get; set; }
 
-        public string? ItemType { get; set; }
+        public string ItemType { get; set; }
 
         public int? CategoryId { get; set; }
 
@@ -35,6 +35,6 @@ namespace Application.DTOs.ItemDtos
         public List<ItemImageDto>? Images { get; set; } = new();
         public string? SellerName { get; set; }
         public string Status { get; set; } = ItemStatus.Active.ToString();
-        //public bool? IsDeleted { get; set; }
+        public bool? IsDeleted { get; set; }
     }
 }

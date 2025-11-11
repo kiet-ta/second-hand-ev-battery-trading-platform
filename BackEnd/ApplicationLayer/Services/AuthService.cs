@@ -3,6 +3,7 @@ using Application.DTOs.UserDtos;
 using Application.IRepositories;
 using Application.IServices;
 using Application.Validations;
+using Domain.Common.Constants;
 using Domain.Entities;
 using FluentValidation;
 using Google.Apis.Auth;
@@ -95,7 +96,6 @@ namespace Application.Services
                 await _uow.Users.AddAsync(user);
                 await _uow.SaveChangesAsync();
                 var sellected = await _userRepository.GetByIdAsync(user.UserId);
-                Console.WriteLine(sellected.UserId);
                 var wallet = new Wallet
                 {
                     UserId = sellected.UserId,

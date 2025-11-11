@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Domain.Common.Constants;
+using System;
 
 namespace Application.DTOs
 {

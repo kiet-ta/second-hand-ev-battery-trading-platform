@@ -2,6 +2,7 @@
 using Application.DTOs.WalletDtos;
 using Application.IRepositories.IBiddingRepositories;
 using Application.IServices;
+using Domain.Common.Constants;
 using Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
