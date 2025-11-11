@@ -1,36 +1,37 @@
 ﻿using Application.DTOs;
 using Application.IRepositories;
 using AutoMapper;
+using Domain.Common.Constants;
 using Domain.Entities;
 
 namespace Application.Services
 {
     public class KycDocumentService : IKycDocumentService
     {
-        private readonly IKYC_DocumentRepository _kycRepo;
+        private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
 
 
         public KycDocumentService(IMapper mapper,  IUnitOfWork unitOfWork)
         {
-            _kycRepo = kycRepo;
+            _unitOfWork = unitOfWork;
             _mapper = mapper;
         }
 
         public async Task BanUserAsync(int userId)
         {
-            var user = await _kycRepo.GetByIdAsync(userId)
+            var user = await _unitOfWork.KycDocuments.GetByIdAsync(userId)
                        ?? throw new ArgumentException("User not found");
 
             if (user.AccountStatus == "ban")
                 throw new InvalidOperationException("User is already banned");
 
-            await _kycRepo.UpdateAccountStatusAsync(user.UserId, "ban");
+            await _unitOfWork.KycDocuments.UpdateAccountStatusAsync(user.UserId, "ban");
         }
 
         public async Task ActivateUserAsync(int userId)
         {
-            var user = await _kycRepo.GetByIdAsync(userId)
+            var user = await _unitOfWork.KycDocuments.GetByIdAsync(userId)
                        ?? throw new ArgumentException("User not found");
 
             if (user.AccountStatus == UserStatus.Active.ToString())
@@ -41,7 +42,7 @@ namespace Application.Services
 
         public async Task WarningUserAsync(int userId)
         {
-            var user = await _kycRepo.GetByIdAsync(userId)
+            var user = await _unitOfWork.KycDocuments.GetByIdAsync(userId)
                        ?? throw new ArgumentException("User not found");
 
             if (user.AccountStatus == "ban")
@@ -50,23 +51,23 @@ namespace Application.Services
             switch (user.AccountStatus)
             {
                 case "warning1":
-                    await _kycRepo.UpdateAccountStatusAsync(user.UserId, "warning2");
+                    await _unitOfWork.KycDocuments.UpdateAccountStatusAsync(user.UserId, "warning2");
                     break;
                 case "warning2":
-                    await _kycRepo.UpdateAccountStatusAsync(user.UserId, "ban");
+                    await _unitOfWork.KycDocuments.UpdateAccountStatusAsync(user.UserId, "ban");
                     break;
                 default:
-                    await _kycRepo.UpdateAccountStatusAsync(user.UserId, "warning1");
+                    await _unitOfWork.KycDocuments.UpdateAccountStatusAsync(user.UserId, "warning1");
                     break;
             }
         }
 
         public async Task ApproveKycAsync(int kycId, ApproveKycDocumentDto dto)
         {
-            var kycDoc = await _kycRepo.GetKYC_DocumentByIdAsync(kycId)
+            var kycDoc = await _unitOfWork.KycDocuments.GetKYC_DocumentByIdAsync(kycId)
                         ?? throw new ArgumentException("KYC document not found");
 
-            var user = await _kycRepo.GetByIdAsync(kycDoc.UserId)
+            var user = await _unitOfWork.KycDocuments.GetByIdAsync(kycDoc.UserId)
                        ?? throw new ArgumentException("User not found for this KYC document");
 
             await _unitOfWork.KycDocuments.UpdateKYC_StatusAsync(kycDoc.DocId, KycStatus.Approved.ToString(), dto.Note ?? "");
@@ -80,10 +81,10 @@ namespace Application.Services
 
         public async Task RejectKycAsync(int kycId, ApproveKycDocumentDto dto)
         {
-            var kycDoc = await _kycRepo.GetKYC_DocumentByIdAsync(kycId)
+            var kycDoc = await _unitOfWork.KycDocuments.GetKYC_DocumentByIdAsync(kycId)
                         ?? throw new ArgumentException("KYC document not found");
 
-            var user = await _kycRepo.GetByIdAsync(kycDoc.UserId)
+            var user = await _unitOfWork.KycDocuments.GetByIdAsync(kycDoc.UserId)
                        ?? throw new ArgumentException("User not found for this KYC document");
 
            
@@ -113,14 +114,14 @@ namespace Application.Services
 
         public async Task CreateKycDocumentAsync(KycDocument kyc, int userId)
         {
-            var user = await _kycRepo.GetByIdAsync(userId)
+            var user = await _unitOfWork.KycDocuments.GetByIdAsync(userId)
                        ?? throw new ArgumentException("User not found");
 
             kyc.UserId = userId;
             kyc.SubmittedAt = DateTime.Now;
             kyc.Status = KycStatus.Pending.ToString();
 
-            await _kycRepo.CreateKYC_DocumentAsync(kyc);
+            await _unitOfWork.KycDocuments.CreateKYC_DocumentAsync(kyc);
             await SetUserKycPendingAsync(user);
         }
     }

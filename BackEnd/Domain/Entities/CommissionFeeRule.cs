@@ -1,3 +1,5 @@
+using Domain.Common.Constants;
+
 namespace Domain.Entities;
 
 public class CommissionFeeRule

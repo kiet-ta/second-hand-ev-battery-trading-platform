@@ -1,4 +1,5 @@
 ﻿using Application.IRepositories.IBiddingRepositories;
+using Domain.Common.Constants;
 using Domain.Entities;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -76,6 +77,6 @@ public async Task<Bid?> GetUserHighestActiveBidAsync(int auctionId, int userId)
             .Select(g => g.OrderByDescending(b => b.BidAmount).ThenBy(b => b.BidTime).First()) // Lấy bid mới nhất (cao nhất) của mỗi user thua
             .ToListAsync();
 
-        return loserBids;
+        return loserLatestBids;
     }
 }
