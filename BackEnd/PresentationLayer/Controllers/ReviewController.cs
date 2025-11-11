@@ -15,13 +15,13 @@ namespace PresentationLayer.Controllers
         private readonly IReviewService _reviewService;
         private readonly INotificationService _notificationService;
         private readonly IProfanityCountService _profanityService;
-        private readonly IKYC_DocumentService _kycdocumentService;
+        private readonly IKycDocumentService _kycdocumentService;
 
         public ReviewsController(
       IReviewService reviewService,
       IProfanityCountService profanityService,
       INotificationService notificationService,
-      IKYC_DocumentService kycdocumentService)
+      IKycDocumentService kycdocumentService)
         {
             _reviewService = reviewService;
             _profanityService = profanityService;
@@ -46,11 +46,11 @@ namespace PresentationLayer.Controllers
 
             if (containsBadWords)
             {
-                CreateNotificationDTO notification;
+                CreateNotificationDto notification;
 
                 if (count == 1)
                 {
-                    notification = new CreateNotificationDTO
+                    notification = new CreateNotificationDto
                     {
                         TargetUserId = userId.ToString(),
                         NotiType = "activities",
@@ -61,7 +61,7 @@ namespace PresentationLayer.Controllers
                 }
                 else 
                 {
-                    notification = new CreateNotificationDTO
+                    notification = new CreateNotificationDto
                     {
                         TargetUserId = userId.ToString(),
                         NotiType = "activities",

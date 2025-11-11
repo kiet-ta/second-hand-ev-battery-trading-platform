@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Application.DTOs
 {
-    public class ApproveKyc_DocumentDTO
+    public class ApproveKycDocumentDto
     {
         public string? Note { get; set; }
         public DateTime? VerifiedAt { get; set; }

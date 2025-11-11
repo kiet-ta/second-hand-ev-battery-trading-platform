@@ -2,7 +2,7 @@
 
 namespace Application.DTOs
 {
-    public class CreateKYC_DocumentDTO
+    public class CreateKycDocumentDto
     {
         public int UserId { get; set; }
 
@@ -16,7 +16,7 @@ namespace Application.DTOs
         public string? StoreName { get; set; }
         public int? StorePhone { get; set; }
         public string? StoreLogoUrl { get; set; }
-        public string Status { get; set; } = "pending";
+        public string Status { get; set; } = ComplaintStatus.Pending.ToString();
 
     }
 }

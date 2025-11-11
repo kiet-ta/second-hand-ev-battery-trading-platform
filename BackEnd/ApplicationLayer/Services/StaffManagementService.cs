@@ -72,10 +72,10 @@ public class StaffManagementService : IStaffManagementService
             Email = request.Email,
             PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password),
             Phone = request.Phone,
-            Role = "staff",
-            AccountStatus = "active",
-            KycStatus = "not_submitted",
-            CreatedAt = DateTime.Now,
+            Role = UserRole.Staff.ToString(),
+            AccountStatus = UserStatus.Active.ToString(),
+            KycStatus = KycStatus.Not_submitted.ToString(),
+            CreatedAt = DateTime.UtcNow,
             IsDeleted = false
         };
 

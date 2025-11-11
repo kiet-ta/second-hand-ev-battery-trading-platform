@@ -1,5 +1,6 @@
 ﻿using Application.DTOs;
 using Application.IRepositories;
+using Domain.Common.Constants;
 using Domain.Entities;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -38,8 +39,8 @@ namespace Infrastructure.Repositories
                 AssignTo = null,
                 Reason = dto.Reason,
                 Description = dto.Description,
-                Status = dto.Status ?? "pending",
-                SeverityLevel = dto.SeverityLevel ?? "medium",
+                Status = dto.Status ?? ComplaintStatus.Pending.ToString(),
+                SeverityLevel = dto.SeverityLevel ?? ComplaintSeverityLevel.Medium.ToString(),
                 CreatedAt = DateTime.Now,
                 UpdatedAt = DateTime.Now
             };

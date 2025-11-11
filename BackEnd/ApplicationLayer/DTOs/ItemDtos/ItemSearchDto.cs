@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Domain.Common.Constants;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -32,7 +33,7 @@ namespace Application.DTOs.ItemDtos
 
         public List<ItemImageDto>? Images { get; set; } = new();
         public string? SellerName { get; set; }
-        public string Status { get; set; } = "active";
+        public string Status { get; set; } = ItemStatus.Active.ToString();
 
         public object? ItemDetail { get; set; }
     }

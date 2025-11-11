@@ -9,12 +9,12 @@ using System.Threading.Tasks;
 
 namespace Application.Mappings
 {
-    public class KYC_DocumentProfile : Profile
+    public class KycDocumentProfile : Profile
     {
-        public KYC_DocumentProfile()
+        public KycDocumentProfile()
         {
-            CreateMap<KycDocument, CreateKYC_DocumentDTO>().ReverseMap();
-            CreateMap<KycDocument, ApproveKyc_DocumentDTO>().ReverseMap();
+            CreateMap<KycDocument, CreateKycDocumentDto>().ReverseMap();
+            CreateMap<KycDocument, ApproveKycDocumentDto>().ReverseMap();
         }
     }
 }

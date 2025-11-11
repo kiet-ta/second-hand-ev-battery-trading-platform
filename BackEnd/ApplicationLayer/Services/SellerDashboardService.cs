@@ -2,6 +2,7 @@
 using Application.IRepositories;
 using Application.IRepositories.IPaymentRepositories;
 using Application.IServices;
+using Domain.Common.Constants;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,15 +13,11 @@ namespace Application.Services
 {
     public class SellerDashboardService : ISellerDashboardService
     {
-        private readonly IItemRepository _itemRepo;
-        private readonly IOrderRepository _orderRepo;
-        private readonly IPaymentDetailRepository _paymentRepo;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public SellerDashboardService(IItemRepository itemRepo, IOrderRepository orderRepo, IPaymentDetailRepository paymentRepo)
+        public SellerDashboardService(IUnitOfWork unitOfWork)
         {
-            _itemRepo = itemRepo ?? throw new ArgumentNullException(nameof(itemRepo));
-            _orderRepo = orderRepo ?? throw new ArgumentNullException(nameof(orderRepo));
-            _paymentRepo = paymentRepo ?? throw new ArgumentNullException(nameof(paymentRepo));
+            _unitOfWork = unitOfWork;
         }
 
         public async Task<SellerDashboardDto> GetSellerDashboardAsync(int sellerId)
@@ -30,10 +27,10 @@ namespace Application.Services
 
             try
             {
-                var listings = await _itemRepo.CountAllBySellerAsync(sellerId);
-                var orders = await _orderRepo.CountBySellerAsync(sellerId);
-                var sold = await _itemRepo.GetTotalItemsSoldBySellerAsync(sellerId);
-                var revenue = await _paymentRepo.GetRevenueAsync(sellerId);
+                var listings = await _unitOfWork.Items.CountAllBySellerAsync(sellerId);
+                var orders = await _unitOfWork.Orders.CountBySellerAsync(sellerId);
+                var sold = await _unitOfWork.Items.GetTotalItemsSoldBySellerAsync(sellerId);
+                var revenue = await _unitOfWork.PaymentDetails.GetRevenueAsync(sellerId);
 
                 if (listings < 0)
                     throw new Exception("Failed to retrieve total listings.");
@@ -42,25 +39,26 @@ namespace Application.Services
 
                 var productStats = new ProductStatisticsDto
                 {
-                    Active = await _itemRepo.CountByStatusAsync(sellerId, "active"),
-                    Pending = await _itemRepo.CountByStatusAsync(sellerId, "pending"),
-                    Inactive = await _itemRepo.CountByStatusAsync(sellerId, "rejected"),
+                    Active = await _unitOfWork.Items.CountByStatusAsync(sellerId, ItemStatus.Active
+                    .ToString()),
+                    Pending = await _unitOfWork.Items.CountByStatusAsync(sellerId, ItemStatus.Pending.ToString()),
+                    Inactive = await _unitOfWork.Items.CountByStatusAsync(sellerId, ItemStatus.Rejected.ToString()),
                     Featured = 5 // có thể mở rộng logic sau
                 };
 
                 var orderStats = new OrderStatisticsDto
                 {
-                    New = await _orderRepo.CountByStatusAsync(sellerId, "pending"),
-                    Processing = await _orderRepo.CountByStatusAsync(sellerId, "paid"),
-                    Completed = await _orderRepo.CountByStatusAsync(sellerId, "completed"),
-                    Cancelled = await _orderRepo.CountByStatusAsync(sellerId, "canceled")
+                    New = await _unitOfWork.Orders.CountByStatusAsync(sellerId, OrderStatus.Pending.ToString()),
+                    Processing = await _unitOfWork.Orders.CountByStatusAsync(sellerId, OrderStatus.Paid.ToString()),
+                    Completed = await _unitOfWork.Orders.CountByStatusAsync(sellerId, OrderStatus.Completed.ToString()),
+                    Cancelled = await _unitOfWork.Orders.CountByStatusAsync(sellerId, OrderStatus.Cancelled.ToString())
                 };
 
-                var revenueByWeek = await _paymentRepo.GetRevenueByWeekAsync(sellerId);
+                var revenueByWeek = await _unitOfWork.PaymentDetails.GetRevenueByWeekAsync(sellerId);
                 if (revenueByWeek == null)
                     throw new Exception("Failed to retrieve revenue by month.");
 
-                var ordersByWeek = await _orderRepo.GetOrdersByWeekAsync(sellerId);
+                var ordersByWeek = await _unitOfWork.Orders.GetOrdersByWeekAsync(sellerId);
                 if (ordersByWeek == null)
                     throw new Exception("Failed to retrieve orders by month.");
 

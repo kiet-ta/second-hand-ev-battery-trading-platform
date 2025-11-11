@@ -39,13 +39,13 @@ public class AuctionFinalizationService : IAuctionFinalizationService
                 return;
             }
 
-            if (auction.Status != "ongoing")
+            if (auction.Status != AuctionStatus.Ongoing.ToString())
             {
                 _logger.LogWarning("Attempted to finalize auction {AuctionId} but its status is '{Status}', not 'ongoing'. Skipping.", auctionId, auction.Status);
                 await _unitOfWork.RollbackTransactionAsync();
                 return;
             }
-            auction.Status = "ended";
+            auction.Status =  AuctionStatus.Ended.ToString();
             auction.UpdatedAt = DateTime.Now; 
             await _unitOfWork.Auctions.Update(auction); 
             _logger.LogInformation("Auction {AuctionId} status updated to 'ended' within transaction.", auctionId);
@@ -61,7 +61,7 @@ public class AuctionFinalizationService : IAuctionFinalizationService
                 var itemNoBids = await _unitOfWork.Items.GetByIdAsync(auction.ItemId);
                 if (itemNoBids != null && itemNoBids.Status == "pending_auction") // Giả sử có status này
                 {
-                    itemNoBids.Status = "active";
+                    itemNoBids.Status = ItemStatus.Active.ToString();
                     _unitOfWork.Items.Update(itemNoBids);
                     await _unitOfWork.SaveChangesAsync(); // Save changes to item status
                     _logger.LogInformation($"Updated Item {auction.ItemId} status back to active as auction had no bids.");
@@ -71,7 +71,7 @@ public class AuctionFinalizationService : IAuctionFinalizationService
             }
 
             // Đánh dấu bid thắng cuộc
-            await _unitOfWork.Bids.UpdateBidStatusAsync(winningBid.BidId, "winner");
+            await _unitOfWork.Bids.UpdateBidStatusAsync(winningBid.BidId, BidStatus.Winner.ToString());
             _logger.LogInformation($"Auction {auctionId} winner: User {winningBid.UserId} with Bid {winningBid.BidId} amount {winningBid.BidAmount}");
 
             var winnerId = winningBid.UserId;
@@ -113,7 +113,7 @@ public class AuctionFinalizationService : IAuctionFinalizationService
 
             // --- Updadte Item Status và create Order ---
             var itemEntityToUpdate = itemWithSeller.Item; // get the seller's auction item
-            itemEntityToUpdate.Status = "sold";
+            itemEntityToUpdate.Status = ItemStatus.Sold.ToString();
             itemEntityToUpdate.UpdatedAt = DateTime.Now;
             _unitOfWork.Items.Update(itemEntityToUpdate); // Update Item entity
             _logger.LogInformation($"Updated Item {itemId} status to sold");
@@ -212,7 +212,7 @@ public class AuctionFinalizationService : IAuctionFinalizationService
                 {
                     WalletId = holdTransaction.WalletId,
                     Amount = amountToRelease, // Positive numbers
-                    Type = "release",
+                    Type = WalletTransactionType.Released.ToString(),
                     CreatedAt = DateTime.Now,
                     RefId = loserBid.BidId, // Link to losing bid
                     AuctionId = auctionId
@@ -258,7 +258,7 @@ public class AuctionFinalizationService : IAuctionFinalizationService
     {
         try
         {
-            var notificationDto = new CreateNotificationDTO
+            var notificationDto = new CreateNotificationDto
             {
                 NotiType = AuctionNotificationType,
                 //SenderId = senderId,

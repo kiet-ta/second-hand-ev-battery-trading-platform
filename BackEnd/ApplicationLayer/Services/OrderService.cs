@@ -72,7 +72,7 @@ namespace Application.Services
             {
                 BuyerId = dto.BuyerId,
                 AddressId = dto.AddressId,
-                Status = "pending",
+                Status = OrderStatus.Pending.ToString(),
                 CreatedAt = dto.CreatedAt, //DateTime.Now,
                 UpdatedAt = dto.UpdatedAt, //DateTime.Now,
                 //OrderItems = dto.Items?.Select(i => new OrderItem
@@ -135,7 +135,7 @@ namespace Application.Services
             {
                 BuyerId = request.BuyerId,
                 AddressId = request.AddressId,
-                Status = "pending",
+                Status = OrderStatus.Pending.ToString(),
                 CreatedAt = request.CreatedAt,
                 UpdatedAt = request.UpdatedAt
 
@@ -237,7 +237,7 @@ namespace Application.Services
                 _logger.LogInformation($"Released {amountToSeller} to Seller {sellerId} for Order {orderId}.");
 
                 // 5. Update Order Status
-                order.Status = "completed";
+                order.Status = OrderStatus.Completed.ToString()   ;
                 order.UpdatedAt = DateTime.Now;
                 await _orderRepository.UpdateAsync(order);
 

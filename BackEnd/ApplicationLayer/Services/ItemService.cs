@@ -109,7 +109,7 @@ namespace Application.Services
                 Description = dto.Description,
                 Price = dto.Price,
                 Quantity = dto.Quantity,
-                Status = "pending",
+                Status = ItemStatus.Pending.ToString(),
                 UpdatedBy = dto.UpdatedBy,
                 IsDeleted = false,
                 CreatedAt = DateTime.Now,
@@ -335,7 +335,7 @@ namespace Application.Services
             if (item.Moderation != "pending")
                 throw new InvalidOperationException("Only pending items can be approved.");
 
-            return await _itemRepository.SetItemTagAsync(itemId, "approved_tag");
+            return await _unitOfWork.Items.SetItemTagAsync(itemId, "Approved");
         }
 
         public async Task<bool> SetRejectedItemTagAsync(int itemId)

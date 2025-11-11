@@ -163,10 +163,10 @@ namespace Application.Services
             if (doc == null)
                 throw new KeyNotFoundException("KYC document not found.");
 
-            if (doc.Status != "pending")
+            if (doc.Status != KycStatus.Pending.ToString())
                 throw new InvalidOperationException("Document already processed.");
 
-            doc.Status = "approved";
+            doc.Status = KycStatus.Approved.ToString();
             doc.VerifiedBy = staffId;
             doc.VerifiedAt = DateTime.Now;
 
@@ -177,10 +177,10 @@ namespace Application.Services
                 throw new Exception("Associated user not found for KYC document.");
             if (user != null)
             {
-                user.Role = "seller";
-                user.KycStatus = "approved";
-                await _userRepo.UpdateAsync(user);
-                await _userRepo.SaveChangesAsync();
+                user.Role = UserRole.Seller.ToString();
+                user.KycStatus = KycStatus.Approved.ToString();
+                await _unitOfWork.Users.UpdateAsync(user);
+                await _unitOfWork.Users.SaveChangesAsync();
             }
         }
 
@@ -190,10 +190,10 @@ namespace Application.Services
             if (doc == null)
                 throw new KeyNotFoundException("KYC document not found.");
 
-            if (doc.Status != "pending")
+            if (doc.Status != KycStatus.Pending.ToString())
                 throw new InvalidOperationException("Document already processed.");
 
-            doc.Status = "rejected";
+            doc.Status = KycStatus.Rejected.ToString();
             doc.VerifiedBy = staffId;
             doc.VerifiedAt = DateTime.Now;
             doc.Note = note;
@@ -205,8 +205,8 @@ namespace Application.Services
                 throw new Exception("Associated user not found for KYC document.");
             if (user != null)
             {
-                user.KycStatus = "rejected";
-                await _userRepo.UpdateAsync(user);
+                user.KycStatus = KycStatus.Rejected.ToString();
+                await _unitOfWork.Users.UpdateAsync(user);
             }
         }
     }

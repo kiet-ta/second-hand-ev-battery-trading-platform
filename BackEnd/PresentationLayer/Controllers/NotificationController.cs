@@ -63,7 +63,7 @@ namespace PresentationLayer.Controllers
 
 
         [HttpPost]
-        public async Task<IActionResult> AddNotification([FromBody] CreateNotificationDTO request)
+        public async Task<IActionResult> AddNotification([FromBody] CreateNotificationDto request)
         {
             if (!ModelState.IsValid)
             {
@@ -79,7 +79,7 @@ namespace PresentationLayer.Controllers
                 return Unauthorized(new { message = "User role not found in token." });
             string senderRole = roleClaim;
 
-            var serviceDto = new CreateNotificationDTO
+            var serviceDto = new CreateNotificationDto
             {
                 NotiType = request.NotiType,
                 Title = request.Title,
@@ -163,7 +163,7 @@ namespace PresentationLayer.Controllers
             return Ok($"Notification with ID {id} has been deleted successfully.");
         }
         [HttpPost("send/{receiverId}")]
-        public async Task<IActionResult> SendNotification([FromBody] CreateNotificationDTO noti, int receiverId)
+        public async Task<IActionResult> SendNotification([FromBody] CreateNotificationDto noti, int receiverId)
         {
             if (noti == null)
                 return BadRequest("Notification data is required.");

@@ -88,9 +88,9 @@ namespace Application.Services
                     CreatedAt = DateTime.Now,
                     UpdatedAt = DateTime.Now,
                     IsDeleted = false,
-                    KycStatus = "not_submitted",
-                    AccountStatus = "active",
-                    Paid = "pending"
+                    KycStatus = KycStatus.Not_submitted.ToString(),
+                    AccountStatus = UserStatus.Active.ToString(),
+                    Paid = UserPaid.Pending_Pay.ToString()
                 };
                 await _uow.Users.AddAsync(user);
                 await _uow.SaveChangesAsync();
@@ -102,8 +102,8 @@ namespace Application.Services
                     Balance = 0,
                     HeldBalance = 0,
                     Currency = "vnd",
-                    Status = "active",
-                    UpdatedAt = DateTime.Now
+                    Status = UserStatus.Active.ToString(),
+                    UpdatedAt = DateTime.UtcNow
                 };
                 await _uow.Wallets.AddAsync(wallet);
                 return GenerateToken(user);
@@ -214,8 +214,8 @@ namespace Application.Services
                 Balance = 0,
                 HeldBalance = 0,
                 Currency = "vnd",
-                Status = "active",
-                UpdatedAt = DateTime.Now
+                Status = UserStatus.Active.ToString(),
+                UpdatedAt = DateTime.UtcNow
             };
             await _uow.Wallets.AddAsync(wallet);
 
