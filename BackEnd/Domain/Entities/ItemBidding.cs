@@ -21,7 +21,7 @@ namespace Domain.Entities
 
         public DateTime EndTime { get; set; }
 
-        public string Status { get; set; } = ItemStatus.Active_ItemStatus.ToString(); // active, ended, cancelled
+        public string Status { get; set; } = ItemStatus.Active.ToString(); // active, ended, cancelled
 
         public DateTime CreatedAt { get; set; } = DateTime.Now;
     }

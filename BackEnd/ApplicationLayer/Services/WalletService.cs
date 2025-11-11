@@ -70,7 +70,7 @@ public class WalletService : IWalletService
         {
             WalletId = wallet.WalletId,
             Amount = amount,
-            Type = WalletTransactionType.Deposit_WalletTransaction.ToString(),
+            Type = WalletTransactionType.Deposit.ToString(),
             CreatedAt = DateTime.Now
         };
         await _unitOfWork.WalletTransactions.CreateTransactionAsync(transaction);

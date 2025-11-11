@@ -15,7 +15,7 @@ namespace Infrastructure.Repositories
             _context = context;
         }
 
-        public async Task AddNotificationAsync(CreateNotificationDTO noti, int senderId, string role)
+        public async Task AddNotificationAsync(CreateNotificationDto noti, int senderId, string role)
         {
             List<string> targetUserIds;
             if (!string.IsNullOrEmpty(noti.TargetUserId))
@@ -121,7 +121,7 @@ namespace Infrastructure.Repositories
 
 
 
-        public async Task AddNotificationById(CreateNotificationDTO noti, int receiverId, int senderId, string role)
+        public async Task AddNotificationById(CreateNotificationDto  noti, int receiverId, int senderId, string role)
         {
             var notification = new Notification
             {

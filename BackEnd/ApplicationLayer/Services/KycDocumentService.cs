@@ -6,13 +6,13 @@ using Domain.Entities;
 
 namespace Application.Services
 {
-    public class KYC_DocumentService : IKYC_DocumentService
+    public class KycDocumentService : IKycDocumentService
     {
         private readonly IMapper _mapper;
         private readonly IUnitOfWork _unitOfWork;
 
 
-        public KYC_DocumentService(IMapper mapper,  IUnitOfWork unitOfWork)
+        public KycDocumentService(IMapper mapper,  IUnitOfWork unitOfWork)
         {
             _mapper = mapper;
             _unitOfWork = unitOfWork;
@@ -34,10 +34,10 @@ namespace Application.Services
             var user = await _unitOfWork.KycDocuments.GetByIdAsync(userId)
                        ?? throw new ArgumentException("User not found");
 
-            if (user.AccountStatus == UserStatus.Active_UserStatus.ToString())
+            if (user.AccountStatus == UserStatus.Active.ToString())
                 throw new InvalidOperationException("User is already active");
 
-            await _unitOfWork.KycDocuments.UpdateAccountStatusAsync(user.UserId, UserStatus.Active_UserStatus.ToString());
+            await _unitOfWork.KycDocuments.UpdateAccountStatusAsync(user.UserId, UserStatus.Active.ToString());
         }
 
         public async Task WarningUserAsync(int userId)
@@ -62,7 +62,7 @@ namespace Application.Services
             }
         }
 
-        public async Task ApproveKycAsync(int kycId, ApproveKyc_DocumentDTO dto)
+        public async Task ApproveKycAsync(int kycId, ApproveKycDocumentDto dto)
         {
             var kycDoc = await _unitOfWork.KycDocuments.GetKYC_DocumentByIdAsync(kycId)
                         ?? throw new ArgumentException("KYC document not found");
@@ -70,16 +70,16 @@ namespace Application.Services
             var user = await _unitOfWork.KycDocuments.GetByIdAsync(kycDoc.UserId)
                        ?? throw new ArgumentException("User not found for this KYC document");
 
-            await _unitOfWork.KycDocuments.UpdateKYC_StatusAsync(kycDoc.DocId, KycStatus.Approved_KycStatus.ToString(), dto.Note ?? "");
+            await _unitOfWork.KycDocuments.UpdateKYC_StatusAsync(kycDoc.DocId, KycStatus.Approved.ToString(), dto.Note ?? "");
 
             kycDoc.VerifiedAt = dto.VerifiedAt ?? DateTime.Now;
             kycDoc.VerifiedBy = dto.VerifiedBy;
 
   
-            await _unitOfWork.KycDocuments.SetUserKYCStatusAsync(user.UserId, KycStatus.Approved_KycStatus.ToString(), UserRole.Seller.ToString());
+            await _unitOfWork.KycDocuments.SetUserKYCStatusAsync(user.UserId, KycStatus.Approved.ToString(), UserRole.Seller.ToString());
         }
 
-        public async Task RejectKycAsync(int kycId, ApproveKyc_DocumentDTO dto)
+        public async Task RejectKycAsync(int kycId, ApproveKycDocumentDto dto)
         {
             var kycDoc = await _unitOfWork.KycDocuments.GetKYC_DocumentByIdAsync(kycId)
                         ?? throw new ArgumentException("KYC document not found");
@@ -89,28 +89,28 @@ namespace Application.Services
 
            
 
-            await _unitOfWork.KycDocuments.UpdateKYC_StatusAsync(kycDoc.DocId, KycStatus.Rejected_KycStatus.ToString(), dto.Note ?? "");
+            await _unitOfWork.KycDocuments.UpdateKYC_StatusAsync(kycDoc.DocId, KycStatus.Rejected.ToString(), dto.Note ?? "");
 
             kycDoc.VerifiedAt = dto.VerifiedAt ?? DateTime.Now;
             kycDoc.VerifiedBy = dto.VerifiedBy;
 
-            await _unitOfWork.KycDocuments.SetUserKYCStatusAsync(user.UserId, KycStatus.Rejected_KycStatus.ToString(),UserRole.Buyer.ToString());
+            await _unitOfWork.KycDocuments.SetUserKYCStatusAsync(user.UserId, KycStatus.Rejected.ToString(),UserRole.Buyer.ToString());
 
         }
 
         private async Task SetUserKycPendingAsync(User user)
         {
-            await _unitOfWork.KycDocuments.SetUserKYCStatusAsync(user.UserId, KycStatus.Pending_KycStatus.ToString(), UserRole.Seller.ToString());
+            await _unitOfWork.KycDocuments.SetUserKYCStatusAsync(user.UserId, KycStatus.Pending.ToString(), UserRole.Seller.ToString());
         }
 
         public async Task<IEnumerable<KycDocument>> GetPendingKycAsync()
-            => await _unitOfWork.KycDocuments.GetKYC_DocumentsByStatusAsync(KycStatus.Pending_KycStatus.ToString());
+            => await _unitOfWork.KycDocuments.GetKYC_DocumentsByStatusAsync(KycStatus.Pending.ToString());
 
         public async Task<IEnumerable<KycDocument>> GetApprovedKycAsync()
-            => await _unitOfWork.KycDocuments.GetKYC_DocumentsByStatusAsync(KycStatus.Approved_KycStatus.ToString());
+            => await _unitOfWork.KycDocuments.GetKYC_DocumentsByStatusAsync(KycStatus.Approved.ToString());
 
         public async Task<IEnumerable<KycDocument>> GetRejectedKycAsync()
-            => await _unitOfWork.KycDocuments.GetKYC_DocumentsByStatusAsync(KycStatus.Rejected_KycStatus.ToString());
+            => await _unitOfWork.KycDocuments.GetKYC_DocumentsByStatusAsync(KycStatus.Rejected.ToString());
 
         public async Task CreateKycDocumentAsync(KycDocument kyc, int userId)
         {
@@ -119,7 +119,7 @@ namespace Application.Services
 
             kyc.UserId = userId;
             kyc.SubmittedAt = DateTime.Now;
-            kyc.Status = KycStatus.Pending_KycStatus.ToString();
+            kyc.Status = KycStatus.Pending.ToString();
 
             await _unitOfWork.KycDocuments.CreateKYC_DocumentAsync(kyc);
             await SetUserKycPendingAsync(user);

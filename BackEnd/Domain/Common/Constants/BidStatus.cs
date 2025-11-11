@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace Domain.Common.Constants
 {
-   public enum BidStatus
+    public enum BidStatus
     {
-        Active_BidStatus, OutBid, Winner, Released_BidStatus, Cancelled_BidStatus
+        Active, OutBid, Winner, Released, Cancelled
 
     }
 }

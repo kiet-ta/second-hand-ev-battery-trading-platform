@@ -31,7 +31,7 @@ public class BidRepository : IBidRepository
 public async Task<Bid?> GetUserHighestActiveBidAsync(int auctionId, int userId)
     {
         return await _context.Bids
-            .Where(b => b.AuctionId == auctionId && b.UserId == userId && b.Status == BidStatus.Active_BidStatus.ToString())
+            .Where(b => b.AuctionId == auctionId && b.UserId == userId && b.Status == BidStatus.Active.ToString())
             .OrderByDescending(b => b.BidAmount)
             .ThenBy(b => b.BidTime)
             .FirstOrDefaultAsync();
@@ -40,7 +40,7 @@ public async Task<Bid?> GetUserHighestActiveBidAsync(int auctionId, int userId)
     public async Task<Bid?> GetHighestActiveBidAsync(int auctionId, int? excludeBidId = null)
     {
         var query = _context.Bids
-            .Where(b => b.AuctionId == auctionId && b.Status == BidStatus.Active_BidStatus.ToString());
+            .Where(b => b.AuctionId == auctionId && b.Status == BidStatus.Active.ToString());
 
         if (excludeBidId.HasValue)
         {
@@ -72,7 +72,7 @@ public async Task<Bid?> GetUserHighestActiveBidAsync(int auctionId, int userId)
         var loserLatestBids = await _context.Bids
             .Where(b => b.AuctionId == auctionId
                         && b.UserId != winnerId
-                        && (b.Status == BidStatus.Active_BidStatus.ToString() || b.Status == BidStatus.OutBid.ToString())) // Chỉ lấy bid chưa released/cancelled
+                        && (b.Status == BidStatus.Active.ToString() || b.Status == BidStatus.OutBid.ToString())) // Chỉ lấy bid chưa released/cancelled
             .GroupBy(b => b.UserId)
             .Select(g => g.OrderByDescending(b => b.BidAmount).ThenBy(b => b.BidTime).First()) // Lấy bid mới nhất (cao nhất) của mỗi user thua
             .ToListAsync();

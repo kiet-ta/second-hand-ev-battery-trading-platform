@@ -150,10 +150,10 @@ namespace Application.Services
             if (doc == null)
                 throw new KeyNotFoundException("KYC document not found.");
 
-            if (doc.Status != KycStatus.Pending_KycStatus.ToString())
+            if (doc.Status != KycStatus.Pending.ToString())
                 throw new InvalidOperationException("Document already processed.");
 
-            doc.Status = KycStatus.Approved_KycStatus.ToString();
+            doc.Status = KycStatus.Approved.ToString();
             doc.VerifiedBy = staffId;
             doc.VerifiedAt = DateTime.Now;
 
@@ -165,7 +165,7 @@ namespace Application.Services
             if (user != null)
             {
                 user.Role = UserRole.Seller.ToString();
-                user.KycStatus = KycStatus.Approved_KycStatus.ToString();
+                user.KycStatus = KycStatus.Approved.ToString();
                 await _unitOfWork.Users.UpdateAsync(user);
                 await _unitOfWork.Users.SaveChangesAsync();
             }
@@ -177,10 +177,10 @@ namespace Application.Services
             if (doc == null)
                 throw new KeyNotFoundException("KYC document not found.");
 
-            if (doc.Status != KycStatus.Pending_KycStatus.ToString())
+            if (doc.Status != KycStatus.Pending.ToString())
                 throw new InvalidOperationException("Document already processed.");
 
-            doc.Status = KycStatus.Rejected_KycStatus.ToString();
+            doc.Status = KycStatus.Rejected.ToString();
             doc.VerifiedBy = staffId;
             doc.VerifiedAt = DateTime.Now;
             doc.Note = note;
@@ -192,7 +192,7 @@ namespace Application.Services
                 throw new Exception("Associated user not found for KYC document.");
             if (user != null)
             {
-                user.KycStatus = KycStatus.Rejected_KycStatus.ToString();
+                user.KycStatus = KycStatus.Rejected.ToString();
                 await _unitOfWork.Users.UpdateAsync(user);
             }
         }

@@ -8,7 +8,7 @@ namespace Domain.Common.Constants
 {
     public enum OrderStatus
     {
-        Pending_Order, Paid, Shipped, Completed_Order, Cancelled_Order
+        Pending, Paid, Shipped, Completed, Cancelled
 
     }
 }

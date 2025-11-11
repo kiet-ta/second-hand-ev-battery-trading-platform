@@ -39,7 +39,7 @@ public class UnitOfWork : IUnitOfWork
     public IFavoriteRepository Favorites{ get; }
     public IHistorySoldRepository HistorySolds { get; }
     public IItemImageRepository ItemImages { get; }
-    public IKYC_DocumentRepository KycDocuments { get; }
+    public IKycDocumentRepository KycDocuments { get; }
     public INewsRepository News { get; }
     public INotificationRepository Notifications { get; }
     public IPasswordResetTokenRepository PasswordResetTokens{ get; }
@@ -74,7 +74,7 @@ public class UnitOfWork : IUnitOfWork
            IFavoriteRepository favoriteRepository,
            IHistorySoldRepository historySoldRepository,
            IItemImageRepository itemImageRepository,
-           IKYC_DocumentRepository kycDocumentRepository,
+           IKycDocumentRepository kycDocumentRepository,
            INewsRepository newsRepository,
            INotificationRepository notificationRepository,
            IPasswordResetTokenRepository passwordResetTokenRepository,

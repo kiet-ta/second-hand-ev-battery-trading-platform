@@ -55,13 +55,13 @@ namespace Infrastructure.Repositories
 
             switch (status)
             {
-                case "Pending_ReportStatus":
-                case "Rejected_ReportStatus":
+                case "Pending":
+                case "Rejected":
                     report.BanAt = null;
                     report.UnbanAt = null;
                     report.Duration = null;
                     break;
-                case "Approved_ReportStatus":
+                case "Approved":
                     if (day <= 0) day = 1; 
                     report.BanAt = DateTime.Now;
                     report.Duration = day;
@@ -87,7 +87,7 @@ namespace Infrastructure.Repositories
                 Detail = createReportDto.Detail,
                 AssigneeId = null,
                 CreatedAt = DateTime.Now,
-                Status = ReportStatus.Pending_ReportStatus.ToString(),
+                Status = ReportStatus.Pending.ToString(),
                 Duration = null,
                 BanAt = null,
                 UnbanAt = null

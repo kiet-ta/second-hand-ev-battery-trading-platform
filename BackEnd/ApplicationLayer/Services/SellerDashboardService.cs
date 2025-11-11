@@ -39,19 +39,19 @@ namespace Application.Services
 
                 var productStats = new ProductStatisticsDto
                 {
-                    Active = await _unitOfWork.Items.CountByStatusAsync(sellerId, ItemStatus.Active_ItemStatus
+                    Active = await _unitOfWork.Items.CountByStatusAsync(sellerId, ItemStatus.Active
                     .ToString()),
-                    Pending = await _unitOfWork.Items.CountByStatusAsync(sellerId, ItemStatus.Pending_Item.ToString()),
-                    Inactive = await _unitOfWork.Items.CountByStatusAsync(sellerId, ItemStatus.Rejected_ItemStatus.ToString()),
+                    Pending = await _unitOfWork.Items.CountByStatusAsync(sellerId, ItemStatus.Pending.ToString()),
+                    Inactive = await _unitOfWork.Items.CountByStatusAsync(sellerId, ItemStatus.Rejected.ToString()),
                     Featured = 5 // có thể mở rộng logic sau
                 };
 
                 var orderStats = new OrderStatisticsDto
                 {
-                    New = await _unitOfWork.Orders.CountByStatusAsync(sellerId, OrderStatus.Pending_Order.ToString()),
+                    New = await _unitOfWork.Orders.CountByStatusAsync(sellerId, OrderStatus.Pending.ToString()),
                     Processing = await _unitOfWork.Orders.CountByStatusAsync(sellerId, OrderStatus.Paid.ToString()),
-                    Completed = await _unitOfWork.Orders.CountByStatusAsync(sellerId, OrderStatus.Completed_Order.ToString()),
-                    Cancelled = await _unitOfWork.Orders.CountByStatusAsync(sellerId, OrderStatus.Cancelled_Order.ToString())
+                    Completed = await _unitOfWork.Orders.CountByStatusAsync(sellerId, OrderStatus.Completed.ToString()),
+                    Cancelled = await _unitOfWork.Orders.CountByStatusAsync(sellerId, OrderStatus.Cancelled.ToString())
                 };
 
                 var revenueByWeek = await _unitOfWork.PaymentDetails.GetRevenueByWeekAsync(sellerId);

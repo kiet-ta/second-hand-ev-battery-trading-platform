@@ -8,7 +8,7 @@ namespace Domain.Common.Constants
 {
     public enum NewsStatus
     {
-        Pending_NewsStatus, Approved_NewsStatus, Cancelled_NewsStatus
+        Pending, Approved, Cancelled
 
 
     }

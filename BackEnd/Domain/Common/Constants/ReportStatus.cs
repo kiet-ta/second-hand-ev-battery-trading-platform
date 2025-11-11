@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace Domain.Common.Constants
 {
-   public enum ReportStatus
+    public enum ReportStatus
     {
-        Pending_ReportStatus, Rejected_ReportStatus, Approved_ReportStatus
+        Pending, Rejected, Approved
 
     }
 }

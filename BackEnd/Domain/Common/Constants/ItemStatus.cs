@@ -8,8 +8,8 @@ namespace Domain.Common.Constants
 {
     public enum ItemStatus
     {
-        Active_ItemStatus, Sold, Pending_Item,
-        Rejected_ItemStatus, Pending_Pay
+        Active, Sold, Pending,
+        Rejected, Pending_Pay
 
 
     }

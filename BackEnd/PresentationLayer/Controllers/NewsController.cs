@@ -34,12 +34,12 @@ namespace PresentationLayer.Controllers
         public async Task<IActionResult> GetNewsById(int id)
         {
             if (id <= 0) return BadRequest("newsId must be greater than 0");
-            var newsDetail = await _newsService.GetBynewsId(id);
+            var newsDetail = await _newsService.GetNewsById(id);
             return Ok(newsDetail);
         }
 
         [HttpPost("approve/{newsId}")]
-        public async Task<IActionResult> ApproveNews(int newsId, [FromBody] CreateNotificationDTO dto)
+        public async Task<IActionResult> ApproveNews(int newsId, [FromBody] CreateNotificationDto dto)
         {
             if (dto == null || string.IsNullOrWhiteSpace(dto.Message))
                 return BadRequest(new { message = "Notification content cannot be empty." });

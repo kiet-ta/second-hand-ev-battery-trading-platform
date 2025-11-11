@@ -31,7 +31,7 @@ namespace Infrastructure.Repositories
             {
                 return false;
             }
-            news.Status = NewsStatus.Approved_NewsStatus.ToString();
+            news.Status = NewsStatus.Approved.ToString();
             await _context.SaveChangesAsync();
             return true;
         }
@@ -42,7 +42,7 @@ namespace Infrastructure.Repositories
             {
                 return false;
             }
-            news.Status = NewsStatus.Cancelled_NewsStatus.ToString();
+            news.Status = NewsStatus.Cancelled.ToString();
             await _context.SaveChangesAsync();
             return true;
         }
@@ -62,7 +62,7 @@ namespace Infrastructure.Repositories
             var news = new News
             {
                 Title = dto.Title,
-                Status = NewsStatus.Pending_NewsStatus.ToString(),
+                Status = NewsStatus.Pending.ToString(),
                 PublishDate = DateTime.UtcNow,
                 Category = dto.Category,
                 Summary = dto.Summary,

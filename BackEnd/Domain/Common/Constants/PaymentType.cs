@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace Domain.Common.Constants
 {
-   public enum PaymentType
+    public enum PaymentType
     {
-        Seller_Registration, Deposit_PaymentType, Order_Purchase
+        Seller_Registration, Deposit, Order_Purchase
 
     }
 }

@@ -4,6 +4,7 @@ using Application.DTOs.ItemDtos;
 using Application.IRepositories;
 using Application.IRepositories.IBiddingRepositories;
 using Application.IServices;
+using Domain.Common.Constants;
 using Domain.Entities;
 using Microsoft.Extensions.Logging;
 using System.Diagnostics.CodeAnalysis;
@@ -251,7 +252,7 @@ public class AuctionService : IAuctionService
                 UserId = userId,
                 BidAmount = bidAmount,
                 BidTime = now,
-                Status = "active"
+                Status = BidStatus.Active.ToString()
             };
             int newBidId = await _unitOfWork.Bids.PlaceBidAsync(newBid);
             newBid.BidId = newBidId;
@@ -260,7 +261,7 @@ public class AuctionService : IAuctionService
             {
                 WalletId = wallet.WalletId,
                 Amount = -amountToHoldNow,
-                Type = "hold",
+                Type = WalletTransactionType.Hold.ToString(),
                 CreatedAt = now,
                 RefId = newBid.BidId,
                 AuctionId = auctionId
@@ -300,7 +301,7 @@ public class AuctionService : IAuctionService
             if (previousHighestBid != null)
             {
                 var outbidMessage = $"You have been outbid on auction #{auctionId}. The new price is {bidAmount:N0}đ.";
-                var notiDto = new CreateNotificationDTO
+                var notiDto = new CreateNotificationDto
                 {
                     NotiType = "auction",
                     TargetUserId = previousHighestBid.UserId.ToString(),
@@ -371,7 +372,7 @@ public class AuctionService : IAuctionService
         // Get specific details based on item type
         switch (item.ItemType?.ToLower())
         {
-            case "ev":
+            case "Ev":
                 var evDetail = await _eVDetailRepository.GetByIdAsync(auction.ItemId);
                 if (evDetail != null)
                 {
@@ -379,7 +380,7 @@ public class AuctionService : IAuctionService
                 }
                 break;
 
-            case "battery":
+            case "Battery":
                 var batteryDetail = await _batteryDetailRepository.GetByIdAsync(auction.ItemId);
                 if (batteryDetail != null)
                 {

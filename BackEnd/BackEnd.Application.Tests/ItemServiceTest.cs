@@ -134,7 +134,7 @@ namespace BackEnd.Application.Tests
                 Title = "Updated Title",
                 Price = 1200,
                 Status = "active",
-                Moderation = "approved_tag"
+                Moderation = "Approved"
             };
 
             // Act
@@ -149,7 +149,7 @@ namespace BackEnd.Application.Tests
             Assert.Equal("Updated Title", _capturedItem.Title);
             Assert.Equal(1200, _capturedItem.Price);
             Assert.Equal("active", _capturedItem.Status);
-            Assert.Equal("approved_tag", _capturedItem.Moderation);
+            Assert.Equal("Approved", _capturedItem.Moderation);
         }
 
         //  TC_ITEM_006: "Verify updating an item with a non-existent ID"

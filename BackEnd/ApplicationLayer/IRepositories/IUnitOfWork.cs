@@ -32,7 +32,7 @@ public interface IUnitOfWork
     IFavoriteRepository Favorites { get; }
     IHistorySoldRepository HistorySolds { get; }
     IItemImageRepository ItemImages { get; }
-    IKYC_DocumentRepository KycDocuments { get; }
+    IKycDocumentRepository KycDocuments { get; }
     INewsRepository News { get; }
     INotificationRepository Notifications { get; }
     IPasswordResetTokenRepository PasswordResetTokens { get; }
