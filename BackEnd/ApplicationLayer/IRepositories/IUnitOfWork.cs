@@ -18,7 +18,6 @@ public interface IUnitOfWork
     ITransactionCommissionRepository TransactionCommission { get; }
     IAddressRepository Address { get; }
     IPaymentRepository Payments { get; }
-    IBidRepository ItemBiddings { get; }
     IChatRepository Chats { get; }
     IUserModerationRepository UserModerations { get; }
     IPermissionRepository Permissions { get; }
@@ -31,7 +30,7 @@ public interface IUnitOfWork
     IFavoriteRepository Favorites { get; }
     IHistorySoldRepository HistorySolds { get; }
     IItemImageRepository ItemImages { get; }
-    IKYC_DocumentRepository KycDocuments { get; }
+    IKycDocumentRepository KycDocuments { get; }
     INewsRepository News { get; }
     INotificationRepository Notifications { get; }
     IPasswordResetTokenRepository PasswordResetTokens { get; }

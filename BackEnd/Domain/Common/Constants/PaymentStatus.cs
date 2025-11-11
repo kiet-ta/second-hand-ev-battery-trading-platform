@@ -8,7 +8,7 @@ namespace Domain.Common.Constants
 {
     public enum PaymentStatus
     {
-        Pending_PaymentStatus,
-        Completed_PaymentStatus, Failed_PaymentStatus, Refunded, Expired
+        Pending,
+        Completed, Failed, Refunded, Expired
     }
 }

@@ -26,7 +26,7 @@ namespace Infrastructure.Repositories
                                     join p in _context.Payments on pd.PaymentId equals p.PaymentId
                                     join i in _context.Items on pd.ItemId equals i.ItemId
                                     where
-                                        p.Status == PaymentStatus.Completed_PaymentStatus.ToString() &&
+                                        p.Status == PaymentStatus.Completed.ToString() &&
                                         i.UpdatedBy == sellerId
                                     select pd.Amount;
 
@@ -41,7 +41,7 @@ namespace Infrastructure.Repositories
                         join o in _context.Orders on pd.OrderId equals o.OrderId
                         join p in _context.Payments on pd.PaymentId equals p.PaymentId
                         join i in _context.Items on pd.ItemId equals i.ItemId
-                        where i.UpdatedBy == sellerId && p.Status == PaymentStatus.Completed_PaymentStatus.ToString()
+                        where i.UpdatedBy == sellerId && p.Status == PaymentStatus.Completed.ToString()
                         select new { pd.Amount, o.CreatedAt };
 
             var data = await query.ToListAsync();

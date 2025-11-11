@@ -8,7 +8,7 @@ namespace Domain.Common.Constants
 {
     public enum WalletTransactionType
     {
-        Deposit_WalletTransaction, Withdraw, Hold, Released_WalletTransaction, Payment
+        Deposit, Withdraw, Hold, Released, Payment
 
     }
 }

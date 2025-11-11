@@ -8,6 +8,6 @@ namespace Domain.Common.Constants
 {
     public enum ComplaintStatus
     {
-        Pending_ComplaintStatus, In_Review, Resolved, Rejected_ComplaintStatus
+        Pending, In_Review, Resolved, Rejected
     }
 }

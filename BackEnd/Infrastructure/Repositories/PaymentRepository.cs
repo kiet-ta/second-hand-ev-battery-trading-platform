@@ -74,7 +74,7 @@ public class PaymentRepository : IPaymentRepository
         var startDate = DateTime.Now.AddMonths(-monthsRange + 1);
 
         var query = await _context.Payments
-            .Where(o => o.Status == PaymentStatus.Completed_PaymentStatus.ToString() && o.CreatedAt >= startDate)
+            .Where(o => o.Status == PaymentStatus.Completed.ToString() && o.CreatedAt >= startDate)
             .GroupBy(o => new { o.CreatedAt.Year, o.CreatedAt.Month })
             .Select(g => new
             {

@@ -8,7 +8,7 @@ namespace Domain.Common.Constants
 {
     public enum ItemModeration
     {
-        Pending_Tag, Approved_Tag, Rejected_Tag, Not_Submitted_Tag
+        Pending, Approved, Rejected, Not_Submitted
 
     }
 }

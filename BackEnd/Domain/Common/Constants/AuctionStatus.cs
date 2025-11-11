@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace Domain.Common.Constants
 {
-    public enum  AuctionStatus
+    public enum AuctionStatus
     {
-        Upcoming, Ongoing, Ended, Cancelled_AuctionStatus
+        Upcoming, Ongoing, Ended, Cancelled
 
     }
 }

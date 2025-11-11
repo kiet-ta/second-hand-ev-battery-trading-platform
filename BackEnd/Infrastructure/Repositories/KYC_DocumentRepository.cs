@@ -9,7 +9,7 @@ using System.Runtime.ConstrainedExecution;
 
 namespace Infrastructure.Repositories
 {
-    public class KYC_DocumentRepository : IKYC_DocumentRepository
+    public class KYC_DocumentRepository : IKycDocumentRepository
     {
         private readonly EvBatteryTradingContext _context;
 
@@ -64,7 +64,7 @@ namespace Infrastructure.Repositories
             var kyc = await _context.KycDocuments.FindAsync(id);
             if (kyc == null) return;
 
-            if (!string.Equals(kyc.Status, KycStatus.Pending_KycStatus.ToString(), StringComparison.OrdinalIgnoreCase))
+            if (!string.Equals(kyc.Status, KycStatus.Pending.ToString(), StringComparison.OrdinalIgnoreCase))
                 return;
 
             kyc.Status = status;
@@ -89,7 +89,7 @@ namespace Infrastructure.Repositories
         {
             var query = _context.KycDocuments
                 .AsNoTracking()
-                .Where(k => k.Status == KycStatus.Pending_KycStatus
+                .Where(k => k.Status == KycStatus.Pending
                 .ToString())
                 .Join(
                     _context.Users.AsNoTracking(),
@@ -125,7 +125,7 @@ namespace Infrastructure.Repositories
         {
             return await _context.KycDocuments
                 .AsNoTracking()
-                .Where(k => k.Status == KycStatus.Pending_KycStatus.ToString())
+                .Where(k => k.Status == KycStatus.Pending.ToString())
                 .ToListAsync();
         }
 

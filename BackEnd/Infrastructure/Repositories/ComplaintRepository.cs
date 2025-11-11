@@ -39,7 +39,7 @@ namespace Infrastructure.Repositories
                 AssignTo = null,
                 Reason = dto.Reason,
                 Description = dto.Description,
-                Status = dto.Status ?? ComplaintStatus.Pending_ComplaintStatus.ToString(),
+                Status = dto.Status ?? ComplaintStatus.Pending.ToString(),
                 SeverityLevel = dto.SeverityLevel ?? ComplaintSeverityLevel.Medium.ToString(),
                 CreatedAt = DateTime.Now,
                 UpdatedAt = DateTime.Now

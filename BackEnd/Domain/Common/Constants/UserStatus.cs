@@ -11,7 +11,7 @@ namespace Domain.Common.Constants
         Warning1,
         Warning2,
         Ban,
-        Active_UserStatus
+        Active
 
     }
 }

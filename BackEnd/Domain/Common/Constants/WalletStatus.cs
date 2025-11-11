@@ -8,7 +8,7 @@ namespace Domain.Common.Constants
 {
     public enum WalletStatus
     {
-        Active_WalletStatus, Frozen
+        Active, Frozen
 
     }
 }

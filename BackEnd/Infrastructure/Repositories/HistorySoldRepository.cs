@@ -27,7 +27,7 @@ namespace Infrastructure.Repositories
                     u.UserId == id &&
                     u.Role == UserRole.Seller.ToString() &&
                     !(u.IsDeleted == true) &&
-                    u.KycStatus == KycStatus.Approved_KycStatus.ToString() &&
+                    u.KycStatus == KycStatus.Approved.ToString() &&
                     u.AccountStatus != UserStatus.Ban.ToString()
                 )
                 .FirstOrDefaultAsync();
@@ -78,7 +78,7 @@ namespace Infrastructure.Repositories
                         .Join(_context.Payments, pd => pd.PaymentId, p => p.PaymentId, (pd, p) => new { pd, p })
                         .Any(joined =>
                             joined.pd.ItemId == item.ItemId &&
-                            joined.p.Status == PaymentStatus.Pending_PaymentStatus.ToString())
+                            joined.p.Status == PaymentStatus.Pending.ToString())
                 )
                 .ToListAsync();
 
@@ -104,7 +104,7 @@ namespace Infrastructure.Repositories
                                   (pd, p) => new { pd, p })
                             .Any(joined =>
                                 joined.pd.ItemId == item.ItemId &&
-                                (joined.p.Status == PaymentStatus.Failed_PaymentStatus
+                                (joined.p.Status == PaymentStatus.Failed
                                 .ToString()||
                                  joined.p.Status == PaymentStatus.Refunded
                                 .ToString() ||
@@ -118,7 +118,7 @@ namespace Infrastructure.Repositories
                                   (oi, o) => new { oi, o })
                             .Any(joined =>
                                 joined.oi.ItemId == item.ItemId &&
-                                joined.o.Status == OrderStatus.Cancelled_Order.ToString())
+                                joined.o.Status == OrderStatus.Cancelled.ToString())
                     )
                 )
                 .ToListAsync();
@@ -141,7 +141,7 @@ namespace Infrastructure.Repositories
                         .Join(_context.Payments, pd => pd.PaymentId, p => p.PaymentId, (pd, p) => new { pd, p })
                         .Any(joined =>
                             joined.pd.ItemId == item.ItemId &&
-                            joined.p.Status == PaymentStatus.Completed_PaymentStatus.ToString())
+                            joined.p.Status == PaymentStatus.Completed.ToString())
                 )
                 .ToListAsync();
 
@@ -225,12 +225,12 @@ namespace Infrastructure.Repositories
                         from p in paymentList.DefaultIfEmpty()
 
                             // Tính toán trạng thái ngay trong query
-                        let isSold = _context.OrderItems.Any(pd_s => pd_s.ItemId == item.ItemId && _context.Orders.Any(p_s => p_s.OrderId == pd_s.OrderId && p_s.Status == "completed"))
-                        let isProcessing = !isSold && _context.OrderItems.Any(oi_p => oi_p.ItemId == item.ItemId && _context.Orders.Any(o_p => o_p.OrderId == oi_p.OrderId && (o_p.Status == "paid" || o_p.Status == "shipped")))
-                        let isPending = !isSold && !isProcessing && _context.OrderItems.Any(pd_pe => pd_pe.ItemId == item.ItemId && _context.Orders.Any(p_pe => p_pe.OrderId == pd_pe.OrderId && p_pe.Status == "pending"))
+                        let isSold = _context.OrderItems.Any(pd_s => pd_s.ItemId == item.ItemId && _context.Orders.Any(p_s => p_s.OrderId == pd_s.OrderId && p_s.Status == OrderStatus.Completed.ToString()))
+                        let isProcessing = !isSold && _context.OrderItems.Any(oi_p => oi_p.ItemId == item.ItemId && _context.Orders.Any(o_p => o_p.OrderId == oi_p.OrderId && (o_p.Status == OrderStatus.Paid.ToString() || o_p.Status == OrderStatus.Shipped.ToString())))
+                        let isPending = !isSold && !isProcessing && _context.OrderItems.Any(pd_pe => pd_pe.ItemId == item.ItemId && _context.Orders.Any(p_pe => p_pe.OrderId == pd_pe.OrderId && p_pe.Status == OrderStatus.Pending.ToString()))
                         let isCanceled = !isSold && !isProcessing && !isPending &&
-                                         (_context.PaymentDetails.Any(pd_c => pd_c.ItemId == item.ItemId && _context.Payments.Any(p_c => p_c.PaymentId == pd_c.PaymentId && (p_c.Status == PaymentStatus.Failed_PaymentStatus.ToString() || p_c.Status == PaymentStatus.Refunded.ToString() || p_c.Status == PaymentStatus.Expired.ToString())))
-                                          || _context.OrderItems.Any(oi_c => oi_c.ItemId == item.ItemId && _context.Orders.Any(o_c => o_c.OrderId == oi_c.OrderId && o_c.Status == OrderStatus.Cancelled_Order.ToString())))
+                                         (_context.PaymentDetails.Any(pd_c => pd_c.ItemId == item.ItemId && _context.Payments.Any(p_c => p_c.PaymentId == pd_c.PaymentId && (p_c.Status == PaymentStatus.Failed.ToString() || p_c.Status == PaymentStatus.Refunded.ToString() || p_c.Status == PaymentStatus.Expired.ToString())))
+                                          || _context.OrderItems.Any(oi_c => oi_c.ItemId == item.ItemId && _context.Orders.Any(o_c => o_c.OrderId == oi_c.OrderId && o_c.Status == OrderStatus.Cancelled.ToString())))
 
                         select new BatteryItemDto
                         {
@@ -338,12 +338,12 @@ namespace Infrastructure.Repositories
                         join p in _context.Payments on pd.PaymentId equals p.PaymentId into paymentList
                         from p in paymentList.DefaultIfEmpty()
 
-                        let isSold = _context.OrderItems.Any(pd_s => pd_s.ItemId == item.ItemId && _context.Orders.Any(p_s => p_s.OrderId == pd_s.OrderId && p_s.Status == "completed"))
-                        let isProcessing = !isSold && _context.OrderItems.Any(oi_p => oi_p.ItemId == item.ItemId && _context.Orders.Any(o_p => o_p.OrderId == oi_p.OrderId && (o_p.Status == "paid" || o_p.Status == "shipped")))
-                        let isPending = !isSold && !isProcessing && _context.OrderItems.Any(pd_pe => pd_pe.ItemId == item.ItemId && _context.Orders.Any(p_pe => p_pe.OrderId == pd_pe.OrderId && p_pe.Status == "pending"))
+                        let isSold = _context.OrderItems.Any(pd_s => pd_s.ItemId == item.ItemId && _context.Orders.Any(p_s => p_s.OrderId == pd_s.OrderId && p_s.Status == OrderStatus.Completed.ToString()))
+                        let isProcessing = !isSold && _context.OrderItems.Any(oi_p => oi_p.ItemId == item.ItemId && _context.Orders.Any(o_p => o_p.OrderId == oi_p.OrderId && (o_p.Status == OrderStatus.Paid.ToString() || o_p.Status == OrderStatus.Shipped.ToString())))
+                        let isPending = !isSold && !isProcessing && _context.OrderItems.Any(pd_pe => pd_pe.ItemId == item.ItemId && _context.Orders.Any(p_pe => p_pe.OrderId == pd_pe.OrderId && p_pe.Status == OrderStatus.Shipped.ToString()))
                         let isCanceled = !isSold && !isProcessing && !isPending &&
-                                         (_context.PaymentDetails.Any(pd_c => pd_c.ItemId == item.ItemId && _context.Payments.Any(p_c => p_c.PaymentId == pd_c.PaymentId && (p_c.Status == PaymentStatus.Failed_PaymentStatus.ToString()) || p_c.Status == PaymentStatus.Refunded.ToString() || p_c.Status == PaymentStatus.Expired.ToString()))
-                                          || _context.OrderItems.Any(oi_c => oi_c.ItemId == item.ItemId && _context.Orders.Any(o_c => o_c.OrderId == oi_c.OrderId && o_c.Status == OrderStatus.Cancelled_Order.ToString())))
+                                         (_context.PaymentDetails.Any(pd_c => pd_c.ItemId == item.ItemId && _context.Payments.Any(p_c => p_c.PaymentId == pd_c.PaymentId && (p_c.Status == PaymentStatus.Failed.ToString()) || p_c.Status == PaymentStatus.Refunded.ToString() || p_c.Status == PaymentStatus.Expired.ToString()))
+                                          || _context.OrderItems.Any(oi_c => oi_c.ItemId == item.ItemId && _context.Orders.Any(o_c => o_c.OrderId == oi_c.OrderId && o_c.Status == OrderStatus.Cancelled.ToString())))
 
                         select new EVItemDto
                         {

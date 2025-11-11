@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace Domain.Common.Constants
 {
-  public enum  CommissionFeeRuleTargetRole
+    public enum CommissionFeeRuleTargetRole
     {
-        Buyer_CommissionFeeRule, Seller_CommissionFeeRule, All
+        Buyer, Seller, All
 
     }
 }

@@ -8,10 +8,10 @@ namespace Domain.Common.Constants
 {
     public enum KycStatus
     {
-        Not_submitted_KycDocument, 
-        Pending_KycStatus, 
-        Approved_KycStatus,
-        Rejected_KycStatus
+        Not_submitted,
+        Pending,
+        Approved,
+        Rejected
 
     }
 }
