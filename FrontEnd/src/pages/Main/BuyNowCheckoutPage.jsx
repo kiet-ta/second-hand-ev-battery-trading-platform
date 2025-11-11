@@ -21,11 +21,10 @@ const AddressModal = ({ addresses, selectedId, onSelect, onClose }) => (
             <div
               key={addr.addressId}
               onClick={() => onSelect(addr.addressId)}
-              className={`p-4 border-2 rounded-xl cursor-pointer transition-all ${
-                selectedId === addr.addressId
-                  ? "border-[#C99700] bg-[#FFF8E1]"
-                  : "border-gray-200 hover:border-gray-400"
-              }`}
+              className={`p-4 border-2 rounded-xl cursor-pointer transition-all ${selectedId === addr.addressId
+                ? "border-[#C99700] bg-[#FFF8E1]"
+                : "border-gray-200 hover:border-gray-400"
+                }`}
             >
               <div className="flex justify-between items-start">
                 <div>
@@ -122,8 +121,11 @@ function BuyNowCheckoutPage() {
   const formatVND = (p) =>
     p.toLocaleString("vi-VN", { style: "currency", currency: "VND" });
 
-  const calculateTotal = () => (orderData.totalAmount || 0) + insurance.price + shippingFee;
+  const calculateTotal = () =>
+    (orderData.totalAmount ?? 0) + insurance.price + shippingFee;
+
   const finalTotalPrice = calculateTotal();
+
 
   const handleConfirmAndPay = async () => {
     if (!selectedDeliveryAddress) {
@@ -273,21 +275,19 @@ function BuyNowCheckoutPage() {
           <div className="flex gap-4">
             <button
               onClick={() => setPaymentMethod("payos")}
-              className={`px-4 py-2 rounded-lg font-semibold border ${
-                paymentMethod === "payos"
-                  ? "bg-[#C99700] text-white border-[#C99700]"
-                  : "bg-white border-gray-300"
-              }`}
+              className={`px-4 py-2 rounded-lg font-semibold border ${paymentMethod === "payos"
+                ? "bg-[#C99700] text-white border-[#C99700]"
+                : "bg-white border-gray-300"
+                }`}
             >
               PayOS
             </button>
             <button
               onClick={() => setPaymentMethod("wallet")}
-              className={`px-4 py-2 rounded-lg font-semibold border ${
-                paymentMethod === "wallet"
-                  ? "bg-[#C99700] text-white border-[#C99700]"
-                  : "bg-white border-gray-300"
-              }`}
+              className={`px-4 py-2 rounded-lg font-semibold border ${paymentMethod === "wallet"
+                ? "bg-[#C99700] text-white border-[#C99700]"
+                : "bg-white border-gray-300"
+                }`}
             >
               Ví ({wallet ? formatVND(wallet.balance) : "Đang tải..."})
             </button>

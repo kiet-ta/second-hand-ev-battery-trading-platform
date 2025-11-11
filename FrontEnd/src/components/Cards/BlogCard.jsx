@@ -1,6 +1,7 @@
-// src/components/BlogCard.jsx
 import React from "react";
 import { Link } from "react-router-dom";
+import PropTypes from "prop-types";
+
 
 export default function BlogCard({ post }) {
     return (
@@ -29,3 +30,12 @@ export default function BlogCard({ post }) {
         </Link>
     );
 }
+BlogCard.propTypes = {
+    post: PropTypes.shape({
+        id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
+        thumbnailUrl: PropTypes.string,
+        title: PropTypes.string.isRequired,
+        summary: PropTypes.string,
+        createdAt: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
+    }).isRequired,
+};

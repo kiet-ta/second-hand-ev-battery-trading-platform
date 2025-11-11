@@ -1,4 +1,6 @@
 import React, { useEffect } from "react";
+import PropTypes from "prop-types";
+
 
 export default function ChatProductCard({ item, onClose, duration = 5000 }) {
   useEffect(() => {
@@ -34,3 +36,16 @@ export default function ChatProductCard({ item, onClose, duration = 5000 }) {
     </div>
   );
 }
+
+ChatProductCard.propTypes = {
+  item: PropTypes.shape({
+    imageUrl: PropTypes.string.isRequired,
+    title: PropTypes.string.isRequired,
+    note: PropTypes.string,
+    price: PropTypes.number.isRequired,
+  }).isRequired,
+
+  onClose: PropTypes.func.isRequired,
+
+  duration: PropTypes.number,
+};

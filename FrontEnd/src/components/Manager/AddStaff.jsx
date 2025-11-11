@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import PropTypes from "prop-types";
 import { X, Loader2 } from "lucide-react";
 
 export default function AddStaff({ isOpen, onClose, onSuccess }) {
@@ -13,79 +14,77 @@ export default function AddStaff({ isOpen, onClose, onSuccess }) {
     });
     const [errors, setErrors] = useState({});
     const [loading, setLoading] = useState(false);
+
     const baseURL = import.meta.env.VITE_API_BASE_URL;
 
     if (!isOpen) return null;
 
-    // Fetch permissions
-    useEffect(() => {
-        async function fetchPermissions() {
-            try {
-                const token = localStorage.getItem("token");
-                if (!token) return;
+    // Tách fetchPermissions
+    const fetchPermissions = async () => {
+        try {
+            const token = localStorage.getItem("token");
+            if (!token) return;
 
-                const res = await fetch(`${baseURL}management/permissions`, {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                        "Content-Type": "application/json",
-                    },
-                });
+            const res = await fetch(`${baseURL}management/permissions`, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    "Content-Type": "application/json",
+                },
+            });
 
-                if (!res.ok) {
-                    const errText = await res.text();
-                    throw new Error(`HTTP ${res.status}: ${errText}`);
-                }
-
-                const data = await res.json();
-                setPermissions(data);
-            } catch (err) {
-                console.error("Error fetching permissions:", err);
-            }
+            if (!res.ok) throw new Error(await res.text());
+            setPermissions(await res.json());
+        } catch (err) {
+            console.error("Error fetching permissions:", err);
         }
+    };
+
+    useEffect(() => {
         fetchPermissions();
     }, []);
 
-    // Validation rules
-    const validateField = (name, value) => {
-        switch (name) {
-            case "fullName":
-                if (!value.trim()) return "Full name is required";
-                if (value.length < 3) return "Full name must be at least 3 characters";
-                break;
-            case "email":
-                { if (!value.trim()) return "Vui lòng nhập Email";
-                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                if (!emailRegex.test(value)) return "Vui lòng nhập Email chính xác";
-                break; }
-            case "phone":
-                { if (!value.trim()) return "Vui lòng nhập số điện thoại";
-                const phoneRegex = /^[0-9]{9,15}$/;
-                if (!phoneRegex.test(value)) return "Vui lòng nhập đúng số điện thoại";
-                break; }
-            case "password":
-                { if (!value) return "Password is required";
-                // Strong password: at least 8 chars, uppercase, lowercase, number, special char
-                const strongPwd = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/;
-                if (!strongPwd.test(value))
-                    return "Mật khẩu phải có ít nhất 8 ký tự, gồm chữ hoa, chữ thường, số và ký tự đặc biệt.";
-                break; }
-            case "confirmPassword":
-                if (value !== formData.password) return "Mật khẩu không trùng";
-                break;
-            default:
-                return "";
-        }
-        return "";
+    // Simple validation rules object
+    const validateRules = {
+        fullName: (v) =>
+            !v.trim()
+                ? "Full name is required"
+                : v.length < 3
+                    ? "Full name must be at least 3 characters"
+                    : "",
+
+        email: (v) =>
+            !v.trim()
+                ? "Vui lòng nhập Email"
+                : /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)
+                    ? ""
+                    : "Vui lòng nhập Email chính xác",
+
+        phone: (v) =>
+            !v.trim()
+                ? "Vui lòng nhập số điện thoại"
+                : /^[0-9]{9,15}$/.test(v)
+                    ? ""
+                    : "Vui lòng nhập đúng số điện thoại",
+
+        password: (v) =>
+            !v
+                ? "Password is required"
+                : /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/.test(v)
+                    ? ""
+                    : "Mật khẩu phải có ít nhất 8 ký tự, gồm chữ hoa, chữ thường, số và ký tự đặc biệt.",
+
+        confirmPassword: (v) =>
+            v !== formData.password ? "Mật khẩu không trùng" : "",
     };
 
-    // Handle input change with validation
+    const validateField = (name, value) =>
+        validateRules[name] ? validateRules[name](value) : "";
+
     const handleChange = (e) => {
         const { name, value } = e.target;
-        setFormData((prev) => ({ ...prev, [name]: value }));
 
-        // Validate field on change
-        const errorMsg = validateField(name, value);
-        setErrors((prev) => ({ ...prev, [name]: errorMsg }));
+        setFormData((prev) => ({ ...prev, [name]: value }));
+        setErrors((prev) => ({ ...prev, [name]: validateField(name, value) }));
     };
 
     const togglePermission = (perm) => {
@@ -100,71 +99,71 @@ export default function AddStaff({ isOpen, onClose, onSuccess }) {
         });
     };
 
-    // Validate whole form
     const validateForm = () => {
-        const newErrors = {};
+        const newErr = {};
         Object.keys(formData).forEach((key) => {
-            const error = validateField(key, formData[key]);
-            if (error) newErrors[key] = error;
+            const e = validateField(key, formData[key]);
+            if (e) newErr[key] = e;
         });
-        setErrors(newErrors);
-        return Object.keys(newErrors).length === 0;
+
+        setErrors(newErr);
+        return Object.keys(newErr).length === 0;
     };
 
-    // Submit handler
+    // Tách submit logic
+    const submitStaff = async () => {
+        const token = localStorage.getItem("token");
+        if (!token) {
+            setErrors({ form: "Vui lòng đăng nhập." });
+            return;
+        }
+
+        const payload = {
+            fullName: formData.fullName,
+            email: formData.email,
+            password: formData.password,
+            phone: formData.phone,
+            permissions: formData.permissions,
+        };
+
+        const res = await fetch(`${baseURL}management/staff`, {
+            method: "POST",
+            headers: {
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(payload),
+        });
+
+        const text = await res.text();
+
+        if (!res.ok) {
+            if (text.includes("Email already exists")) {
+                setErrors({ email: "Email đã tồn tại" });
+            } else {
+                setErrors({ form: text });
+            }
+            return;
+        }
+
+        onSuccess();
+        setFormData({
+            fullName: "",
+            email: "",
+            password: "",
+            confirmPassword: "",
+            phone: "",
+            permissions: [],
+        });
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setErrors({});
-
         if (!validateForm()) return;
 
         setLoading(true);
         try {
-            const token = localStorage.getItem("token");
-            if (!token) {
-                setErrors({ form: "Vui lòng đăng nhập." });
-                return;
-            }
-
-            const payload = {
-                fullName: formData.fullName,
-                email: formData.email,
-                password: formData.password,
-                phone: formData.phone,
-                permissions: formData.permissions,
-            };
-
-            const res = await fetch(`${baseURL}management/staff`, {
-                method: "POST",
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify(payload),
-            });
-
-            if (!res.ok) {
-                const errText = await res.text();
-                if (errText.includes("Email already exists")) {
-                    setErrors({ email: "Email đã tồn tại" });
-                } else {
-                    setErrors({ form: errText });
-                }
-                return;
-            }
-
-            // Success
-            onSuccess();
-            setFormData({
-                fullName: "",
-                email: "",
-                password: "",
-                confirmPassword: "",
-                phone: "",
-                permissions: [],
-            });
-        } catch (err) {
-            console.error(err);
+            await submitStaff();
         } finally {
             setLoading(false);
         }
@@ -173,6 +172,7 @@ export default function AddStaff({ isOpen, onClose, onSuccess }) {
     return (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
             <div className="bg-white rounded-2xl shadow-2xl w-[480px] max-h-[90vh] overflow-auto animate-fadeIn">
+
                 {/* Header */}
                 <div className="flex justify-between items-center border-b px-6 py-4">
                     <h2 className="text-lg font-semibold text-slate-800 flex items-center gap-2">
@@ -186,12 +186,16 @@ export default function AddStaff({ isOpen, onClose, onSuccess }) {
                     </button>
                 </div>
 
-                {/* Form */}
+                {/* FULL UI FORM */}
                 <form onSubmit={handleSubmit} className="p-6 space-y-4">
-                    {errors.form && <p className="text-red-500 text-sm">{errors.form}</p>}
+                    {errors.form && (
+                        <p className="text-red-500 text-sm">{errors.form}</p>
+                    )}
 
                     <div>
-                        <label className="block text-sm font-medium mb-1 text-slate-700">Full Name</label>
+                        <label className="block text-sm font-medium mb-1 text-slate-700">
+                            Full Name
+                        </label>
                         <input
                             type="text"
                             name="fullName"
@@ -201,11 +205,18 @@ export default function AddStaff({ isOpen, onClose, onSuccess }) {
                             placeholder="e.g., Nguyen Van A"
                             required
                         />
-                        {errors.fullName && <p className="text-red-500 text-xs mt-1">{errors.fullName}</p>}
+                        {errors.fullName && (
+                            <p className="text-red-500 text-xs mt-1">
+                                {errors.fullName}
+                            </p>
+                        )}
                     </div>
 
+                    {/* Email */}
                     <div>
-                        <label className="block text-sm font-medium mb-1 text-slate-700">Email</label>
+                        <label className="block text-sm font-medium mb-1 text-slate-700">
+                            Email
+                        </label>
                         <input
                             type="email"
                             name="email"
@@ -215,11 +226,18 @@ export default function AddStaff({ isOpen, onClose, onSuccess }) {
                             placeholder="example@email.com"
                             required
                         />
-                        {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
+                        {errors.email && (
+                            <p className="text-red-500 text-xs mt-1">
+                                {errors.email}
+                            </p>
+                        )}
                     </div>
 
+                    {/* Phone */}
                     <div>
-                        <label className="block text-sm font-medium mb-1 text-slate-700">Phone</label>
+                        <label className="block text-sm font-medium mb-1 text-slate-700">
+                            Phone
+                        </label>
                         <input
                             type="tel"
                             name="phone"
@@ -229,57 +247,86 @@ export default function AddStaff({ isOpen, onClose, onSuccess }) {
                             placeholder="e.g., 0901234567"
                             required
                         />
-                        {errors.phone && <p className="text-red-500 text-xs mt-1">{errors.phone}</p>}
+                        {errors.phone && (
+                            <p className="text-red-500 text-xs mt-1">
+                                {errors.phone}
+                            </p>
+                        )}
                     </div>
 
+                    {/* Password + Confirm */}
                     <div className="grid grid-cols-2 gap-3">
                         <div>
-                            <label className="block text-sm font-medium mb-1 text-slate-700">Password</label>
+                            <label className="block text-sm font-medium mb-1 text-slate-700">
+                                Password
+                            </label>
                             <input
                                 type="password"
                                 name="password"
                                 value={formData.password}
                                 onChange={handleChange}
                                 className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
-                                placeholder="••••••••"
                                 required
                             />
-                            {errors.password && <p className="text-red-500 text-xs mt-1">{errors.password}</p>}
+                            {errors.password && (
+                                <p className="text-red-500 text-xs mt-1">
+                                    {errors.password}
+                                </p>
+                            )}
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium mb-1 text-slate-700">Confirm Password</label>
+                            <label className="block text-sm font-medium mb-1 text-slate-700">
+                                Confirm Password
+                            </label>
                             <input
                                 type="password"
                                 name="confirmPassword"
                                 value={formData.confirmPassword}
                                 onChange={handleChange}
                                 className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
-                                placeholder="••••••••"
                                 required
                             />
-                            {errors.confirmPassword && <p className="text-red-500 text-xs mt-1">{errors.confirmPassword}</p>}
+                            {errors.confirmPassword && (
+                                <p className="text-red-500 text-xs mt-1">
+                                    {errors.confirmPassword}
+                                </p>
+                            )}
                         </div>
                     </div>
 
                     {/* Permissions */}
                     <div>
-                        <label className="block text-sm font-medium mb-2 text-slate-700">Assign Permissions</label>
+                        <label className="block text-sm font-medium mb-2 text-slate-700">
+                            Assign Permissions
+                        </label>
+
                         <div className="grid grid-cols-2 gap-2 border border-slate-200 p-3 rounded-lg bg-slate-50 max-h-[160px] overflow-y-auto">
                             {permissions.length > 0 ? (
                                 permissions.map((p) => (
-                                    <label key={p.permissionId} className="flex items-center gap-2 text-sm text-slate-700">
+                                    <label
+                                        key={p.permissionId}
+                                        className="flex items-center gap-2 text-sm text-slate-700"
+                                    >
                                         <input
                                             type="checkbox"
-                                            checked={formData.permissions.includes(p.permissionName)}
-                                            onChange={() => togglePermission(p.permissionName)}
+                                            checked={formData.permissions.includes(
+                                                p.permissionName
+                                            )}
+                                            onChange={() =>
+                                                togglePermission(
+                                                    p.permissionName
+                                                )
+                                            }
                                             className="accent-indigo-600"
                                         />
                                         {p.permissionName}
                                     </label>
                                 ))
                             ) : (
-                                <p className="text-xs text-slate-400 italic col-span-2">Loading permissions...</p>
+                                <p className="text-xs text-slate-400 italic col-span-2">
+                                    Loading permissions...
+                                </p>
                             )}
                         </div>
                     </div>
@@ -298,7 +345,14 @@ export default function AddStaff({ isOpen, onClose, onSuccess }) {
                             disabled={loading}
                             className="px-4 py-2 rounded-lg text-white font-medium bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 flex items-center justify-center gap-2 shadow-sm"
                         >
-                            {loading ? <Loader2 size={16} className="animate-spin" /> : "Create Staff"}
+                            {loading ? (
+                                <Loader2
+                                    size={16}
+                                    className="animate-spin"
+                                />
+                            ) : (
+                                "Create Staff"
+                            )}
                         </button>
                     </div>
                 </form>
@@ -306,3 +360,9 @@ export default function AddStaff({ isOpen, onClose, onSuccess }) {
         </div>
     );
 }
+
+AddStaff.propTypes = {
+    isOpen: PropTypes.bool.isRequired,
+    onClose: PropTypes.func.isRequired,
+    onSuccess: PropTypes.func.isRequired,
+};
