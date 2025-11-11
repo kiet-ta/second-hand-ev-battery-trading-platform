@@ -26,8 +26,6 @@ namespace Application.Services
 
     public class AuthService : IAuthService
     {
-        private readonly IUserRepository _userRepository;
-        private readonly IPasswordResetTokenRepository _otpRepository;
         private readonly IMailService _emailSender;
         private readonly string _jwtSecret;
         private readonly string _jwtIssuer;
@@ -35,27 +33,23 @@ namespace Application.Services
         private readonly IConfiguration _config;
         private readonly AppSetting _appSettings;
         private readonly ILogger<AuthService> _logger;
-        private readonly IUnitOfWork _uow;
+        private readonly IUnitOfWork _unitOfWork;
 
         public AuthService(
-            IUserRepository userRepository,
             IConfiguration config,
             IOptionsMonitor<AppSetting> option,
             ILogger<AuthService> logger,
-            IPasswordResetTokenRepository otpRepository,
             IMailService emailSender,
-            IUnitOfWork uow)
+            IUnitOfWork unitOfWork)
         {
-            _userRepository = userRepository;
             _config = config;
             _jwtSecret = config["Jwt:Key"]!;
             _jwtIssuer = config["Jwt:Issuer"]!;
             _jwtAudience = config["Jwt:Audience"]!;
             _appSettings = option.CurrentValue;
             _logger = logger;
-            _otpRepository = otpRepository;
             _emailSender = emailSender;
-            _uow = uow;
+            _unitOfWork = unitOfWork;
         }
 
         public static int GenerateUserId()
@@ -76,7 +70,7 @@ namespace Application.Services
                 throw new ValidationException(string.Join("; ", result.Errors.Select(e => e.ErrorMessage)));
             try
             {
-                if (await _uow.Users.GetByEmailAsync(dto.Email) != null)
+                if (await _unitOfWork.Users.GetByEmailAsync(dto.Email) != null)
                     throw new ValidationException("Email already registered");
 
                 var user = new User
@@ -85,7 +79,7 @@ namespace Application.Services
                     FullName = dto.FullName.Trim(),
                     Email = dto.Email.ToLower(),
                     PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
-                    Role = "buyer",
+                    Role = "Buyer",
                     CreatedAt = DateTime.Now,
                     UpdatedAt = DateTime.Now,
                     IsDeleted = false,
@@ -93,9 +87,9 @@ namespace Application.Services
                     AccountStatus = UserStatus.Active.ToString(),
                     Paid = UserPaid.Pending_Pay.ToString()
                 };
-                await _uow.Users.AddAsync(user);
-                await _uow.SaveChangesAsync();
-                var sellected = await _userRepository.GetByIdAsync(user.UserId);
+                await _unitOfWork.Users.AddAsync(user);
+                await _unitOfWork.SaveChangesAsync();
+                var sellected = await _unitOfWork.Users.GetByIdAsync(user.UserId);
                 var wallet = new Wallet
                 {
                     UserId = sellected.UserId,
@@ -105,7 +99,7 @@ namespace Application.Services
                     Status = UserStatus.Active.ToString(),
                     UpdatedAt = DateTime.UtcNow
                 };
-                await _uow.Wallets.AddAsync(wallet);
+                await _unitOfWork.Wallets.AddAsync(wallet);
                 return GenerateToken(user);
             }
             catch (Exception ex)
@@ -116,7 +110,7 @@ namespace Application.Services
 
         public async Task<AuthResponseDto> LoginAsync(LoginDto dto)
         {
-            var user = await _userRepository.GetByEmailAsync(dto.Email);
+            var user = await _unitOfWork.Users.GetByEmailAsync(dto.Email);
             if (user == null)
                 throw new InvalidOperationException("Invalid email");
 
@@ -177,7 +171,7 @@ namespace Application.Services
             var email = payload.Email.Trim().ToLowerInvariant();
 
             // Check if user exists
-            var existing = await _userRepository.GetByEmailAsync(email);
+            var existing = await _unitOfWork.Users.GetByEmailAsync(email);
 
             if (existing != null)
             {
@@ -197,17 +191,17 @@ namespace Application.Services
                 FullName = string.IsNullOrWhiteSpace(payload.Name) ? username : payload.Name,
                 Email = email,
                 PasswordHash = string.Empty, // No password for Google login
-                Role = "buyer",
+                Role = "Buyer",
                 CreatedAt = DateTime.Now,
                 UpdatedAt = DateTime.Now,
                 IsDeleted = false,
                 AvatarProfile = payload.Picture // Save Google profile picture
             };
 
-            await _userRepository.AddAsync(newUser);
-            await _userRepository.SaveChangesAsync();
+            await _unitOfWork.Users.AddAsync(newUser);
+            await _unitOfWork.Users.SaveChangesAsync();
 
-            var sellected = await _userRepository.GetByIdAsync(newUser.UserId);
+            var sellected = await _unitOfWork.Users.GetByIdAsync(newUser.UserId);
             var wallet = new Wallet
             {
                 UserId = sellected.UserId,
@@ -217,7 +211,7 @@ namespace Application.Services
                 Status = UserStatus.Active.ToString(),
                 UpdatedAt = DateTime.UtcNow
             };
-            await _uow.Wallets.AddAsync(wallet);
+            await _unitOfWork.Wallets.AddAsync(wallet);
 
             _logger.LogInformation("New user created successfully: {UserId}", newUser.UserId);
 
@@ -229,7 +223,7 @@ namespace Application.Services
             var username = baseUsername;
             var counter = 1;
 
-            while (await _userRepository.ExistsByUsernameAsync(username))
+            while (await _unitOfWork.Users.ExistsByUsernameAsync(username))
             {
                 username = $"{baseUsername}{counter}";
                 counter++;
@@ -257,7 +251,7 @@ namespace Application.Services
                 new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
                 new Claim(ClaimTypes.Email, user.Email),
                 new Claim(ClaimTypes.Name, user.FullName ?? string.Empty),
-                new Claim(ClaimTypes.Role, user.Role ?? "buyer"),
+                new Claim(ClaimTypes.Role, user.Role ?? "Buyer"),
                 new Claim("auth_provider", provider)
             };
 
@@ -280,7 +274,7 @@ namespace Application.Services
                 UserId = user.UserId,
                 FullName = user.FullName,
                 Email = user.Email,
-                Role = user.Role ?? "buyer",
+                Role = user.Role ?? "Buyer",
                 Token = tokenString,
                 ExpiresAt = expires,
                 AuthProvider = provider
@@ -292,7 +286,7 @@ namespace Application.Services
             if (request.NewPassword != request.ConfirmPassword)
                 throw new ArgumentException("Confirmation password does not match.");
 
-            var user = await _userRepository.GetByIdAsync(userId);
+            var user = await _unitOfWork.Users.GetByIdAsync(userId);
             if (user == null || user.IsDeleted)
                 throw new KeyNotFoundException("User not found.");
 
@@ -307,14 +301,14 @@ namespace Application.Services
             user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
             user.UpdatedAt = DateTime.Now;
 
-            await _userRepository.UpdateAsync(user);
-            await _userRepository.SaveChangesAsync();
+            await _unitOfWork.Users.UpdateAsync(user);
+            await _unitOfWork.Users.SaveChangesAsync();
             return true;
         }
 
         public async Task SendOtpAsync(ForgotPasswordRequestDto dto)
         {
-            var user = await _userRepository.GetByEmailAsync(dto.Email);
+            var user = await _unitOfWork.Users.GetByEmailAsync(dto.Email);
             if (user == null)
                 throw new Exception("Email not found.");
 
@@ -326,9 +320,9 @@ namespace Application.Services
                 ExpirationTime = DateTime.Now.AddMinutes(5)
             };
 
-            await _otpRepository.CreateAsync(token);
+            await _unitOfWork.PasswordResetTokens.CreateAsync(token);
 
-            string systemUrl = "https://your-website.com/reset-password"; // Try
+            string systemUrl = "https://your-website.com/reset-password"; 
 
             await _emailSender.SendOtpMailAsync(
                 dto.Email,  
@@ -359,8 +353,8 @@ namespace Application.Services
             User user = await ValidateOtpAndGetUserAsync(dto.Email, dto.OtpCode);
 
             user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.NewPassword);
-            await _userRepository.UpdateAsync(user);
-            await _userRepository.SaveChangesAsync();
+            await _unitOfWork.Users.UpdateAsync(user);
+            await _unitOfWork.Users.SaveChangesAsync();
         }
 
         private string GenerateOtp()
@@ -374,18 +368,18 @@ namespace Application.Services
 
         private async Task<User> ValidateOtpAndGetUserAsync(string email, string otpCode)
         {
-            var user = await _userRepository.GetByEmailAsync(email);
+            var user = await _unitOfWork.Users.GetByEmailAsync(email);
             if (user == null)
                 throw new Exception("Email not found.");
 
-            var token = await _otpRepository.GetValidTokenAsync(user.UserId, otpCode);
+            var token = await _unitOfWork.PasswordResetTokens.GetValidTokenAsync(user.UserId, otpCode);
             if (token == null)
                 throw new Exception("Invalid OTP code.");
 
             if (token.ExpirationTime < DateTime.Now)
                 throw new Exception("Your OTP has expired. Please request a new one.");
 
-            await _otpRepository.MarkAsUsedAsync(token);
+            await _unitOfWork.PasswordResetTokens.MarkAsUsedAsync(token);
 
             return user;
         }

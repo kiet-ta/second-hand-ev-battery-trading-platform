@@ -1,4 +1,5 @@
 ﻿using Application.DTOs.SignalRDtos;
+using Application.IRepositories;
 using Application.IRepositories.IChatRepositories;
 using Application.IServices;
 using Domain.Entities;
@@ -13,17 +14,15 @@ namespace Application.Services
 {
     public class ChatService : IChatService
     {
-        private readonly IChatRepository _repo;
+        private readonly IUnitOfWork _unitOfWork;
         private readonly IUserContextService _userContext;
         private readonly IProfanityFilterService _filterService;
-        private readonly IUserModerationRepository _modRepo;
 
-        public ChatService(IChatRepository repo, IUserContextService userContext, IProfanityFilterService filterService, IUserModerationRepository modRepo)
+        public ChatService(IUserContextService userContext, IProfanityFilterService filterService, IUnitOfWork unitOfWork)
         {
-            _repo = repo;
             _userContext = userContext;
             _filterService = filterService;
-            _modRepo = modRepo;
+            _unitOfWork = unitOfWork;
         }
 
         public async Task<ChatRoomDto> EnsureRoomAsync(long[] members)
@@ -42,7 +41,7 @@ namespace Application.Services
             Console.WriteLine($"Creating/Getting room with Cid: {cid} for members [{sorted[0]}, {sorted[1]}]");
 
             // Check room exist 
-            var room = await _repo.GetRoomRawAsync(cid);
+            var room = await _unitOfWork.Chats.GetRoomRawAsync(cid);
 
             if (room == null)
             {
@@ -51,7 +50,7 @@ namespace Application.Services
                     Cid = cid,
                     Members = sorted.ToList()
                 };
-                await _repo.SaveRoomRawAsync(room);
+                await _unitOfWork.Chats.SaveRoomRawAsync(room);
                 Console.WriteLine($"Room {cid} created successfully");
             }
             else
@@ -64,13 +63,11 @@ namespace Application.Services
 
         public async Task<Message> SendMessageAsync(SendMessageDto dto)
         {
-            // Authorization: current user must be sender
             var current = _userContext.GetCurrentUserId();
             if (current != dto.From)
                 throw new UnauthorizedAccessException("You can only send messages as yourself");
 
-            // Validate room exists and user are member
-            var room = await _repo.GetRoomRawAsync(dto.Cid);
+            var room = await _unitOfWork.Chats.GetRoomRawAsync(dto.Cid);
             if (room == null)
                 throw new ArgumentException($"Room {dto.Cid} does not exist");
 
@@ -82,20 +79,19 @@ namespace Application.Services
             var filterResult = _filterService.Filter(dto.Text);
             var cleanedMessage = filterResult.CleanedText;
 
-            // 2. Nếu vi phạm, ghi lại log
+            // log
             if (filterResult.WasProfane)
             {
                 Console.WriteLine($"User {dto.From} sent a profane message.");
-                await _modRepo.AddProfanityLogAsync(dto.From, DateTimeOffset.UtcNow);
+                await _unitOfWork.UserModerations.AddProfanityLogAsync(dto.From, DateTimeOffset.UtcNow);
 
-                // 3. (Tùy chọn) Kiểm tra ngay lập tức
-                // Bạn có thể lấy count ngay bây giờ để quyết định cấm chat, v.v.
-                int profanityCount = await _modRepo.GetProfanityCountAsync(dto.From, TimeSpan.FromHours(1));
+                // 3. check
+                int profanityCount = await _unitOfWork.UserModerations.GetProfanityCountAsync(dto.From, TimeSpan.FromHours(1));
                 Console.WriteLine($"User {dto.From} profanity count in last 1h: {profanityCount}");
 
-                if (profanityCount > 5) // Ví dụ: Cấm chat nếu chửi bậy quá 5 lần/giờ
+                if (profanityCount > 5) // bad word 5 time/hour
                 {
-                    // throw new Exception("Bạn đã bị cấm chat vì vi phạm.");
+                    // throw new Exception("You have been banned from chat for violating.");
                 }
             }
 
@@ -109,7 +105,7 @@ namespace Application.Services
                 CreatedAt = DateTimeOffset.UtcNow
             };
 
-            await _repo.AppendMessageAsync(dto.Cid, msg);
+            await _unitOfWork.Chats.AppendMessageAsync(dto.Cid, msg);
             Console.WriteLine($"Message sent: {msg.Id} from {msg.From} to {msg.To}");
 
             return msg; // return message to ChatHub able to broadcast
@@ -117,11 +113,11 @@ namespace Application.Services
 
         public async Task<ChatRoomDto?> GetRoomAsync(long cid)
         {
-            var room = await _repo.GetRoomRawAsync(cid);
+            var room = await _unitOfWork.Chats.GetRoomRawAsync(cid);
             if (room == null) return null;
 
             // Load messages from Firebase
-            var messages = await _repo.GetMessagesAsync(cid, limit: 100);
+            var messages = await _unitOfWork.Chats.GetMessagesAsync(cid, limit: 100);
             var messageDtos = messages.Select(m => new MessageDto(
                 m.Id,
                 m.From,
@@ -135,17 +131,17 @@ namespace Application.Services
 
         public async Task<IEnumerable<ChatRoomDto>> GetRoomsForUserAsync(long userId)
         {
-            var rooms = await _repo.QueryRoomsByMemberAsync(userId);
+            var rooms = await _unitOfWork.Chats.QueryRoomsByMemberAsync(userId);
             return rooms.Select(r => new ChatRoomDto(r.Cid, r.Members.ToArray(), Array.Empty<MessageDto>()));
         }
 
         public async Task<IEnumerable<MessageDto>> GetMessagesAsync(long cid, int limit = 50)
         {
-            var room = await _repo.GetRoomRawAsync(cid);
+            var room = await _unitOfWork.Chats.GetRoomRawAsync(cid);
             if (room == null)
                 throw new ArgumentException($"Room {cid} does not exist");
 
-            var messages = await _repo.GetMessagesAsync(cid, limit);
+            var messages = await _unitOfWork.Chats.GetMessagesAsync(cid, limit);
             return messages.Select(m => new MessageDto(
                 m.Id,
                 m.From,
@@ -157,7 +153,7 @@ namespace Application.Services
 
         public async Task<IEnumerable<ChatRoomSummaryDto>> GetRoomsByUserIdAsync(long userId)
         {
-            var roomIds = await _repo.GetRoomIdsByUserIdAsync(userId);
+            var roomIds = await _unitOfWork.Chats.GetRoomIdsByUserIdAsync(userId);
 
             var roomTasks = new List<Task<ChatRoomSummaryDto?>>();
 
@@ -178,10 +174,10 @@ namespace Application.Services
         {
             try
             {
-                var room = await _repo.GetRoomRawAsync(cid);
+                var room = await _unitOfWork.Chats.GetRoomRawAsync(cid);
                 if (room == null) return null;
 
-                var lastMessage = await _repo.GetLastMessageAsync(cid);
+                var lastMessage = await _unitOfWork.Chats.GetLastMessageAsync(cid);
 
                 MessageDto? lastMessageDto = null;
                 if (lastMessage != null)
