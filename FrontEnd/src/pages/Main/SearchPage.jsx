@@ -177,7 +177,7 @@ function SearchPage() {
 
   // --- Apply all filters (including detail) ---
   const filteredList = itemList
-    .filter(i => i.status === "active")
+    .filter(i => i.status === "Active")
     .filter(i => {
       const detail = i.itemDetail || {};
       return Object.keys(selectedDetails).every(key => {

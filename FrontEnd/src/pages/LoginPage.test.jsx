@@ -103,7 +103,7 @@ test("submits login form and calls authApi.login on success", async () => {
     data: {
       userId: "123",
       token: "fake-token",
-      role: "buyer",
+      role: "Buyer",
     },
   };
   authApi.login.mockResolvedValue(mockUserData);

@@ -19,7 +19,7 @@ const mapApiToState = (apiNoti) => ({
   id: apiNoti.id,
   title: apiNoti.title,
   content: apiNoti.message,
-  category: apiNoti.notiType ? apiNoti.notiType.toLowerCase() : "activities",
+  category: apiNoti.notiType ? apiNoti.notiType.toLowerCase() : "Activities",
   type: apiNoti.type || "giao_dich",
   time: formatTimeAgo(apiNoti.createdAt),
   isUnread: !apiNoti.isRead,
@@ -52,7 +52,7 @@ const activityFilterCategories = [
 
 export default function NotificationDropdown({ userId }) {
   const [isOpen, setIsOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState("activities");
+  const [activeTab, setActiveTab] = useState("Activities");
   const [activeFilter, setActiveFilter] = useState("all");
   const [notifications, setNotifications] = useState([]);
   const dropdownRef = useRef(null);
@@ -102,7 +102,7 @@ export default function NotificationDropdown({ userId }) {
     const filteredByTab = notifications.filter((n) => n.category === activeTab);
     let result = filteredByTab;
 
-    if (activeTab === "activities") {
+    if (activeTab === "Activities") {
       if (activeFilter === "unread") {
         result = filteredByTab.filter(n => n.isUnread);
       } else if (activeFilter !== "all") {
@@ -171,7 +171,7 @@ export default function NotificationDropdown({ userId }) {
 
             {/* Tabs */}
             <div className="flex border-b border-gray-300 mb-3">
-              {["activities", "news"].map((tab) => (
+              {["Activities", "News"].map((tab) => (
                 <button
                   key={tab}
                   onClick={() => {
@@ -183,13 +183,13 @@ export default function NotificationDropdown({ userId }) {
                       : "text-gray-500 hover:text-gray-700"
                     }`}
                 >
-                  {tab === "activities" ? "Hoạt Động" : "Tin Tức"}
+                  {tab === "Activities" ? "Hoạt Động" : "Tin Tức"}
                 </button>
               ))}
             </div>
 
             {/* Filters */}
-            {activeTab === "activities" && (
+            {activeTab === "Activities" && (
               <div className="flex items-center flex-wrap gap-2 mb-3">
                 <Filter className="w-4 h-4 text-gray-500" />
                 {activityFilterCategories.map(([id, label]) => (
@@ -211,7 +211,7 @@ export default function NotificationDropdown({ userId }) {
             <div className="max-h-80 overflow-y-auto space-y-3 pr-2 custom-scrollbar">
               {filteredNotifications.length === 0 ? (
                 <p className="text-center text-sm text-gray-500 py-4">
-                  {activeTab === "activities"
+                  {activeTab === "Activities"
                     ? "Không có hoạt động nào."
                     : "Không có tin tức nào."}
                 </p>

@@ -37,7 +37,7 @@ const UpdateItemModal = ({ visible, onCancel, onSubmit, type, data }) => {
       style={{ borderRadius: "16px" }}
     >
       <h2 className="text-lg font-semibold mb-3 text-center">
-        {type === "ev" ? "Cập nhật xe điện" : "Cập nhật pin"}
+        {type === "Ev" ? "Cập nhật xe điện" : "Cập nhật pin"}
       </h2>
 
       <Form
@@ -46,7 +46,7 @@ const UpdateItemModal = ({ visible, onCancel, onSubmit, type, data }) => {
         onFinish={handleFinish}
         className="space-y-2"
       >
-        {type === "ev" ? (
+        {type === "Ev" ? (
           <>
             <Form.Item label="Title" name="title">
               <Input placeholder="Tên xe..." />

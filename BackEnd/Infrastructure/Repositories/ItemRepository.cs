@@ -76,7 +76,7 @@ namespace Infrastructure.Repositories
                             on i.UpdatedBy equals u.UserId into gj
                         from user in gj.DefaultIfEmpty()
                         where i.IsDeleted == false && i.Status == ItemStatus.Active.ToString()
-                        select new ItemSearchDto
+                        select new ItemDto
                         {
                             ItemId = i.ItemId,
                             ItemType = i.ItemType,
@@ -185,7 +185,7 @@ namespace Infrastructure.Repositories
                 Page = page,
                 PageSize = pageSize,
                 TotalCount = total,
-                //Items = items
+                Items = items
             };
         }
 
@@ -197,9 +197,6 @@ namespace Infrastructure.Repositories
 
         public void Delete(Item item)
         {
-            // I fixed here because Update() will mark the whole entity as Modified → if the service only has IsDeleted = true set then it's OK, but if the entity is being tracked, it might override other fields.
-            //item.IsDeleted = true;
-            //_context.Items.Update(item); // soft delete
 
             item.IsDeleted = true;
             _context.Entry(item).Property(x => x.IsDeleted).IsModified = true;

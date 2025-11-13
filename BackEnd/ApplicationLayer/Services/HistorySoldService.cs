@@ -109,9 +109,9 @@ namespace Application.Services
             foreach (var obj in mappedItems)
             {
                 if (obj is BatteryItemDto battery)
-                    battery.Status = "processing";
+                    battery.Status = "Processing";
                 else if (obj is EVItemDto ev)
-                    ev.Status = "processing";
+                    ev.Status = "Processing";
             }
 
             return mappedItems;
@@ -132,9 +132,9 @@ namespace Application.Services
             foreach (var obj in mappedItems)
             {
                 if (obj is BatteryItemDto battery)
-                    battery.Status = "pending_approval";
+                    battery.Status = "Pending_Approval";
                 else if (obj is EVItemDto ev)
-                    ev.Status = "pending_approval";
+                    ev.Status = "Pending_Approval";
             }
 
             return mappedItems;

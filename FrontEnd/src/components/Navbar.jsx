@@ -82,7 +82,7 @@ function Navbar({ data }) {
 
     try {
       const decodeJWT = jwtDecode(jwt);
-      if (decodeJWT.role === "buyer") navigate("/seller-registration");
+      if (decodeJWT.role === "Buyer") navigate("/seller-registration");
       else if (decodeJWT.role === "Manager") navigate("/manage");
       else navigate("/seller");
     } catch (error) {
@@ -218,7 +218,7 @@ function Navbar({ data }) {
                     <BsGrid className="text-[#C99700]" /> Tất cả
                   </div>
                 </Option>
-                <Option value="ev">
+                <Option value="Ev">
                   <div className="flex items-center gap-2">
                     <FaCar className="text-[#C99700]" /> Xe
                   </div>

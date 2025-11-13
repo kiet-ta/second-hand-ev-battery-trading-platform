@@ -3,6 +3,10 @@ using Application.IRepositories.IBiddingRepositories;
 using Application.IRepositories.IChatRepositories;
 using Application.IRepositories.IManageStaffRepositories;
 using Application.IRepositories.IPaymentRepositories;
+using Domain.Entities;
+using Infrastructure.Repositories;
+using Infrastructure.Repositories.ChatRepositories;
+using Infrastructure.Repositories.ManageStaffRepositories;
 using Microsoft.EntityFrameworkCore.Storage;
 
 namespace Infrastructure.Data;
@@ -44,74 +48,41 @@ public class UnitOfWork : IUnitOfWork
     public IReportRepository Reports{ get; }
     public IReviewRepository Reviews { get; }
     public ITransactionRepository Transactions { get; }
-    public UnitOfWork(
-           EvBatteryTradingContext context,
-           IAuctionRepository auctionRepository,
-           IBidRepository bidRepository,
-           IWalletRepository walletRepository,
-           IWalletTransactionRepository walletTransactionRepository,
-           IItemRepository itemRepository,
-           IUserRepository userRepository,
-           IOrderRepository orderRepository,
-           IOrderItemRepository orderItemRepository,
-           ICommissionFeeRuleRepository commissionFeeRuleRepository,
-           ITransactionCommissionRepository transactionCommissionRepository,
-           IAddressRepository addressRepository,
-           IPaymentRepository paymentRepository,
-           IChatRepository chatRepository,
-           IUserModerationRepository userModerationRepository,
-           IPermissionRepository permissionRepository,
-           IStaffPermissionRepository staffPermissionRepository,
-           IPaymentDetailRepository paymentDetailRepository,
-           IBatteryDetailRepository batteryDetailRepository,
-           IComplaintRepository complaintRepository,
-           IEmailRepository emailRepository,
-           IEVDetailRepository evDetailRepository,
-           IFavoriteRepository favoriteRepository,
-           IHistorySoldRepository historySoldRepository,
-           IItemImageRepository itemImageRepository,
-           IKycDocumentRepository kycDocumentRepository,
-           INewsRepository newsRepository,
-           INotificationRepository notificationRepository,
-           IPasswordResetTokenRepository passwordResetTokenRepository,
-           IReportRepository reportRepository,
-           IReviewRepository reviewRepository,
-           ITransactionRepository transactionRepository
-       )
+    public UnitOfWork(EvBatteryTradingContext context, IChatRepository chatRepository, IUserModerationRepository userModerationRepository)
     {
         _context = context;
 
-        Auctions = auctionRepository;
-        Bids = bidRepository;
-        Wallets = walletRepository;
-        WalletTransactions = walletTransactionRepository;
-        Items = itemRepository;
-        Users = userRepository;
-        Orders = orderRepository;
-        OrderItems = orderItemRepository;
-        CommissionFeeRules = commissionFeeRuleRepository;
-        TransactionCommission = transactionCommissionRepository;
-        Address = addressRepository;
-        Payments = paymentRepository;
+        Auctions = new AuctionRepository(_context);
+        Bids = new BidRepository(_context);
+        Wallets = new WalletRepository(_context);
+        WalletTransactions = new WalletTransactionRepository(_context);
+        Items = new ItemRepository(_context);
+        Users = new UserRepository(_context);
+        Orders = new OrderRepository(_context);
+        OrderItems = new OrderItemRepository(_context);
+        CommissionFeeRules = new CommissionFeeRuleRepository(_context);
+        TransactionCommission = new TransactionCommissionRepository(_context);
+        Address = new AddressRepository(_context);
+        Payments = new PaymentRepository(_context);
         Chats = chatRepository;
         UserModerations = userModerationRepository;
-        Permissions = permissionRepository;
-        StaffPermissions = staffPermissionRepository;
-        PaymentDetails = paymentDetailRepository;
-        BatteryDetails = batteryDetailRepository;
-        Complaints = complaintRepository;
-        Emails = emailRepository;
-        EVDetails = evDetailRepository;
-        Favorites = favoriteRepository;
-        HistorySolds = historySoldRepository;
-        ItemImages = itemImageRepository;
-        KycDocuments = kycDocumentRepository;
-        News = newsRepository;
-        Notifications = notificationRepository;
-        PasswordResetTokens = passwordResetTokenRepository;
-        Reports = reportRepository;
-        Reviews = reviewRepository;
-        Transactions = transactionRepository;
+        Permissions = new PermissionRepository(_context);
+        StaffPermissions = new StaffPermissionRepository(_context);
+        PaymentDetails = new PaymentDetailRepository(_context);
+        BatteryDetails = new BatteryDetailRepository(_context);
+        Complaints = new ComplaintRepository(_context);
+        Emails = new EmailTemplateRepository(_context);
+        EVDetails = new EVDetailRepository(_context);
+        Favorites = new FavoriteRepository(_context);
+        HistorySolds = new HistorySoldRepository(_context);
+        ItemImages = new ItemImageRepository(_context);
+        KycDocuments = new KYC_DocumentRepository(_context);
+        News = new NewsRepository(_context);
+        Notifications = new NotificationRepository(_context);
+        PasswordResetTokens = new PasswordResetTokenRepository(_context);
+        Reports = new ReportRepository(_context);
+        Reviews = new ReviewRepository(_context);
+        Transactions = new TransactionRepository(_context);
     }
 
     public async Task BeginTransactionAsync(CancellationToken cancellationToken = default)

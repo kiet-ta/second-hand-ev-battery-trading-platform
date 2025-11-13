@@ -79,7 +79,7 @@ public class AuctionStatusUpdaterJob : BackgroundService
             }
 
             // delay 5 second before next check
-            await Task.Delay(TimeSpan.FromMinutes(5), stoppingToken);
+            await Task.Delay(TimeSpan.FromMinutes(1), stoppingToken);
         }
         _logger.LogInformation("AuctionStatusUpdaterJob is stopping.");
     }

@@ -152,11 +152,11 @@ export default function ComplaintList() {
   // ✅ Badge màu trạng thái
   const statusBadge = (status) => {
     switch (status) {
-      case "pending":
+      case "Pending_ComplaintStatus":
         return "bg-yellow-100 text-yellow-700";
-      case "in_review":
+      case "In_Review":
         return "bg-blue-100 text-blue-700";
-      case "resolved":
+      case "Resolved":
         return "bg-green-100 text-green-700";
       default:
         return "bg-gray-100 text-gray-700";
@@ -205,9 +205,9 @@ export default function ComplaintList() {
             className="border rounded-lg px-3 py-2 text-sm outline-none"
           >
             <option value="all">Tất cả trạng thái</option>
-            <option value="pending">Đang chờ</option>
-            <option value="in_review">Đang xem xét</option>
-            <option value="resolved">Đã xử lý</option>
+            <option value="Pending">Đang chờ</option>
+            <option value="In_Review">Đang xem xét</option>
+            <option value="Resolved">Đã xử lý</option>
           </select>
         </div>
 
@@ -217,9 +217,9 @@ export default function ComplaintList() {
           className="border rounded-lg px-3 py-2 text-sm outline-none"
         >
           <option value="all">Tất cả mức độ</option>
-          <option value="low">Thấp</option>
-          <option value="medium">Trung bình</option>
-          <option value="high">Cao</option>
+          <option value="Low">Thấp</option>
+          <option value="Medium">Trung bình</option>
+          <option value="High">Cao</option>
         </select>
       </div>
 
@@ -298,9 +298,9 @@ export default function ComplaintList() {
                 style={{ width: 130 }}
                 onChange={(val) => updateLevel(selectedComplaint.complaintId, val)}
                 options={[
-                  { value: "low", label: "Thấp" },
-                  { value: "medium", label: "Trung bình" },
-                  { value: "high", label: "Cao" },
+                  { value: "Low", label: "Thấp" },
+                  { value: "Medium", label: "Trung bình" },
+                  { value: "High", label: "Cao" },
                 ]}
               />
             </div>
@@ -317,20 +317,20 @@ export default function ComplaintList() {
             </p>
 
             <div className="flex gap-3 mt-5 flex-wrap">
-              {selectedComplaint.status === "pending" && (
+              {selectedComplaint.status === "Pending" && (
                 <button
                   onClick={() =>
-                    updateStatus(selectedComplaint.complaintId, "in_review")
+                    updateStatus(selectedComplaint.complaintId, "In_Review")
                   }
                   className="flex items-center gap-2 px-3 py-2 bg-blue-100 hover:bg-blue-200 rounded-lg"
                 >
                   <Wrench size={16} /> Đang xem xét
                 </button>
               )}
-              {selectedComplaint.status !== "resolved" && (
+              {selectedComplaint.status !== "Resolved" && (
                 <button
                   onClick={() =>
-                    updateStatus(selectedComplaint.complaintId, "resolved")
+                    updateStatus(selectedComplaint.complaintId, "Resolved")
                   }
                   className="flex items-center gap-2 px-3 py-2 bg-green-100 hover:bg-green-200 rounded-lg"
                 >

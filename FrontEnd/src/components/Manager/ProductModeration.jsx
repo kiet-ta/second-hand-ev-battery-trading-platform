@@ -49,8 +49,8 @@ export default function ProductModeration() {
             filtered = filtered.filter((p) => p.itemType === typeFilter);
         if (statusFilter !== "all") {
             filtered = filtered.filter((p) => {
-                const st = p.moderation || "pending";
-                return statusFilter === "pending" ? !p.moderation : st === statusFilter;
+                const st = p.moderation || "Pending";
+                return statusFilter === "Pending" ? !p.moderation : st === statusFilter;
             });
         }
         if (searchQuery.trim() !== "") {
@@ -68,7 +68,7 @@ export default function ProductModeration() {
     const handleToggle = async (item) => {
         try {
             const updatedStatus =
-                item.moderation === "approved_tag" ? "reject_tag" : "approved_tag";
+                item.moderation === "Approved" ? "Pending" : "Approved";
 
             const payload = {
                 ...item,
@@ -127,7 +127,7 @@ export default function ProductModeration() {
                         {text}
                     </strong>
                     <div className="text-xs text-slate-500">
-                        {record.itemType === "ev" ? "Xe điện" : "Pin"}
+                        {record.itemType === "Ev" ? "Xe điện" : "Pin"}
                     </div>
                 </div>
             ),
@@ -148,8 +148,8 @@ export default function ProductModeration() {
             render: (status) => {
                 if (!status) return <Tag color="orange">Chờ duyệt</Tag>;
                 const map = {
-                    approved_tag: { color: "green", text: "Đã duyệt" },
-                    reject_tag: { color: "red", text: "Từ chối" },
+                    approved: { color: "green", text: "Đã duyệt" },
+                    reject: { color: "red", text: "Từ chối" },
                 };
                 const info = map[status] || { color: "default", text: "Không rõ" };
                 return <Tag color={info.color}>{info.text}</Tag>;
@@ -160,7 +160,7 @@ export default function ProductModeration() {
             key: "actions",
             align: "center",
             render: (_, record) => {
-                const isApproved = record.moderation === "approved_tag";
+                const isApproved = record.moderation === "Approved";
                 return (
                     <Button
                         type={isApproved ? "default" : "primary"}
@@ -193,15 +193,15 @@ export default function ProductModeration() {
 
                     <Select value={typeFilter} onChange={setTypeFilter} style={{ width: 140 }}>
                         <Option value="all">Tất cả loại</Option>
-                        <Option value="ev">Xe điện</Option>
-                        <Option value="battery">Pin</Option>
+                        <Option value="Ev">Xe điện</Option>
+                        <Option value="Battery">Pin</Option>
                     </Select>
 
                     <Select value={statusFilter} onChange={setStatusFilter} style={{ width: 160 }}>
                         <Option value="all">Tất cả trạng thái</Option>
-                        <Option value="pending">Chờ duyệt</Option>
-                        <Option value="approved_tag">Đã duyệt</Option>
-                        <Option value="reject_tag">Từ chối</Option>
+                        <Option value="Pending">Chờ duyệt</Option>
+                        <Option value="Approved">Đã duyệt</Option>
+                        <Option value="Rejected">Từ chối</Option>
                     </Select>
                 </Space>
             </div>

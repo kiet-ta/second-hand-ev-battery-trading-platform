@@ -17,7 +17,7 @@ export default function NewsList() {
       setLoading(true);
       const res = await newsApi.getNews({ page: pageNum, pageSize });
       // ✅ Filter only approved news
-      const approvedNews = res.filter((n) => n.status === "approved");
+      const approvedNews = res.filter((n) => n.status === "Approved");
       setNewsList(approvedNews);
       setTotal(res.length); // update if API returns total count
     } catch (err) {

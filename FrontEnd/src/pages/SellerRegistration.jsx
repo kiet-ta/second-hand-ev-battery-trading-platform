@@ -126,7 +126,7 @@ export default function SellerRegistrationForm() {
       const updatedUser = {
         ...user,
         bio: formData.bio,
-        kycStatus: "pending",
+        kycStatus: "Pending",
         updatedAt: new Date().toISOString(),
       };
 

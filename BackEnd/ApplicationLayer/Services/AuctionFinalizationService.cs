@@ -138,7 +138,7 @@ public class AuctionFinalizationService : IAuctionFinalizationService
             {
                 BuyerId = winnerId,
                 AddressId = winnerAddress.AddressId, 
-                Status = OrderStatus.Paid.ToString(), 
+                Status = OrderStatus.Pending.ToString(), 
                 CreatedAt = DateTime.Now,
                 UpdatedAt = DateTime.Now
             };

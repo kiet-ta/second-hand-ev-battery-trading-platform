@@ -154,7 +154,7 @@ export default function AddCompareModal({ open, onClose, BASE }) {
                     <div className="flex justify-between items-center mb-4">
                         <h2 className="text-xl font-semibold text-gray-800 flex items-center gap-2">
                             <SlidersHorizontal size={20} className="text-[#D4AF37]" />
-                            {currentType === "battery"
+                            {currentType === "Battery"
                                 ? "Thêm pin vào so sánh"
                                 : "Thêm xe vào so sánh"}
                         </h2>

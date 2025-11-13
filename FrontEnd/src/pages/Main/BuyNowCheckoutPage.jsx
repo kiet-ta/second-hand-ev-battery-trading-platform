@@ -135,6 +135,7 @@ function BuyNowCheckoutPage() {
     setStatusMessage("");
 
     try {
+      console.log(orderData)
       const orderItemIds = orderData.orderItems.map((i) => i.id);
       const orderPayload = {
         buyerId: localStorage.getItem("userId"),
@@ -157,7 +158,7 @@ function BuyNowCheckoutPage() {
         await walletApi.withdrawWallet({
           userId: localStorage.getItem("userId"),
           amount: finalTotalPrice,
-          type: "withdraw",
+          type: "Withdraw",
           ref: orderResponse.orderId,
           description: `Thanh toán đơn hàng ${orderResponse.orderId}`,
         });
