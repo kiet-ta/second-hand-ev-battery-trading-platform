@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Domain.Common.Constants;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -13,9 +14,9 @@ namespace Application.DTOs.ItemDtos.BatteryDto
         public string? Description { get; set; }
         public decimal? Price { get; set; }
         public int Quantity { get; set; } = 1;
-        public string Status { get; set; } = "active";
+        public string Status { get; set; } = ItemStatus.Active.ToString();
 
-        public string Moderation { get; set; } = "not_submitted";
+        public string Moderation { get; set; } = ItemModeration.Not_Submitted.ToString();
         public int? UpdatedBy { get; set; }
 
         public string? Brand { get; set; }

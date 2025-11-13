@@ -1,6 +1,7 @@
 using Application.DTOs.AuctionDtos;
 using Application.DTOs.ItemDtos;
 using Application.IRepositories;
+using Domain.Common.Constants;
 using Domain.Entities;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -72,7 +73,7 @@ public class AuctionRepository : IAuctionRepository
         var auction = await GetByIdAsync(auctionId);
         if (auction != null)
         {
-            auction.TotalBids = await _context.Bids.CountAsync(b => b.AuctionId == auctionId && b.Status != "cancelled");
+            auction.TotalBids = await _context.Bids.CountAsync(b => b.AuctionId == auctionId && b.Status != AuctionStatus.Cancelled.ToString());
             auction.UpdatedAt = DateTime.Now;
         }
     }

@@ -4,6 +4,7 @@ using Application.DTOs.ItemDtos;
 using Application.IRepositories;
 using Application.IRepositories.IBiddingRepositories;
 using Application.IServices;
+using Domain.Common.Constants;
 using Domain.Entities;
 using Microsoft.Extensions.Logging;
 using System.Diagnostics.CodeAnalysis;
@@ -13,60 +14,30 @@ namespace Application.Services;
 
 public class AuctionService : IAuctionService
 {
-    private readonly IAuctionRepository _auctionRepository;
-    private readonly IUserContextService _userContextService;
-    private readonly IBidRepository _bidRepository;
-    private readonly IWalletRepository _walletRepository;
-    private readonly IWalletTransactionRepository _walletTransactionRepository;
-    private readonly IItemRepository _itemRepository;
-    private readonly IItemImageRepository _itemImageRepository;
-    private readonly IEVDetailRepository _eVDetailRepository;
-    private readonly IBatteryDetailRepository _batteryDetailRepository;
-    private readonly IUserRepository _userRepository;
     private readonly IUnitOfWork _unitOfWork;
     private readonly ILogger<AuctionService> _logger;
     private readonly INotificationService _notificationService;
     public AuctionService(
-        IAuctionRepository auctionRepository,
-        IBidRepository bidRepository,
-        IWalletRepository walletRepository,
-        IWalletTransactionRepository walletTransactionRepository,
-        IItemRepository itemRepository,
-        IEVDetailRepository eVDetailRepository,
-        IBatteryDetailRepository batteryDetailRepository,
-        IUserRepository userRepository,
-        IItemImageRepository itemImageRepository,
         IUnitOfWork unitOfWork,
         INotificationService notificationService,
-        IUserContextService userContextService,
         ILogger<AuctionService> logger)
     {
-        _auctionRepository = auctionRepository;
-        _bidRepository = bidRepository;
-        _walletRepository = walletRepository;
-        _walletTransactionRepository = walletTransactionRepository;
-        _itemRepository = itemRepository;
-        _eVDetailRepository = eVDetailRepository;
-        _batteryDetailRepository = batteryDetailRepository;
-        _userRepository = userRepository;
-        _itemImageRepository = itemImageRepository;
         _unitOfWork = unitOfWork;
         _logger = logger;
         _notificationService = notificationService;
-        _userContextService = userContextService;
     }
 
     private DateTime now = DateTime.Now;
     public async Task<IEnumerable<BidderHistoryDto>> GetBidderHistoryAsync(int auctionId)
     {
-        var auctionExists = await _auctionRepository.GetByIdAsync(auctionId);
+        var auctionExists = await _unitOfWork.Auctions.GetByIdAsync(auctionId);
         if (auctionExists == null)
             throw new KeyNotFoundException($"Auction with ID {auctionId} not found.");
-        var bids = await _bidRepository.GetBidsByAuctionIdAsync(auctionId);
+        var bids = await _unitOfWork.Bids.GetBidsByAuctionIdAsync(auctionId);
         if (!bids.Any())
             return Enumerable.Empty<BidderHistoryDto>();
         var userIds = bids.Select(b => b.UserId).Distinct().ToHashSet();
-        var users = (await _userRepository.GetAllAsync()).Where(u => userIds.Contains(u.UserId)).ToDictionary(u => u.UserId);
+        var users = (await _unitOfWork.Users.GetAllAsync()).Where(u => userIds.Contains(u.UserId)).ToDictionary(u => u.UserId);
 
         var history = bids.Select(Bid =>
         {
@@ -86,7 +57,7 @@ public class AuctionService : IAuctionService
 
     public async Task<AuctionDto?> GetAuctionByItemIdAsync(int itemId)
     {
-        var auction = await _auctionRepository.GetByItemIdAsync(itemId);
+        var auction = await _unitOfWork.Auctions.GetByItemIdAsync(itemId);
         if (auction == null)
         {
             return null;
@@ -96,7 +67,7 @@ public class AuctionService : IAuctionService
 
     public async Task<AuctionListResponse> GetAuctionsAsync(int page = 1, int pageSize = 10, string? status = null)
     {
-        var (auctions, total) = await _auctionRepository.GetAuctionsWithPaginationAsync(page, pageSize, status);
+        var (auctions, total) = await _unitOfWork.Auctions.GetAuctionsWithPaginationAsync(page, pageSize, status);
 
         var auctionDtos = new List<AuctionDto>();
 
@@ -124,7 +95,7 @@ public class AuctionService : IAuctionService
 
     public async Task<AuctionDto?> GetAuctionByIdAsync(int auctionId)
     {
-        var auction = await _auctionRepository.GetByIdAsync(auctionId);
+        var auction = await _unitOfWork.Auctions.GetByIdAsync(auctionId);
         if (auction == null) return null;
 
         return await MapToAuctionDto(auction);
@@ -132,12 +103,12 @@ public class AuctionService : IAuctionService
 
     public async Task<CreateAuctionResponse> CreateAuctionAsync(CreateAuctionRequest request)
     {
-        var existingItem = await _itemRepository.GetByIdAsync(request.ItemId);
+        var existingItem = await _unitOfWork.Items.GetByIdAsync(request.ItemId);
         if (existingItem == null)
             throw new KeyNotFoundException($"Item with ID {request.ItemId} not found.");
 
         // check item has not in auction
-        var existingAuction = await _auctionRepository.GetByItemIdAsync(request.ItemId);
+        var existingAuction = await _unitOfWork.Auctions.GetByItemIdAsync(request.ItemId);
         if (existingAuction != null)
             throw new InvalidOperationException($"Item {request.ItemId} already has an auction.");
 
@@ -158,7 +129,7 @@ public class AuctionService : IAuctionService
             UpdatedAt = DateTime.Now
         };
 
-        await _auctionRepository.CreateAsync(auction);
+        await _unitOfWork.Auctions.CreateAsync(auction);
         _logger.LogInformation("Created Auction {AuctionId} for Item {ItemId}", auction.AuctionId, auction.ItemId);
 
         return new CreateAuctionResponse
@@ -196,7 +167,7 @@ public class AuctionService : IAuctionService
                 throw new ArgumentException($"Bid amount must be at least {requiredMinimumBid:N0} (current price + step price).");
             }
 
-            user = await _userRepository.GetByIdAsync(userId);
+            user = await _unitOfWork.Users.GetByIdAsync(userId);
             if (user == null)
             {
                 await _unitOfWork.RollbackTransactionAsync();
@@ -251,7 +222,7 @@ public class AuctionService : IAuctionService
                 UserId = userId,
                 BidAmount = bidAmount,
                 BidTime = now,
-                Status = "active"
+                Status = BidStatus.Active.ToString()
             };
             int newBidId = await _unitOfWork.Bids.PlaceBidAsync(newBid);
             newBid.BidId = newBidId;
@@ -260,7 +231,7 @@ public class AuctionService : IAuctionService
             {
                 WalletId = wallet.WalletId,
                 Amount = -amountToHoldNow,
-                Type = "hold",
+                Type = WalletTransactionType.Hold.ToString(),
                 CreatedAt = now,
                 RefId = newBid.BidId,
                 AuctionId = auctionId
@@ -300,7 +271,7 @@ public class AuctionService : IAuctionService
             if (previousHighestBid != null)
             {
                 var outbidMessage = $"You have been outbid on auction #{auctionId}. The new price is {bidAmount:N0}đ.";
-                var notiDto = new CreateNotificationDTO
+                var notiDto = new CreateNotificationDto
                 {
                     NotiType = "auction",
                     TargetUserId = previousHighestBid.UserId.ToString(),
@@ -323,29 +294,29 @@ public class AuctionService : IAuctionService
     }
     public async Task UpdateAuctionStatusesAsync()
     {
-        var upcomingAuctions = await _auctionRepository.GetUpcomingAuctionsAsync();
+        var upcomingAuctions = await _unitOfWork.Auctions.GetUpcomingAuctionsAsync();
 
         foreach (var auction in upcomingAuctions)
         {
             if (auction.StartTime < now && auction.Status == "upcoming")
-                await _auctionRepository.UpdateStatusAsync(auction, "ongoing");
+                await _unitOfWork.Auctions.UpdateStatusAsync(auction, "ongoing");
         }
 
         // Update ongoing to ended
-        var ongoingAuctions = await _auctionRepository.GetActiveAuctionsAsync();
+        var ongoingAuctions = await _unitOfWork.Auctions.GetActiveAuctionsAsync();
 
         foreach (var auction in ongoingAuctions)
         {
             if (auction.EndTime < now)
-                await _auctionRepository.UpdateStatusAsync(auction, "ended");
+                await _unitOfWork.Auctions.UpdateStatusAsync(auction, "ended");
         }
     }
 
     private async Task<AuctionDto?> MapToAuctionDto(Auction auction)
     {
-        var item = await _itemRepository.GetByIdAsync(auction.ItemId);
+        var item = await _unitOfWork.Items.GetByIdAsync(auction.ItemId);
         if (item == null) return null;
-        var image = await _itemImageRepository.GetByItemIdAsync(item.ItemId);
+        var image = await _unitOfWork.ItemImages.GetByItemIdAsync(item.ItemId);
 
         var auctionDto = new AuctionDto
         {
@@ -370,16 +341,16 @@ public class AuctionService : IAuctionService
         // Get specific details based on item type
         switch (item.ItemType?.ToLower())
         {
-            case "ev":
-                var evDetail = await _eVDetailRepository.GetByIdAsync(auction.ItemId);
+            case "Ev":
+                var evDetail = await _unitOfWork.EVDetails.GetByIdAsync(auction.ItemId);
                 if (evDetail != null)
                 {
                     auctionDto.Title = $"{evDetail.Model} {evDetail.Version}".Trim();
                 }
                 break;
 
-            case "battery":
-                var batteryDetail = await _batteryDetailRepository.GetByIdAsync(auction.ItemId);
+            case "Battery":
+                var batteryDetail = await _unitOfWork.BatteryDetails.GetByIdAsync(auction.ItemId);
                 if (batteryDetail != null)
                 {
                     auctionDto.Title = $"{item.Title}";
@@ -395,7 +366,7 @@ public class AuctionService : IAuctionService
 
     public async Task<AuctionStatusDto> GetAuctionStatusAsync(int auctionId)
     {
-        var auction = await _auctionRepository.GetByIdAsync(auctionId);
+        var auction = await _unitOfWork.Auctions.GetByIdAsync(auctionId);
         if (auction == null)
             throw new KeyNotFoundException("Auction not found."); //404
 
@@ -419,8 +390,8 @@ public class AuctionService : IAuctionService
 
     public async Task<AuctionListResponse> GetAllAuctionsAsync(int page, int pageSize)
     {
-        var auctions = await _auctionRepository.GetAllAsync(page, pageSize);
-        var totalCount = await _auctionRepository.GetTotalCountAsync();
+        var auctions = await _unitOfWork.Auctions.GetAllAsync(page, pageSize);
+        var totalCount = await _unitOfWork.Auctions.GetTotalCountAsync();
 
         foreach (var a in auctions)
         {
@@ -443,7 +414,7 @@ public class AuctionService : IAuctionService
 
     public async Task<IEnumerable<AuctionDto>> GetAuctionsByUserId(int userId)
     {
-        var auctions = await _auctionRepository.GetAuctionsByUserIdAsync(userId);
+        var auctions = await _unitOfWork.Auctions.GetAuctionsByUserIdAsync(userId);
         var auctionDtos = new List<AuctionDto>();
         foreach (var auc in auctions)
         {

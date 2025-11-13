@@ -8,11 +8,11 @@ namespace Application.Services
 {
     public class CommissionService : ICommissionService
     {
-        private readonly ICommissionFeeRuleRepository _ruleRepo;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public CommissionService(ICommissionFeeRuleRepository ruleRepo)
+        public CommissionService(IUnitOfWork unitOfWork)
         {
-            _ruleRepo = ruleRepo ?? throw new ArgumentNullException(nameof(ruleRepo));
+            _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
         }
 
         public async Task<decimal> CalculateFeeAsync(decimal transactionAmount, string role)
@@ -23,7 +23,7 @@ namespace Application.Services
             if (string.IsNullOrWhiteSpace(role))
                 throw new ArgumentException("Role cannot be null or empty.", nameof(role));
 
-            var rules = await _ruleRepo.GetAllAsync()
+            var rules = await _unitOfWork.CommissionFeeRules.GetAllAsync()
                 ?? throw new InvalidOperationException("No commission rules found.");
 
             var activeRule = rules.FirstOrDefault(r => (r.TargetRole == role || r.TargetRole == "All") && r.IsActive);

@@ -1,4 +1,6 @@
 ﻿using Application.IRepositories.IBiddingRepositories;
+using Application.IRepositories.IChatRepositories;
+using Application.IRepositories.IManageStaffRepositories;
 using Application.IRepositories.IPaymentRepositories;
 namespace Application.IRepositories;
 
@@ -17,7 +19,7 @@ public interface IUnitOfWork
     ITransactionCommissionRepository TransactionCommission { get; }
 
     IAddressRepository Address { get; }
-    IPaymentRepository Payments { get; }
+    //IPaymentRepository Payments { get; }
     IBidRepository ItemBiddings { get; }
     IChatRepository Chats { get; }
     IUserModerationRepository UserModerations { get; }
@@ -31,7 +33,7 @@ public interface IUnitOfWork
     IFavoriteRepository Favorites { get; }
     IHistorySoldRepository HistorySolds { get; }
     IItemImageRepository ItemImages { get; }
-    IKYC_DocumentRepository KycDocuments { get; }
+    IKycDocumentRepository KycDocuments { get; }
     INewsRepository News { get; }
     INotificationRepository Notifications { get; }
     IPasswordResetTokenRepository PasswordResetTokens { get; }

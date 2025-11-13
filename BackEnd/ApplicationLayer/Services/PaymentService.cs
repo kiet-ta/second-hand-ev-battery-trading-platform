@@ -2,6 +2,7 @@
 using Application.IHelpers;
 using Application.IRepositories;
 using Application.IServices;
+using Domain.Common.Constants;
 using Domain.Entities;
 using Microsoft.Extensions.Configuration;
 using Net.payOS;
@@ -89,15 +90,15 @@ public class PaymentService : IPaymentService
             managerWallet.UpdatedAt = DateTime.Now;
             _unitOfWork.Wallets.Update(managerWallet);
 
-            order.Status = "completed";
-            order.UpdatedAt = DateTime.Now;
+            order.Status = OrderStatus.Completed.ToString();
+            order.UpdatedAt = DateTime.UtcNow;
             await _unitOfWork.Orders.UpdateAsync(order);
 
             var sellerTransaction = new WalletTransaction
             {
                 WalletId = sellerWallet.WalletId,
                 Amount = netAmountForSeller,
-                Type = "release",
+                Type = WalletTransactionType.Released.ToString(),
                 OrderId = orderId,
                 CreatedAt = DateTime.Now
             };
@@ -156,10 +157,10 @@ public class PaymentService : IPaymentService
                 OrderCode = orderCode,
                 TotalAmount = request.TotalAmount,
                 Method = request.Method,
-                Status = "pending",
-                PaymentType = "order_purchase",
-                CreatedAt = DateTime.Now,
-                UpdatedAt = DateTime.Now
+                Status = PaymentStatus.Pending.ToString(),
+                PaymentType = "order_purchase", // status gì đây
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
             };
             payment = await _unitOfWork.Payments.AddPaymentAsync(payment);
 
@@ -204,7 +205,7 @@ public class PaymentService : IPaymentService
                 {
                     PaymentId = payment.PaymentId,
                     OrderCode = orderCode,
-                    Status = "completed"
+                    Status = PaymentStatus.Completed.ToString()
                 };
             }
             else if (request.Method == "payos")
@@ -235,7 +236,7 @@ public class PaymentService : IPaymentService
                     PaymentId = payment.PaymentId,
                     OrderCode = result.orderCode,
                     CheckoutUrl = result.checkoutUrl,
-                    Status = "pending"
+                    Status = PaymentStatus.Pending.ToString()
                 };
             }
 
@@ -271,7 +272,7 @@ public class PaymentService : IPaymentService
             await _payOS.cancelPaymentLink(orderCode, reason);
         }
 
-        await _unitOfWork.Payments.UpdatePaymentStatusAsync(info.PaymentId, "failed");
+        await _unitOfWork.Payments.UpdatePaymentStatusAsync(info.PaymentId, PaymentStatus.Failed.ToString());
         await _unitOfWork.SaveChangesAsync();
     }
 
@@ -282,7 +283,7 @@ public class PaymentService : IPaymentService
             return;
 
         var info = await _unitOfWork.Payments.GetPaymentInfoByOrderCodeAsync(data.orderCode);
-        if (info == null || info.Status == "completed")
+        if (info == null || info.Status == PaymentStatus.Completed.ToString())
         {
             Console.WriteLine($"[Webhook] Bỏ qua, đơn hàng đã xử lý: {data.orderCode}");
             return;
@@ -291,7 +292,7 @@ public class PaymentService : IPaymentService
         await _unitOfWork.BeginTransactionAsync();
         try
         {
-            await _unitOfWork.Payments.UpdatePaymentStatusAsync(info.PaymentId, "completed");
+            await _unitOfWork.Payments.UpdatePaymentStatusAsync(info.PaymentId, PaymentStatus.Completed.ToString());
 
             bool isSimplePayment = info.Details.Count == 1 &&
                                      info.Details.First().ItemId == null &&
@@ -326,7 +327,7 @@ public class PaymentService : IPaymentService
                     {
                         WalletId = userWallet.WalletId,
                         Amount = info.TotalAmount,
-                        Type = "deposit",
+                        Type = WalletTransactionType.Deposit.ToString(),
                         RefId = info.PaymentId, 
                         CreatedAt = DateTime.Now
                     };
@@ -395,9 +396,9 @@ public class PaymentService : IPaymentService
                 OrderCode = orderCode,
                 TotalAmount = feeAmount,
                 Method = "payos",
-                PaymentType = "seller_registration",
-                Status = "pending",
-                CreatedAt = DateTime.Now
+                PaymentType = "seller_registration", // ?????
+                Status = PaymentStatus.Pending.ToString(),
+                CreatedAt = DateTime.UtcNow
             };
             payment = await _unitOfWork.Payments.AddPaymentAsync(payment);
             await _unitOfWork.SaveChangesAsync(); //save to get PaymentId
@@ -428,7 +429,7 @@ public class PaymentService : IPaymentService
                 PaymentId = payment.PaymentId,
                 OrderCode = result.orderCode,
                 CheckoutUrl = result.checkoutUrl,
-                Status = "pending"
+                Status = PaymentStatus.Pending.ToString()
             };
         }
         catch (Exception)
@@ -452,10 +453,10 @@ public class PaymentService : IPaymentService
                 OrderCode = depositOrderCode,
                 TotalAmount = amount,
                 Method = "payos",
-                Status = "pending",
-                PaymentType = "deposit",
-                CreatedAt = DateTime.Now,
-                UpdatedAt = DateTime.Now,
+                Status = PaymentStatus.Pending.ToString(),
+                PaymentType = PaymentType.Deposit.ToString(),
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
             };
             paymentRecord = await _unitOfWork.Payments.AddPaymentAsync(paymentRecord);
             await _unitOfWork.SaveChangesAsync(); // save to get PaymentId
@@ -498,7 +499,7 @@ public class PaymentService : IPaymentService
                 PaymentId = paymentRecord.PaymentId,
                 OrderCode = payOSResult.orderCode,
                 CheckoutUrl = payOSResult.checkoutUrl,
-                Status = "pending"
+                Status = PaymentStatus.Pending.ToString()
             };
         }
         catch (Exception ex)

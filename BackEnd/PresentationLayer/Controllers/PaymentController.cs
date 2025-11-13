@@ -27,7 +27,7 @@ public class PaymentController : ControllerBase
     }
 
     [HttpPost("confirm-order/{orderId}")]
-    [Authorize(Roles = "buyer")] // Chỉ buyer mới được gọi
+    [Authorize(Roles = "Buyer")] // Chỉ buyer mới được gọi
     public async Task<IActionResult> ConfirmOrder(int orderId)
     {
         try

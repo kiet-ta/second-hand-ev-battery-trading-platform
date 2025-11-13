@@ -31,27 +31,27 @@ namespace Infrastructure.Repositories
         public async Task<List<Address>> GetAddressesByUserIdAsync(int userId)
         {
             return await _context.Addresses
-                .Where(a => a.UserId == userId && !(a.IsDeleted == true))
+                .Where(a => a.UserId == userId && !(a.IsDeleted))
                 .ToListAsync();
         }
 
         public async Task<Address?> GetAddressByIdAsync(int addressId)
         {
             return await _context.Addresses
-                .FirstOrDefaultAsync(a => a.AddressId == addressId && !(a.IsDeleted == true));
+                .FirstOrDefaultAsync(a => a.AddressId == addressId && !(a.IsDeleted));
         }
 
         public async Task<List<Address>> GetAllAddressesAsync()
         {
             return await _context.Addresses
-                .Where(a => !(a.IsDeleted == true))
+                .Where(a => !(a.IsDeleted))
                 .ToListAsync();
         }
 
         public async Task UpdateAddressAsync(Address address)
         {
             var existing = await _context.Addresses.FindAsync(address.AddressId);
-            if (existing == null || (existing.IsDeleted == true))
+            if (existing == null || (existing.IsDeleted ))
                 throw new Exception("Address not found");
 
             _context.Entry(existing).CurrentValues.SetValues(address);
