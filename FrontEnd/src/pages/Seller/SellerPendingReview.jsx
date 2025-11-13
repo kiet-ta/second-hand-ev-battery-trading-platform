@@ -32,26 +32,26 @@ const SellerPendingReview = () => {
 
         setUser(userData);
 
-        if (userData.kycStatus === "rejected") {
-          setStatus("rejected");
+        if (userData.kycStatus === "Rejected") {
+          setStatus("Rejected");
           setMessage("Hồ sơ KYC của bạn đã bị từ chối. Vui lòng kiểm tra lại thông tin và gửi lại.");
           return;
         }
 
-        if (userData.kycStatus === "pending") {
-          setStatus("pending");
+        if (userData.kycStatus === "Pending") {
+          setStatus("Pending");
           setMessage("Hồ sơ của bạn đang được xét duyệt.");
           return;
         }
 
-        if (userData.kycStatus === "approved") {
-          if (userData.paid === "pending") {
+        if (userData.kycStatus === "Approved") {
+          if (userData.paid === "Pending") {
             const w = await walletApi.getWalletByUser(id);
             setWallet(w);
             setStatus("needPayment");
             setMessage("Vui lòng thanh toán 100.000đ để hoàn tất kích hoạt tài khoản người bán.");
           } else {
-            setStatus("approved");
+            setStatus("Approved");
             setMessage("Tài khoản của bạn đã được kích hoạt đầy đủ!");
           }
         }
@@ -76,16 +76,16 @@ const SellerPendingReview = () => {
       await walletApi.withdrawWallet({
         userId: id,
         amount: 100000,
-        type: "withdraw",
-        ref: "seller-activation",
+        type: "Withdraw",
+        ref: "Seller-Activation",
         description: "Thanh toán kích hoạt tài khoản người bán",
       });
 
       // Update user with all fields
       const updatedUser = {
         ...user,
-        role: "seller",
-        paid: "paid",
+        role: "Seller",
+        paid: "Paid",
         updatedAt: new Date().toISOString(),
       };
       await userApi.putUser(id, updatedUser);
@@ -93,7 +93,7 @@ const SellerPendingReview = () => {
       // Update state
       setWallet((prev) => ({ ...prev, balance: prev.balance - 100000 }));
       setUser(updatedUser);
-      setStatus("approved");
+      setStatus("Approved");
       setMessage("Thanh toán thành công! Tài khoản người bán đã được kích hoạt.");
     } catch (error) {
       setMessage("Giao dịch thất bại, vui lòng thử lại.");
@@ -113,7 +113,7 @@ const SellerPendingReview = () => {
   return (
     <div className="flex flex-col items-center justify-center bg-gray-50 p-6 min-h-screen">
       <div className="bg-white shadow-lg rounded-xl p-8 max-w-md w-full text-center">
-        {status === "pending" && (
+        {status === "Pending" && (
           <>
             <ClockCircleOutlined className="text-yellow-500 text-6xl mb-4" />
             <h1 className="text-2xl font-bold text-gray-800 mb-2">
@@ -122,7 +122,7 @@ const SellerPendingReview = () => {
           </>
         )}
 
-        {status === "rejected" && (
+        {status === "Rejected" && (
           <>
             <CloseCircleOutlined className="text-red-500 text-6xl mb-4" />
             <h1 className="text-2xl font-bold text-red-600 mb-2">
@@ -150,7 +150,7 @@ const SellerPendingReview = () => {
           </>
         )}
 
-        {status === "approved" && (
+        {status === "Approved" && (
           <>
             <CheckCircleOutlined className="text-green-500 text-6xl mb-4" />
             <h1 className="text-2xl font-bold text-gray-800 mb-2">
@@ -164,9 +164,9 @@ const SellerPendingReview = () => {
 
         <p
           className={`mt-4 text-sm font-medium ${
-            status === "rejected"
+            status === "Rejected"
               ? "text-red-500"
-              : status === "pending"
+              : status === "Pending"
               ? "text-yellow-600"
               : "text-green-600"
           }`}
@@ -175,8 +175,8 @@ const SellerPendingReview = () => {
         </p>
 
         <div className="mt-6 text-gray-400 text-xs">
-          {status === "pending" && "Hệ thống sẽ gửi thông báo sau khi xét duyệt xong."}
-          {status === "rejected" && "Bạn có thể cập nhật hồ sơ và gửi lại."}
+          {status === "Pending" && "Hệ thống sẽ gửi thông báo sau khi xét duyệt xong."}
+          {status === "Rejected" && "Bạn có thể cập nhật hồ sơ và gửi lại."}
         </div>
       </div>
     </div>

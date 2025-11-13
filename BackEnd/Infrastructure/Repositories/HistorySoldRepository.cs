@@ -225,12 +225,24 @@ namespace Infrastructure.Repositories
                         from p in paymentList.DefaultIfEmpty()
 
                             // Tính toán trạng thái ngay trong query
-                        let isSold = _context.OrderItems.Any(pd_s => pd_s.ItemId == item.ItemId && _context.Orders.Any(p_s => p_s.OrderId == pd_s.OrderId && p_s.Status == OrderStatus.Completed.ToString()))
-                        let isProcessing = !isSold && _context.OrderItems.Any(oi_p => oi_p.ItemId == item.ItemId && _context.Orders.Any(o_p => o_p.OrderId == oi_p.OrderId && (o_p.Status == OrderStatus.Paid.ToString() || o_p.Status == OrderStatus.Shipped.ToString())))
-                        let isPending = !isSold && !isProcessing && _context.OrderItems.Any(pd_pe => pd_pe.ItemId == item.ItemId && _context.Orders.Any(p_pe => p_pe.OrderId == pd_pe.OrderId && p_pe.Status == OrderStatus.Pending.ToString()))
-                        let isCanceled = !isSold && !isProcessing && !isPending &&
-                                         (_context.PaymentDetails.Any(pd_c => pd_c.ItemId == item.ItemId && _context.Payments.Any(p_c => p_c.PaymentId == pd_c.PaymentId && (p_c.Status == PaymentStatus.Failed.ToString() || p_c.Status == PaymentStatus.Refunded.ToString() || p_c.Status == PaymentStatus.Expired.ToString())))
-                                          || _context.OrderItems.Any(oi_c => oi_c.ItemId == item.ItemId && _context.Orders.Any(o_c => o_c.OrderId == oi_c.OrderId && o_c.Status == OrderStatus.Cancelled.ToString())))
+                        let isSold = _context.OrderItems.Any(pd_s => pd_s.ItemId == item.ItemId && 
+                            _context.Orders.Any(p_s => p_s.OrderId == pd_s.OrderId && 
+                            p_s.Status == OrderStatus.Completed.ToString()))
+                        let isProcessing = !isSold &&
+                            _context.OrderItems.Any(oi_p => oi_p.ItemId == item.ItemId && 
+                            _context.Orders.Any(o_p => o_p.OrderId == oi_p.OrderId && 
+                            (o_p.Status == OrderStatus.Paid.ToString() || o_p.Status == OrderStatus.Shipped.ToString())))
+                        let isPending = !isSold && !isProcessing && 
+                            _context.OrderItems.Any(pd_pe => pd_pe.ItemId == item.ItemId && _context.Orders.Any(p_pe => p_pe.OrderId == pd_pe.OrderId && p_pe.Status == OrderStatus.Pending.ToString()))
+                        let isCanceled = !isSold && !isProcessing && !isPending &&(
+                            _context.PaymentDetails.Any(pd_c => pd_c.ItemId == item.ItemId && 
+                            _context.Payments.Any(p_c => p_c.PaymentId == pd_c.PaymentId && (
+                            p_c.Status == PaymentStatus.Failed.ToString() || 
+                            p_c.Status == PaymentStatus.Refunded.ToString() || 
+                            p_c.Status == PaymentStatus.Expired.ToString()))) || 
+                            _context.OrderItems.Any(oi_c => oi_c.ItemId == item.ItemId && 
+                            _context.Orders.Any(o_c => o_c.OrderId == oi_c.OrderId && o_c.Status == 
+                            OrderStatus.Cancelled.ToString())))
 
                         select new BatteryItemDto
                         {
@@ -259,11 +271,11 @@ namespace Infrastructure.Repositories
                             OrderId = o != null ? o.OrderId : (int?)null,
 
                             // Gán trạng thái đã tính toán
-                            Status = isSold ? "sold" :
-                                     isProcessing ? "processing" :
-                                     isPending ? "pending_approval" :
-                                     isCanceled ? "canceled" :
-                                     "available"
+                            Status = isSold ? "Sold" :
+                                     isProcessing ? "Processing" :
+                                     isPending ? "Pending" :
+                                     isCanceled ? "Canceled" :
+                                     "Available"
                         };
 
             return await query.ToListAsync();
@@ -340,7 +352,7 @@ namespace Infrastructure.Repositories
 
                         let isSold = _context.OrderItems.Any(pd_s => pd_s.ItemId == item.ItemId && _context.Orders.Any(p_s => p_s.OrderId == pd_s.OrderId && p_s.Status == OrderStatus.Completed.ToString()))
                         let isProcessing = !isSold && _context.OrderItems.Any(oi_p => oi_p.ItemId == item.ItemId && _context.Orders.Any(o_p => o_p.OrderId == oi_p.OrderId && (o_p.Status == OrderStatus.Paid.ToString() || o_p.Status == OrderStatus.Shipped.ToString())))
-                        let isPending = !isSold && !isProcessing && _context.OrderItems.Any(pd_pe => pd_pe.ItemId == item.ItemId && _context.Orders.Any(p_pe => p_pe.OrderId == pd_pe.OrderId && p_pe.Status == OrderStatus.Shipped.ToString()))
+                        let isPending = !isSold && !isProcessing && _context.OrderItems.Any(pd_pe => pd_pe.ItemId == item.ItemId && _context.Orders.Any(p_pe => p_pe.OrderId == pd_pe.OrderId && p_pe.Status == OrderStatus.Pending.ToString()))
                         let isCanceled = !isSold && !isProcessing && !isPending &&
                                          (_context.PaymentDetails.Any(pd_c => pd_c.ItemId == item.ItemId && _context.Payments.Any(p_c => p_c.PaymentId == pd_c.PaymentId && (p_c.Status == PaymentStatus.Failed.ToString()) || p_c.Status == PaymentStatus.Refunded.ToString() || p_c.Status == PaymentStatus.Expired.ToString()))
                                           || _context.OrderItems.Any(oi_c => oi_c.ItemId == item.ItemId && _context.Orders.Any(o_c => o_c.OrderId == oi_c.OrderId && o_c.Status == OrderStatus.Cancelled.ToString())))
@@ -372,11 +384,11 @@ namespace Infrastructure.Repositories
                             } : null,
                             OrderId = o != null ? o.OrderId : (int?)null,
 
-                            Status = isSold ? "sold" :
-                                     isProcessing ? "processing" :
-                                     isPending ? "pending_approval" :
-                                     isCanceled ? "canceled" :
-                                     "available"
+                            Status = isSold ? "Sold" :
+                                     isProcessing ? "Processing" :
+                                     isPending ? "Pending" :
+                                     isCanceled ? "Canceled" :
+                                     "Available"
                         };
 
             return await query.ToListAsync();

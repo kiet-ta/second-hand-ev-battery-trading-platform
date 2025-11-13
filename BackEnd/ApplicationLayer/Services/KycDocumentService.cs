@@ -8,14 +8,14 @@ namespace Application.Services
 {
     public class KycDocumentService : IKycDocumentService
     {
-        private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+        private readonly IUnitOfWork _unitOfWork;
 
 
         public KycDocumentService(IMapper mapper,  IUnitOfWork unitOfWork)
         {
-            _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _unitOfWork = unitOfWork;
         }
 
         public async Task BanUserAsync(int userId)
@@ -23,10 +23,10 @@ namespace Application.Services
             var user = await _unitOfWork.KycDocuments.GetByIdAsync(userId)
                        ?? throw new ArgumentException("User not found");
 
-            if (user.AccountStatus == "ban")
+            if (user.AccountStatus == UserStatus.Ban.ToString())
                 throw new InvalidOperationException("User is already banned");
 
-            await _unitOfWork.KycDocuments.UpdateAccountStatusAsync(user.UserId, "ban");
+            await _unitOfWork.KycDocuments.UpdateAccountStatusAsync(user.UserId, UserStatus.Ban.ToString());
         }
 
         public async Task ActivateUserAsync(int userId)
@@ -45,19 +45,19 @@ namespace Application.Services
             var user = await _unitOfWork.KycDocuments.GetByIdAsync(userId)
                        ?? throw new ArgumentException("User not found");
 
-            if (user.AccountStatus == "ban")
+            if (user.AccountStatus == UserStatus.Ban.ToString())
                 throw new InvalidOperationException("Cannot warn a banned user");
 
             switch (user.AccountStatus)
             {
-                case "warning1":
-                    await _unitOfWork.KycDocuments.UpdateAccountStatusAsync(user.UserId, "warning2");
+                case "Warning1":
+                    await _unitOfWork.KycDocuments.UpdateAccountStatusAsync(user.UserId, UserStatus.Warning2.ToString());
                     break;
-                case "warning2":
-                    await _unitOfWork.KycDocuments.UpdateAccountStatusAsync(user.UserId, "ban");
+                case "Warning2":
+                    await _unitOfWork.KycDocuments.UpdateAccountStatusAsync(user.UserId, UserStatus.Ban.ToString());
                     break;
                 default:
-                    await _unitOfWork.KycDocuments.UpdateAccountStatusAsync(user.UserId, "warning1");
+                    await _unitOfWork.KycDocuments.UpdateAccountStatusAsync(user.UserId, UserStatus.Warning1.ToString());
                     break;
             }
         }

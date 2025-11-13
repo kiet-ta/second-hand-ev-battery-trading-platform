@@ -3,21 +3,22 @@ import orderApi from "../../api/orderApi";
 import reviewApi from "../../api/reviewApi"; // 👈 make sure this exists
 import { FiChevronRight } from "react-icons/fi";
 import userApi from "../../api/userApi";
+import paymentApi from "../../api/paymentApi";
 
 const STATUS_LABEL = {
-    pending: { label: "Chờ xác nhận", color: "text-gray-600", bg: "bg-gray-100" },
-    paid: { label: "Đã thanh toán", color: "text-blue-700", bg: "bg-blue-50" },
-    shipped: { label: "Đang giao", color: "text-yellow-700", bg: "bg-yellow-50" },
-    completed: { label: "Hoàn thành", color: "text-green-700", bg: "bg-green-50" },
-    canceled: { label: "Đã hủy", color: "text-red-700", bg: "bg-red-50" },
+    Pending: { label: "Chờ xác nhận", color: "text-gray-600", bg: "bg-gray-100" },
+    Paid: { label: "Đã thanh toán", color: "text-blue-700", bg: "bg-blue-50" },
+    Shipped: { label: "Đang giao", color: "text-yellow-700", bg: "bg-yellow-50" },
+    Completed: { label: "Hoàn thành", color: "text-green-700", bg: "bg-green-50" },
+    Canceled: { label: "Đã hủy", color: "text-red-700", bg: "bg-red-50" },
 };
 
 const progressFor = (status) => {
     switch (status) {
-        case "pending": return 10;
-        case "paid": return 40;
-        case "shipped": return 70;
-        case "completed": return 100;
+        case "Pending": return 10;
+        case "Paid": return 40;
+        case "Shipped": return 70;
+        case "Completed": return 100;
         default: return 0;
     }
 };
@@ -47,7 +48,7 @@ export default function OrderCard({ order, onViewItem, onMarkReceived, onOpenRev
     }, [detail?.updatedBy, firstItem?.updatedBy]);
     useEffect(() => {
         const fetchReviewStatus = async () => {
-            if (order?.status === "completed" && firstItem?.itemId && currentUserId) {
+            if (order?.status === "Completed" && firstItem?.itemId && currentUserId) {
                 try {
                     const res = await reviewApi.getReviewByItemID(firstItem.itemId);
                     const userReviews = res?.filter(
@@ -68,7 +69,7 @@ export default function OrderCard({ order, onViewItem, onMarkReceived, onOpenRev
     const handleConfirmReceived = async () => {
         try {
             setLoading(true);
-            await orderApi.putOrder(order.orderId, { ...order, status: "completed" });
+            await paymentApi.confirmOrder(order.orderId)
             onMarkReceived && onMarkReceived();
         } catch (err) {
             console.error("update order failed", err);
@@ -181,7 +182,7 @@ export default function OrderCard({ order, onViewItem, onMarkReceived, onOpenRev
                 {/* right actions */}
                 <div className="w-44 flex flex-col justify-between items-end">
                     <div className="text-right">
-                        {order.status === "shipped" && (
+                        {order.status === "Shipped" && (
                             <button
                                 onClick={handleConfirmReceived}
                                 disabled={loading}
@@ -191,7 +192,7 @@ export default function OrderCard({ order, onViewItem, onMarkReceived, onOpenRev
                             </button>
                         )}
 
-                        {order.status === "completed" && !isReviewed && (
+                        {order.status === "Completed" && !isReviewed && (
                             <button
                                 onClick={() => onOpenReview?.(order, firstItem)}
                                 className="mb-3 px-4 py-2 rounded-md bg-orange-500 text-white text-sm hover:bg-orange-600"
@@ -200,7 +201,7 @@ export default function OrderCard({ order, onViewItem, onMarkReceived, onOpenRev
                             </button>
                         )}
 
-                        {order.status === "completed" && isReviewed && (
+                        {order.status === "Completed" && isReviewed && (
                             <button
                                 disabled
                                 className="mb-3 px-4 py-2 rounded-md bg-gray-200 text-gray-500 text-sm cursor-not-allowed"

@@ -2,6 +2,7 @@
 using Application.DTOs.ItemDtos;
 using Application.IRepositories;
 using Application.IServices;
+using Domain.Common.Constants;
 using Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
@@ -16,7 +17,8 @@ namespace Application.Services
 
         public HistorySoldService(IUnitOfWork unitOfWork)
         {
-            _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
+
+            _unitOfWork = unitOfWork;
         }
 
         public async Task<List<object>> GetAllSellerItemsAsync(int sellerId)
@@ -50,9 +52,9 @@ namespace Application.Services
             foreach (var obj in mappedAvailable)
             {
                 if (obj is BatteryItemDto battery)
-                    battery.Status = "Available";
+                    battery.Status = "available";
                 else if (obj is EVItemDto ev)
-                    ev.Status = "Available";
+                    ev.Status = "available";
             }
 
             var finalList = new List<object>();
@@ -153,9 +155,9 @@ namespace Application.Services
             foreach (var obj in mappedItems)
             {
                 if (obj is BatteryItemDto battery)
-                    battery.Status = "Sold";
+                    battery.Status = "sold";
                 else if (obj is EVItemDto ev)
-                    ev.Status = "Sold";
+                    ev.Status = "sold";
             }
 
             return mappedItems;
@@ -176,9 +178,9 @@ namespace Application.Services
             foreach (var obj in mappedItems)
             {
                 if (obj is BatteryItemDto battery)
-                    battery.Status = "Canceled";
+                    battery.Status = "canceled";
                 else if (obj is EVItemDto ev)
-                    ev.Status = "Canceled";
+                    ev.Status = "canceled";
             }
 
             return mappedItems;
@@ -191,7 +193,7 @@ namespace Application.Services
 
             var result = new List<object>();
 
-            var batteryItems = items.Where(i => i.ItemType == "Battery").ToList();
+            var batteryItems = items.Where(i => i.ItemType == ItemType.Battery.ToString()).ToList();
             if (batteryItems.Any())
             {
                 var mappedBatteryItems = await _unitOfWork.HistorySolds.MapToBatteryItemsAsync(batteryItems);
@@ -200,7 +202,7 @@ namespace Application.Services
                 result.AddRange(mappedBatteryItems);
             }
 
-            var evItems = items.Where(i => i.ItemType == "Ev").ToList();
+            var evItems = items.Where(i => i.ItemType == ItemType.Ev.ToString()).ToList();
             if (evItems.Any())
             {
                 var mappedEVItems = await _unitOfWork.HistorySolds.MapToEVItemsAsync(evItems);
@@ -218,8 +220,10 @@ namespace Application.Services
 
             var result = new List<object>();
 
-            var batteryItemsQuery = itemsQuery.Where(i => i.ItemType == "Battery");
+            // Tách query theo loại item
+            var batteryItemsQuery = itemsQuery.Where(i => i.ItemType == ItemType.Battery.ToString());
 
+            // Chỉ query nếu có tồn tại
             if (await batteryItemsQuery.AnyAsync())
             {
                 // Truyền IQueryable<Item> (đã phân trang) vào repository
@@ -229,7 +233,7 @@ namespace Application.Services
                 result.AddRange(mappedBatteryItems);
             }
 
-            var evItemsQuery = itemsQuery.Where(i => i.ItemType == "Ev");
+            var evItemsQuery = itemsQuery.Where(i => i.ItemType == ItemType.Ev.ToString());
             if (await evItemsQuery.AnyAsync())
             {
                 var mappedEVItems = await _unitOfWork.HistorySolds.MapToEVItemsAsync(evItemsQuery);

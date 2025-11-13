@@ -18,11 +18,11 @@ namespace Application.Services
         private readonly Cloudinary _cloudinary;
 
         public ItemImageService(
-            IUnitOfWork unitOfWork,
-            Cloudinary cloudinary)
+           
+            Cloudinary cloudinary, IUnitOfWork unitOfWork)
         {
-            _unitOfWork = unitOfWork;
             _cloudinary = cloudinary;
+            _unitOfWork = unitOfWork;
         }
 
         public async Task<IEnumerable<string>> UploadItemImagesAsync(int itemId, List<IFormFile> files)

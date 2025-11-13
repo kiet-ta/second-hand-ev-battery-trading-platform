@@ -10,21 +10,11 @@ function AuctionMainPage() {
   const fetchItems = async () => {
     try {
       const response = await auctionApi.getAuction();
-      const now = new Date().getTime();
-
-      // Normalize + compute real status
+      console.log(response)
       const normalized = response.data.map((item) => {
-        const start = new Date(item.startTime).getTime();
-        const end = new Date(item.endTime).getTime();
-
-        let status = "UPCOMING";
-        if (now >= start && now < end) status = "ONGOING";
-        else if (now >= end) status = "ENDED";
-
         return {
           ...item,
-          status,
-          category: item.type === "ev" ? "Xe điện" : "Pin xe điện",
+          category: item.type === "Ev" ? "Xe điện" : "Pin xe điện",
           currentBid: item.currentPrice || 0,
         };
       });

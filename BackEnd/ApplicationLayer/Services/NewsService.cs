@@ -80,7 +80,7 @@ namespace Application.Services
             if (newsId <= 0)
                 throw new ArgumentException("Invalid news ID.");
 
-            var success = await _unitOfWork.News.UpdateNewsStatusAsync(newsId, "Cancelled");
+            var success = await _unitOfWork.News.UpdateNewsStatusAsync(newsId, "cancelled");
             if (!success)
                 throw new KeyNotFoundException($"News with ID {newsId} not found.");
 

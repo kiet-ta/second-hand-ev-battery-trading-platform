@@ -17,7 +17,7 @@ namespace Application.Services
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<OrderService> _logger;
-        public OrderService(IUnitOfWork unitOfWork, ILogger<OrderService> logger)
+        public OrderService( IUnitOfWork unitOfWork, ILogger<OrderService> logger)
         {
             _unitOfWork = unitOfWork;
             _logger = logger;
@@ -141,7 +141,6 @@ namespace Application.Services
             if (createdOrder == null)
                 throw new Exception("Failed to create order.");
 
-            // Step 3: Update order items
             foreach (var item in orderItems)
             {
                 item.OrderId = createdOrder.OrderId;
@@ -177,10 +176,10 @@ namespace Application.Services
             if (order == null) throw new Exception("Order not found.");
 
             // Check correct flow
-            if (order.Status != "paid")
+            if (order.Status != OrderStatus.Paid.ToString())
                 throw new InvalidOperationException("Order is not in 'paid' state.");
 
-            order.Status = "shipped";
+            order.Status = OrderStatus.Shipped.ToString()  ;
             order.UpdatedAt = DateTime.Now;
             await _unitOfWork.Orders.UpdateAsync(order);
 
@@ -196,14 +195,14 @@ namespace Application.Services
                 if (order.BuyerId != buyerId) throw new Exception("Unauthorized."); // Check correct Buyer
 
                 // Check correct flow
-                if (order.Status != "Shipped")
-                    throw new InvalidOperationException("Order is not in 'Shipped' state.");
+                if (order.Status != OrderStatus.Shipped.ToString())
+                    throw new InvalidOperationException("Order is not in 'shipped' state.");
 
                 // 1. Get information (Seller, amount)
                 var orderItem = (await _unitOfWork.OrderItems.GetByOrderIdAsync(orderId)).FirstOrDefault();
                 if (orderItem == null) throw new InvalidOperationException("Order item not found.");
 
-                decimal orderAmount = orderItem.Price;
+                decimal orderAmount = orderItem.Price; // This is the amount the buyer paid.
                 var itemWithSeller = await _unitOfWork.Items.GetItemAndSellerByItemIdAsync(orderItem.ItemId);
                 if (itemWithSeller?.Seller == null) throw new InvalidOperationException("Seller not found.");
 
@@ -225,7 +224,7 @@ namespace Application.Services
                 {
                     WalletId = sellerWallet.WalletId,
                     Amount = amountToSeller,
-                    Type = "payout",
+                    Type = "payout", // là status nào
                     CreatedAt = DateTime.Now,
                     RefId = order.OrderId
                 };
@@ -234,7 +233,7 @@ namespace Application.Services
                 _logger.LogInformation($"Released {amountToSeller} to Seller {sellerId} for Order {orderId}.");
 
                 // 5. Update Order Status
-                order.Status = OrderStatus.Completed.ToString();
+                order.Status = OrderStatus.Completed.ToString()   ;
                 order.UpdatedAt = DateTime.Now;
                 await _unitOfWork.Orders.UpdateAsync(order);
 

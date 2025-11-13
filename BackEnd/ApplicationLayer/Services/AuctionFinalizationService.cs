@@ -138,7 +138,7 @@ public class AuctionFinalizationService : IAuctionFinalizationService
             {
                 BuyerId = winnerId,
                 AddressId = winnerAddress.AddressId, 
-                Status = "paid", 
+                Status = OrderStatus.Pending.ToString(), 
                 CreatedAt = DateTime.Now,
                 UpdatedAt = DateTime.Now
             };
@@ -150,7 +150,7 @@ public class AuctionFinalizationService : IAuctionFinalizationService
             {
                 WalletId = winnerWallet.WalletId,
                 Amount = -winningAmount, 
-                Type = "payment",
+                Type = WalletTransactionType.Payment.ToString(),
                 CreatedAt = DateTime.Now,
                 RefId = newOrder.OrderId,
                 AuctionId = auctionId,

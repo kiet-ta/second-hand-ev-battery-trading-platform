@@ -12,9 +12,10 @@ namespace Application.Services
     {
         private readonly IUnitOfWork _unitOfWork;
 
-        public FavoriteService(IUnitOfWork unitOfWork)
+        public FavoriteService(IFavoriteRepository favoriteRepository, IUnitOfWork unitOfWork)
         {
-            _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
+
+            _unitOfWork = unitOfWork;
         }
 
         public async Task<Favorite> CreateFavoriteAsync(CreateFavoriteDto dto)

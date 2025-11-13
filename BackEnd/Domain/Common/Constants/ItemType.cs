@@ -10,5 +10,6 @@ namespace Domain.Common.Constants
     {
         Ev,
         Battery
+
     }
 }

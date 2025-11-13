@@ -1,6 +1,7 @@
 ﻿using Application.DTOs.UserDtos;
 using Application.IRepositories;
 using Application.IServices;
+using Domain.Common.Constants;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,11 +12,12 @@ namespace Application.Services
 {
     public class SellerService : ISellerService
     {
+
         private readonly IUnitOfWork _unitOfWork;
 
         public SellerService(IUnitOfWork unitOfWork)
         {
-            _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
+      _unitOfWork = unitOfWork;
         }
 
         public async Task<SellerProfileDto?> GetSellerProfileAsync(int sellerId)
@@ -27,7 +29,7 @@ namespace Application.Services
             if (user == null)
                 throw new KeyNotFoundException($"Seller with ID {sellerId} not found.");
 
-            if (user.Role != "seller")
+            if (user.Role != UserRole.Seller.ToString())
                 throw new InvalidOperationException($"User with ID {sellerId} is not a seller.");
 
             var shopAddress = await _unitOfWork.Address.GetShopAddressAsync(sellerId)

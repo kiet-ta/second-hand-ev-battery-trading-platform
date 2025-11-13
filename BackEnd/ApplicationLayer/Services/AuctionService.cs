@@ -154,7 +154,7 @@ public class AuctionService : IAuctionService
         {
             var auction = await _unitOfWork.Auctions.GetByIdAsync(auctionId);
 
-            if (auction == null || auction.Status != "ongoing" || now < auction.StartTime || now > auction.EndTime)
+            if (auction == null || auction.Status != "Ongoing" || now < auction.StartTime || now > auction.EndTime)
             {
                 await _unitOfWork.RollbackTransactionAsync();
                 throw new InvalidOperationException("Auction is not active or has ended.");
@@ -395,8 +395,8 @@ public class AuctionService : IAuctionService
 
         foreach (var a in auctions)
         {
-            a.Status = now < a.StartTime ? "upcoming" :
-                       now >= a.StartTime && now < a.EndTime ? "ongoing" : "ended";
+            a.Status = now < a.StartTime ? AuctionStatus.Upcoming.ToString() :
+                       now >= a.StartTime && now < a.EndTime ? AuctionStatus.Ongoing.ToString() : AuctionStatus.Ended.ToString();
         }
 
         return new AuctionListResponse

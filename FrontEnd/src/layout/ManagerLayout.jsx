@@ -50,7 +50,7 @@ const menu = [
     { key: "complaints", label: "Khiếu nại người dùng", icon: <ShieldAlert size={18} />, path: "complaints" },
     { key: "transactions", label: "Giám sát giao dịch", icon: <ClipboardList size={18} />, path: "transactions" },
     { key: "notifications", label: "Thông báo", icon: <Bell size={18} />, path: "notifications" },
-    { key: "news", label: "Tạo tin tức", icon: <ClipboardList size={18} />, path: "news" },
+    { key: "News", label: "Tạo tin tức", icon: <ClipboardList size={18} />, path: "News" },
 ];
 
 // --- MAIN LAYOUT ---

@@ -95,7 +95,7 @@ export default function CommissionSettings() {
         key: "targetRole",
         render: (role) => {
           const color =
-            role === "seller" ? "purple" : role === "buyer" ? "blue" : "cyan";
+            role === "Seller" ? "purple" : role === "Buyer" ? "blue" : "cyan";
           return <Tag color={color}>{role?.toUpperCase() || "N/A"}</Tag>;
         },
       },
@@ -104,8 +104,8 @@ export default function CommissionSettings() {
         dataIndex: "feeType",
         key: "feeType",
         render: (type) => (
-          <Tag color={type === "percentage" ? "green" : "orange"}>
-            {type === "percentage" ? "Phần trăm (%)" : "Cố định (VND)"}
+          <Tag color={type === "Percentage" ? "green" : "orange"}>
+            {type === "Percentage" ? "Phần trăm (%)" : "Cố định (VND)"}
           </Tag>
         ),
       },
@@ -114,7 +114,7 @@ export default function CommissionSettings() {
         dataIndex: "feeValue",
         key: "feeValue",
         render: (v, r) =>
-          r.feeType === "percentage"
+          r.feeType === "Percentage"
             ? `${v ?? 0}%`
             : `${(v ?? 0).toLocaleString("vi-VN")}₫`,
       },

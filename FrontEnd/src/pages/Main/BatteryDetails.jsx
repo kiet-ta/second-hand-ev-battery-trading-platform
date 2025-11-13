@@ -361,7 +361,7 @@ function BatteryDetails() {
             <h1 className="text-3xl font-bold text-[#3A3A3A]">
               {item.title}
             </h1>
-            <div className="mt-2">{item.moderation === "approved_tag" && <VerifiedCheck />}</div>
+            <div className="mt-2">{item.moderation === "Approved" && <VerifiedCheck />}</div>
 
             <div className="flex items-center gap-2 text-gray-600 mt-3">
               <GiBatteryPack className="text-xl text-[#B8860B]" />

@@ -14,14 +14,16 @@ namespace Application.Services
 {
     public class MailService : IMailService
     {
-        private readonly MailSettings _settings;
         private readonly IUnitOfWork _unitOfWork;
+
+        private readonly MailSettings _settings;
 
         public MailService(IOptions<MailSettings> settings, IUnitOfWork unitOfWork)
         {
 
             _settings = settings?.Value ?? throw new ArgumentNullException(nameof(settings));
-            _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
+
+            _unitOfWork = unitOfWork;
         }
 
         public async Task SendWelcomeMailAsync(WelcomeDto request, string url)

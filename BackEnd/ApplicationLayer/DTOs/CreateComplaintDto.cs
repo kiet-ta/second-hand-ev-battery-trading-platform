@@ -11,7 +11,8 @@ namespace Application.DTOs
     {
         public string Reason { get; set; } = null!;
         public string? Description { get; set; }
-        public string Status { get; set; } = ComplaintStatus.Pending.ToString();
+        public string Status { get; set; } = ComplaintStatus.Pending.ToString
+            ();
         public string SeverityLevel { get; set; } = ComplaintSeverityLevel.Medium.ToString();
         public bool IsDeleted { get; set; }
     }

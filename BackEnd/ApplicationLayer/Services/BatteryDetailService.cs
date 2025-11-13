@@ -2,6 +2,7 @@
 using Application.DTOs.ItemDtos.BatteryDto;
 using Application.IRepositories;
 using Application.IServices;
+using Domain.Common.Constants;
 using Domain.Entities;
 using System;
 using System.Collections.Generic;
@@ -14,9 +15,11 @@ namespace Application.Services
     public class BatteryDetailService : IBatteryDetailService
     {
         private readonly IUnitOfWork _unitOfWork;
+     
 
-        public BatteryDetailService(IUnitOfWork unitOfWork)
+        public BatteryDetailService(IBatteryDetailRepository repository, IItemRepository itemRepository, IUnitOfWork unitOfWork)
         {
+           
             _unitOfWork = unitOfWork;
         }
 
@@ -79,7 +82,7 @@ namespace Application.Services
 
             var item = new Item
             {
-                ItemType = "Battery",
+                ItemType = ItemType.Battery.ToString(),
                 CategoryId = dto.CategoryId,
                 Title = dto.Title ?? throw new ArgumentException("Title cannot be null.", nameof(dto.Title)),
                 Description = dto.Description,
@@ -90,7 +93,7 @@ namespace Application.Services
                 //CreatedAt = DateTime.Now,
                 //UpdatedAt = DateTime.Now
             };
-            //Tuan fixed
+
             await _unitOfWork.Items.AddAsync(item);
             await _unitOfWork.Items.SaveChangesAsync(); // Save to get ItemId if DB generates it
 

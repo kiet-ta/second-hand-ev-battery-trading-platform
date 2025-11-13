@@ -23,7 +23,7 @@ const ChatWithSellerButton = ({ buyerId, sellerId, product }) => {
 
       if (type === "interest") {
         messageText = JSON.stringify({
-          type: "ev",
+          type: "Ev",
           title: product.title,
           price: product.price,
           imageUrl: product.imageUrl,

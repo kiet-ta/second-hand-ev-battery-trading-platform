@@ -13,7 +13,7 @@ public class WalletService : IWalletService
 {
     private readonly IUnitOfWork _unitOfWork;
 
-    public WalletService(IUnitOfWork unitOfWork)
+    public WalletService( IUnitOfWork unitOfWork)
     {
         _unitOfWork = unitOfWork;
     }
@@ -85,7 +85,7 @@ public class WalletService : IWalletService
             throw new ArgumentException("Withdrawal amount must be greater than 0.");
         }
 
-        if (request.Type != "withdraw" && request.Type != "payment")
+        if (request.Type != WalletTransactionType.Withdraw.ToString() && request.Type != WalletTransactionType.Payment.ToString())
         {
             throw new ArgumentException("Invalid transaction type. Must be 'withdraw' or 'payment'.");
         }

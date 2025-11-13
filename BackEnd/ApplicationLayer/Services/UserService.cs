@@ -13,13 +13,15 @@ namespace Application.Services
 {
     public class UserService : IUserService
     {
-        private readonly IUnitOfWork _unitOfWork;
+
         private readonly string _jwtSecret;
         private readonly string _jwtIssuer;
         private readonly string _jwtAudience;
         private readonly IConfiguration _config;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public UserService(IUnitOfWork unitOfWork, IConfiguration config)
+
+        public UserService(IConfiguration config, IUnitOfWork unitOfWork)
         {
             _unitOfWork = unitOfWork;
             _config = config;
@@ -139,8 +141,8 @@ namespace Application.Services
             if (existing != null)
                 throw new InvalidOperationException("Email already exists.");
 
-            user.CreatedAt = DateTime.Now;
-            user.UpdatedAt = DateTime.Now;
+            user.CreatedAt = DateTime.UtcNow;
+            user.UpdatedAt = DateTime.UtcNow;
             await _unitOfWork.Users.AddAsync(user);
         }
 
@@ -207,7 +209,7 @@ namespace Application.Services
                 throw new UnauthorizedAccessException("The current password is incorrect.");
 
             user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
-            user.UpdatedAt = DateTime.Now;
+            user.UpdatedAt = DateTime.UtcNow;
             await _unitOfWork.Users.UpdateAsync(user);
             await _unitOfWork.Users.SaveChangesAsync();
 

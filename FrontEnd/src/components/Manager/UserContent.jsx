@@ -27,8 +27,8 @@ export default function UserContent() {
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [roleFilter, setRoleFilter] = useState("all");
-  const [statusFilter, setStatusFilter] = useState("all");
+  const [roleFilter, setRoleFilter] = useState("All");
+  const [statusFilter, setStatusFilter] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
 
   const currentUserId = useMemo(
@@ -86,9 +86,9 @@ export default function UserContent() {
 
     const q = searchQuery.trim().toLowerCase();
     return users.filter((u) => {
-      const matchesRole = roleFilter === "all" || u.role === roleFilter;
+      const matchesRole = roleFilter === "All" || u.role === roleFilter;
       const matchesStatus =
-        statusFilter === "all" || u.accountStatus === statusFilter;
+        statusFilter === "All" || u.accountStatus === statusFilter;
       const matchesSearch =
         !q ||
         u.fullName.toLowerCase().includes(q) ||
@@ -103,7 +103,7 @@ export default function UserContent() {
       if (!userId || userId === currentUserId) return;
 
       // Validation
-      const validStatuses = ["active", "warning1", "warning2", "ban"];
+      const validStatuses = ["Active", "Warning1", "Warning2", "Ban"];
       if (!validStatuses.includes(status)) return;
 
       const user = users.find((u) => u.userId === userId);
@@ -123,7 +123,7 @@ export default function UserContent() {
         );
 
         // Silent email if banned
-        if (status === "ban" && user.email) {
+        if (status === "Ban" && user.email) {
           await sendBanEmail(
             user.email,
             "https://cocmuaxe.vn/help/appeal",
@@ -195,11 +195,11 @@ export default function UserContent() {
         key: "role",
         render: (role) => {
           const color =
-            role === "buyer"
+            role === "Buyer"
               ? "blue"
-              : role === "seller"
+              : role === "Seller"
               ? "green"
-              : role === "staff"
+              : role === "Staff"
               ? "orange"
               : "purple";
           return <Tag color={color}>{role.toUpperCase()}</Tag>;
@@ -233,7 +233,7 @@ export default function UserContent() {
               onClick={({ key }) => handleStatusChange(record.userId, key)}
               items={[
                 {
-                  key: "warning1",
+                  key: "Warning1",
                   label: (
                     <div className="flex items-center gap-2 text-orange-500">
                       <AlertTriangle size={16} />
@@ -242,7 +242,7 @@ export default function UserContent() {
                   ),
                 },
                 {
-                  key: "ban",
+                  key: "Ban",
                   label: (
                     <div className="flex items-center gap-2 text-red-500">
                       <Ban size={16} />
@@ -251,7 +251,7 @@ export default function UserContent() {
                   ),
                 },
                 {
-                  key: "active",
+                  key: "Active",
                   label: (
                     <div className="flex items-center gap-2 text-green-600">
                       <UserCheck size={16} />
@@ -291,19 +291,19 @@ export default function UserContent() {
           />
 
           <Select value={roleFilter} onChange={setRoleFilter} style={{ width: 160 }}>
-            <Option value="all">Tất cả vai trò</Option>
-            <Option value="buyer">Người mua</Option>
-            <Option value="seller">Người bán</Option>
-            <Option value="staff">Nhân viên</Option>
-            <Option value="manager">Quản lý</Option>
+            <Option value="All">Tất cả vai trò</Option>
+            <Option value="Buyer">Người mua</Option>
+            <Option value="Seller">Người bán</Option>
+            <Option value="Staff">Nhân viên</Option>
+            <Option value="Manager">Quản lý</Option>
           </Select>
 
           <Select value={statusFilter} onChange={setStatusFilter} style={{ width: 180 }}>
-            <Option value="all">Tất cả trạng thái</Option>
-            <Option value="active">Đang hoạt động</Option>
-            <Option value="warning1">Cảnh cáo 1</Option>
-            <Option value="warning2">Cảnh cáo 2</Option>
-            <Option value="ban">Bị cấm</Option>
+            <Option value="All">Tất cả trạng thái</Option>
+            <Option value="Active">Đang hoạt động</Option>
+            <Option value="Warning1">Cảnh cáo 1</Option>
+            <Option value="Warning2">Cảnh cáo 2</Option>
+            <Option value="Ban">Bị cấm</Option>
           </Select>
 
           <Button type="default" icon={<Download size={16} />} onClick={exportToCSV}>
@@ -314,8 +314,8 @@ export default function UserContent() {
 
       <div className="text-sm text-slate-600 mb-3">
         Hiển thị <b>{filteredUsers.length}</b> người dùng
-        {roleFilter !== "all" && ` (vai trò: ${roleFilter})`}
-        {statusFilter !== "all" && `, trạng thái: ${statusFilter}`}
+        {roleFilter !== "All" && ` (vai trò: ${roleFilter})`}
+        {statusFilter !== "All" && `, trạng thái: ${statusFilter}`}
         {searchQuery && `, tìm kiếm: “${searchQuery}”`}
       </div>
 

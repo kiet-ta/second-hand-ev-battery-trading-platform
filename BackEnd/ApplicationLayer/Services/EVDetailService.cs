@@ -1,6 +1,7 @@
 ﻿using Application.DTOs.ItemDtos;
 using Application.IRepositories;
 using Application.IServices;
+using Domain.Common.Constants;
 using Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -14,10 +15,12 @@ namespace Application.Services
     public class EVDetailService : IEVDetailService
     {
         private readonly IUnitOfWork _unitOfWork;
+   
 
-        public EVDetailService(IUnitOfWork unitOfWork)
+        public EVDetailService(IUnitOfWork unitOfWork) 
         {
-            _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
+     
+            _unitOfWork = unitOfWork ;
         }
 
         public async Task<EVDetailDto> CreateAsync(CreateEvDetailDto dto, CancellationToken ct = default)
@@ -28,7 +31,7 @@ namespace Application.Services
 
             var item = new Item
             {
-                ItemType = "Ev",
+                ItemType = ItemType.Ev.ToString(),
                 CategoryId = dto.CategoryId,
                 Title = dto.Title,
                 Description = dto.Description,

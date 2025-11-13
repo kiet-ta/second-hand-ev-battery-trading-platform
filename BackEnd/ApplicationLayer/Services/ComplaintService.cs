@@ -10,9 +10,10 @@ namespace Application.Services
 {
     public class ComplaintService : IComplaintService
     {
+
         private readonly IUnitOfWork _unitOfWork;
 
-        public ComplaintService(IUnitOfWork unitOfWork)
+        public ComplaintService( IUnitOfWork unitOfWork)
         {
             _unitOfWork = unitOfWork;
         }

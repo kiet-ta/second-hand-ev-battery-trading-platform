@@ -9,5 +9,7 @@ namespace Domain.Common.Constants
     public enum ComplaintSeverityLevel
     {
         Low, High, Medium
+
+
     }
 }

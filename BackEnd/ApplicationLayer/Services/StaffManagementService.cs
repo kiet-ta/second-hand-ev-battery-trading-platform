@@ -11,15 +11,15 @@ namespace Application.Services;
 
 public class StaffManagementService : IStaffManagementService
 {
+    private readonly IMapper _mapper; 
     private readonly IUnitOfWork _unitOfWork;
-    private readonly IMapper _mapper;
+
 
     public StaffManagementService(
-            IUnitOfWork unitOfWork,
-            IMapper mapper)
+            IMapper mapper, IUnitOfWork unitOfWork)
     {
-        _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
         _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
+        _unitOfWork = unitOfWork;
     }
 
     public static int GenerateUserId()
@@ -36,7 +36,7 @@ public class StaffManagementService : IStaffManagementService
     {
         var staff = await _unitOfWork.Users.GetByIdAsync(staffId)
                     ?? throw new InvalidOperationException("Staff not found.");
-        if (staff.Role != "staff")
+        if (staff.Role != UserRole.Staff.ToString())
             throw new InvalidOperationException("User is not a staff member.");
 
         if (permissionIds == null || !permissionIds.Any())
@@ -76,7 +76,7 @@ public class StaffManagementService : IStaffManagementService
 
         await _unitOfWork.Users.AddAsync(newUser); // không dùng ?? throw
                                                  // nếu muốn, có thể check sau saveChanges:
-                                                 // await _userRepository.SaveChangesAsync();
+                                                 // await _unitOfWork.Users.SaveChangesAsync();
 
         if (request.Permissions != null && request.Permissions.Any())
         {

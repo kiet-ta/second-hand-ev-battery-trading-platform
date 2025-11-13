@@ -114,16 +114,12 @@ export default function HistoryBought() {
 
   const getStatusColor = (status) => {
     switch (status) {
-      case "completed":
+      case "Completed":
         return "bg-green-100 !text-green-800";
-      case "pending":
-      case "processing":
-        return "bg-yellow-100 !text-yellow-800";
-      case "failed":
+      case "Pending":
+      case "Failed":
         return "bg-red-100 !text-red-800";
-      case "canceled":
-        return "bg-orange-100 !text-orange-800";
-      case "expired":
+      case "Expired":
         return "bg-gray-200 !text-gray-800";
       default:
         return "bg-gray-100 !text-gray-800";
@@ -132,16 +128,13 @@ export default function HistoryBought() {
 
   const getStatusText = (status) => {
     switch (status) {
-      case "completed":
+      case "Completed":
         return "Hoàn thành";
-      case "pending":
-      case "processing":
-        return "Đang xử lý";
-      case "failed":
+      case "Pending":
+        return "Đợi"
+      case "Failed":
         return "Thất bại";
-      case "canceled":
-        return "Đã hủy";
-      case "expired":
+      case "Expired":
         return "Đã hết hạn";
       default:
         return "Không xác định";
@@ -222,13 +215,13 @@ export default function HistoryBought() {
             <div className="bg-white p-4 rounded-lg shadow text-center">
               <p className="text-sm text-gray-500">Hoàn thành</p>
               <p className="text-xl font-bold text-green-600">
-                {orders.filter((o) => o.status === "completed").length}
+                {orders.filter((o) => o.status === "Completed").length}
               </p>
             </div>
             <div className="bg-white p-4 rounded-lg shadow text-center">
               <p className="text-sm text-gray-500">Đang xử lý</p>
               <p className="text-xl font-bold text-yellow-600">
-                {orders.filter((o) => o.status === "pending").length}
+                {orders.filter((o) => o.status === "Pending").length}
               </p>
             </div>
             <div className="bg-white p-4 rounded-lg shadow text-center">
@@ -242,7 +235,7 @@ export default function HistoryBought() {
           {/* --- Filter Bar --- */}
           <div className="bg-white p-4 rounded-lg shadow mb-6 flex flex-wrap gap-3 items-center justify-between">
             <div className="flex gap-3 flex-wrap">
-              {["all", "completed", "pending", "failed", "canceled", "expired"].map((type) => (
+              {["all", "Completed", "Pending", "Failed", "Canceled", "Expired"].map((type) => (
                 <button
                   key={type}
                   onClick={() => setFilter(type)}
@@ -265,8 +258,8 @@ export default function HistoryBought() {
                 onChange={(e) => setFilterType(e.target.value)}
               >
                 <option value="all">Tất cả loại SP</option>
-                <option value="ev">Xe điện</option>
-                <option value="battery">Pin</option>
+                <option value="Ev">Xe điện</option>
+                <option value="Battery">Pin</option>
               </select>
 
               <select
@@ -323,7 +316,7 @@ export default function HistoryBought() {
                       {order.brand} {order.model} - {order.year}
                     </h3>
 
-                    {order.itemType === "ev" && (
+                    {order.itemType === "Ev" && (
                       <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-gray-600 mt-1">
                         <span className="flex items-center gap-1.5">
                           <Car size={14} />
@@ -340,7 +333,7 @@ export default function HistoryBought() {
                       </div>
                     )}
 
-                    {order.itemType === "battery" && (
+                    {order.itemType === "Battery" && (
                       <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-gray-600 mt-1">
                         <span className="flex items-center gap-1.5">
                           <Zap size={14} />

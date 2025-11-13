@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Domain.Common.Constants
 {
-    public enum CommissionFeeType
+   public enum CommissionFeeType
     {
         Percentage, Fixed
     }

@@ -77,8 +77,8 @@ export default function LoginPage() {
             localStorage.setItem("user", JSON.stringify(userData));
 
             const role = userData.role?.toLowerCase();
-            if (role === "manager" || role === "staff") navigate("/manage");
-            else if (role === "seller") navigate("/seller");
+            if (role === "Manager" || role === "Staff") navigate("/manage");
+            else if (role === "Seller") navigate("/seller");
             else navigate("/");
         } catch (err) {
             console.error("Google Login Error:", err);
@@ -142,8 +142,8 @@ export default function LoginPage() {
 
             setUser(newUser);
             const role = res.role?.toLowerCase();
-            if (role === "manager" || role === "staff") navigate("/manage");
-            else if (role === "seller") navigate("/seller");
+            if (role === "Manager" || role === "Staff") navigate("/manage");
+            else if (role === "Seller") navigate("/seller");
             else navigate("/");
         } catch (err) {
             console.error("Login error:", err);

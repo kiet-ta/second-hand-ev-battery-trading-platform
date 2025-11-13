@@ -25,16 +25,13 @@ const KycRouteGuard = ({ children }) => {
         }
 
         switch (user.kycStatus) {
-          case "not_submitted":
+          case "Not_Submitted":
             navigate("/seller-registration");
             break;
-          case "pending":
+          case "Pending":
             navigate("/pending-review");
             break;
-          case "rejected":
-            navigate("/seller-registration");
-            break;
-          case "approved":
+          case "Approved'":
           default:
             setLoading(false);
             break;

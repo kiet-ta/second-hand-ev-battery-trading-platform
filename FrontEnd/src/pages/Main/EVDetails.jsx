@@ -86,7 +86,7 @@ function EVDetails() {
         setLoading(true);
         const itemData = await itemApi.getItemDetailByID(itemId);
         setItem(itemData);
-        setIsVerified(itemData.moderation === "approved_tag");
+        setIsVerified(itemData.moderation === "Approved");
 
         const seller = await userApi.getUserByID(itemData.updatedBy);
         setSellerProfile(seller);

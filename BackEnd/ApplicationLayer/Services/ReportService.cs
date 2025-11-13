@@ -7,9 +7,10 @@ namespace Application.Services
 {
     public class ReportService : IReportService
     {
+
         private readonly IUnitOfWork _unitOfWork;
 
-        public ReportService(IUnitOfWork unitOfWork)
+        public ReportService(IReportRepository reportRepository, IUnitOfWork unitOfWork )
         {
             _unitOfWork = unitOfWork;
         }

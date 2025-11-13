@@ -10,7 +10,7 @@ namespace Application.Services
 
         public AddressService(IUnitOfWork unitOfWork)
         {
-           _unitOfWork = unitOfWork;
+            _unitOfWork = unitOfWork;
         }
 
 

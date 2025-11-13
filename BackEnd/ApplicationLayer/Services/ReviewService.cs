@@ -12,9 +12,9 @@ namespace Application.Services
     {
         private readonly IUnitOfWork _unitOfWork;
 
-        public ReviewService(IUnitOfWork unitOfWork)
+        public ReviewService(IReviewRepository reviewRepository, IUnitOfWork unitOfWork)
         {
-            _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
+            _unitOfWork = unitOfWork;
         }
 
         public async Task<ReviewResponseDto> CreateReviewAsync(CreateReviewDto dto, int id)

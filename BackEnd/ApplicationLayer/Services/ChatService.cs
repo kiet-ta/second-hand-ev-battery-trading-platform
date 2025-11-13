@@ -14,15 +14,17 @@ namespace Application.Services
 {
     public class ChatService : IChatService
     {
-        private readonly IUnitOfWork _unitOfWork;
         private readonly IUserContextService _userContext;
         private readonly IProfanityFilterService _filterService;
+        private readonly IUnitOfWork _unitOfWork;
+
 
         public ChatService(IUserContextService userContext, IProfanityFilterService filterService, IUnitOfWork unitOfWork)
         {
             _userContext = userContext;
             _filterService = filterService;
             _unitOfWork = unitOfWork;
+
         }
 
         public async Task<ChatRoomDto> EnsureRoomAsync(long[] members)
@@ -63,10 +65,12 @@ namespace Application.Services
 
         public async Task<Message> SendMessageAsync(SendMessageDto dto)
         {
+            // Authorization: current user must be sender
             var current = _userContext.GetCurrentUserId();
             if (current != dto.From)
                 throw new UnauthorizedAccessException("You can only send messages as yourself");
 
+            // Validate room exists and user are member
             var room = await _unitOfWork.Chats.GetRoomRawAsync(dto.Cid);
             if (room == null)
                 throw new ArgumentException($"Room {dto.Cid} does not exist");
@@ -79,19 +83,20 @@ namespace Application.Services
             var filterResult = _filterService.Filter(dto.Text);
             var cleanedMessage = filterResult.CleanedText;
 
-            // log
+            // 2. Nếu vi phạm, ghi lại log
             if (filterResult.WasProfane)
             {
                 Console.WriteLine($"User {dto.From} sent a profane message.");
                 await _unitOfWork.UserModerations.AddProfanityLogAsync(dto.From, DateTimeOffset.UtcNow);
 
-                // 3. check
+                // 3. (Tùy chọn) Kiểm tra ngay lập tức
+                // Bạn có thể lấy count ngay bây giờ để quyết định cấm chat, v.v.
                 int profanityCount = await _unitOfWork.UserModerations.GetProfanityCountAsync(dto.From, TimeSpan.FromHours(1));
                 Console.WriteLine($"User {dto.From} profanity count in last 1h: {profanityCount}");
 
-                if (profanityCount > 5) // bad word 5 time/hour
+                if (profanityCount > 5) // Ví dụ: Cấm chat nếu chửi bậy quá 5 lần/giờ
                 {
-                    // throw new Exception("You have been banned from chat for violating.");
+                    // throw new Exception("Bạn đã bị cấm chat vì vi phạm.");
                 }
             }
 

@@ -16,6 +16,7 @@ public class CommissionFeeRuleService : ICommissionFeeRuleService
 
     public CommissionFeeRuleService(IUnitOfWork unitOfWork)
     {
+
         _unitOfWork = unitOfWork;
     }
     public async Task<IEnumerable<CommissionFeeRule>> GetAllAsync() => await _unitOfWork.CommissionFeeRules.GetAllAsync();

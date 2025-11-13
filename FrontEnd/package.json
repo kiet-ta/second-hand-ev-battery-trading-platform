@@ -21,6 +21,7 @@
     "@tailwindcss/vite": "^4.1.13",
     "antd": "^5.20.1",
     "axios": "^1.12.2",
+    "dayjs": "^1.11.19",
     "esbuild": "^0.25.9",
     "framer-motion": "^12.23.24",
     "jwt-decode": "^4.0.0",

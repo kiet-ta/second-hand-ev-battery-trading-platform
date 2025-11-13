@@ -15,10 +15,15 @@ namespace Application.Services
 {
     public class ManagerDashboardService : IManagerDashboardService
     {
+        private readonly IComplaintRepository _complaintRepo;
         private readonly IUnitOfWork _unitOfWork;
 
-        public ManagerDashboardService(IUnitOfWork unitOfWork)
+
+        public ManagerDashboardService(
+            IComplaintRepository complaintRepo, 
+            IUnitOfWork unitOfWork)
         {
+            _complaintRepo = complaintRepo;
             _unitOfWork = unitOfWork;
         }
 

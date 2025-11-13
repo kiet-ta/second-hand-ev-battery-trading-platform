@@ -207,7 +207,7 @@ function CardComponent({
                 totalAmount: price,
                 orderItems: [
                     {
-                        id: id,
+                        id: createdOrderItem.orderItemId,
                         name: title || "Sản phẩm",
                         price,
                         quantity: 1,
@@ -300,7 +300,7 @@ function CardComponent({
         ? "flex items-center justify-center w-10 h-10 rounded-full bg-red-400 text-white hover:bg-red-500 shadow-lg"
         : "flex items-center justify-center w-10 h-10 rounded-full bg-white text-red-500 hover:bg-red-50 shadow-lg";
 
-    const detailUrl = type === "ev" ? `/ev/${id}` : `/battery/${id}`;
+    const detailUrl = type === "Ev" ? `/ev/${id}` : `/battery/${id}`;
 
     return (
         <Link to={detailUrl} state={id} className="block group">
@@ -378,7 +378,7 @@ function CardComponent({
                         </div>
                     </div>
                     <div className="flex justify-between items-center pt-4 border-t border-gray-100">
-                        {type === "battery" ? (
+                        {type === "Battery" ? (
                             <div className="flex justify-around items-center w-full gap-4">
                                 <button
                                     onClick={handleBuyNow}

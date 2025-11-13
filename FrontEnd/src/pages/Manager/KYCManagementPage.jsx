@@ -48,16 +48,16 @@ const KycDocumentCard = ({ document, onApprove, onReject }) => {
       <div className="mb-1 flex justify-between items-center">
         <h3 className="font-semibold text-sm">Người dùng #{document.userId}</h3>
         <span
-          className={`px-2 py-0.5 text-xs font-semibold rounded ${document.status === 'pending'
+          className={`px-2 py-0.5 text-xs font-semibold rounded ${document.status === 'Pending'
               ? 'bg-yellow-100 text-yellow-800'
-              : document.status === 'approved'
+              : document.status === 'Approved'
                 ? 'bg-green-100 text-green-800'
                 : 'bg-red-100 text-red-800'
             }`}
         >
-          {document.status === 'pending'
+          {document.status === 'Pending'
             ? 'CHỜ DUYỆT'
-            : document.status === 'approved'
+            : document.status === 'Approved'
               ? 'ĐÃ DUYỆT'
               : 'BỊ TỪ CHỐI'}
         </span>
@@ -145,7 +145,7 @@ const KycDocumentCard = ({ document, onApprove, onReject }) => {
       )}
 
       {/* Action buttons */}
-      {document.status === 'pending' && (
+      {document.status === 'Pending' && (
         <div className="mt-1 flex flex-col gap-1">
           <PermissionChecker permissionId={3}>          
             <button
@@ -198,7 +198,7 @@ const KycDocumentCard = ({ document, onApprove, onReject }) => {
 };
 
 const KycManagementPage = () => {
-  const [currentTab, setCurrentTab] = useState('pending');
+  const [currentTab, setCurrentTab] = useState('Pending');
   const [documents, setDocuments] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -210,11 +210,11 @@ const KycManagementPage = () => {
     setDocuments([]);
     try {
       let response;
-      if (currentTab === 'pending') {
+      if (currentTab === 'Pending') {
         response = await kycApi.getPendingKYC();
-      } else if (currentTab === 'approved') {
+      } else if (currentTab === 'Approved') {
         response = await kycApi.getApprovedKYC();
-      } else if (currentTab === 'rejected') {
+      } else if (currentTab === 'Rejected') {
         response = await kycApi.getRejectedKYC();
       }
       setDocuments(response);
@@ -277,17 +277,17 @@ const KycManagementPage = () => {
       <div className="border-b border-gray-200 mb-4">
         <nav className="-mb-px flex space-x-4" aria-label="Tabs">
           <button
-            onClick={() => setCurrentTab('pending')}
+            onClick={() => setCurrentTab('Pending')}
             className={`whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm ${getTabClass(
-              'pending'
+              'Pending'
             )}`}
           >
             Chờ duyệt
           </button>
           <button
-            onClick={() => setCurrentTab('approved')}
+            onClick={() => setCurrentTab('Approved')}
             className={`whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm ${getTabClass(
-              'approved'
+              'Approved'
             )}`}
           >
             Đã duyệt
@@ -295,7 +295,7 @@ const KycManagementPage = () => {
           <button
             onClick={() => setCurrentTab('rejected')}
             className={`whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm ${getTabClass(
-              'rejected'
+              'Rejected'
             )}`}
           >
             Bị từ chối
