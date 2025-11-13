@@ -25,6 +25,8 @@ public class CommissionController : ControllerBase
     [HttpGet("rules/{ruleId}")]
     public async Task<IActionResult> GetRuleById(int ruleId) => Ok(await _ruleService.GetByIdAsync(ruleId));
 
+    [HttpGet("rules/ruleCode/{feeCode}")]
+    public async Task<IActionResult> GetRuleByFeeCode(string feeCode) => Ok(await _ruleService.GetByFeeCodeAsync(feeCode));
 
     [HttpPost("rules")]
     public async Task<IActionResult> Create([FromBody] CommissionFeeRule rule)

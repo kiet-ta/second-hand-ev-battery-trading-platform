@@ -161,6 +161,7 @@ namespace Application.Services
             existing.AvatarProfile = user.AvatarProfile;
             existing.Role = user.Role;
             existing.KycStatus = user.KycStatus;
+            existing.IsStore = user.IsStore;
             existing.AccountStatus = user.AccountStatus;
             existing.YearOfBirth = user.YearOfBirth;
             existing.UpdatedAt = DateTime.Now;

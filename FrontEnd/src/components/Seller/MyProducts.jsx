@@ -4,6 +4,9 @@ import { Input, Select, Modal, Button, Spin, Alert } from "antd";
 import ProductCreationModal from "../ItemForm/ProductCreationModal";
 import walletApi from "../../api/walletApi";
 import itemApi from "../../api/itemApi";
+import commissionApi from "../../api/commissionApi";
+import kycApi from "../../api/kycApi";
+import userApi from "../../api/userApi";
 
 export default function MyProducts() {
   const [products, setProducts] = useState([]);
@@ -18,6 +21,8 @@ export default function MyProducts() {
   const [payType, setPayType] = useState(null); // "listing" | "moderation"
   const [payLoading, setPayLoading] = useState(false);
   const [inlineMsg, setInlineMsg] = useState(null);
+  const [feeCommission, setFeeCommission] = useState(0);
+  const [moderationCommission, setModerationCommission] = useState(0);
 
   const sellerId = localStorage.getItem("userId");
   const baseURL = import.meta.env.VITE_API_BASE_URL;
@@ -26,6 +31,19 @@ export default function MyProducts() {
     if (!sellerId) return;
     setLoading(true);
     try {
+      const user = await userApi.getUserByID(sellerId)
+      let listingFee;
+      let moderationFee;
+      if (user.isStore) {
+        listingFee = await commissionApi.getCommissionByFeeCode("FEESL")
+        moderationFee = await commissionApi.getCommissionByFeeCode("FEESM")
+      }
+      else {
+        listingFee = await commissionApi.getCommissionByFeeCode("FEEPL")
+        moderationFee = await commissionApi.getCommissionByFeeCode("FEEPM")
+      }
+      setFeeCommission(listingFee.feeValue)
+      setModerationCommission(moderationFee.feeValue)
       const res = await fetch(`${baseURL}sellers/${sellerId}/item`);
       if (!res.ok) throw new Error("Không thể tải danh sách sản phẩm");
       const data = await res.json();
@@ -78,10 +96,10 @@ export default function MyProducts() {
   };
 
   const handleConfirmPayment = async () => {
-    if (!wallet || wallet.balance < 100000) {
+    if (!wallet || (wallet.balance < feeCommission && payType == "listing") || (wallet.balance < moderationCommission && payType == "moderation")) {
       setInlineMsg({
         type: "error",
-        text: "Số dư ví không đủ để thanh toán (₫100,000).",
+        text: `Số dư ví không đủ để thanh toán.`,
       });
       return;
     }
@@ -91,10 +109,10 @@ export default function MyProducts() {
 
     try {
       const userId = localStorage.getItem("userId");
-
+      const amount = payType === "listing" ? feeCommission : moderationCommission
       await walletApi.withdrawWallet({
         userId,
-        amount: 100000,
+        amount: amount,
         type: "Withdraw",
         ref: selectedItem.itemId,
         description:
@@ -111,7 +129,7 @@ export default function MyProducts() {
       if (payType === "listing") {
         const paymentState = updatePayload.status == "Auction_Pending_Pay" ? "Auction_Active" : "Active"
         updatePayload.status = paymentState;
-      } 
+      }
       if (payType === "moderation") updatePayload.moderation = "Pending";
 
       await itemApi.putItem(selectedItem.itemId, updatePayload);
@@ -147,7 +165,7 @@ export default function MyProducts() {
       case "Pending_Pay":
         return "Chờ thanh toán";
       case "Auction_Pending_Pay":
-      return "Đang hoạt động (Đấu giá)"
+        return "Đang hoạt động (Đấu giá)"
       case "Rejected":
         return "Bị từ chối";
       default:
@@ -228,11 +246,10 @@ export default function MyProducts() {
                   className="w-full h-48 object-cover"
                 />
                 <span
-                  className={`absolute top-2 right-2 text-xs font-semibold px-2 py-1 rounded-full ${
-                    item.status === "Active"
+                  className={`absolute top-2 right-2 text-xs font-semibold px-2 py-1 rounded-full ${item.status === "Active"
                       ? "bg-green-100 text-green-700"
                       : "bg-gray-100 text-gray-600"
-                  }`}
+                    }`}
                 >
                   {translateStatus(item.status)}
                 </span>
@@ -259,16 +276,16 @@ export default function MyProducts() {
                       block
                       onClick={() => handlePayClick(item, "listing")}
                     >
-                      Thanh toán đăng bán (₫100,000)
+                      Thanh toán đăng bán (₫{feeCommission})
                     </Button>
                   )}
 
-                  {item.moderation !== "Approved" && item.moderation !== "Pending"  && (
+                  {item.moderation !== "Approved" && item.moderation !== "Pending" && (
                     <Button
                       block
                       onClick={() => handlePayClick(item, "moderation")}
                     >
-                      Yêu cầu kiểm duyệt (₫100,000)
+                      Yêu cầu kiểm duyệt (₫{moderationCommission})
                     </Button>
                   )}
                 </div>
@@ -303,7 +320,10 @@ export default function MyProducts() {
               {formatCurrency(wallet?.balance || 0)}
             </p>
             <p className="text-gray-700 mb-4">
-              <strong>Phí thanh toán:</strong> ₫100,000
+              {payType == "listing" ?
+                <><strong>Phí thanh toán: </strong> đ{feeCommission}</>:
+                <><strong>Phí thanh toán: </strong> đ{moderationCommission}</>}
+
             </p>
 
             {inlineMsg && (

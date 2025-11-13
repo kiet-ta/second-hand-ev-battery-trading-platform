@@ -21,7 +21,11 @@ public class CommissionFeeRuleService : ICommissionFeeRuleService
     }
     public async Task<IEnumerable<CommissionFeeRule>> GetAllAsync() => await _unitOfWork.CommissionFeeRules.GetAllAsync();
     public async Task<CommissionFeeRule?> GetByIdAsync(int id) => await _unitOfWork.CommissionFeeRules.GetByIdAsync(id);
+
+    public async Task<CommissionFeeRule?> GetByFeeCodeAsync(string feeCode) => await _unitOfWork.CommissionFeeRules.GetByFeeCodeAsync(feeCode);
     public async Task AddAsync(CommissionFeeRule rule) => await _unitOfWork.CommissionFeeRules.AddAsync(rule);
+
+
     public async Task<CommissionFeeRule> ToggleStatusAsync(CommissionFeeRule rule)
     {
         if (rule == null)

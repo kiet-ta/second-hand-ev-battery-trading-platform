@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "vite CI= react-scripts --max_old_space_size=4096 build",
     "lint": "eslint .",
     "preview": "vite preview"
   },
@@ -27,6 +27,7 @@
     "jwt-decode": "^4.0.0",
     "lucide-react": "^0.544.0",
     "openai": "^6.3.0",
+    "prop-types": "^15.8.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-hot-toast": "^2.6.0",

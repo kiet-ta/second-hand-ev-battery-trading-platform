@@ -173,7 +173,7 @@ export const router = createBrowserRouter([
 
   {
     path: "/seller",
-    element: <ProtectedRoute allowedRoles={["Seller"]} />,
+    element: <ProtectedRoute allowedRoles={["seller"]} />,
     children: [
       {
         element: <SellerDashboardLayout />,

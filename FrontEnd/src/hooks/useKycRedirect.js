@@ -18,19 +18,19 @@ useEffect(() => {
       const user = await userApi.getUserByID(userId);
       const kycStatus = user.kycStatus || "Not_Submitted";
       const role = user.role || "user";
-
+      console.log(kycStatus)
       if (role === "Seller") {
         if (location.pathname === "/seller-registration" || location.pathname === "/pending-review") {
-          navigate("/");
+          navigate("/seller");
         }
         return;
       }
 
       if (location.pathname === "/pending-review" && kycStatus === "Not_Submitted") {
         navigate("/seller-registration");
-      } else if (location.pathname === "/seller-registration" && kycStatus === "pending") {
+      } else if (location.pathname === "/seller-registration" && kycStatus === "Pending") {
         navigate("/pending-review");
-      } else if (location.pathname === "/seller-form" && kycStatus === "pending") {
+      } else if (location.pathname === "/seller-form" && kycStatus === "Pending") {
         navigate("/pending-review");
       }
 

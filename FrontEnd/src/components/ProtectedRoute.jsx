@@ -29,7 +29,7 @@ const ProtectedRoute = ({ allowedRoles }) => {
     if (!token || !userRole) {
         return <Navigate to="/login" replace />;
     }
-    if (allowedRoles =="Seller" && userRole !="Seller"){
+    if (allowedRoles.includes("Seller") && userRole != "Seller"){
         return <Navigate to="/seller-registration" replace/>
     }
     if (allowedRoles.includes(userRole)) {
