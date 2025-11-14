@@ -66,8 +66,8 @@ public class PaymentService : IPaymentService
             if (sellerWallet == null)
                 throw new Exception($"Không tìm thấy ví cho Seller (ID: {sellerId}).");
             string feeCode;
-            if (seller.IsStore) feeCode = "FEESL";
-            else feeCode = "FEEPL";
+            if (seller.IsStore) feeCode = "FEESC";
+            else feeCode = "FEEPC";
                 var commissionRule = await _unitOfWork.CommissionFeeRules.GetByFeeCodeAsync(feeCode); // Hard Core
             if (commissionRule == null)
                 throw new Exception("Không tìm thấy quy tắc hoa hồng 'FEE001'.");

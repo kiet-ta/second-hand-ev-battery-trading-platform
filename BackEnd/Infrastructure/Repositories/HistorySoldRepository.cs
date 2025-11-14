@@ -225,24 +225,6 @@ namespace Infrastructure.Repositories
                         from p in paymentList.DefaultIfEmpty()
 
                             // Tính toán trạng thái ngay trong query
-                        let isSold = _context.OrderItems.Any(pd_s => pd_s.ItemId == item.ItemId && 
-                            _context.Orders.Any(p_s => p_s.OrderId == pd_s.OrderId && 
-                            p_s.Status == OrderStatus.Completed.ToString()))
-                        let isProcessing = !isSold &&
-                            _context.OrderItems.Any(oi_p => oi_p.ItemId == item.ItemId && 
-                            _context.Orders.Any(o_p => o_p.OrderId == oi_p.OrderId && 
-                            (o_p.Status == OrderStatus.Paid.ToString() || o_p.Status == OrderStatus.Shipped.ToString())))
-                        let isPending = !isSold && !isProcessing && 
-                            _context.OrderItems.Any(pd_pe => pd_pe.ItemId == item.ItemId && _context.Orders.Any(p_pe => p_pe.OrderId == pd_pe.OrderId && p_pe.Status == OrderStatus.Pending.ToString()))
-                        let isCanceled = !isSold && !isProcessing && !isPending &&(
-                            _context.PaymentDetails.Any(pd_c => pd_c.ItemId == item.ItemId && 
-                            _context.Payments.Any(p_c => p_c.PaymentId == pd_c.PaymentId && (
-                            p_c.Status == PaymentStatus.Failed.ToString() || 
-                            p_c.Status == PaymentStatus.Refunded.ToString() || 
-                            p_c.Status == PaymentStatus.Expired.ToString()))) || 
-                            _context.OrderItems.Any(oi_c => oi_c.ItemId == item.ItemId && 
-                            _context.Orders.Any(o_c => o_c.OrderId == oi_c.OrderId && o_c.Status == 
-                            OrderStatus.Cancelled.ToString())))
 
                         select new BatteryItemDto
                         {
@@ -258,9 +240,9 @@ namespace Infrastructure.Repositories
                             PaymentMethod = p != null ? p.Method : null,
                             CreatedAt = item.CreatedAt,
                             SoldAt = item.UpdatedAt,
-                            ImageUrl = (from img_ in _context.ItemImages 
-                                where img_.ItemId == item.ItemId 
-                                select img_.ImageUrl).FirstOrDefault(),
+                            ImageUrl = (from img_ in _context.ItemImages
+                                        where img_.ItemId == item.ItemId
+                                        select img_.ImageUrl).FirstOrDefault(),
                             Buyer = u != null ? new BuyerDto
                             {
                                 BuyerId = u.UserId,
@@ -269,13 +251,8 @@ namespace Infrastructure.Repositories
                                 Address = a != null ? $"{a.Street}, {a.Ward}, {a.District}, {a.Province}" : null
                             } : null,
                             OrderId = o != null ? o.OrderId : (int?)null,
-
+                            Status = o.Status != null ? o.Status : null
                             // Gán trạng thái đã tính toán
-                            Status = isSold ? "Sold" :
-                                     isProcessing ? "Processing" :
-                                     isPending ? "Pending" :
-                                     isCanceled ? "Canceled" :
-                                     "Available"
                         };
 
             return await query.ToListAsync();
@@ -350,12 +327,6 @@ namespace Infrastructure.Repositories
                         join p in _context.Payments on pd.PaymentId equals p.PaymentId into paymentList
                         from p in paymentList.DefaultIfEmpty()
 
-                        let isSold = _context.OrderItems.Any(pd_s => pd_s.ItemId == item.ItemId && _context.Orders.Any(p_s => p_s.OrderId == pd_s.OrderId && p_s.Status == OrderStatus.Completed.ToString()))
-                        let isProcessing = !isSold && _context.OrderItems.Any(oi_p => oi_p.ItemId == item.ItemId && _context.Orders.Any(o_p => o_p.OrderId == oi_p.OrderId && (o_p.Status == OrderStatus.Paid.ToString() || o_p.Status == OrderStatus.Shipped.ToString())))
-                        let isPending = !isSold && !isProcessing && _context.OrderItems.Any(pd_pe => pd_pe.ItemId == item.ItemId && _context.Orders.Any(p_pe => p_pe.OrderId == pd_pe.OrderId && p_pe.Status == OrderStatus.Pending.ToString()))
-                        let isCanceled = !isSold && !isProcessing && !isPending &&
-                                         (_context.PaymentDetails.Any(pd_c => pd_c.ItemId == item.ItemId && _context.Payments.Any(p_c => p_c.PaymentId == pd_c.PaymentId && (p_c.Status == PaymentStatus.Failed.ToString()) || p_c.Status == PaymentStatus.Refunded.ToString() || p_c.Status == PaymentStatus.Expired.ToString()))
-                                          || _context.OrderItems.Any(oi_c => oi_c.ItemId == item.ItemId && _context.Orders.Any(o_c => o_c.OrderId == oi_c.OrderId && o_c.Status == OrderStatus.Cancelled.ToString())))
 
                         select new EVItemDto
                         {
@@ -384,11 +355,7 @@ namespace Infrastructure.Repositories
                             } : null,
                             OrderId = o != null ? o.OrderId : (int?)null,
 
-                            Status = isSold ? "Sold" :
-                                     isProcessing ? "Processing" :
-                                     isPending ? "Pending" :
-                                     isCanceled ? "Canceled" :
-                                     "Available"
+                            Status = o.Status != null ? o.Status : null
                         };
 
             return await query.ToListAsync();
