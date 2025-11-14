@@ -15,7 +15,7 @@ public class AuctionFinalizationService : IAuctionFinalizationService
     
 
     private const string AuctionSellerFeeCode = "AUCTION_SELLER_FEE"; // FIXME: mock value
-    private const string AuctionNotificationType = "auction";
+    private const string AuctionNotificationType = "Activities";
 
     public AuctionFinalizationService(IUnitOfWork unitOfWork, ILogger<AuctionFinalizationService> logger, INotificationService notificationService)
     {
@@ -267,7 +267,7 @@ public class AuctionFinalizationService : IAuctionFinalizationService
                 Title = title,
                 Message = message
             };
-            await _notificationService.AddNewNotification(notificationDto, 0,"");
+            await _notificationService.AddNewNotification(notificationDto, 1,"Manager");
         }
         catch (Exception ex)
         {

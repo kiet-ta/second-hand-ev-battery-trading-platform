@@ -18,11 +18,16 @@ useEffect(() => {
       const user = await userApi.getUserByID(userId);
       const kycStatus = user.kycStatus || "Not_Submitted";
       const role = user.role || "user";
+      console.log(user.paid, "userInfo")
       console.log(kycStatus)
       if (role === "Seller") {
         if (location.pathname === "/seller-registration" || location.pathname === "/pending-review") {
-          navigate("/seller");
+          if(user.paid === "Registered")
+          navigate("/seller")
         }
+        if(location.pathname === "/seller" && user.paid === "Pending_Pay")
+                      navigate("/seller-payment")
+
         return;
       }
 

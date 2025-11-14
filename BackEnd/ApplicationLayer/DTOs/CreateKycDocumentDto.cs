@@ -15,7 +15,7 @@ namespace Application.DTOs
         public int? VerifiedBy { get; set; }
         public DateTime? VerifiedAt { get; set; } = null;
         public string? StoreName { get; set; }
-        public int? StorePhone { get; set; }
+        public string? StorePhone { get; set; }
         public string? StoreLogoUrl { get; set; }
         public string Status { get; set; } = ComplaintStatus.Pending.ToString();
 

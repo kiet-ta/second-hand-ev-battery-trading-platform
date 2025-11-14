@@ -13,7 +13,7 @@ public class KycDocument
 
     public string? StoreName { get; set; }
 
-    public int? StorePhone { get; set; }
+    public string? StorePhone { get; set; }
 
     public string? StoreLogoUrl { get; set; }
 

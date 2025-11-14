@@ -19,7 +19,7 @@ const mapApiToState = (apiNoti) => ({
   id: apiNoti.id,
   title: apiNoti.title,
   content: apiNoti.message,
-  category: apiNoti.notiType ? apiNoti.notiType.toLowerCase() : "Activities",
+  category: apiNoti.notiType ? apiNoti.notiType: "Activities",
   type: apiNoti.type || "giao_dich",
   time: formatTimeAgo(apiNoti.createdAt),
   isUnread: !apiNoti.isRead,

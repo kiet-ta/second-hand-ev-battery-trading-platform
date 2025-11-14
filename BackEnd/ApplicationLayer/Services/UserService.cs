@@ -165,6 +165,7 @@ namespace Application.Services
             existing.AccountStatus = user.AccountStatus;
             existing.YearOfBirth = user.YearOfBirth;
             existing.UpdatedAt = DateTime.Now;
+            existing.Paid = user.Paid;
 
             await _unitOfWork.Users.UpdateAsync(existing);
             await _unitOfWork.Users.SaveChangesAsync();
