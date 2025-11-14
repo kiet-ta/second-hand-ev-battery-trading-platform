@@ -80,7 +80,7 @@ public static class DependencyInjectionExtensions
         services.AddScoped<ITransactionCommissionRepository, TransactionCommissionRepository>();
         services.AddScoped<IEmailRepository, EmailTemplateRepository>();
         services.AddScoped<IFavoriteRepository, FavoriteRepository>();
-        services.AddScoped<IKycDocumentRepository, KYC_DocumentRepository>();
+        services.AddScoped<IKycDocumentRepository, KycDocumentRepository>();
         services.AddScoped<IPermissionRepository, PermissionRepository>();
         services.AddScoped<IStaffPermissionRepository, StaffPermissionRepository>();
         services.AddScoped<INewsRepository, NewsRepository>();

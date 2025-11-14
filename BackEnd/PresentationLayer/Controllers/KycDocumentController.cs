@@ -8,11 +8,11 @@ namespace PresentationLayer.Controllers
 {
     [ApiController]
     [Route("api/kyc-document")]   
-    public class KYC_DocumentController : ControllerBase
+    public class KycDocumentController : ControllerBase
     {
         private readonly IKycDocumentService _kycService;
 
-        public KYC_DocumentController(IKycDocumentService kycService)
+        public KycDocumentController(IKycDocumentService kycService)
         {
             _kycService = kycService;
         }

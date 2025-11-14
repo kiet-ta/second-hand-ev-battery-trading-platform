@@ -46,112 +46,55 @@ namespace Infrastructure.Repositories
                 .AsQueryable();
         }
 
-        public async Task<List<Item>> GetProcessingItemsAsync(int sellerId)
-        {
-            var items = await _context.Items
-                .Where(item =>
-                    item.UpdatedBy == sellerId &&
-                    !(item.IsDeleted == true) &&
-                    _context.OrderItems
-                        .Join(_context.Orders, oi => oi.OrderId, o => o.OrderId, (oi, o) => new { oi, o })
-                        .Any(joined =>
-                            joined.oi.ItemId == item.ItemId &&
-                            (joined.o.Status == OrderStatus.Paid.ToString() || joined.o.Status == OrderStatus.Shipped.ToString()))
-                )
-                .ToListAsync();
+    //    private async Task<List<Item>> GetItemsByOrderStatusAsync(
+    //int sellerId,
+    //string orderStatus,
+    //string itemStatusToReturn)
+    //    {
+    //        var items = await _context.Items
+    //            .Where(item =>
+    //                item.UpdatedBy == sellerId &&
+    //                !item.IsDeleted &&
+    //                _context.OrderItems
+    //                    .Join(_context.Orders,
+    //                          oi => oi.OrderId,
+    //                          o => o.OrderId,
+    //                          (oi, o) => new { oi, o })
+    //                    .Any(joined =>
+    //                        joined.oi.ItemId == item.ItemId &&
+    //                        joined.o.Status == orderStatus)
+    //            )
+    //            .ToListAsync();
 
-            foreach (var item in items)
-            {
-                item.Status = "processing";
-            }
+    //        foreach (var item in items)
+    //        {
+    //            item.Status = itemStatusToReturn;
+    //        }
 
-            return items;
-        }
+    //        return items;
+    //    }
 
-        public async Task<List<Item>> GetPendingPaymentItemsAsync(int sellerId)
-        {
-            var items = await _context.Items
-                .Where(item =>
-                    item.UpdatedBy == sellerId &&
-                    !(item.IsDeleted == true) &&
-                    _context.PaymentDetails
-                        .Join(_context.Payments, pd => pd.PaymentId, p => p.PaymentId, (pd, p) => new { pd, p })
-                        .Any(joined =>
-                            joined.pd.ItemId == item.ItemId &&
-                            joined.p.Status == PaymentStatus.Pending.ToString())
-                )
-                .ToListAsync();
+    //    public Task<List<Item>> GetPendingItemsAsync(int sellerId)
+    //    {
+    //        return GetItemsByOrderStatusAsync(sellerId, OrderStatus.Pending.ToString(), "pending");
+    //    }
+    //    public Task<List<Item>> GetPaidItemsAsync(int sellerId)
+    //    {
+    //        return GetItemsByOrderStatusAsync(sellerId, OrderStatus.Paid.ToString(), "paid");
+    //    }
+    //    public Task<List<Item>> GetShippedItemsAsync(int sellerId)
+    //    {
+    //        return GetItemsByOrderStatusAsync(sellerId, OrderStatus.Shipped.ToString(), "shipped");
+    //    }
+    //    public Task<List<Item>> GetCompletedItemsAsync(int sellerId)
+    //    {
+    //        return GetItemsByOrderStatusAsync(sellerId, OrderStatus.Completed.ToString(), "sold");
+    //    }
+    //    public Task<List<Item>> GetCancelledItemsAsync(int sellerId)
+    //    {
+    //        return GetItemsByOrderStatusAsync(sellerId, OrderStatus.Cancelled.ToString(), "canceled");
+    //    }
 
-            foreach (var item in items)
-            {
-                item.Status = "pending_approval";
-            }
-
-            return items;
-        }
-
-        public async Task<List<Item>> GetCanceledItemsAsync(int sellerId)
-        {
-            var items = await _context.Items
-                .Where(item =>
-                    item.UpdatedBy == sellerId &&
-                    !(item.IsDeleted == true) &&
-                    (
-                        _context.PaymentDetails
-                            .Join(_context.Payments,
-                                  pd => pd.PaymentId,
-                                  p => p.PaymentId,
-                                  (pd, p) => new { pd, p })
-                            .Any(joined =>
-                                joined.pd.ItemId == item.ItemId &&
-                                (joined.p.Status == PaymentStatus.Failed
-                                .ToString()||
-                                 joined.p.Status == PaymentStatus.Refunded
-                                .ToString() ||
-                                 joined.p.Status == PaymentStatus.Expired
-                                .ToString()))
-                        ||
-                        _context.OrderItems
-                            .Join(_context.Orders,
-                                  oi => oi.OrderId,
-                                  o => o.OrderId,
-                                  (oi, o) => new { oi, o })
-                            .Any(joined =>
-                                joined.oi.ItemId == item.ItemId &&
-                                joined.o.Status == OrderStatus.Cancelled.ToString())
-                    )
-                )
-                .ToListAsync();
-
-            foreach (var item in items)
-            {
-                item.Status = "canceled";
-            }
-
-            return items;
-        }
-
-        public async Task<List<Item>> GetSoldItemsAsync(int sellerId)
-        {
-            var items = await _context.Items
-                .Where(item =>
-                    item.UpdatedBy == sellerId &&
-                    !(item.IsDeleted == true) &&
-                    _context.PaymentDetails
-                        .Join(_context.Payments, pd => pd.PaymentId, p => p.PaymentId, (pd, p) => new { pd, p })
-                        .Any(joined =>
-                            joined.pd.ItemId == item.ItemId &&
-                            joined.p.Status == PaymentStatus.Completed.ToString())
-                )
-                .ToListAsync();
-
-            foreach (var item in items)
-            {
-                item.Status = "sold";
-            }
-
-            return items;
-        }
 
 #pragma warning disable CS8601
 
@@ -192,6 +135,9 @@ namespace Infrastructure.Repositories
                             CreatedAt = item.CreatedAt,
                             SoldAt = item.UpdatedAt,
                             ImageUrl = img != null ? img.ImageUrl : null,
+
+                            Status = o != null ? o.Status : null,
+
                             Buyer = u != null ? new BuyerDto
                             {
                                 BuyerId = u.UserId,
@@ -199,8 +145,10 @@ namespace Infrastructure.Repositories
                                 Phone = u.Phone,
                                 Address = a != null ? $"{a.Street}, {a.Ward}, {a.District}, {a.Province}" : null
                             } : null,
+
                             OrderId = o != null ? o.OrderId : (int?)null
                         };
+
 
             return await query.ToListAsync();
         }
@@ -302,6 +250,7 @@ namespace Infrastructure.Repositories
                             ListedPrice = item.Price,
                             ActualPrice = pd != null ? pd.Amount : (decimal?)null,
                             PaymentMethod = p != null ? p.Method : null,
+                            Status = o != null ? o.Status : null,
 
                             CreatedAt = item.CreatedAt,
                             SoldAt = item.UpdatedAt,
@@ -380,6 +329,11 @@ namespace Infrastructure.Repositories
                         };
 
             return await query.ToListAsync();
+        }
+
+        public Task<List<Item>> GetCanceledItemsAsync(int sellerId)
+        {
+            throw new NotImplementedException();
         }
     }
 }
