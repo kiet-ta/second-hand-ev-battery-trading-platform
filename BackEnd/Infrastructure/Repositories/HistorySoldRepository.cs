@@ -105,7 +105,7 @@ namespace Infrastructure.Repositories
                             .Any(joined =>
                                 joined.pd.ItemId == item.ItemId &&
                                 (joined.p.Status == PaymentStatus.Failed
-                                .ToString()||
+                                .ToString() ||
                                  joined.p.Status == PaymentStatus.Refunded
                                 .ToString() ||
                                  joined.p.Status == PaymentStatus.Expired
@@ -206,13 +206,11 @@ namespace Infrastructure.Repositories
         }
         public async Task<List<BatteryItemDto>> MapToBatteryItemsAsync(IQueryable<Item> batteryItemsQuery)
         {
-            var itemIds = batteryItemsQuery.Select(i => i.ItemId).ToList();
-
-            var query = from item in _context.Items
-                        where itemIds.Contains(item.ItemId)
+            // KHÔNG dùng itemIds và List<Item> nữa
+            var query = from item in batteryItemsQuery // Dùng IQueryable được truyền vào
                         join battery in _context.BatteryDetails on item.ItemId equals battery.ItemId
-                        join img in _context.ItemImages on item.ItemId equals img.ItemId into images
-                        from img in images.DefaultIfEmpty()
+                        //join img in _context.ItemImages on item.ItemId equals img.ItemId into images
+                        //from img in images.DefaultIfEmpty()
                         join oi in _context.OrderItems on item.ItemId equals oi.ItemId into orderItems
                         from oi in orderItems.DefaultIfEmpty()
                         join o in _context.Orders on oi.OrderId equals o.OrderId into orders
@@ -225,6 +223,9 @@ namespace Infrastructure.Repositories
                         from pd in payments.DefaultIfEmpty()
                         join p in _context.Payments on pd.PaymentId equals p.PaymentId into paymentList
                         from p in paymentList.DefaultIfEmpty()
+
+                            // Tính toán trạng thái ngay trong query
+
                         select new BatteryItemDto
                         {
                             ItemId = item.ItemId,
@@ -237,10 +238,11 @@ namespace Infrastructure.Repositories
                             ListedPrice = item.Price,
                             ActualPrice = pd != null ? pd.Amount : (decimal?)null,
                             PaymentMethod = p != null ? p.Method : null,
-
                             CreatedAt = item.CreatedAt,
                             SoldAt = item.UpdatedAt,
-                            ImageUrl = img != null ? img.ImageUrl : null,
+                            ImageUrl = (from img_ in _context.ItemImages
+                                        where img_.ItemId == item.ItemId
+                                        select img_.ImageUrl).FirstOrDefault(),
                             Buyer = u != null ? new BuyerDto
                             {
                                 BuyerId = u.UserId,
@@ -248,7 +250,9 @@ namespace Infrastructure.Repositories
                                 Phone = u.Phone,
                                 Address = a != null ? $"{a.Street}, {a.Ward}, {a.District}, {a.Province}" : null
                             } : null,
-                            OrderId = o != null ? o.OrderId : (int?)null
+                            OrderId = o != null ? o.OrderId : (int?)null,
+                            Status = o.Status != null ? o.Status : null
+                            // Gán trạng thái đã tính toán
                         };
 
             return await query.ToListAsync();
@@ -306,13 +310,10 @@ namespace Infrastructure.Repositories
 
         public async Task<List<EVItemDto>> MapToEVItemsAsync(IQueryable<Item> evItemsQuery)
         {
-            var itemIds = evItemsQuery.Select(i => i.ItemId).ToList();
-
-            var query = from item in _context.Items
-                        where itemIds.Contains(item.ItemId)
+            var query = from item in evItemsQuery
                         join ev in _context.EVDetails on item.ItemId equals ev.ItemId
-                        join img in _context.ItemImages on item.ItemId equals img.ItemId into images
-                        from img in images.DefaultIfEmpty()
+                        //join img in _context.ItemImages on item.ItemId equals img.ItemId into images
+                        //from img in images.DefaultIfEmpty()
                         join oi in _context.OrderItems on item.ItemId equals oi.ItemId into orderItems
                         from oi in orderItems.DefaultIfEmpty()
                         join o in _context.Orders on oi.OrderId equals o.OrderId into orders
@@ -325,6 +326,8 @@ namespace Infrastructure.Repositories
                         from pd in payments.DefaultIfEmpty()
                         join p in _context.Payments on pd.PaymentId equals p.PaymentId into paymentList
                         from p in paymentList.DefaultIfEmpty()
+
+
                         select new EVItemDto
                         {
                             ItemId = item.ItemId,
@@ -340,7 +343,9 @@ namespace Infrastructure.Repositories
 
                             CreatedAt = item.CreatedAt,
                             SoldAt = item.UpdatedAt,
-                            ImageUrl = img != null ? img.ImageUrl : null,
+                            ImageUrl = (from img_ in _context.ItemImages
+                                        where img_.ItemId == item.ItemId
+                                        select img_.ImageUrl).FirstOrDefault(),
                             Buyer = u != null ? new BuyerDto
                             {
                                 BuyerId = u.UserId,
@@ -348,7 +353,9 @@ namespace Infrastructure.Repositories
                                 Phone = u.Phone,
                                 Address = a != null ? $"{a.Street}, {a.Ward}, {a.District}, {a.Province}" : null
                             } : null,
-                            OrderId = o != null ? o.OrderId : (int?)null
+                            OrderId = o != null ? o.OrderId : (int?)null,
+
+                            Status = o.Status != null ? o.Status : null
                         };
 
             return await query.ToListAsync();
