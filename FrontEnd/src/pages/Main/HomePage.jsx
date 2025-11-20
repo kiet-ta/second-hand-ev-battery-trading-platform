@@ -133,7 +133,6 @@ function HomePage() {
                 bg-[#FAF8F3] text-[#2C2C2C] font-['Inter']">
 
                 <GeminiChatWidget />
-e
                 <div className="max-w-7xl mx-auto px-4 md:px-8 py-12">
                     {loading ? (
                         <div className="w-full h-[500px] bg-gray-200 rounded-xl shadow-2xl animate-pulse mb-16"></div>
