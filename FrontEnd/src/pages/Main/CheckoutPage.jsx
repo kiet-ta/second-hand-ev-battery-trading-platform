@@ -7,6 +7,7 @@ import { ghnApi } from "../../hooks/services/ghnApi";
 import walletApi from "../../api/walletApi";
 import { FiMapPin, FiX } from "react-icons/fi";
 
+// Modal chọn địa chỉ
 const AddressModal = ({ addresses, selectedId, onSelect, onClose }) => {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
@@ -63,11 +64,11 @@ const AddressModal = ({ addresses, selectedId, onSelect, onClose }) => {
   );
 };
 
-function CheckoutPage() {
+export default function CheckoutPage() {
   const location = useLocation();
   const navigate = useNavigate();
   const orderData = location.state;
-
+  console.log(orderData, "datas")
   const [addresses, setAddresses] = useState([]);
   const [selectedAddressId, setSelectedAddressId] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -81,21 +82,30 @@ function CheckoutPage() {
   const [wallet, setWallet] = useState(null);
 
   const insurance = { name: "Bảo hiểm hư hỏng sản phẩm", price: 6000 };
-  const selectedDeliveryAddress = addresses.find((a) => a.addressId === selectedAddressId);
 
+  // 🔹 Fetch địa chỉ người dùng
   useEffect(() => {
     const fetchAddresses = async () => {
       const userId = localStorage.getItem("userId");
       const res = await addressApi.getUserAddresses(userId);
       if (res && Array.isArray(res)) {
-        setAddresses(res);
-        const def = res.find((a) => a.isDefault);
-        setSelectedAddressId(def ? def.addressId : res[0]?.addressId);
+        const preSelected = orderData.selectedAddressId;
+        console.log(preSelected, "Dia chi")
+        let sortedAddresses = res;
+        if (preSelected) {
+          sortedAddresses = [
+            res.find((a) => a.addressId === preSelected),
+            ...res.filter((a) => a.addressId !== preSelected),
+          ];
+        }
+        setAddresses(sortedAddresses);
+        setSelectedAddressId(preSelected || sortedAddresses[0]?.addressId);
       }
     };
     fetchAddresses();
-  }, []);
+  }, [location.state]);
 
+  // 🔹 Fetch ví người dùng
   useEffect(() => {
     const fetchWallet = async () => {
       const id = localStorage.getItem("userId");
@@ -105,6 +115,8 @@ function CheckoutPage() {
     fetchWallet();
   }, []);
 
+  // 🔹 Tính phí ship
+  const selectedDeliveryAddress = addresses.find((a) => a.addressId === selectedAddressId);
   useEffect(() => {
     const fetchShippingFee = async () => {
       if (!selectedDeliveryAddress?.districtCode || !selectedDeliveryAddress?.wardCode) return;
@@ -124,6 +136,7 @@ function CheckoutPage() {
   const total = () => (orderData.totalAmount || 0) + insurance.price + shippingFee;
   const finalTotalPrice = total();
 
+  // 🔹 Xác nhận & thanh toán
   const handleConfirmAndPay = async () => {
     setIsProcessing(true);
     if (!selectedDeliveryAddress) {
@@ -192,6 +205,7 @@ function CheckoutPage() {
   return (
     <div className="p-6 bg-gray-100 min-h-screen">
       <div className="max-w-4xl mx-auto bg-white shadow-md rounded-lg p-6">
+        {/* Địa chỉ giao hàng */}
         <div className="mb-6 pb-4 border-b border-gray-200">
           <h2 className="text-lg font-semibold mb-4 text-[#C99700] flex items-center gap-2">
             <FiMapPin /> Địa chỉ giao hàng
@@ -215,6 +229,7 @@ function CheckoutPage() {
           )}
         </div>
 
+        {/* Sản phẩm */}
         <h2 className="text-lg font-semibold mb-4">Sản phẩm đặt mua</h2>
         <div className="divide-y">
           {orderData.itemsToPurchase.map((item) => (
@@ -235,6 +250,7 @@ function CheckoutPage() {
           ))}
         </div>
 
+        {/* Bảo hiểm & ship */}
         <div className="flex items-center justify-between py-4 border-t">
           <div className="flex items-center space-x-2">
             <input type="checkbox" checked readOnly className="accent-maincolor" />
@@ -251,6 +267,7 @@ function CheckoutPage() {
           <p className="font-semibold">{loadingFee ? "Đang tính..." : formatVND(shippingFee || 0)}</p>
         </div>
 
+        {/* Phương thức thanh toán */}
         <div className="flex justify-between items-center py-4 border-t">
           <p>Phương thức thanh toán</p>
           <div className="flex gap-4">
@@ -277,6 +294,7 @@ function CheckoutPage() {
           </div>
         </div>
 
+        {/* Tổng cộng */}
         <div className="flex justify-between items-center border-t pt-6">
           <p className="text-lg font-semibold">Tổng cộng ({orderData.itemsToPurchase.length} sản phẩm):</p>
           <p className="text-2xl font-bold text-[#D4AF37]">{formatVND(finalTotalPrice)}</p>
@@ -294,12 +312,13 @@ function CheckoutPage() {
         </div>
       </div>
 
+      {/* Modal */}
       {isModalOpen && (
         <AddressModal
           addresses={addresses}
           selectedId={selectedAddressId}
           onSelect={(id) => {
-            setSelectedAddressId(id);
+            setSelectedAddressId(id); 
             setIsModalOpen(false);
           }}
           onClose={() => setIsModalOpen(false)}
@@ -308,5 +327,3 @@ function CheckoutPage() {
     </div>
   );
 }
-
-export default CheckoutPage;

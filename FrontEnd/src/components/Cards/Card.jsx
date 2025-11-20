@@ -360,7 +360,7 @@ function CardComponent({
                     <div className="flex items-center text-sm text-gray-500 mt-2 space-x-4">
                         {year && <span>{year}</span>}
                         {!!mileage && <span>{mileage.toLocaleString()} km</span>}
-                        <span className="capitalize">{type}</span>
+                        <span className="capitalize">{translateKey(type)}</span>
                     </div>
 
                     <div className="flex justify-between items-center mt-4 pt-4 border-t border-gray-100">
@@ -446,3 +446,11 @@ CardComponent.propTypes = {
 
 
 export default memo(CardComponent);
+function translateKey(key) {
+  const dict = {
+    Ev: "Xe điện",
+    Battery: "Pin xe điện",
+  };
+  return dict[key] || key;
+}
+

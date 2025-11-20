@@ -128,7 +128,7 @@ export const router = createBrowserRouter([
       { path: "seller-form", element: <SellerForm /> },
       { path: "success", element: <SuccessPage /> },
       { path: "News", element: <NewsList /> },
-      { path: "news/:id", element: <NewsDetail /> },
+      { path: "news/:newsId", element: <NewsDetail /> },
       { path: "about", element: <AboutPage /> },
       { path: "careers", element: <CareersPage /> },
       { path: "press", element: <PressPage /> },

@@ -227,7 +227,7 @@ function CartPage() {
     };
 
     const checkoutData = useMemo(() => {
-        const selectedAddress = addresses.find(addr => addr.addressId === selectedAddressId);
+        const selectedAddress = selectedAddressId;
         const itemsToPurchase = cartItems
             .filter(item => selectedItemIds.includes(item.id))
             .map(item => ({
@@ -310,7 +310,9 @@ function CartPage() {
                             {addresses.map((addr) => (
                                 <div
                                     key={addr.addressId}
-                                    onClick={() => setSelectedAddressId(addr.addressId)}
+                                    onClick={() => {
+                                        setSelectedAddressId(addr.addressId),
+                                         console.log(addr.addressId)}}
                                     className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${selectedAddressId === addr.addressId ? 'border-[#B8860B] bg-yellow-50' : 'border-[#E8E4DC] hover:border-[#C4B5A0]'
                                         }`}
                                 >

@@ -76,7 +76,7 @@ export default function LoginPage() {
             localStorage.setItem("userId", userData.userId);
             localStorage.setItem("user", JSON.stringify(userData));
 
-            const role = userData.role?.toLowerCase();
+            const role = userData.role;
             if (role === "Manager" || role === "Staff") navigate("/manage");
             else if (role === "Seller") navigate("/seller");
             else navigate("/");
@@ -141,7 +141,7 @@ export default function LoginPage() {
             }
 
             setUser(newUser);
-            const role = res.role?.toLowerCase();
+            const role = res.role;
             if (role === "Manager" || role === "Staff") navigate("/manage");
             else if (role === "Seller") navigate("/seller");
             else navigate("/");
