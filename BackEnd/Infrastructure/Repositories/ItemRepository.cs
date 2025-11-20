@@ -549,6 +549,7 @@ namespace Infrastructure.Repositories
                         {
                             ItemId = i.ItemId,
                             Title = i.Title,
+                            ItemType = i.ItemType,
                             Description = i.Description,
                             Price = i.Price,
                             Quantity = i.Quantity,
