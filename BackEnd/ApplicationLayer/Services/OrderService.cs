@@ -166,6 +166,18 @@ namespace Application.Services
                     Price = x.Price
                 }).ToList()
             };
+            foreach(var item in orderItems)
+            {
+                var sellerId = (await _unitOfWork.Items.GetByIdAsync(item.ItemId)).UpdatedBy;
+                var notificationDto = new CreateNotificationDto
+                {
+                    NotiType = "Activities",
+                    TargetUserId = sellerId.ToString(),
+                    Title = "Bạn đã có một đơn hàng cần duyệt.",
+                    Message = "Vui lòng kiểm tra lịch sử đơn hàng để biết thêm chi tiết."
+                };
+                await _unitOfWork.Notifications.AddNotificationAsync(notificationDto, 1, "Manager");
+            }
 
             return response;
         }

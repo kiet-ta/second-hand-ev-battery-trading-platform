@@ -19,8 +19,10 @@ import {
     LineChart,
     Line,
 } from "recharts";
+import useKycRedirect from "../../hooks/useKycRedirect";
 
 export default function SellerDashboardContent() {
+    useKycRedirect()
     const sellerId = localStorage.getItem("userId");
     const token = localStorage.getItem("token");
     const [dashboardData, setDashboardData] = useState(null);

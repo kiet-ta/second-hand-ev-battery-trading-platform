@@ -59,7 +59,7 @@ function HomePage() {
 
 
 
-    const isItemVerified = (item) => item.moderation === 'approved_tag';
+    const isItemVerified = (item) => item.moderation === 'Approved';
 
 
 

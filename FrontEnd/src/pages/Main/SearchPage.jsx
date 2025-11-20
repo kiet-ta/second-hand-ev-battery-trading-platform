@@ -108,7 +108,7 @@ function SearchPage() {
 
       // Apply approved & seller filter
       const filteredItems = merged.filter(item => {
-        const moderationMatch = filters.approvedOnly ? item.moderation === 'approved_tag' : true;
+        const moderationMatch = filters.approvedOnly ? item.moderation === 'Approved' : true;
         const sellerMatch = filters.sellerName
           ? item.sellerName?.toLowerCase().includes(filters.sellerName.toLowerCase())
           : true;
@@ -155,10 +155,10 @@ function SearchPage() {
 
     const detailKeys =
       filters.itemType === 'Battery'
-        ? ['brand', 'capacity', 'voltage', 'chargeCycles']
+        ? ['brand', 'capacity', 'condition','voltage', 'chargeCycles']
         : filters.itemType === 'EV'
           ? ['brand', 'model', 'version', 'year', 'bodyStyle', 'color']
-          : ['brand', 'model', 'version', 'year', 'bodyStyle', 'color', 'capacity', 'voltage', 'chargeCycles'];
+          : ['brand', 'model', 'version', 'year', 'bodyStyle', 'color', 'capacity','condition', 'voltage', 'chargeCycles'];
 
     const options = {};
     detailKeys.forEach(key => {
@@ -292,7 +292,7 @@ function SearchPage() {
                         onChange={() => handleDetailFilterChange(key, val)}
                         className='mr-2 accent-[#D4AF37]'
                       />
-                      {String(val)}
+                      {String(translateKey(val))}
                     </label>
                   ))}
                 </div>
@@ -349,7 +349,7 @@ function SearchPage() {
                   itemImages={item.images}
                   year={item.itemDetail?.year}
                   mileage={item.itemDetail?.mileage}
-                  isVerified={item.moderation === 'approved_tag'}
+                  isVerified={item.moderation === 'Approved'}
                   updatedBy={item.updatedBy}
                 />
               ))}
@@ -399,6 +399,9 @@ function translateKey(key) {
     capacity: "Dung lượng (Ah)",
     voltage: "Điện áp (V)",
     chargeCycles: "Chu kỳ sạc",
+    condition: "Tình trạng",
+    New : "Mới",
+    Old : "Cũ"
   };
   return dict[key] || key;
 }

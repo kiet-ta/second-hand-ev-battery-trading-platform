@@ -59,14 +59,16 @@ public class PaymentService : IPaymentService
 
             await _unitOfWork.BeginTransactionAsync();
 
+            var seller = await _unitOfWork.Users.GetByIdAsync(sellerId.Value);
             var sellerWallet = await _unitOfWork.Wallets.GetWalletByUserIdAsync(sellerId);
             var managerWallet = await _unitOfWork.Wallets.GetManagerWalletAsync();
 
             if (sellerWallet == null)
                 throw new Exception($"Không tìm thấy ví cho Seller (ID: {sellerId}).");
-
-            string feeCode = "FEE001";
-            var commissionRule = await _unitOfWork.CommissionFeeRules.GetActiveRuleByCodeAsync(feeCode); // Hard Core
+            string feeCode;
+            if (seller.IsStore) feeCode = "FEESL";
+            else feeCode = "FEEPL";
+                var commissionRule = await _unitOfWork.CommissionFeeRules.GetByFeeCodeAsync(feeCode); // Hard Core
             if (commissionRule == null)
                 throw new Exception("Không tìm thấy quy tắc hoa hồng 'FEE001'.");
 

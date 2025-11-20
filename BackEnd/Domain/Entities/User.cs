@@ -35,5 +35,6 @@ public class User
 
     public string? Paid { get; set; }
 
+    public bool IsStore { get; set; }
     public bool IsDeleted { get; set; }
 }
