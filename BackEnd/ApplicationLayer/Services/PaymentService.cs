@@ -98,7 +98,7 @@ public class PaymentService : IPaymentService
             {
                 WalletId = sellerWallet.WalletId,
                 Amount = netAmountForSeller,
-                Type = WalletTransactionType.Released.ToString(),
+                Type = WalletTransactionType.Revenue.ToString(),
                 OrderId = orderId,
                 CreatedAt = DateTime.Now
             };
@@ -108,7 +108,7 @@ public class PaymentService : IPaymentService
             {
                 WalletId = managerWallet.WalletId,
                 Amount = commissionAmount,
-                Type = WalletTransactionType.Payment.ToString(),
+                Type = WalletTransactionType.Revenue.ToString(),
                 OrderId = orderId,
                 CreatedAt = DateTime.Now
             };

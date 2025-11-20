@@ -16,6 +16,6 @@ public class WalletTransaction
     public int? RefId { get; set; }
     public int? AuctionId { get; set; }  // connect with AuctionId if transaction hold/release/payment
     public int? OrderId { get; set; } 
-    public DateTime? CreatedAt { get; set; }
+    public DateTime CreatedAt { get; set; }
 
 }

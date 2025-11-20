@@ -32,7 +32,6 @@ public class PaymentController : ControllerBase
     {
         try
         {
-            // Lấy buyerId từ JWT token
             var buyerIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (string.IsNullOrEmpty(buyerIdString))
             {
