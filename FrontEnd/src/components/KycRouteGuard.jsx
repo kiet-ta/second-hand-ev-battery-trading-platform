@@ -18,7 +18,7 @@ const KycRouteGuard = ({ children }) => {
         }
 
         const user = await userApi.getUserByID(userId);
-
+        console.log(user.kycStatus)
         if (!user || !user.kycStatus) {
           navigate("/seller-register");
           return;
