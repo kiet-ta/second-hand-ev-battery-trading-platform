@@ -141,7 +141,6 @@ namespace Application.Services
             if (createdOrder == null)
                 throw new Exception("Failed to create order.");
 
-            // Step 3: Update order items
             foreach (var item in orderItems)
             {
                 item.OrderId = createdOrder.OrderId;

@@ -16,17 +16,17 @@ useEffect(() => {
       }
 
       const user = await userApi.getUserByID(userId);
-      const kycStatus = user.kycStatus || "not_submitted";
+      const kycStatus = user.kycStatus || "Not_Submitted";
       const role = user.role || "user";
-
-      if (role === "seller") {
+      console.log(role)
+      if (role === "Seller") {
         if (location.pathname === "/seller-registration" || location.pathname === "/pending-review") {
           navigate("/");
         }
         return;
       }
 
-      if (location.pathname === "/pending-review" && kycStatus === "not_submitted") {
+      if (location.pathname === "/pending-review" && kycStatus === "Not_Submitted") {
         navigate("/seller-registration");
       } else if (location.pathname === "/seller-registration" && kycStatus === "pending") {
         navigate("/pending-review");

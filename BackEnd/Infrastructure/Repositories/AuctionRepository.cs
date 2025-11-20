@@ -113,7 +113,6 @@ public class AuctionRepository : IAuctionRepository
         .Take(pageSize)
         .ToListAsync();
 
-        // help most accurate display
         var now = DateTime.Now;
         foreach (var a in result)
         {
@@ -157,7 +156,6 @@ public class AuctionRepository : IAuctionRepository
 
     public async Task<bool> UpdateCurrentPriceAsync(int auctionId, decimal newPrice)
     {
-        // using ExecuteUpdateAsync cho hi?u qu?
         var affectedRows = await _context.Auctions
             .Where(a => a.AuctionId == auctionId)
             .ExecuteUpdateAsync(updates => updates

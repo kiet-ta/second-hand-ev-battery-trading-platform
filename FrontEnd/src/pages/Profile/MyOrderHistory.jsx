@@ -7,18 +7,18 @@ import ItemDetailModal from "../../components/Modals/ItemDetailModal";
 import ReviewModal from "../../components/Modals/ReviewModal";
 
 const TABS = [
-  { key: "all", label: "Tất cả" },
-  { key: "pending", label: "Chờ xác nhận" },
-  { key: "paid", label: "Đã thanh toán" },
-  { key: "shipped", label: "Vận chuyển" },
-  { key: "completed", label: "Hoàn thành" },
-  { key: "canceled", label: "Đã hủy" },
+  { key: "All", label: "Tất cả" },
+  { key: "Pending", label: "Chờ xác nhận" },
+  { key: "Paid", label: "Đã thanh toán" },
+  { key: "Shipped", label: "Vận chuyển" },
+  { key: "Completed", label: "Hoàn thành" },
+  { key: "Canceled", label: "Đã hủy" },
 ];
 
 export default function OrderPage() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("all");
+  const [activeTab, setActiveTab] = useState("All");
   const [search, setSearch] = useState("");
   const [selectedItemId, setSelectedItemId] = useState(null);
   const [itemModalOpen, setItemModalOpen] = useState(false);
@@ -69,7 +69,7 @@ export default function OrderPage() {
 
   // filter & search
   const filtered = orders
-    .filter((o) => (activeTab === "all" ? true : o.status === activeTab))
+    .filter((o) => (activeTab === "All" ? true : o.status === activeTab))
     .filter((order) => {
       if (!search) return true;
       const s = search.toLowerCase();

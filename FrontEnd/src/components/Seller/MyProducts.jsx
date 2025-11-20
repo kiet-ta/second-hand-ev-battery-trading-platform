@@ -95,7 +95,7 @@ export default function MyProducts() {
       await walletApi.withdrawWallet({
         userId,
         amount: 100000,
-        type: "withdraw",
+        type: "Withdraw",
         ref: selectedItem.itemId,
         description:
           payType === "listing"
@@ -108,9 +108,11 @@ export default function MyProducts() {
         updatedAt: new Date().toISOString(),
         updatedBy: sellerId,
       };
-
-      if (payType === "listing") updatePayload.status = "active";
-      if (payType === "moderation") updatePayload.moderation = "pending";
+      if (payType === "listing") {
+        const paymentState = updatePayload.status == "Auction_Pending_Pay" ? "Auction_Active" : "Active"
+        updatePayload.status = paymentState;
+      } 
+      if (payType === "moderation") updatePayload.moderation = "Pending";
 
       await itemApi.putItem(selectedItem.itemId, updatePayload);
 
@@ -136,13 +138,17 @@ export default function MyProducts() {
 
   const translateStatus = (status) => {
     switch (status) {
-      case "active":
+      case "Active":
         return "Đang hoạt động";
-      case "pending":
+      case "Auction_Active":
+        return "Đang hoạt động (Đấu giá)";
+      case "Pending":
         return "Chờ duyệt";
-      case "pending_pay":
+      case "Pending_Pay":
         return "Chờ thanh toán";
-      case "rejected":
+      case "Auction_Pending_Pay":
+      return "Đang hoạt động (Đấu giá)"
+      case "Rejected":
         return "Bị từ chối";
       default:
         return status || "Không xác định";
@@ -151,11 +157,11 @@ export default function MyProducts() {
 
   const translateModeration = (mod) => {
     switch (mod) {
-      case "approved_tag":
+      case "Approved":
         return "Đã kiểm duyệt";
-      case "pending":
+      case "Pending":
         return "Đang chờ kiểm duyệt";
-      case "rejected":
+      case "Rejected":
         return "Bị từ chối kiểm duyệt";
       default:
         return "Chưa kiểm duyệt";
@@ -191,10 +197,10 @@ export default function MyProducts() {
           onChange={setStatusFilter}
           options={[
             { value: "all", label: "Tất cả" },
-            { value: "active", label: "Đang hoạt động" },
-            { value: "pending", label: "Chờ duyệt" },
-            { value: "pending_pay", label: "Chờ thanh toán" },
-            { value: "rejected", label: "Bị từ chối" },
+            { value: "Active", label: "Đang hoạt động" },
+            { value: "Pending", label: "Chờ duyệt" },
+            { value: "Pending_Pay", label: "Chờ thanh toán" },
+            { value: "Rejected", label: "Bị từ chối" },
           ]}
           className="w-48"
         />
@@ -223,7 +229,7 @@ export default function MyProducts() {
                 />
                 <span
                   className={`absolute top-2 right-2 text-xs font-semibold px-2 py-1 rounded-full ${
-                    item.status === "active"
+                    item.status === "Active"
                       ? "bg-green-100 text-green-700"
                       : "bg-gray-100 text-gray-600"
                   }`}
@@ -247,7 +253,7 @@ export default function MyProducts() {
 
                 {/* 2 nút hành động */}
                 <div className="flex flex-col gap-2 mt-auto">
-                  {item.status === "pending_pay" && (
+                  {item.status === "Pending_Pay" && (
                     <Button
                       type="primary"
                       block
@@ -257,7 +263,7 @@ export default function MyProducts() {
                     </Button>
                   )}
 
-                  {item.moderation !== "approved_tag" && item.moderation !== "pending"  && (
+                  {item.moderation !== "Approved" && item.moderation !== "Pending"  && (
                     <Button
                       block
                       onClick={() => handlePayClick(item, "moderation")}
@@ -290,7 +296,7 @@ export default function MyProducts() {
             </p>
             <p className="text-gray-700 mb-2">
               <strong>Loại:</strong>{" "}
-              {selectedItem.itemType === "ev" ? "Xe điện (EV)" : "Pin (Battery)"}
+              {selectedItem.itemType === "Ev" ? "Xe điện (EV)" : "Pin (Battery)"}
             </p>
             <p className="text-gray-700 mb-2">
               <strong>Số dư ví hiện tại:</strong>{" "}

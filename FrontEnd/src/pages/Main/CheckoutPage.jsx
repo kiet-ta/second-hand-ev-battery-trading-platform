@@ -152,7 +152,7 @@ function CheckoutPage() {
         await walletApi.withdrawWallet({
           userId: localStorage.getItem("userId"),
           amount: finalTotalPrice,
-          type: "withdraw",
+          type: "Withdraw",
           ref: orderResponse.orderId,
           description: `Thanh toán đơn hàng ${orderResponse.orderId}`,
         });

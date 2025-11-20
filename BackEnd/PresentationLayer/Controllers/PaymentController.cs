@@ -27,12 +27,11 @@ public class PaymentController : ControllerBase
     }
 
     [HttpPost("confirm-order/{orderId}")]
-    [Authorize(Roles = "buyer")] // Chỉ buyer mới được gọi
+    //[Authorize(Roles = "Buyer,Seller")] // Chỉ buyer mới được gọi
     public async Task<IActionResult> ConfirmOrder(int orderId)
     {
         try
         {
-            // Lấy buyerId từ JWT token
             var buyerIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (string.IsNullOrEmpty(buyerIdString))
             {

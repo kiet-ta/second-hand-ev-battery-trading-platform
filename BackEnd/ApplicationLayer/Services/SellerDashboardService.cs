@@ -43,7 +43,7 @@ namespace Application.Services
                     .ToString()),
                     Pending = await _unitOfWork.Items.CountByStatusAsync(sellerId, ItemStatus.Pending.ToString()),
                     Inactive = await _unitOfWork.Items.CountByStatusAsync(sellerId, ItemStatus.Rejected.ToString()),
-                    Featured = 5 // có thể mở rộng logic sau
+                    Featured = 5 // feature is hardcoded for now
                 };
 
                 var orderStats = new OrderStatisticsDto
@@ -51,6 +51,7 @@ namespace Application.Services
                     New = await _unitOfWork.Orders.CountByStatusAsync(sellerId, OrderStatus.Pending.ToString()),
                     Processing = await _unitOfWork.Orders.CountByStatusAsync(sellerId, OrderStatus.Paid.ToString()),
                     Completed = await _unitOfWork.Orders.CountByStatusAsync(sellerId, OrderStatus.Completed.ToString()),
+                    Shipped = await _unitOfWork.Orders.CountByStatusAsync(sellerId, OrderStatus.Shipped.ToString()),
                     Cancelled = await _unitOfWork.Orders.CountByStatusAsync(sellerId, OrderStatus.Cancelled.ToString())
                 };
 

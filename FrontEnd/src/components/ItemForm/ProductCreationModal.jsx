@@ -9,6 +9,7 @@ import auctionApi from "../../api/auctionApi";
 import uploadImageApi from "../../api/uploadImageApi";
 import walletApi from "../../api/walletApi";
 import evData from "../../assets/datas/evData";
+import {uploadToCloudinary} from "../../utils/uploadToCloudinary"
 
 export default function ProductCreationModal({ onSuccess }) {
   const [isOpenModal, setIsOpenModal] = useState(false);
@@ -54,25 +55,25 @@ export default function ProductCreationModal({ onSuccess }) {
     if (!itemInfo) return;
 
     setIsLoading(true);
-    const moderationState = itemInfo.createAuction ? "pending" : "not_submitted";
-
+    const moderationState = itemInfo.createAuction ? "Pending" : "Not_Submitted";
+    const statusState = itemInfo.createAuction ? "Auction_Pending_Pay" : "Pending_Pay"
     try {
       const basePayload = {
         title: itemInfo.title,
         description: itemInfo.description || "",
         price: itemInfo.price,
         quantity: itemInfo.quantity || 1,
-        status: "pending_pay",
+        status: statusState,
         moderation: moderationState,
         updatedBy: userID,
       };
-
       let created;
       if (itemInfo.categoryId === 1) {
+        const licenseUrl = await uploadToCloudinary(itemInfo.licenseFile)
         created = await itemApi.postItemEV({
           ...basePayload,
           categoryId: 1,
-          licenseUrl: itemInfo.licenseUrl || "",
+          licenseUrl: licenseUrl || "",
           brand: itemInfo.brand,
           model: itemInfo.model,
           version: itemInfo.version,
@@ -129,16 +130,16 @@ export default function ProductCreationModal({ onSuccess }) {
       await walletApi.withdrawWallet({
         userId: userID,
         amount: 100000,
-        type: "withdraw",
+        type: "Withdraw",
         ref: userID,
         description: `Phí đăng sản phẩm ${createdItem.itemId}`,
       });
-
+      const paymentState = createdItem.status === `Pending` ? "Active" : "Auction_Active"
       await itemApi.putItem(createdItem.itemId, {
         ...createdItem,
         updatedBy: userID,
-        status: "active",
-        moderation: "pending",
+        status: paymentState,
+        moderation: "Pending",
         updatedAt: new Date().toISOString(),
       });
 

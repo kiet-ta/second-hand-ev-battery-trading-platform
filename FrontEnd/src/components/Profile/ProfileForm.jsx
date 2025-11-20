@@ -21,13 +21,13 @@ const ProfileForm = () => {
 
   const translateStatus = (status) => {
     switch (status) {
-      case "warning1":
+      case "Warning1":
         return "Cảnh cáo 1";
-      case "warning2":
+      case "Warning2":
         return "Cảnh cáo 2";
-      case "ban":
+      case "Ban":
         return "Cấm tài khoản";
-      case "active":
+      case "Active":
         return "Hoạt động";
       default:
         return "Không xác định";

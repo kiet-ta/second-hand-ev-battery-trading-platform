@@ -127,7 +127,7 @@ export const router = createBrowserRouter([
       { path: "seller-registration", element: <SellerOnBoard /> },
       { path: "seller-form", element: <SellerForm /> },
       { path: "success", element: <SuccessPage /> },
-      { path: "news", element: <NewsList /> },
+      { path: "News", element: <NewsList /> },
       { path: "news/:id", element: <NewsDetail /> },
       { path: "about", element: <AboutPage /> },
       { path: "careers", element: <CareersPage /> },
@@ -173,7 +173,7 @@ export const router = createBrowserRouter([
 
   {
     path: "/seller",
-    element: <ProtectedRoute allowedRoles={["seller"]} />,
+    element: <ProtectedRoute allowedRoles={["Seller"]} />,
     children: [
       {
         element: <SellerDashboardLayout />,
@@ -191,7 +191,7 @@ export const router = createBrowserRouter([
   // MANAGER / ADMIN DASHBOARD (Protected)
   {
     path: "/manage",
-    element: <ProtectedRoute allowedRoles={["manager", "staff"]} />,
+    element: <ProtectedRoute allowedRoles={["Manager", "Staff"]} />,
     children: [
       {
         element: <ManagerDashboard />,
@@ -203,7 +203,7 @@ export const router = createBrowserRouter([
           { path: "complaints", element: <ComplaintsList /> },
           { path: "transactions", element: <TransactionsContent /> },
           { path: "notifications", element: <NotificationCreator /> },
-          { path: "news", element: <NewsPage /> },
+          { path: "News", element: <NewsPage /> },
           { path: "reports", element: <ReportsContent /> },
           { path: "settings", element: <SettingsContent /> },
           { path: "fee", element: <CommissionSettings /> },

@@ -70,7 +70,7 @@ const KycDocumentCard = ({ document, onApprove, onReject }) => {
       </div>
 
       <div className="p-4 bg-gray-50 border-t border-gray-200">
-        {status === 'pending' && (
+        {status === 'Pending' && (
           <div className="space-y-3">
             <div>
               <label htmlFor={`note-${docId}`} className="block text-sm font-medium text-gray-700">
@@ -105,12 +105,12 @@ const KycDocumentCard = ({ document, onApprove, onReject }) => {
           </div>
         )}
 
-        {status !== 'pending' && (
+        {status !== 'Pending' && (
           <div className="space-y-2">
             <p className="text-sm font-medium">
               Trạng thái: 
-              <span className={`font-bold ${status === 'approved' ? 'text-green-600' : 'text-red-600'}`}>
-                {status === 'approved' ? ' Đã duyệt' : ' Bị từ chối'}
+              <span className={`font-bold ${status === 'Approved' ? 'text-green-600' : 'text-red-600'}`}>
+                {status === 'Approved' ? ' Đã duyệt' : ' Bị từ chối'}
               </span>
             </p>
             <p className="text-sm text-gray-700">Người duyệt: <span className="font-medium">ID {verifiedBy}</span></p>

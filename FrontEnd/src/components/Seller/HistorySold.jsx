@@ -57,14 +57,14 @@ export default function HistorySold() {
 
     const getStatusColor = (status) => {
         switch (status?.toLowerCase()) {
-            case "sold":
+            case "Sold":
                 return "bg-green-100 text-green-800";
-            case "processing":
+            case "Processing":
                 return "bg-blue-100 text-blue-800";
-            case "pending":
-            case "pending_approval":
+            case "Pending":
+            case "Pending_Approval":
                 return "bg-yellow-100 text-yellow-800";
-            case "shipped":
+            case "Shipped":
                 return "bg-purple-100 text-purple-800";
             default:
                 return "bg-gray-100 text-gray-800";
@@ -73,15 +73,16 @@ export default function HistorySold() {
 
     const getStatusText = (status) => {
         switch (status?.toLowerCase()) {
-            case "sold":
-            case "completed":
+            case "Sold":
+            case "Completed":
                 return "Hoàn thành";
-            case "processing":
+            case "Processing":
                 return "Đang xử lý";
             case "pending":
-            case "pending_approval":
+                return "Đợi xử lí"
+            case "Pending_Approval":
                 return "Chờ thanh toán";
-            case "shipped":
+            case "Shipped":
                 return "Đã giao";
             default:
                 return "Không xác định";
@@ -91,29 +92,29 @@ export default function HistorySold() {
     const totalRevenueEV = sales
         .filter(
             (s) =>
-                s.itemType === "ev" &&
-                ["sold", "completed", "shipped"].includes(s.status?.toLowerCase())
+                s.itemType === "Ev" &&
+                ["Sold", "Completed", "Shipped"].includes(s.status?.toLowerCase())
         )
         .reduce((sum, s) => sum + (s.actualPrice || 0), 0);
 
     const totalRevenueBattery = sales
         .filter(
             (s) =>
-                s.itemType === "battery" &&
-                ["sold", "completed", "shipped"].includes(s.status?.toLowerCase())
+                s.itemType === "Battery" &&
+                ["Sold", "Completed", "Shipped"].includes(s.status?.toLowerCase())
         )
         .reduce((sum, s) => sum + (s.actualPrice || 0), 0);
 
     const totalSoldEV = sales.filter(
         (s) =>
-            s.itemType === "ev" &&
-            ["sold", "completed", "shipped"].includes(s.status?.toLowerCase())
+            s.itemType === "Ev" &&
+            ["Sold", "completed", "Shipped"].includes(s.status?.toLowerCase())
     ).length;
 
     const totalSoldBattery = sales.filter(
         (s) =>
-            s.itemType === "battery" &&
-            ["sold", "completed", "shipped"].includes(s.status?.toLowerCase())
+            s.itemType === "Battery" &&
+            ["Sold", "completed", "Shipped"].includes(s.status?.toLowerCase())
     ).length;
 
     const filteredSales = sales.filter((s) => {
@@ -234,10 +235,10 @@ export default function HistorySold() {
                     <div className="flex gap-3 flex-wrap">
                         {[
                             { label: "Tất cả", value: "all" },
-                            { label: "Hoàn thành", value: "sold" },
-                            { label: "Đang xử lý", value: "processing" },
-                            { label: "Chờ thanh toán", value: "pending" },
-                            { label: "Đã giao", value: "shipped" },
+                            { label: "Hoàn thành", value: "Sold" },
+                            { label: "Đang xử lý", value: "Processing" },
+                            { label: "Chờ thanh toán", value: "Pending" },
+                            { label: "Đã giao", value: "Shipped" },
                         ].map((btn) => (
                             <button
                                 key={btn.value}
@@ -255,8 +256,8 @@ export default function HistorySold() {
                     <div className="flex gap-3">
                         {[
                             { label: "Tất cả SP", value: "all" },
-                            { label: "Xe điện", value: "ev" },
-                            { label: "Pin", value: "battery" },
+                            { label: "Xe điện", value: "Ev" },
+                            { label: "Pin", value: "Battery" },
                         ].map((btn) => (
                             <button
                                 key={btn.value}
@@ -317,7 +318,7 @@ export default function HistorySold() {
                                             className="w-36 h-28 object-cover rounded-lg border"
                                         />
                                         <div className="text-sm text-gray-700">
-                                            {sale.itemType === "ev" ? (
+                                            {sale.itemType === "Ev" ? (
                                                 <>
                                                     <p>
                                                         <b>Màu:</b> {sale.color}
@@ -425,9 +426,9 @@ export default function HistorySold() {
                                     />
                                     <p>
                                         <b>Loại:</b>{" "}
-                                        {selectedSale.itemType === "ev" ? "Xe điện" : "Pin"}
+                                        {selectedSale.itemType === "Ev" ? "Xe điện" : "Pin"}
                                     </p>
-                                    {selectedSale.itemType === "ev" ? (
+                                    {selectedSale.itemType === "Ev" ? (
                                         <>
                                             <p>
                                                 <b>Biển số:</b> {selectedSale.licensePlate}
@@ -508,7 +509,7 @@ export default function HistorySold() {
                                 Đóng
                             </button>
 
-                            {(selectedSale.status?.toLowerCase() === "processing" ||selectedSale.status?.toLowerCase() === "pending_approval") && (
+                            {(selectedSale.status == "Pending" ||selectedSale.status == "Pending") && (
                                 <button
                                     disabled={confirming}
                                     onClick={async () => {
@@ -518,13 +519,13 @@ export default function HistorySold() {
                                             setConfirming(true);
                                             await orderApi.putOrder(selectedSale.orderId, {
                                                 ...selectedSale,
-                                                status: "shipped",
+                                                status: "Shipped",
                                             });
                                             message.success("✅ Đã xác nhận đơn hàng thành công!");
                                             setSales((prev) =>
                                                 prev.map((s) =>
                                                     s.orderId === selectedSale.orderId
-                                                        ? { ...s, status: "shipped" }
+                                                        ? { ...s, status: "Shipped" }
                                                         : s
                                                 )
                                             );

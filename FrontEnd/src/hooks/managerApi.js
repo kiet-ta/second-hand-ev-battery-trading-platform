@@ -101,11 +101,11 @@ export const managerAPI = {
         const token = localStorage.getItem("token");
         let url = "";
 
-        if (status === "ban") {
+        if (status === "Ban") {
             url = `${BASE}kyc-document/users/${userId}/ban`;
-        } else if (status === "active") {
+        } else if (status === "Active") {
             url = `${BASE}kyc-document/users/${userId}/activate`;
-        } else if (status === "warning1" || status === "warning2") {
+        } else if (status === "Warning1" || status === "Warning2") {
             url = `${BASE}kyc-document/users/${userId}/warn`;
         } else {
             throw new Error("Invalid status type");

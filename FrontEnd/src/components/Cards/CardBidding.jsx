@@ -35,10 +35,10 @@ const formatCountdown = (status, startTimeStr, endTimeStr) => {
   let distance;
   let label = "Kết thúc sau";
 
-  if (status === 'UPCOMING') {
+  if (status === 'Upcoming') {
     distance = startTime - now;
     label = "Bắt đầu sau";
-  } else if (status === 'ONGOING') {
+  } else if (status === 'Ongoing') {
     distance = endTime - now;
   } else {
     distance = 0;
@@ -63,9 +63,9 @@ const formatCountdown = (status, startTimeStr, endTimeStr) => {
 const sendGroupNotification = async (userIds, title, message) => {
   const SENDER_ID = 4;
   const payloads = userIds.map(uid => ({
-    notiType: "activities",
+    notiType: "Activities",
     senderId: SENDER_ID,
-    senderRole: "manager",
+    senderRole: "Manager",
     title,
     message,
     targetUserId: uid.toLocaleString(),
@@ -99,7 +99,7 @@ const CarAuctionCard = ({
 
   // Fetch bidders
   useEffect(() => {
-    if (!id || status === 'UPCOMING') return;
+    if (!id || status === 'Upcoming') return;
     auctionApi.getBiddingHistory(auctionID)
       .then(hist => setBidders([...new Set(hist.map(b => b.userId))]))
       .catch(() => {});
@@ -118,7 +118,7 @@ const CarAuctionCard = ({
       const newCountdown = formatCountdown(status, startTime, endTime);
       setCountdown(newCountdown);
 
-      if (status === 'ONGOING' && bidders.length > 0 && !newCountdown.isFinished) {
+      if (status === 'Ongoing' && bidders.length > 0 && !newCountdown.isFinished) {
         const { distance } = newCountdown;
         if (distance <= 300000 && !warnNotiSent.current) {
           warnNotiSent.current = true;

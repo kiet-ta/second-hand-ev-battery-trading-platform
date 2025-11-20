@@ -6,7 +6,7 @@ export default function ComplaintPage() {
   const [form, setForm] = useState({
     reason: "",
     description: "",
-    severityLevel: "low",
+    severityLevel: "Low",
   });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
@@ -23,7 +23,7 @@ export default function ComplaintPage() {
     if (!form.reason.trim()) newErrors.reason = "Vui lòng nhập lý do khiếu nại.";
     if (!form.description.trim())
       newErrors.description = "Vui lòng mô tả chi tiết vấn đề.";
-    if (!["low", "medium", "high"].includes(form.severityLevel))
+    if (!["Low", "Medium", "High"].includes(form.severityLevel))
       newErrors.severityLevel = "Mức độ không hợp lệ.";
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -64,14 +64,14 @@ export default function ComplaintPage() {
           userId: Number(userId),
           reason: form.reason.trim(),
           description: form.description.trim(),
-          status: "pending",
+          status: "Pending",
           severityLevel: form.severityLevel,
           isDeleted: false,
         }),
       });
 
       if (res.ok) {
-        setForm({ reason: "", description: "", severityLevel: "low" });
+        setForm({ reason: "", description: "", severityLevel: "Low" });
         fetchComplaints();
       }
     } finally {
@@ -82,11 +82,11 @@ export default function ComplaintPage() {
   const statusTag = useMemo(
     () => (status) => {
       switch (status) {
-        case "pending":
+        case "Pending":
           return <Tag color="gold">Đang chờ</Tag>;
-        case "in_review":
+        case "In_Review":
           return <Tag color="blue">Đang xem xét</Tag>;
-        case "resolved":
+        case "Resolved":
           return <Tag color="green">Đã xử lý</Tag>;
         default:
           return <Tag>Không xác định</Tag>;
@@ -161,9 +161,9 @@ export default function ComplaintPage() {
                 errors.severityLevel ? "border-red-400" : "border-[#E0DFDB]"
               }`}
             >
-              <option value="low">Thấp</option>
-              <option value="medium">Trung bình</option>
-              <option value="high">Cao</option>
+              <option value="Low">Thấp</option>
+              <option value="Medium">Trung bình</option>
+              <option value="High">Cao</option>
             </select>
             {errors.severityLevel && (
               <p className="text-red-500 text-sm mt-1">

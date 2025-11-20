@@ -47,18 +47,22 @@ namespace Application.Services
 
         public async Task<IEnumerable<RevenueByMonthDto>> GetRevenueByMonthAsync(string range)
         {
-            // parse range (e.g., "12m" -> 12)
+            // Parse the requested range (e.g., "12m" for 12 months)
             int monthsRange = 12;
             if (range.EndsWith("m"))
             {
+                // Try to parse the number part, defaulting to 12 if parsing fails
                 int.TryParse(range.TrimEnd('m'), out monthsRange);
             }
-
             var data = await _unitOfWork.Payments.GetRevenueByMonthAsync(monthsRange);
+
             if (data == null)
                 throw new Exception("Failed to retrieve revenue data.");
+
+            // Map the raw (Year, Month, Total) data from the repository into the final DTO format.
             var result = data.Select(d => new RevenueByMonthDto
             {
+                // Format the Year and Month into a readable short month name (e.g., "Jan")
                 Month = new DateTime(d.Year, d.Month, 1).ToString("MMM"),
                 Total = d.Total
             });
