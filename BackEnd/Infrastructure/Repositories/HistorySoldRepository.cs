@@ -62,7 +62,7 @@ namespace Infrastructure.Repositories
 
             foreach (var item in items)
             {
-                item.Status = "processing";
+                item.Status = "Processing";
             }
 
             return items;
@@ -84,7 +84,7 @@ namespace Infrastructure.Repositories
 
             foreach (var item in items)
             {
-                item.Status = "pending_approval";
+                item.Status = "Pending_Approval";
             }
 
             return items;
@@ -125,7 +125,7 @@ namespace Infrastructure.Repositories
 
             foreach (var item in items)
             {
-                item.Status = "canceled";
+                item.Status = "Canceled";
             }
 
             return items;
@@ -147,7 +147,7 @@ namespace Infrastructure.Repositories
 
             foreach (var item in items)
             {
-                item.Status = "sold";
+                item.Status = "Sold";
             }
 
             return items;
