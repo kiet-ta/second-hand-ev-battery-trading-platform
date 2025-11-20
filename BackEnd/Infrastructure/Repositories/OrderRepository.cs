@@ -79,33 +79,50 @@ namespace Infrastructure.Repositories
 
         public async Task<List<OrdersByWeekDto>> GetOrdersByWeekAsync(int sellerId)
         {
-            var orderIdsQuery = _context.PaymentDetails
-                .Where(pd => _context.Items.Any(i => i.ItemId == pd.ItemId && i.UpdatedBy == sellerId))
-                .Select(pd => pd.OrderId)
-                .Distinct();
+            // --- 1. Query Data from Database (LINQ to Entities) ---
+            // This query joins Orders, PaymentDetails, and Items to find all 'Completed' orders
+            // associated with the specific seller (identified by i.UpdatedBy == sellerId).
+            var ordersQuery = from o in _context.Orders
+                                  // Join Orders with PaymentDetails (assuming OrderDetails is linked via PaymentDetails)
+                              join pd in _context.PaymentDetails on o.OrderId equals pd.OrderId
+                              // Join PaymentDetails with Items to find the Seller
+                              join i in _context.Items on pd.ItemId equals i.ItemId
+                              where i.UpdatedBy == sellerId // Filter: Order must involve an Item updated/owned by the seller
+                                    && o.Status == OrderStatus.Completed.ToString() // Filter: Only include completed orders
+                                    && o.CreatedAt != null // Filter: Ensure the creation date is not null
+                              select new { o.OrderId, o.CreatedAt };
 
-            var ordersQuery = _context.Orders
-                .Where(o => orderIdsQuery.Contains(o.OrderId) && o.CreatedAt != null)
-                .Select(o => new { o.OrderId, o.CreatedAt });
+            // Execute the query, fetch the data into the client's memory (List<T>), 
+            // and ensure each OrderId is distinct (since one order might have multiple PaymentDetails/Items).
+            var orders = await ordersQuery.Distinct().ToListAsync();
 
-            var orders = await ordersQuery.ToListAsync();
-
+            // --- 2. Client-Side Grouping (LINQ to Objects) ---
+            // Perform grouping on the client side to accurately calculate the WeekNumber 
+            // based on specific Calendar rules (ISO 8601).
             var result = orders
                 .GroupBy(o =>
                 {
+                    var dt = o.CreatedAt;
+
+                    // Get the current culture's calendar
                     var cal = System.Globalization.DateTimeFormatInfo.CurrentInfo.Calendar;
+
+                    // Calculate the Week Number using ISO 8601 rules (FirstFourDayWeek, Week starts on Monday)
                     var week = cal.GetWeekOfYear(
-                        o.CreatedAt,
+                        dt,
                         System.Globalization.CalendarWeekRule.FirstFourDayWeek,
                         DayOfWeek.Monday);
-                    return new { o.CreatedAt.Year, WeekNumber = week };
+
+                    // Group by Year and the calculated Week Number
+                    return new { dt.Year, WeekNumber = week };
                 })
                 .Select(g => new OrdersByWeekDto
                 {
                     Year = g.Key.Year,
                     WeekNumber = g.Key.WeekNumber,
-                    Total = g.Count()
+                    Total = g.Count() // Count the number of unique orders in the group (week)
                 })
+                // Final ordering for presentation purposes
                 .OrderBy(x => x.Year)
                 .ThenBy(x => x.WeekNumber)
                 .ToList();
