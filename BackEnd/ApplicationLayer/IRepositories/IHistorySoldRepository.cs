@@ -12,11 +12,11 @@ namespace Application.IRepositories
     public interface IHistorySoldRepository
     {
         Task<User?> GetSellerByIdAsync(int id);
-        Task<List<Item>> GetSoldItemsAsync(int sellerId);
+        //Task<List<Item>> GetSoldItemsAsync(int sellerId);
 
-        Task<List<Item>> GetPendingPaymentItemsAsync(int sellerId);
+        //Task<List<Item>> GetPendingPaymentItemsAsync(int sellerId);
 
-        Task<List<Item>> GetProcessingItemsAsync(int sellerId);
+        //Task<List<Item>> GetProcessingItemsAsync(int sellerId);
 
         Task<List<EVItemDto>> MapToEVItemsAsync(List<Item> evItems);
         Task<List<EVItemDto>> MapToEVItemsAsync(IQueryable<Item> evItemsQuery);

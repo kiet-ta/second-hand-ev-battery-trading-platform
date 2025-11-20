@@ -9,11 +9,11 @@ using System.Runtime.ConstrainedExecution;
 
 namespace Infrastructure.Repositories
 {
-    public class KYC_DocumentRepository : IKycDocumentRepository
+    public class KycDocumentRepository : IKycDocumentRepository
     {
         private readonly EvBatteryTradingContext _context;
 
-        public KYC_DocumentRepository(EvBatteryTradingContext context)
+        public KycDocumentRepository(EvBatteryTradingContext context)
         {
             _context = context;
         }
@@ -21,7 +21,7 @@ namespace Infrastructure.Repositories
         public async Task<User?> GetByIdAsync(int id)
         {
             var user = await _context.Users
-    .FirstOrDefaultAsync(u => u.UserId == id && !(u.IsDeleted == true));
+    .FirstOrDefaultAsync(u => u.UserId == id && !(u.IsDeleted   ));
             return user;
         }
 
