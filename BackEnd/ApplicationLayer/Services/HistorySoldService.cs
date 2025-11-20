@@ -52,9 +52,9 @@ namespace Application.Services
             foreach (var obj in mappedAvailable)
             {
                 if (obj is BatteryItemDto battery)
-                    battery.Status = "available";
+                    battery.Status = "Available";
                 else if (obj is EVItemDto ev)
-                    ev.Status = "available";
+                    ev.Status = "Available";
             }
 
             var finalList = new List<object>();
@@ -155,9 +155,9 @@ namespace Application.Services
             foreach (var obj in mappedItems)
             {
                 if (obj is BatteryItemDto battery)
-                    battery.Status = "sold";
+                    battery.Status = "Sold";
                 else if (obj is EVItemDto ev)
-                    ev.Status = "sold";
+                    ev.Status = "Sold";
             }
 
             return mappedItems;
@@ -178,9 +178,9 @@ namespace Application.Services
             foreach (var obj in mappedItems)
             {
                 if (obj is BatteryItemDto battery)
-                    battery.Status = "canceled";
+                    battery.Status = "Canceled";
                 else if (obj is EVItemDto ev)
-                    ev.Status = "canceled";
+                    ev.Status = "Canceled";
             }
 
             return mappedItems;
