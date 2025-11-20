@@ -5,6 +5,7 @@ using Application.Services;
 using Domain.Common.Constants;
 using Domain.Entities;
 using Moq;
+using Moq.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -210,7 +211,27 @@ namespace Application.Tests.Services
             Assert.Contains(result, r => r is EVItemDto);
         }
 
-       
+
+        #endregion
+
+        #region Exceptions - Items Null
+
+        [Fact]
+        public async Task GetProcessingItemsAsync_ShouldThrow_WhenItemsNull()
+        {
+            _mockRepo.Setup(r => r.GetProcessingItemsAsync(3)).ReturnsAsync((List<Item>?)null);
+
+            await Assert.ThrowsAsync<Exception>(() => _service.GetProcessingItemsAsync(3));
+        }
+
+        [Fact]
+        public async Task GetSoldItemsAsync_ShouldThrow_WhenItemsNull()
+        {
+            _mockRepo.Setup(r => r.GetSoldItemsAsync(4)).ReturnsAsync((List<Item>?)null);
+
+            await Assert.ThrowsAsync<Exception>(() => _service.GetSoldItemsAsync(4));
+        }
+
         #endregion
     }
 }
