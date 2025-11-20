@@ -175,7 +175,7 @@ export const router = createBrowserRouter([
 
   {
     path: "/seller",
-    element: <ProtectedRoute allowedRoles={["seller"]} />,
+    element: <ProtectedRoute allowedRoles={["Seller"]} />,
     children: [
       {
         element: <SellerDashboardLayout />,
@@ -193,7 +193,7 @@ export const router = createBrowserRouter([
   // MANAGER / ADMIN DASHBOARD (Protected)
   {
     path: "/manage",
-    element: <ProtectedRoute allowedRoles={["manager", "staff"]} />,
+    element: <ProtectedRoute allowedRoles={["manager", "Staff"]} />,
     children: [
       {
         element: <ManagerDashboard />,
