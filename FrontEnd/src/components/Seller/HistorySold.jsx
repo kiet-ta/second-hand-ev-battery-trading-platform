@@ -74,7 +74,6 @@ export default function HistorySold() {
     const getStatusText = (status) => {
         switch (status?.toLowerCase()) {
             case "Sold":
-            case "Completed":
                 return "Hoàn thành";
             case "Processing":
                 return "Đang xử lý";
@@ -509,7 +508,7 @@ export default function HistorySold() {
                                 Đóng
                             </button>
 
-                            {(selectedSale.status == "Pending" ||selectedSale.status == "Pending") && (
+                            {(selectedSale.status == "Pending" ||selectedSale.status == "Processing") && (
                                 <button
                                     disabled={confirming}
                                     onClick={async () => {

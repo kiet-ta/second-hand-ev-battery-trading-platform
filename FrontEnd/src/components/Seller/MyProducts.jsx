@@ -147,7 +147,7 @@ export default function MyProducts() {
       case "Pending_Pay":
         return "Chờ thanh toán";
       case "Auction_Pending_Pay":
-      return "Đang hoạt động (Đấu giá)"
+        return "Chờ thanh toán"
       case "Rejected":
         return "Bị từ chối";
       default:
@@ -228,8 +228,7 @@ export default function MyProducts() {
                   className="w-full h-48 object-cover"
                 />
                 <span
-                  className={`absolute top-2 right-2 text-xs font-semibold px-2 py-1 rounded-full ${
-                    item.status === "Active"
+                  className={`absolute top-2 right-2 text-xs font-semibold px-2 py-1 rounded-full ${(item.status === "Active" || item.status === "Auction_Active")
                       ? "bg-green-100 text-green-700"
                       : "bg-gray-100 text-gray-600"
                   }`}
@@ -253,7 +252,7 @@ export default function MyProducts() {
 
                 {/* 2 nút hành động */}
                 <div className="flex flex-col gap-2 mt-auto">
-                  {item.status === "Pending_Pay" && (
+                  {(item.status === "Pending_Pay" || item.status === "Auction_Pending_Pay") && (
                     <Button
                       type="primary"
                       block

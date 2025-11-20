@@ -53,9 +53,9 @@ export default function ProductCreationModal({ onSuccess }) {
   const handleSubmitAll = useCallback(async () => {
     const { itemInfo, auctionInfo, images } = draftData;
     if (!itemInfo) return;
-
+    console.log(itemInfo, auctionInfo)
     setIsLoading(true);
-    const moderationState = itemInfo.createAuction ? "Pending" : "Not_Submitted";
+    const moderationState = itemInfo.createAuction === true ? "Pending" : "Not_Submitted";
     const statusState = itemInfo.createAuction ? "Auction_Pending_Pay" : "Pending_Pay"
     try {
       const basePayload = {
@@ -91,6 +91,7 @@ export default function ProductCreationModal({ onSuccess }) {
           ...basePayload,
           categoryId: 2,
           brand: itemInfo.brand,
+          condition: itemInfo.condition,
           capacity: itemInfo.capacity,
           voltage: itemInfo.voltage,
           chargeCycles: itemInfo.chargeCycle,
@@ -103,8 +104,8 @@ export default function ProductCreationModal({ onSuccess }) {
         await auctionApi.postAuction({
           itemId: created.itemId,
           startingPrice: auctionInfo.startingPrice,
-          startTime: auctionInfo.auctionTime[0].toISOString(),
-          endTime: auctionInfo.auctionTime[1].toISOString(),
+          startTime: auctionInfo.auctionTime[0],
+          endTime: auctionInfo.auctionTime[1],
         });
       }
 
