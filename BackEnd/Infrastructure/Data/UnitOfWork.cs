@@ -76,7 +76,7 @@ public class UnitOfWork : IUnitOfWork
         Favorites = new FavoriteRepository(_context);
         HistorySolds = new HistorySoldRepository(_context);
         ItemImages = new ItemImageRepository(_context);
-        KycDocuments = new KYC_DocumentRepository(_context);
+        KycDocuments = new KycDocumentRepository(_context);
         News = new NewsRepository(_context);
         Notifications = new NotificationRepository(_context);
         PasswordResetTokens = new PasswordResetTokenRepository(_context);

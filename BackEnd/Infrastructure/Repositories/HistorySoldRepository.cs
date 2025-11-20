@@ -123,6 +123,35 @@ namespace Infrastructure.Repositories
                 )
                 .ToListAsync();
 
+            foreach (var item in items)
+            {
+                item.Status = "canceled";
+            }
+
+            return items;
+        }
+
+        public async Task<List<Item>> GetSoldItemsAsync(int sellerId)
+        {
+            var items = await _context.Items
+                .Where(item =>
+                    item.UpdatedBy == sellerId &&
+                    !(item.IsDeleted == true) &&
+                    _context.PaymentDetails
+                        .Join(_context.Payments, pd => pd.PaymentId, p => p.PaymentId, (pd, p) => new { pd, p })
+                        .Any(joined =>
+                            joined.pd.ItemId == item.ItemId &&
+                            joined.p.Status == PaymentStatus.Completed.ToString())
+                )
+                .ToListAsync();
+
+            foreach (var item in items)
+            {
+                item.Status = "sold";
+            }
+
+            return items;
+        }
 
 #pragma warning disable CS8601
 
@@ -163,9 +192,6 @@ namespace Infrastructure.Repositories
                             CreatedAt = item.CreatedAt,
                             SoldAt = item.UpdatedAt,
                             ImageUrl = img != null ? img.ImageUrl : null,
-
-                            Status = o != null ? o.Status : null,
-
                             Buyer = u != null ? new BuyerDto
                             {
                                 BuyerId = u.UserId,
@@ -173,10 +199,8 @@ namespace Infrastructure.Repositories
                                 Phone = u.Phone,
                                 Address = a != null ? $"{a.Street}, {a.Ward}, {a.District}, {a.Province}" : null
                             } : null,
-
                             OrderId = o != null ? o.OrderId : (int?)null
                         };
-
 
             return await query.ToListAsync();
         }
@@ -267,7 +291,6 @@ namespace Infrastructure.Repositories
                             ListedPrice = item.Price,
                             ActualPrice = pd != null ? pd.Amount : (decimal?)null,
                             PaymentMethod = p != null ? p.Method : null,
-                            Status = o != null ? o.Status : null,
 
                             CreatedAt = item.CreatedAt,
                             SoldAt = item.UpdatedAt,
@@ -336,11 +359,6 @@ namespace Infrastructure.Repositories
                         };
 
             return await query.ToListAsync();
-        }
-
-        public Task<List<Item>> GetCanceledItemsAsync(int sellerId)
-        {
-            throw new NotImplementedException();
         }
     }
 }
