@@ -147,7 +147,7 @@ public class AuctionService : IAuctionService
     public async Task<BidderHistoryDto> PlaceBidAsync(int auctionId, int userId, decimal bidAmount)
     {
         User user;
-        Bid? previousHighestBid = null; 
+        Bid? previousHighestBid = null;
 
         await _unitOfWork.BeginTransactionAsync();
         try
@@ -181,32 +181,40 @@ public class AuctionService : IAuctionService
                 throw new InvalidOperationException($"User wallet for user ID {userId} not found.");
             }
 
-            var previousUserActiveBid = await _unitOfWork.Bids.GetUserHighestActiveBidAsync(auctionId, userId);
+            // We need to find the latest bid from this user that holds funds, 
+            // regardless of whether it's currently 'Active' or has been 'Outbid'.
+            var previousHeldBid = await _unitOfWork.Bids.GetUserLatestHeldBidAsync(auctionId, userId);
 
             decimal amountToHoldNow = 0;
             decimal previousHeldAmount = 0;
 
-            if (previousUserActiveBid != null)
+            if (previousHeldBid != null)
             {
-                if (bidAmount <= previousUserActiveBid.BidAmount)
+                // Check constraint: New bid must be higher than user's own previous bid
+                if (bidAmount <= previousHeldBid.BidAmount)
                 {
                     await _unitOfWork.RollbackTransactionAsync();
-                    throw new ArgumentException($"Your new bid must be higher than your current highest bid ({previousUserActiveBid.BidAmount:N0}).");
+                    throw new ArgumentException($"Your new bid must be higher than your current highest bid ({previousHeldBid.BidAmount:N0}).");
                 }
-                previousHeldAmount = previousUserActiveBid.BidAmount;
+
+                // Calculate the difference to hold
+                previousHeldAmount = previousHeldBid.BidAmount;
                 amountToHoldNow = bidAmount - previousHeldAmount;
             }
             else
             {
+                // First time bidding (or previous bids were released), hold full amount
                 amountToHoldNow = bidAmount;
             }
 
+            // Check available balance
             if ((wallet.Balance - wallet.HeldBalance) < amountToHoldNow)
             {
                 await _unitOfWork.RollbackTransactionAsync();
                 throw new InvalidOperationException("Insufficient available funds (considering held amounts).");
             }
 
+            // Execute hold logic on wallet
             bool updateWalletSuccess = await _unitOfWork.Wallets.UpdateBalanceAndHeldAsync(wallet.WalletId, -amountToHoldNow, amountToHoldNow);
             if (!updateWalletSuccess)
             {
@@ -216,6 +224,7 @@ public class AuctionService : IAuctionService
             }
             _logger.LogInformation("Successfully held {Amount} from Wallet {WalletId} (Held Balance: {HeldBalance})", amountToHoldNow, wallet.WalletId, wallet.HeldBalance + amountToHoldNow);
 
+            // Create new Bid entity
             var newBid = new Bid()
             {
                 AuctionId = auctionId,
@@ -227,6 +236,7 @@ public class AuctionService : IAuctionService
             int newBidId = await _unitOfWork.Bids.PlaceBidAsync(newBid);
             newBid.BidId = newBidId;
 
+            // Record Transaction
             var holdTransaction = new WalletTransaction()
             {
                 WalletId = wallet.WalletId,
@@ -239,14 +249,18 @@ public class AuctionService : IAuctionService
             await _unitOfWork.WalletTransactions.CreateTransactionAsync(holdTransaction);
             _logger.LogInformation("Created 'hold' transaction {TransactionId} for Bid {BidId} (Amount: {Amount})", holdTransaction.TransactionId, newBid.BidId, amountToHoldNow);
 
-            if (previousUserActiveBid != null)
+            // Update status of previous bid if it was Active
+            // Note: If it was already 'Outbid', we don't need to change it, but changing it to 'Outbid' again doesn't hurt.
+            if (previousHeldBid != null && previousHeldBid.Status == BidStatus.Active.ToString())
             {
-                await _unitOfWork.Bids.UpdateBidStatusAsync(previousUserActiveBid.BidId, "outbid");
-                _logger.LogInformation("Updated previous bid {PreviousBidId} for User {UserId} to 'outbid'.", previousUserActiveBid.BidId, userId);
+                await _unitOfWork.Bids.UpdateBidStatusAsync(previousHeldBid.BidId, "outbid");
+                _logger.LogInformation("Updated previous bid {PreviousBidId} for User {UserId} to 'outbid'.", previousHeldBid.BidId, userId);
             }
 
+            // Find the Global Highest Bid (to notify them) - Exclude the bid we just created
             previousHighestBid = await _unitOfWork.Bids.GetHighestActiveBidAsync(auctionId, excludeBidId: newBidId);
 
+            // Update the previous global winner to 'outbid'
             if (previousHighestBid != null && previousHighestBid.UserId != userId)
             {
                 await _unitOfWork.Bids.UpdateBidStatusAsync(previousHighestBid.BidId, "outbid");
@@ -267,7 +281,7 @@ public class AuctionService : IAuctionService
             await _unitOfWork.CommitTransactionAsync();
             _logger.LogInformation("Successfully placed bid {BidId} for User {UserId} in Auction {AuctionId}. Amount: {BidAmount}. Transaction committed.", newBid.BidId, userId, auctionId, bidAmount);
 
-            // notification for user outbid
+            // Notification logic
             if (previousHighestBid != null)
             {
                 var outbidMessage = $"You have been outbid on auction #{auctionId}. The new price is {bidAmount:N0}đ.";
@@ -281,17 +295,16 @@ public class AuctionService : IAuctionService
                 _ = _notificationService.AddNewNotification(notiDto, 0, "");
             }
             return newBidHistory;
-            
+
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error during PlaceBidAsync for Auction {AuctionId}, User {UserId}. Rolling back transaction.", auctionId, userId);
             await _unitOfWork.RollbackTransactionAsync();
-            throw; 
+            throw;
         }
-
-
     }
+
     public async Task UpdateAuctionStatusesAsync()
     {
         var upcomingAuctions = await _unitOfWork.Auctions.GetUpcomingAuctionsAsync();
