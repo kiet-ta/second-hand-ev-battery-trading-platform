@@ -1,5 +1,6 @@
 ﻿using Application.DTOs.PaymentDtos;
 using Application.IRepositories.IPaymentRepositories;
+using Domain.Common.Constants;
 using Domain.Entities;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -33,7 +34,7 @@ public class PaymentRepository : IPaymentRepository
         if (payment != null)
         {
             payment.Status = status;
-            payment.UpdatedAt = DateTime.UtcNow;
+            payment.UpdatedAt = DateTime.Now;
             await _context.SaveChangesAsync();
         }
     }
@@ -70,21 +71,41 @@ public class PaymentRepository : IPaymentRepository
 
     public async Task<IEnumerable<(int Year, int Month, decimal Total)>> GetRevenueByMonthAsync(int monthsRange)
     {
-        var startDate = DateTime.UtcNow.AddMonths(-monthsRange + 1);
+        // Calculate the start date for the query based on the required range (e.g., 12 months ago).
+        var startDate = DateTime.Now.AddMonths(-monthsRange + 1);
 
-        var query = await _context.Payments
-            .Where(o => o.Status == "completed" && o.CreatedAt >= startDate)
-            .GroupBy(o => new { o.CreatedAt.Year, o.CreatedAt.Month })
-            .Select(g => new
+        // Hardcoded ID of the manager whose revenue we want to filter.
+        int managerIdToFilter = 4;
+
+        // Execute the LINQ query to aggregate revenue data from the database.
+        var query = await _context.WalletTransactions
+            .Where(t =>
+                // 1. Filter: Only include transactions with the 'Revenue' type.
+                t.Type == "Revenue" &&
+
+                // 2. Filter: Only include transactions associated with the specific manager's wallet.
+                t.WalletId == managerIdToFilter &&
+
+                // 3. Filter: Only include transactions within the defined time range.
+                t.CreatedAt >= startDate)
+
+            // Group the filtered transactions by Year and Month.
+            .GroupBy(t => new {
+                t.CreatedAt.Year,
+                t.CreatedAt.Month
+            })
+            .Select(g => new // Project the results into an anonymous type.
             {
                 g.Key.Year,
                 g.Key.Month,
-                Total = g.Sum(x => x.TotalAmount)
+                Total = g.Sum(x => x.Amount) // Calculate the sum of 'Amount' for each group (month).
             })
+            // Order the results chronologically.
             .OrderBy(g => g.Year)
             .ThenBy(g => g.Month)
-            .ToListAsync();
+            .ToListAsync(); // Execute the query and load results into memory.
 
+        // Return the results as a standard tuple collection.
         return query.Select(q => (q.Year, q.Month, q.Total));
     }
     public async Task<Payment?> GetByOrderIdAsync(int orderId)

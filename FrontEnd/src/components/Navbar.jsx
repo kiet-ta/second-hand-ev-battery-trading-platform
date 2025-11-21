@@ -3,16 +3,22 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
 import { Input, Select, message } from "antd";
 import { BsGrid } from "react-icons/bs";
-import { FaCar, FaBatteryFull, FaCubes, FaSearch, FaShoppingCart, FaSuitcase } from "react-icons/fa";
+import {
+  FaCar,
+  FaBatteryFull,
+  FaCubes,
+  FaSearch,
+  FaShoppingCart,
+  FaSuitcase,
+} from "react-icons/fa";
 import { FiHeart } from "react-icons/fi";
 import { IoMdHome } from "react-icons/io";
 import { RiAuctionFill } from "react-icons/ri";
+import { IoHelp } from "react-icons/io5";
 import Logo from "./Logo";
 import walletApi from "../api/walletApi";
 import NotificationDropdown from "./DropDowns/NotificationDropdown";
 import ProfileDropDown from "./DropDowns/ProfileDropDown";
-import { IoHelp } from "react-icons/io5";
-
 
 const { Option } = Select;
 
@@ -24,14 +30,31 @@ function Navbar({ data }) {
   const [query, setQuery] = useState("");
   const [itemType, setItemType] = useState("all");
 
+  // ✅ Initialize query + itemType on first mount
   useEffect(() => {
     const params = new URLSearchParams(location.search);
-    const q = params.get("query") || "";
-    const type = params.get("itemType") || "all";
-    setQuery(q);
-    setItemType(type);
+    setQuery(params.get("query") || "");
+    setItemType(params.get("itemType") || "all");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // ✅ Sync input when user navigates to a different search page (not typing)
+  useEffect(() => {
+    // Only react to URL changes *after navigation*, not while typing
+    const params = new URLSearchParams(location.search);
+    const newQuery = params.get("query") || "";
+    const newType = params.get("itemType") || "all";
+
+    // if pathname = /search and user didn't just type, sync query
+    if (location.pathname === "/search") {
+      // Only update if URL differs from input
+      if (newQuery !== query) setQuery(newQuery);
+      if (newType !== itemType) setItemType(newType);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.search]);
 
+  // ✅ Fetch wallet balance
   useEffect(() => {
     const fetchData = async () => {
       const userId = localStorage.getItem("userId");
@@ -49,6 +72,7 @@ function Navbar({ data }) {
     fetchData();
   }, [data]);
 
+  // ✅ Seller click logic
   const handleSellerClick = () => {
     const jwt = localStorage.getItem("token");
     if (!jwt) {
@@ -58,7 +82,7 @@ function Navbar({ data }) {
 
     try {
       const decodeJWT = jwtDecode(jwt);
-      if (decodeJWT.role === "buyer") navigate("/seller-registration");
+      if (decodeJWT.role === "Buyer") navigate("/seller-registration");
       else if (decodeJWT.role === "Manager") navigate("/manage");
       else navigate("/seller");
     } catch (error) {
@@ -69,6 +93,7 @@ function Navbar({ data }) {
     }
   };
 
+  // ✅ Handle search
   const handleSearch = (e) => {
     e.preventDefault();
     if (!query.trim()) return;
@@ -112,12 +137,14 @@ function Navbar({ data }) {
           <div className="flex items-center">
             {data ? (
               <>
-              <div>
-                <Link className="flex items-center mr-2 hover:text-[#B8860B] font-medium text-sm transition-colors"
-                to="/complaint">
-                <IoHelp/> Gửi yêu cầu
-                </Link>
-              </div>
+                <div>
+                  <Link
+                    className="flex items-center mr-2 hover:text-[#B8860B] font-medium text-sm transition-colors"
+                    to="/complaint"
+                  >
+                    <IoHelp /> Gửi yêu cầu
+                  </Link>
+                </div>
                 <NotificationDropdown userId={data.userId} />
                 <div className="ml-4">
                   <ProfileDropDown users={data} walletBalance={walletBalance} />
@@ -125,10 +152,16 @@ function Navbar({ data }) {
               </>
             ) : (
               <>
-                <Link to="/login" className="mx-3 hover:text-[#B8860B] font-medium text-sm">
+                <Link
+                  to="/login"
+                  className="mx-3 hover:text-[#B8860B] font-medium text-sm"
+                >
                   Đăng Nhập
                 </Link>
-                <Link to="/register" className="mx-3 hover:text-[#B8860B] font-medium text-sm">
+                <Link
+                  to="/register"
+                  className="mx-3 hover:text-[#B8860B] font-medium text-sm"
+                >
                   Đăng Ký
                 </Link>
               </>
@@ -144,7 +177,7 @@ function Navbar({ data }) {
           </div>
 
           {/* Search Bar */}
-          <div className="w-2/4 px-4 relative overflow-visible z-50">
+          <div className="w-2/4 px-4 relative ">
             <form
               onSubmit={handleSearch}
               className="flex items-center bg-white border border-[#E8E4DC] rounded-full shadow-md overflow-hidden transition-all duration-300 hover:shadow-lg"
@@ -185,7 +218,7 @@ function Navbar({ data }) {
                     <BsGrid className="text-[#C99700]" /> Tất cả
                   </div>
                 </Option>
-                <Option value="ev">
+                <Option value="Ev">
                   <div className="flex items-center gap-2">
                     <FaCar className="text-[#C99700]" /> Xe
                   </div>
@@ -193,11 +226,6 @@ function Navbar({ data }) {
                 <Option value="battery">
                   <div className="flex items-center gap-2">
                     <FaBatteryFull className="text-[#C99700]" /> Pin
-                  </div>
-                </Option>
-                <Option value="accessory">
-                  <div className="flex items-center gap-2">
-                    <FaCubes className="text-[#C99700]" /> Phụ Kiện
                   </div>
                 </Option>
               </Select>

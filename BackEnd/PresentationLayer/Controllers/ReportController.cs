@@ -1,5 +1,6 @@
 ﻿using Application.DTOs;
 using Application.IServices;
+using Domain.Common.Constants;
 using Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -14,9 +15,9 @@ namespace PresentationLayer.Controllers
     {
         private readonly IReportService _reportService;
         private readonly INotificationService _notificationService;
-        private readonly IKYC_DocumentService _kycdocumentService;
+        private readonly IKycDocumentService _kycdocumentService;
 
-        public ReportController(IReportService reportService, INotificationService notificationService, IKYC_DocumentService kycdocumentService)
+        public ReportController(IReportService reportService, INotificationService notificationService, IKycDocumentService kycdocumentService)
         {
             _reportService = reportService;
             _notificationService = notificationService;
@@ -74,12 +75,12 @@ namespace PresentationLayer.Controllers
             return CreatedAtAction(nameof(GetReportById), new { id = report.Id }, report);
         }
         [HttpPut("{id}/status")]
-        [Authorize(Roles = "staff,manager")]
+        [Authorize(Roles = "Staff,Manager")]
         public async Task<IActionResult> UpdateReportStatus(
            int id,
            [FromQuery] string status,
            [FromQuery] int day,
-           [FromBody] CreateNotificationDTO dto)
+           [FromBody] CreateNotificationDto dto)
         {
             var userIdClaim = User.FindFirst("user_id")?.Value;
             if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int senderId))
@@ -104,7 +105,7 @@ namespace PresentationLayer.Controllers
  
             await _notificationService.SendNotificationAsync(dto.Message);
             Console.WriteLine("Realtime notification sent successfully.");
-            if (status == "approved")
+            if (status == ReportStatus.Approved.ToString())
             {
                 if (!int.TryParse(dto.TargetUserId, out int targetUserId))
                     return BadRequest(new { message = "TargetUserId must be a valid integer." });

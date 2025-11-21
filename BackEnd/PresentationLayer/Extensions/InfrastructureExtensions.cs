@@ -10,6 +10,7 @@ using Infrastructure.Data;
 using Infrastructure.Helpers;
 using Infrastructure.Repositories.ChatRepositories;
 using Infrastructure.Ulties;
+using Infrastructure.Workers;
 using Microsoft.EntityFrameworkCore;
 using Net.payOS;
 
@@ -47,7 +48,7 @@ public static class InfrastructureExtensions
         services.AddHostedService<PayOSWebhookInitializer>();
 
         // Redis Cache
-        services.AddScoped<IRedisCacheHelper, RedisCacheHelper>();
+        services.AddSingleton<IRedisCacheHelper, RedisCacheHelper>();
 
         // Helper IDGenerator
 
@@ -56,6 +57,8 @@ public static class InfrastructureExtensions
         // Singletons
         services.AddSingleton<IUserContextService, UserContextService>();
 
+        //      Job update status auction
+        services.AddHostedService<AuctionStatusUpdaterJob>();
         // Idgenerator
         //services.AddSingleton<IIdGenerator<long>>(provider =>
         //{
@@ -67,7 +70,7 @@ public static class InfrastructureExtensions
 
         //    return new IdGenerator(1, options);
         //});
-
+        services.AddHostedService<AuctionStatusUpdaterJob>();
         return services;
     }
 }

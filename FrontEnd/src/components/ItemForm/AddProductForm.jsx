@@ -41,13 +41,13 @@ export default function MyProductsPage() {
     // Màu trạng thái
     const getStatusTag = (status) => {
         switch (status?.toLowerCase()) {
-            case "available":
+            case "Active_ItemStatus":
                 return <Tag color="green">Đang bán</Tag>;
-            case "sold":
+            case "Sold":
                 return <Tag color="blue">Đã bán</Tag>;
-            case "pending":
+            case "Pending":
                 return <Tag color="orange">Chờ duyệt</Tag>;
-            case "rejected":
+            case "Rejected_ItemStatus":
                 return <Tag color="red">Bị từ chối</Tag>;
             default:
                 return <Tag color="gray">Không xác định</Tag>;
@@ -86,7 +86,7 @@ export default function MyProductsPage() {
             dataIndex: "itemType",
             key: "itemType",
             render: (type) =>
-                type === "battery" ? (
+                type === "Battery" ? (
                     <Tag color="geekblue">Pin</Tag>
                 ) : (
                     <Tag color="purple">Xe điện</Tag>

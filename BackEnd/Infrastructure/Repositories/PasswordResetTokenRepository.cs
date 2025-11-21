@@ -43,7 +43,7 @@ namespace Infrastructure.Repositories
               .FirstOrDefaultAsync(x => x.UserId == userId
                                        && x.OtpCode == otpCode
                                        && !x.IsUsed
-                                       && x.ExpirationTime > DateTime.UtcNow);
+                                       && x.ExpirationTime > DateTime.Now);
         }
     }
 }

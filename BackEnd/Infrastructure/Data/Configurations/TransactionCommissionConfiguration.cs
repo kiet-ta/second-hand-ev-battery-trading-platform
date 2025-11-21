@@ -8,8 +8,23 @@ public class TransactionCommissionConfiguration : IEntityTypeConfiguration<Trans
 {
     public void Configure(EntityTypeBuilder<TransactionCommission> builder)
     {
-        builder.ToTable("transaction_commission");
+        builder.ToTable("transaction_commissions");
         builder.HasKey(t => t.Id);
-        builder.Property(t => t.AppliedValue).HasColumnType("decimal(18,2)");
+        builder.Property(e => e.TransactionId)
+        .HasColumnName("transaction_id")
+        .IsRequired();
+
+        builder.Property(e => e.RuleId)
+               .HasColumnName("rule_id")
+               .IsRequired();
+
+        builder.Property(e => e.AppliedValue)
+               .HasColumnName("applied_value")
+               .HasColumnType("decimal(18,2)")
+               .IsRequired();
+
+        builder.Property(e => e.CreatedAt)
+               .HasColumnName("created_at")
+               .HasDefaultValueSql("GETDATE()");
     }
 }

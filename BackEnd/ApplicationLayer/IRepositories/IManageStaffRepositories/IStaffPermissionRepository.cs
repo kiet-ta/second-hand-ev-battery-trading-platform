@@ -6,5 +6,5 @@ public interface IStaffPermissionRepository
 {
     Task<List<StaffPermission>> GetPermissionsByStaffIdAsync(int id);
 
-    Task AssignPermissionsToStaffAsync(int staffId, List<int> PermissionId);
+    Task AssignPermissionsToStaffAsync(int staffId, List<int> permissionIds);
 }

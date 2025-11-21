@@ -13,7 +13,6 @@ namespace Application.DTOs
         public required string ticketLink { get; set; }
         public required string supportEmail { get; set; }
         public required string supportPhone { get; set; }
-        public required string To { get; set; }
 
 
     }

@@ -1,5 +1,6 @@
 ﻿using Application.DTOs;
 using Application.IRepositories;
+using Domain.Common.Constants;
 using Domain.Entities;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -38,8 +39,8 @@ namespace Infrastructure.Repositories
                 AssignTo = null,
                 Reason = dto.Reason,
                 Description = dto.Description,
-                Status = dto.Status ?? "pending",
-                SeverityLevel = dto.SeverityLevel ?? "medium",
+                Status = dto.Status ?? ComplaintStatus.Pending.ToString(),
+                SeverityLevel = dto.SeverityLevel ?? ComplaintSeverityLevel.Medium.ToString(),
                 CreatedAt = DateTime.Now,
                 UpdatedAt = DateTime.Now
             };
@@ -92,7 +93,7 @@ namespace Infrastructure.Repositories
             if (complaint == null) return false;
 
             complaint.Status = status.ToLower();
-            complaint.UpdatedAt = DateTime.UtcNow;
+            complaint.UpdatedAt = DateTime.Now;
             complaint.AssignTo = assignTo;
 
             await _context.SaveChangesAsync();
@@ -108,7 +109,7 @@ namespace Infrastructure.Repositories
             if (complaint == null) return false;
 
             complaint.SeverityLevel = level.ToLower();
-            complaint.UpdatedAt = DateTime.UtcNow;
+            complaint.UpdatedAt = DateTime.Now;
             complaint.AssignTo = assignTo;
 
             await _context.SaveChangesAsync();
@@ -123,7 +124,7 @@ namespace Infrastructure.Repositories
             if (complaint == null) return false;
 
             complaint.IsDeleted = true;
-            complaint.UpdatedAt = DateTime.UtcNow;
+            complaint.UpdatedAt = DateTime.Now;
             complaint.AssignTo = userId;
 
             await _context.SaveChangesAsync();

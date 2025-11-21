@@ -17,7 +17,7 @@ namespace Infrastructure.Repositories
             _context = context;
         }
 
-        public async Task<ReviewResponseDto> CreateReviewAsync(CreateReviewDto dto)
+        public async Task<ReviewResponseDto> CreateReviewAsync(CreateReviewDto dto, int id)
         {
             if (dto == null)
                 throw new ArgumentNullException(nameof(dto));
@@ -26,13 +26,13 @@ namespace Infrastructure.Repositories
             if (_context.Database.ProviderName == "Microsoft.EntityFrameworkCore.InMemory")
 
             {
-                return await CreateReviewInternalAsync(dto);
+                return await CreateReviewInternalAsync(dto, id);
             }
 
             await using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
-                var response = await CreateReviewInternalAsync(dto);
+                var response = await CreateReviewInternalAsync(dto, id);
                 await transaction.CommitAsync();
                 return response;
             }
@@ -43,11 +43,11 @@ namespace Infrastructure.Repositories
             }
         }
 
-        private async Task<ReviewResponseDto> CreateReviewInternalAsync(CreateReviewDto dto)
+        private async Task<ReviewResponseDto> CreateReviewInternalAsync(CreateReviewDto dto, int id)
         {
             var review = new Review
             {
-                ReviewerId = dto.ReviewerId,
+                ReviewerId = id,
                 ItemId = dto.ItemId,
                 TargetUserId = dto.TargetUserId,
                 Rating = dto.Rating,

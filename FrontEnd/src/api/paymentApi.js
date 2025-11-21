@@ -23,6 +23,20 @@ const paymentApi = {
             console.error("Error in createPayment API call:", error);
             throw error;
         }
+    },
+    confirmOrder: async (orderId) => {
+        try{
+            const response = await axios.post(`${baseURL}/confirm-order/${orderId}`,{} ,{
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                    'Content-Type': 'application/json'
+                }
+            })
+            return response.data;
+        } catch (error) {
+            console.error("Error in createPayment API call:", error);
+            throw error;
+        }
     }
 
 };

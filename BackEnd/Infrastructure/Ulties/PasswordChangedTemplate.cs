@@ -26,7 +26,7 @@ namespace Infrastructure.Ulties
                     <a href='{loginUrl}' 
                        style='display:inline-block; background:#28a745; color:#fff; text-decoration:none; 
                               padding:10px 20px; border-radius:5px; margin-top:10px;'>Login Now</a>
-                    <p style='margin-top:20px; font-size:12px; color:#888;'>© {DateTime.UtcNow.Year} Cóc Mua Xe</p>
+                    <p style='margin-top:20px; font-size:12px; color:#888;'>© {DateTime.Now.Year} Cóc Mua Xe</p>
                 </div>
             </body>
             </html>";

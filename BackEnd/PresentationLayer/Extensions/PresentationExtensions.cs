@@ -21,9 +21,10 @@ public static class PresentationExtensions
             options.AddPolicy("AllowNgrok",
                 policy =>
                 {
-                    policy.WithOrigins("https://318132ab9f7d.ngrok-free.app")
+                    policy.WithOrigins("https://318132ab9f7d.ngrok-free.app", "https://overhostile-mindy-overhastily.ngrok-free.dev", "http://localhost:5173")
                           .AllowAnyHeader()
-                          .AllowAnyMethod();
+                          .AllowAnyMethod()
+                          .AllowCredentials() ;
                 });
         });
 

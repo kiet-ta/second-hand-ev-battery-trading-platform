@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Domain.Common.Constants;
+using System;
 using System.Collections.Generic;
 
 namespace Domain.Entities;
@@ -13,7 +14,7 @@ public class Bid
 
     public decimal BidAmount { get; set; }
 
-    public DateTime? BidTime { get; set; }
-    public string Status { get; set; } = "active"; // active, outbid, winner, released, cancelled
+    public DateTime BidTime { get; set; }
+    public string Status { get; set; } = BidStatus.Active.ToString(); // active, outbid, winner, released, cancelled
 
 }

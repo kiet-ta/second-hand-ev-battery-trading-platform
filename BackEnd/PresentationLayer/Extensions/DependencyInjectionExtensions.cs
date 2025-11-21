@@ -8,11 +8,13 @@ using Application.IServices;
 using Application.Mappings;
 using Application.Services;
 using Application.Validations;
+using Domain.Entities;
 using FluentValidation;
 using Infrastructure.Data;
 using Infrastructure.Repositories;
 using Infrastructure.Repositories.ChatRepositories;
 using Infrastructure.Repositories.ManageStaffRepositories;
+using PresentationLayer.Hubs;
 
 namespace PresentationLayer.Extensions;
 
@@ -43,15 +45,17 @@ public static class DependencyInjectionExtensions
         services.AddScoped<ICommissionService, CommissionService>();
         services.AddScoped<IProfanityFilterService, ProfanityFilterService>();
         services.AddScoped<IMailService, MailService>();
-        services.AddScoped<IKYC_DocumentService, KYC_DocumentService>();
+        services.AddScoped<IKycDocumentService, KycDocumentService>();
         services.AddScoped<IStaffManagementService, StaffManagementService>();
         services.AddScoped<INewsService, NewsService>();
         services.AddSingleton<INotificationService, NotificationService>();
         services.AddScoped<IComplaintService, ComplaintService>();
         services.AddScoped<IWalletService, WalletService>();
+        services.AddSingleton<IProfanityCountService, ProfanityCountService>();
         services.AddScoped<ICommissionFeeRuleService, CommissionFeeRuleService>();
         services.AddScoped<IReportService, ReportService>();
-
+        services.AddScoped<IAuctionHubService, AuctionHubService>();
+        services.AddScoped<IAuctionFinalizationService, AuctionFinalizationService>();
         //---Repositories
         services.AddScoped<IAuctionRepository, AuctionRepository>();
         services.AddScoped<IAddressRepository, AddressRepository>();
@@ -77,7 +81,7 @@ public static class DependencyInjectionExtensions
         services.AddScoped<ITransactionCommissionRepository, TransactionCommissionRepository>();
         services.AddScoped<IEmailRepository, EmailTemplateRepository>();
         services.AddScoped<IFavoriteRepository, FavoriteRepository>();
-        services.AddScoped<IKYC_DocumentRepository, KYC_DocumentRepository>();
+        services.AddScoped<IKycDocumentRepository, KycDocumentRepository>();
         services.AddScoped<IPermissionRepository, PermissionRepository>();
         services.AddScoped<IStaffPermissionRepository, StaffPermissionRepository>();
         services.AddScoped<INewsRepository, NewsRepository>();
@@ -94,7 +98,7 @@ public static class DependencyInjectionExtensions
 
         //--- AutoMapper
         services.AddAutoMapper(
-            typeof(KYC_DocumentProfile).Assembly,
+            typeof(KycDocumentProfile).Assembly,
             typeof(AddressProfile).Assembly,
             typeof(ReviewProfile).Assembly,
             typeof(PermissionProfille).Assembly
