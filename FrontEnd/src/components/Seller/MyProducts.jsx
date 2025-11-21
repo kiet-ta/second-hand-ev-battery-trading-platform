@@ -19,6 +19,15 @@ export default function MyProducts() {
   const [form] = Form.useForm();
   const brand = Form.useWatch("brand", form);
   const model = Form.useWatch("model", form);
+  const [isPayModalOpen, setIsPayModalOpen] = useState(false);
+  const [selectedItem, setSelectedItem] = useState(null);
+  const [wallet, setWallet] = useState(null);
+  const [payType, setPayType] = useState(null); // "listing" | "moderation"
+  const [payLoading, setPayLoading] = useState(false);
+  const [inlineMsg, setInlineMsg] = useState(null);
+  const [feeCommission, setFeeCommission] = useState(0);
+  const [moderationCommission, setModerationCommission] = useState(0);
+
 
   const evBrands = Object.keys(evData);
   const evModels = brand ? Object.keys(evData[brand]) : [];
@@ -105,7 +114,7 @@ export default function MyProducts() {
         return "Chờ thanh toán";
       case "Auction_Pending_Pay":
         return "Chờ thanh toán"
-            case "Sold":
+      case "Sold":
         return "Đã bán";
 
       case "Rejected":
@@ -123,6 +132,8 @@ export default function MyProducts() {
         return "Đang chờ kiểm duyệt";
       case "Rejected":
         return "Bị từ chối kiểm duyệt";
+      case "Not_Submitted":
+        return "Chưa kiểm duyệt";
       case "Sold":
         return "Đã bán";
       default:
@@ -142,6 +153,88 @@ export default function MyProducts() {
       toast.error(" Xóa thất bại!");
     } finally {
       setDeleteLoading(false);
+    }
+  };
+
+  const formatCurrency = (num) =>
+    new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(num);
+
+  const handlePayClick = async (item, type) => {
+    try {
+      setInlineMsg(null);
+      setPayLoading(true);
+      const [walletData, itemDetail] = await Promise.all([
+        walletApi.getWalletByUser(sellerId),
+        itemApi.getItemDetailByID(item.itemId),
+      ]);
+      setWallet(walletData);
+      setSelectedItem(itemDetail);
+      setPayType(type);
+      setIsPayModalOpen(true);
+    } catch (err) {
+      console.error(err);
+      setInlineMsg({ type: "error", text: "Không thể tải dữ liệu thanh toán." });
+    } finally {
+      setPayLoading(false);
+    }
+  };
+
+  const handleConfirmPayment = async () => {
+    if (!wallet || (wallet.balance < feeCommission && payType == "listing") || (wallet.balance < moderationCommission && payType == "moderation")) {
+      setInlineMsg({
+        type: "error",
+        text: `Số dư ví không đủ để thanh toán.`,
+      });
+      return;
+    }
+
+    setPayLoading(true);
+    setInlineMsg(null);
+
+    try {
+      const userId = localStorage.getItem("userId");
+      const amount = payType === "listing" ? feeCommission : moderationCommission
+      await walletApi.withdrawWallet({
+        userId,
+        amount: amount,
+        type: "Withdraw",
+        ref: selectedItem.itemId,
+        description:
+          payType === "listing"
+            ? `Phí đăng bán sản phẩm ${selectedItem.title}`
+            : `Phí kiểm duyệt sản phẩm ${selectedItem.title}`,
+      });
+
+      const updatePayload = {
+        ...selectedItem,
+        updatedAt: new Date().toISOString(),
+        updatedBy: sellerId,
+      };
+      if (payType === "listing") {
+        const paymentState = updatePayload.status == "Auction_Pending_Pay" ? "Auction_Active" : "Active"
+        updatePayload.status = paymentState;
+      }
+      if (payType === "moderation") updatePayload.moderation = "Pending";
+
+      await itemApi.putItem(selectedItem.itemId, updatePayload);
+
+      setInlineMsg({
+        type: "success",
+        text:
+          payType === "listing"
+            ? "✅ Thanh toán đăng bán thành công! Sản phẩm đã được kích hoạt."
+            : "✅ Đã gửi yêu cầu kiểm duyệt thành công!",
+      });
+
+      setTimeout(() => {
+        setIsPayModalOpen(false);
+        fetchProducts();
+      }, 1500);
+    } catch (error) {
+      console.error(error);
+      setInlineMsg({ type: "error", text: "Có lỗi xảy ra khi xử lý thanh toán." });
+    } finally {
+      setPayLoading(false);
     }
   };
 
@@ -285,6 +378,20 @@ export default function MyProducts() {
                   </Button>
                 </div>
               )}
+              {(item.moderation === "Not_Submitted" || item.moderation === "Rejected") && (
+                <Button block onClick={() => handlePayClick(item, "moderation")}>
+                  Yêu cầu kiểm duyệt (₫{moderationCommission})
+                </Button>
+              )}
+              {item.status === "Pending_Pay" || item.status === "Auction_Pending_Pay" ? (
+                <Button
+                  type="primary"
+                  block
+                  onClick={() => handlePayClick(item, "listing")}
+                >
+                  Thanh toán đăng bán (₫{feeCommission})
+                </Button>
+              ) : null}
             </div>
           </div>
         ))}
@@ -475,6 +582,60 @@ export default function MyProducts() {
               Lưu thay đổi
             </Button>
           </div>
+        )}
+      </Modal>
+      <Modal
+        title="Xác nhận thanh toán"
+        open={isPayModalOpen}
+        onCancel={() => setIsPayModalOpen(false)}
+        footer={null}
+      >
+        {payLoading ? (
+          <div className="flex justify-center py-6">
+            <Spin />
+          </div>
+        ) : selectedItem ? (
+          <>
+            <p className="text-gray-700 mb-2">
+              <strong>Sản phẩm:</strong> {selectedItem?.title}
+            </p>
+            <p className="text-gray-700 mb-2">
+              <strong>Loại:</strong>{" "}
+              {selectedItem.itemType === "Ev" ? "Xe điện (EV)" : "Pin (Battery)"}
+            </p>
+            <p className="text-gray-700 mb-2">
+              <strong>Số dư ví hiện tại:</strong>{" "}
+              {formatCurrency(wallet?.balance || 0)}
+            </p>
+            <p className="text-gray-700 mb-4">
+              {payType == "listing" ?
+                <><strong>Phí thanh toán: </strong> đ{feeCommission}</> :
+                <><strong>Phí thanh toán: </strong> đ{moderationCommission}</>}
+
+            </p>
+
+            {inlineMsg && (
+              <Alert
+                type={inlineMsg.type}
+                message={inlineMsg.text}
+                showIcon
+                className="mb-4"
+              />
+            )}
+
+            <div className="flex justify-end gap-3">
+              <Button onClick={() => setIsPayModalOpen(false)}>Hủy</Button>
+              <Button
+                type="primary"
+                loading={payLoading}
+                onClick={handleConfirmPayment}
+              >
+                Xác nhận thanh toán
+              </Button>
+            </div>
+          </>
+        ) : (
+          <p className="text-center text-gray-500">Không có dữ liệu để hiển thị.</p>
         )}
       </Modal>
 
