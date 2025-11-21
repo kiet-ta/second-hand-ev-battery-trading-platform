@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import itemApi from '../../api/itemApi';
 import CardComponent from '../../components/Cards/Card';
 import { Spin } from 'antd';
+import favouriteApi from '../../api/favouriteApi';
 
 const electricCarPriceRanges = [
   { label: 'Dưới 50.000.000 đ', value: '0-50000000' },
@@ -23,7 +24,8 @@ function SearchPage() {
   const [itemList, setItemList] = useState([]);
   const [totalPages, setTotalPages] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
-
+  const [userFavorites, setUserFavorites] = useState([]);
+  const userId = localStorage.getItem("userId");
   const [filters, setFilters] = useState({
     itemType: searchParams.get("itemType") || '',
     title: searchParams.get("query") || '',
@@ -40,6 +42,25 @@ function SearchPage() {
   const [detailFilters, setDetailFilters] = useState({});
   const [selectedDetails, setSelectedDetails] = useState({});
 
+  const refetchFavorites = useCallback(async () => {
+    if (!userId) {
+      setUserFavorites([]);
+      return;
+    }
+
+    try {
+      const favorites = await favouriteApi.getFavouriteByUserID(userId);
+      setUserFavorites(favorites || []);
+    } catch (err) {
+      console.error("Error fetching favorites:", err);
+    }
+  }, [userId]);
+
+  useEffect(() => {
+    if (userId) {
+      refetchFavorites();
+    }
+  }, [refetchFavorites, userId]);
   // --- Update filters on URL param change ---
   useEffect(() => {
     const newQuery = searchParams.get("query") || "";
@@ -155,10 +176,10 @@ function SearchPage() {
 
     const detailKeys =
       filters.itemType === 'Battery'
-        ? ['brand', 'capacity', 'condition','voltage', 'chargeCycles']
+        ? ['brand', 'capacity', 'condition', 'voltage', 'chargeCycles']
         : filters.itemType === 'EV'
           ? ['brand', 'model', 'version', 'year', 'bodyStyle', 'color']
-          : ['brand', 'model', 'version', 'year', 'bodyStyle', 'color', 'capacity','condition', 'voltage', 'chargeCycles'];
+          : ['brand', 'model', 'version', 'year', 'bodyStyle', 'color', 'capacity', 'condition', 'voltage', 'chargeCycles'];
 
     const options = {};
     detailKeys.forEach(key => {
@@ -351,6 +372,8 @@ function SearchPage() {
                   mileage={item.itemDetail?.mileage}
                   isVerified={item.moderation === 'Approved'}
                   updatedBy={item.updatedBy}
+                  userFavorites={userFavorites}
+                  onFavoriteChange={refetchFavorites}
                 />
               ))}
             </div>
@@ -400,8 +423,8 @@ function translateKey(key) {
     voltage: "Điện áp (V)",
     chargeCycles: "Chu kỳ sạc",
     condition: "Tình trạng",
-    New : "Mới",
-    Old : "Cũ"
+    New: "Mới",
+    Old: "Cũ"
   };
   return dict[key] || key;
 }

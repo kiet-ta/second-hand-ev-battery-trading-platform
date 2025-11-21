@@ -56,7 +56,7 @@ export default function HistorySold() {
         }).format(price || 0);
 
     const getStatusColor = (status) => {
-        switch (status?.toLowerCase()) {
+        switch (status) {
             case "Sold":
                 return "bg-green-100 text-green-800";
             case "Processing":
@@ -72,7 +72,7 @@ export default function HistorySold() {
     };
 
     const getStatusText = (status) => {
-        switch (status?.toLowerCase()) {
+        switch (status) {
             case "Sold":
                 return "Hoàn thành";
             case "Processing":
@@ -92,7 +92,7 @@ export default function HistorySold() {
         .filter(
             (s) =>
                 s.itemType === "Ev" &&
-                ["Sold", "Completed", "Shipped"].includes(s.status?.toLowerCase())
+                ["Sold", "Completed", "Shipped"].includes(s.status)
         )
         .reduce((sum, s) => sum + (s.actualPrice || 0), 0);
 
@@ -100,24 +100,24 @@ export default function HistorySold() {
         .filter(
             (s) =>
                 s.itemType === "Battery" &&
-                ["Sold", "Completed", "Shipped"].includes(s.status?.toLowerCase())
+                ["Sold", "Completed", "Shipped"].includes(s.status)
         )
         .reduce((sum, s) => sum + (s.actualPrice || 0), 0);
 
     const totalSoldEV = sales.filter(
         (s) =>
             s.itemType === "Ev" &&
-            ["Sold", "completed", "Shipped"].includes(s.status?.toLowerCase())
+            ["Sold", "Completed", "Shipped"].includes(s.status)
     ).length;
 
     const totalSoldBattery = sales.filter(
         (s) =>
             s.itemType === "Battery" &&
-            ["Sold", "completed", "Shipped"].includes(s.status?.toLowerCase())
+            ["Sold", "Completed", "Shipped"].includes(s.status)
     ).length;
 
     const filteredSales = sales.filter((s) => {
-        const matchStatus = filter === "all" || s.status?.toLowerCase() === filter;
+        const matchStatus = filter === "all" || s.status === filter;
         const matchType = filterType === "all" || s.itemType === filterType;
         return matchStatus && matchType;
     });

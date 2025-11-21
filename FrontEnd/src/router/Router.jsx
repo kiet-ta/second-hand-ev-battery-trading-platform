@@ -97,15 +97,7 @@ import NewsList from "../pages/Footers/NewsList";
 import NewsDetail from "../pages/Footers/NewsDetail";
 import SellerRegistrationFeePage from "../pages/SellerRegistrationFeePage";
 
-/* ---------------------------
-   Router definition
-   --------------------------- */
-const ProfileNestedFormsPlaceholder = () => (
-  <div className="profile-main">
-    {/* Profile index placeholder (ProfileMain handles nested rendering) */}
-    <div>Profile/Account Forms Placeholder</div>
-  </div>
-);
+
 
 export const router = createBrowserRouter([
   // MAIN LAYOUT (Public / Buyer)
@@ -190,7 +182,7 @@ export const router = createBrowserRouter([
   // MANAGER / ADMIN DASHBOARD (Protected)
   {
     path: "/manage",
-    element: <ProtectedRoute allowedRoles={["manager", "Staff"]} />,
+    element: <ProtectedRoute allowedRoles={["Manager", "Staff"]} />,
     children: [
       {
         element: <ManagerDashboard />,

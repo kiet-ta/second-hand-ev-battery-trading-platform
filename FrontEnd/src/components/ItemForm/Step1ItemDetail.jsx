@@ -257,12 +257,7 @@ export default function Step1ItemDetails({ form, onFinish, evData }) {
               ))}
             </Select>
           </Form.Item>
-          <Form.Item name="condition" label="Tình trạng"  rules={[{ required: true }]}>
-                        <Select placeholder="Chọn tình trạng pin">
-                <Option value={"Old"}>Cũ</Option>
-                                <Option value={"New"}>Mới</Option>
-              </Select>
-          </Form.Item>
+
           <Form.Item name="capacity" label="Dung lượng (kWh)">
             <InputNumber min={0} style={{ width: "100%" }} />
           </Form.Item>

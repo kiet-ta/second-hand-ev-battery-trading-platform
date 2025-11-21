@@ -70,11 +70,11 @@ export default function ComplaintList() {
     if (statusFilter !== "all") list = list.filter((c) => c.status === statusFilter);
     if (levelFilter !== "all") list = list.filter((c) => c.severityLevel === levelFilter);
     if (search.trim()) {
-      const q = search.toLowerCase();
+      const q = search;
       list = list.filter(
         (c) =>
-          c.reason?.toLowerCase().includes(q) ||
-          c.description?.toLowerCase().includes(q)
+          c.reason?.includes(q) ||
+          c.description?.includes(q)
       );
     }
     setFiltered(list);

@@ -107,6 +107,7 @@ namespace Application.Services
                     UpdatedAt = DateTime.UtcNow
                 };
                 await _uow.Wallets.AddAsync(wallet);
+                await _uow.SaveChangesAsync();
                 return GenerateToken(user);
             }
             catch (Exception ex)

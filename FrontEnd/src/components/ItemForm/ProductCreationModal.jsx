@@ -9,7 +9,7 @@ import auctionApi from "../../api/auctionApi";
 import uploadImageApi from "../../api/uploadImageApi";
 import walletApi from "../../api/walletApi";
 import evData from "../../assets/datas/evData";
-import {uploadToCloudinary} from "../../utils/uploadToCloudinary"
+import { uploadToCloudinary } from "../../utils/uploadToCloudinary"
 
 export default function ProductCreationModal({ onSuccess }) {
   const [isOpenModal, setIsOpenModal] = useState(false);
@@ -119,10 +119,16 @@ export default function ProductCreationModal({ onSuccess }) {
       nextStep();
     } catch (err) {
       console.error("Lỗi khi gửi dữ liệu:", err);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [draftData, userID, nextStep]);
+      const message = err?.response?.data?.message;
+      const status = err?.response?.status;
+      if (status === 400 && message === "Duplicate license plate or DB constraint violation.") {
+        setCurrentStep(0);
+        return;
+      }
+      } finally {
+        setIsLoading(false);
+      }
+    }, [draftData, userID, nextStep]);
 
   const handleDeposit = useCallback(async () => {
     if (!wallet || wallet.balance < 100000 || !createdItem) return;

@@ -69,12 +69,12 @@ export default function ProductModeration() {
             });
         }
         if (searchQuery.trim() !== "") {
-            const q = searchQuery.toLowerCase();
+            const q = searchQuery;
             filtered = filtered.filter(
                 (p) =>
-                    p.title?.toLowerCase().includes(q) ||
-                    p.evDetail?.brand?.toLowerCase().includes(q) ||
-                    p.batteryDetail?.brand?.toLowerCase().includes(q)
+                    p.title?.includes(q) ||
+                    p.evDetail?.brand?.includes(q) ||
+                    p.batteryDetail?.brand?.includes(q)
             );
         }
         setFilteredProducts(filtered);
