@@ -14,6 +14,7 @@ import orderItemApi from "../../api/orderItemApi";
 import reviewApi from "../../api/reviewApi";
 import addressLocalApi from "../../api/addressLocalApi";
 import placeholder from "../../assets/images/placeholder.png"
+import { useParams } from "react-router-dom";
 // Star rating component
 const StarRating = ({ rating }) => (
   <div className="flex items-center">
@@ -46,7 +47,7 @@ const VerifiedCheck = () => (
 function BatteryDetails() {
   const location = useLocation();
   const navigate = useNavigate();
-  const itemId = location.state;
+  const { id } = useParams();
 
   const [item, setItem] = useState(null);
   const [sellerProfile, setSellerProfile] = useState(null);
@@ -73,7 +74,7 @@ function BatteryDetails() {
 
   // Fetch data
   useEffect(() => {
-    if (!itemId) {
+    if (!id) {
       setFeedback({ type: "error", msg: "Không tìm thấy sản phẩm." });
       setLoading(false);
       return;
@@ -82,14 +83,14 @@ function BatteryDetails() {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const itemData = await itemApi.getItemDetailByID(itemId);
+        const itemData = await itemApi.getItemDetailByID(id);
         setItem(itemData);
         setQuantity(itemData.quantity > 0 ? 1 : 0);
 
         const userData = await userApi.getUserByID(itemData.updatedBy);
         setSellerProfile(userData);
 
-        const reviewResponse = await reviewApi.getReviewByItemID(itemId);
+        const reviewResponse = await reviewApi.getReviewByItemID(id);
         const rawReviews = reviewResponse.exists || [];
 
         const enriched = await Promise.all(
@@ -118,7 +119,7 @@ function BatteryDetails() {
       }
     };
     fetchData();
-  }, [itemId]);
+  }, [id]);
 
   // Helper
   const formatPrice = (price) =>
@@ -154,12 +155,12 @@ function BatteryDetails() {
 
       // 🔹 Check if this item already exists in cart
       const existingItem = existingOrderItems.find(
-        (oi) => oi.itemId === itemId
+        (oi) => oi.id === id
       );
 
       if (existingItem) {
         // 🔹 Fetch latest item data to check stock
-        const itemData = await itemApi.getItemById(itemId);
+        const itemData = await itemApi.getItemById(id);
         const availableStock = itemData?.quantity ?? 0;
         const newQuantity = existingItem.quantity + quantity;
 
@@ -186,7 +187,7 @@ function BatteryDetails() {
         // 🆕 Create (POST)
         const payload = {
           buyerId,
-          itemId,
+          id,
           quantity,
           price: item.price,
         };
@@ -206,7 +207,7 @@ function BatteryDetails() {
     } finally {
       setIsProcessing(false);
     }
-  }, [item, itemId, quantity, navigate]);
+  }, [item, id, quantity, navigate]);
   const handleBuyNow = async (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -221,7 +222,7 @@ function BatteryDetails() {
     try {
       const orderItemPayload = {
         buyerId: userId,
-        itemId: itemId,
+        itemId: id,
         quantity: 1,
         price: item.price,
       };
@@ -243,7 +244,7 @@ function BatteryDetails() {
         totalAmount: item.price,
         orderItems: [
           {
-            id: itemId,
+            id: id,
             name: item.title || "Sản phẩm",
             price: item.price,
             quantity: 1,
