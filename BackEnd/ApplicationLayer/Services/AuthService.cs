@@ -294,6 +294,7 @@ namespace Application.Services
                 FullName = user.FullName,
                 Email = user.Email,
                 Role = user.Role ?? UserRole.Buyer.ToString(),
+                AccountStatus = user.AccountStatus.ToString(),
                 Token = tokenString,
                 ExpiresAt = expires,
                 AuthProvider = provider
