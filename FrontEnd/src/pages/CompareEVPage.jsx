@@ -95,7 +95,7 @@ export default function CompareEVPage() {
             c = items[2];
         const V = (get) => [a && get(a), b && get(b), c && get(c)];
 
-        if (itemType === "Ev") {
+        if (itemType === "ev") {
             return [
                 {
                     title: "Tổng quan",
@@ -160,7 +160,7 @@ export default function CompareEVPage() {
             ];
         }
 
-        if (itemType === "Battery") {
+        if (itemType === "battery") {
             return [
                 {
                     title: "Tổng quan",
@@ -227,7 +227,7 @@ export default function CompareEVPage() {
             <div className="sticky top-0 z-30 bg-[#FAF8F4] px-8 py-5 flex items-center justify-between shadow-sm">
                 <div>
                     <h1 className="text-2xl font-bold text-gray-800">
-                        So sánh {itemType === "Battery" ? "Pin" : "Xe điện"}
+                        So sánh {itemType === "battery" ? "Pin" : "Xe điện"}
                     </h1>
                     <p className="text-sm text-gray-500">
                         Dữ liệu thực tế từ chi tiết sản phẩm
@@ -270,7 +270,7 @@ export default function CompareEVPage() {
                                 {it.title}
                             </div>
                             <div className="text-sm text-gray-500 mb-2">
-                                {itemType === "Battery"
+                                {itemType === "battery"
                                     ? it.batteryDetail?.brand || "Không rõ hãng"
                                     : it.evDetail?.brand || "Không rõ hãng"}
                             </div>
@@ -297,7 +297,7 @@ export default function CompareEVPage() {
                         <div className="flex flex-col items-center py-12">
                             <div className="text-4xl font-bold mb-2">＋</div>
                             <p className="text-sm font-medium">
-                                Thêm {itemType === "Battery" ? "pin" : "xe"} mới
+                                Thêm {itemType === "battery" ? "pin" : "xe"} mới
                             </p>
                         </div>
                     </motion.div>

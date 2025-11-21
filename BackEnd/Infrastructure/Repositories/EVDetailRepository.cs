@@ -1,6 +1,5 @@
 ﻿using Application.DTOs.ItemDtos;
 using Application.IRepositories;
-using Domain.Common.Constants;
 using Domain.Entities;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -63,7 +62,7 @@ namespace Infrastructure.Repositories
         public async Task<IEnumerable<Item>> GetLatestEVsAsync(int count)
         {
             return await _ctx.Items
-                .Where(x => x.ItemType == ItemType.Ev.ToString() && !(x.IsDeleted == true))
+                .Where(x => x.ItemType == "EV" && !(x.IsDeleted == true))
                 .OrderByDescending(x => x.CreatedAt)
                 .Take(count)
                 .ToListAsync();

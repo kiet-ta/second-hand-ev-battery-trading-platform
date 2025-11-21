@@ -6,30 +6,17 @@ const walletApi = {
         return response.data;
     },
     depositWallet: async (payload) => {
-            const token = localStorage.getItem('token');
-            const response = await axios.post(`${baseURL}/deposit`, payload,
-                {
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    }
+        const token = localStorage.getItem('token');
+        const response = await axios.post(`${baseURL}/deposit`, payload,
+            {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
                 }
-            )
-            return response.data;
+            }
+        )
+        return response.data;
     },
-    withdrawWallet: async (payload) => {
-            const token = localStorage.getItem('token');
-            const response = await axios.post(`${baseURL}/withdraw`, payload,
-                {
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    }
-                }
-            )
-            return response.data;
-    }
-    ,
     getWalletTransactions: async (walletId) => {
         const token = localStorage.getItem('token');
         const response = await axios.get(`${baseURL}/${walletId}/transactions`,

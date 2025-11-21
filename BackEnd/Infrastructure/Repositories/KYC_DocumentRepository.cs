@@ -1,6 +1,5 @@
 ﻿using Application.DTOs.ManageCompanyDtos;
 using Application.IRepositories;
-using Domain.Common.Constants;
 using Domain.Entities;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -9,11 +8,11 @@ using System.Runtime.ConstrainedExecution;
 
 namespace Infrastructure.Repositories
 {
-    public class KycDocumentRepository : IKycDocumentRepository
+    public class KYC_DocumentRepository : IKYC_DocumentRepository
     {
         private readonly EvBatteryTradingContext _context;
 
-        public KycDocumentRepository(EvBatteryTradingContext context)
+        public KYC_DocumentRepository(EvBatteryTradingContext context)
         {
             _context = context;
         }
@@ -21,7 +20,7 @@ namespace Infrastructure.Repositories
         public async Task<User?> GetByIdAsync(int id)
         {
             var user = await _context.Users
-    .FirstOrDefaultAsync(u => u.UserId == id && !(u.IsDeleted   ));
+    .FirstOrDefaultAsync(u => u.UserId == id && !(u.IsDeleted == true));
             return user;
         }
 
@@ -64,10 +63,7 @@ namespace Infrastructure.Repositories
             var kyc = await _context.KycDocuments.FindAsync(id);
             if (kyc == null) return;
 
-            if (!string.Equals(kyc.Status, KycStatus.Pending.ToString(), StringComparison.OrdinalIgnoreCase))
-                return;
-
-            kyc.Status = status;
+            kyc.Status = status; 
             kyc.Note = note;
             _context.KycDocuments.Update(kyc);
             await _context.SaveChangesAsync();
@@ -89,8 +85,7 @@ namespace Infrastructure.Repositories
         {
             var query = _context.KycDocuments
                 .AsNoTracking()
-                .Where(k => k.Status == KycStatus.Pending
-                .ToString())
+                .Where(k => k.Status == "pending")
                 .Join(
                     _context.Users.AsNoTracking(),
                     k => k.UserId,
@@ -125,7 +120,7 @@ namespace Infrastructure.Repositories
         {
             return await _context.KycDocuments
                 .AsNoTracking()
-                .Where(k => k.Status == KycStatus.Pending.ToString())
+                .Where(k => k.Status == "pending")
                 .ToListAsync();
         }
 

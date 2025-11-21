@@ -3,18 +3,13 @@ import "../../assets/styles/ProfileForm.css";
 import { FaCamera } from "react-icons/fa";
 import { FaRegEye, FaRegEyeSlash } from "react-icons/fa";
 import placeholder from "../../assets/images/placeholder.png"
-import { toast, ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
-
 const ProfileForm = () => {
   const [formData, setFormData] = useState(null);
   const userId = localStorage.getItem("userId");
   const token = localStorage.getItem("token");
   const [showPhone, setShowPhone] = useState(false);
   const baseURL = import.meta.env.VITE_API_BASE_URL;
-  const [toastMessage, setToastMessage] = useState("");
-  const [toastType, setToastType] = useState("success");
-
+  const [uploading, setUploading] = useState(false);
 
 
   const maskPhone = (phone) => {
@@ -26,13 +21,13 @@ const ProfileForm = () => {
 
   const translateStatus = (status) => {
     switch (status) {
-      case "Warning1":
+      case "warning1":
         return "Cảnh cáo 1";
-      case "Warning2":
+      case "warning2":
         return "Cảnh cáo 2";
-      case "Ban":
+      case "ban":
         return "Cấm tài khoản";
-      case "Active":
+      case "active":
         return "Hoạt động";
       default:
         return "Không xác định";
@@ -120,11 +115,10 @@ const ProfileForm = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
 
+    // Validation: no future date
     const today = new Date().toISOString().split("T")[0];
     if (formData.yearOfBirth && formData.yearOfBirth > today) {
-      setToastMessage("Ngày sinh không hợp lệ!");
-      setToastType("error");
-      setTimeout(() => setToastMessage(""), 3000);
+      console.warn("Ngày sinh không được vượt quá ngày hiện tại");
       return;
     }
 
@@ -152,20 +146,9 @@ const ProfileForm = () => {
       .then(() => {
         localStorage.setItem("userAvatar", updatedUser.avatarProfile);
         localStorage.setItem("userName", updatedUser.fullName);
-
-        toast.success("Cập nhật thông tin thành công!", {
-          position: "top-right",
-          autoClose: 2000,
-        });
       })
-      .catch(() => {
-        toast.error("Có lỗi xảy ra khi cập nhật!", {
-          position: "top-right",
-          autoClose: 3000,
-        });
-      });
+      .catch((err) => console.error("Lỗi khi cập nhật người dùng:", err));
   };
-
 
   const today = new Date().toISOString().split("T")[0];
 
@@ -295,9 +278,7 @@ const ProfileForm = () => {
           </button>
         </form>
       </div>
-      <ToastContainer />
     </div>
-
   );
 };
 

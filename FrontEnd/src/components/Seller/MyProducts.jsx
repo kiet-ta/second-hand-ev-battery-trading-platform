@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { Tag, CheckCircle, XCircle, Search } from "lucide-react";
-import { Input, Select, Modal, Button, Spin, Alert } from "antd";
+import { Clock, Tag, CheckCircle, XCircle, Search } from "lucide-react";
+import { Input, Select, Modal, Button, Spin } from "antd";
 import ProductCreationModal from "../ItemForm/ProductCreationModal";
 import walletApi from "../../api/walletApi";
 import itemApi from "../../api/itemApi";
@@ -11,13 +11,10 @@ export default function MyProducts() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-
   const [isPayModalOpen, setIsPayModalOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
   const [wallet, setWallet] = useState(null);
-  const [payType, setPayType] = useState(null); // "listing" | "moderation"
   const [payLoading, setPayLoading] = useState(false);
-  const [inlineMsg, setInlineMsg] = useState(null);
 
   const sellerId = localStorage.getItem("userId");
   const baseURL = import.meta.env.VITE_API_BASE_URL;
@@ -57,9 +54,8 @@ export default function MyProducts() {
   const formatCurrency = (num) =>
     new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(num);
 
-  const handlePayClick = async (item, type) => {
+  const handlePayClick = async (item) => {
     try {
-      setInlineMsg(null);
       setPayLoading(true);
       const [walletData, itemDetail] = await Promise.all([
         walletApi.getWalletByUser(sellerId),
@@ -67,11 +63,9 @@ export default function MyProducts() {
       ]);
       setWallet(walletData);
       setSelectedItem(itemDetail);
-      setPayType(type);
       setIsPayModalOpen(true);
     } catch (err) {
       console.error(err);
-      setInlineMsg({ type: "error", text: "Không thể tải dữ liệu thanh toán." });
     } finally {
       setPayLoading(false);
     }
@@ -79,92 +73,51 @@ export default function MyProducts() {
 
   const handleConfirmPayment = async () => {
     if (!wallet || wallet.balance < 100000) {
-      setInlineMsg({
-        type: "error",
-        text: "Số dư ví không đủ để thanh toán (₫100,000).",
-      });
       return;
     }
 
     setPayLoading(true);
-    setInlineMsg(null);
-
     try {
-      const userId = localStorage.getItem("userId");
+      await walletApi.depositWallet({ userId: sellerId, amount: 100000 });
+      setWallet((prev) => ({ ...prev, balance: prev.balance - 100000 }));
 
-      await walletApi.withdrawWallet({
-        userId,
-        amount: 100000,
-        type: "Withdraw",
-        ref: selectedItem.itemId,
-        description:
-          payType === "listing"
-            ? `Phí đăng bán sản phẩm ${selectedItem.title}`
-            : `Phí kiểm duyệt sản phẩm ${selectedItem.title}`,
-      });
-
+      const categoryId = selectedItem.itemType === "ev" ? 1 : 2;
       const updatePayload = {
-        ...selectedItem,
+        itemId: selectedItem.itemId,
+        itemType: selectedItem.itemType,
+        categoryId,
+        title: selectedItem.title,
+        description: selectedItem.description || "",
+        price: selectedItem.price || 0,
+        quantity: selectedItem.quantity || 1,
+        createdAt: selectedItem.createdAt,
         updatedAt: new Date().toISOString(),
         updatedBy: sellerId,
+        moderation: selectedItem.moderation || "approved",
+        images:
+          selectedItem.itemImage?.map((img) => ({
+            imageId: img.imageId,
+            imageUrl: img.imageUrl,
+          })) || [],
+        sellerName: selectedItem.sellerName || "",
+        status: "active",
+        itemDetail: JSON.stringify({}),
       };
-      if (payType === "listing") {
-        const paymentState = updatePayload.status == "Auction_Pending_Pay" ? "Auction_Active" : "Active"
-        updatePayload.status = paymentState;
-      } 
-      if (payType === "moderation") updatePayload.moderation = "Pending";
 
       await itemApi.putItem(selectedItem.itemId, updatePayload);
 
-      setInlineMsg({
-        type: "success",
-        text:
-          payType === "listing"
-            ? "✅ Thanh toán đăng bán thành công! Sản phẩm đã được kích hoạt."
-            : "✅ Đã gửi yêu cầu kiểm duyệt thành công!",
-      });
+      if (selectedItem.itemType === "ev" && selectedItem.evDetail) {
+        await itemApi.putItemDetailEV(selectedItem.itemId, selectedItem.evDetail);
+      } else if (selectedItem.itemType === "battery" && selectedItem.batteryDetail) {
+        await itemApi.putItemDetailBattery(selectedItem.itemId, selectedItem.batteryDetail);
+      }
 
-      setTimeout(() => {
-        setIsPayModalOpen(false);
-        fetchProducts();
-      }, 1500);
+      setIsPayModalOpen(false);
+      fetchProducts();
     } catch (error) {
       console.error(error);
-      setInlineMsg({ type: "error", text: "Có lỗi xảy ra khi xử lý thanh toán." });
     } finally {
       setPayLoading(false);
-    }
-  };
-
-  const translateStatus = (status) => {
-    switch (status) {
-      case "Active":
-        return "Đang hoạt động";
-      case "Auction_Active":
-        return "Đang hoạt động (Đấu giá)";
-      case "Pending":
-        return "Chờ duyệt";
-      case "Pending_Pay":
-        return "Chờ thanh toán";
-      case "Auction_Pending_Pay":
-      return "Đang hoạt động (Đấu giá)"
-      case "Rejected":
-        return "Bị từ chối";
-      default:
-        return status || "Không xác định";
-    }
-  };
-
-  const translateModeration = (mod) => {
-    switch (mod) {
-      case "Approved":
-        return "Đã kiểm duyệt";
-      case "Pending":
-        return "Đang chờ kiểm duyệt";
-      case "Rejected":
-        return "Bị từ chối kiểm duyệt";
-      default:
-        return "Chưa kiểm duyệt";
     }
   };
 
@@ -197,19 +150,23 @@ export default function MyProducts() {
           onChange={setStatusFilter}
           options={[
             { value: "all", label: "Tất cả" },
-            { value: "Active", label: "Đang hoạt động" },
-            { value: "Pending", label: "Chờ duyệt" },
-            { value: "Pending_Pay", label: "Chờ thanh toán" },
-            { value: "Rejected", label: "Bị từ chối" },
+            { value: "active", label: "Đang hoạt động" },
+            { value: "pending", label: "Chờ duyệt" },
+            { value: "pending_pay", label: "Chờ thanh toán" },
+            { value: "rejected", label: "Từ chối" },
           ]}
           className="w-48"
         />
       </div>
 
-      {/* Product List */}
-      {filtered.length === 0 ? (
-        <div className="flex justify-center items-center h-[40vh] text-gray-500">
-          Không có sản phẩm nào phù hợp.
+      {/* Products List */}
+      {products.length === 0 ? (
+        <div className="flex flex-col justify-center items-center h-[40vh] text-gray-500">
+          <p className="text-lg font-medium">Người dùng chưa có sản phẩm.</p>
+        </div>
+      ) : filtered.length === 0 ? (
+        <div className="flex flex-col justify-center items-center h-[40vh] text-gray-500">
+          <p className="text-lg font-medium">Không có sản phẩm nào phù hợp.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -228,17 +185,20 @@ export default function MyProducts() {
                   className="w-full h-48 object-cover"
                 />
                 <span
-                  className={`absolute top-2 right-2 text-xs font-semibold px-2 py-1 rounded-full ${
-                    item.status === "Active"
-                      ? "bg-green-100 text-green-700"
-                      : "bg-gray-100 text-gray-600"
-                  }`}
+                  className={`absolute top-2 right-2 text-xs font-semibold px-2 py-1 rounded-full ${item.status === "active"
+                    ? "bg-green-100 text-green-700"
+                    : item.status === "pending"
+                      ? "bg-yellow-100 text-yellow-700"
+                      : item.status === "pending_pay"
+                        ? "bg-orange-100 text-orange-700"
+                        : "bg-gray-100 text-gray-600"
+                    }`}
                 >
-                  {translateStatus(item.status)}
+                  {item.status === "pending_pay" ? "Chờ thanh toán" : item.status}
                 </span>
               </div>
 
-              <div className="p-4 flex flex-col justify-between flex-1">
+              <div className="p-4 flex-1 flex flex-col justify-between">
                 <div>
                   <h3 className="text-lg font-semibold text-gray-800 truncate mb-1">
                     {item.title}
@@ -246,32 +206,44 @@ export default function MyProducts() {
                   <p className="text-sm text-gray-500 line-clamp-2 mb-2">
                     {item.description || "Không có mô tả"}
                   </p>
-                  <p className="text-xs text-gray-500 italic mb-2">
-                    {translateModeration(item.moderation)}
-                  </p>
                 </div>
 
-                {/* 2 nút hành động */}
-                <div className="flex flex-col gap-2 mt-auto">
-                  {item.status === "Pending_Pay" && (
-                    <Button
-                      type="primary"
-                      block
-                      onClick={() => handlePayClick(item, "listing")}
-                    >
-                      Thanh toán đăng bán (₫100,000)
-                    </Button>
-                  )}
+                <div>
+                  <div className="flex justify-between items-center mb-3">
+                    <span className="text-blue-600 font-semibold text-lg">
+                      {formatCurrency(item.price)}
+                    </span>
+                    <span className="text-xs text-gray-500 flex items-center gap-1">
+                      <Clock size={12} />{" "}
+                      {new Date(item.createdAt).toLocaleDateString("vi-VN")}
+                    </span>
+                  </div>
 
-                  {item.moderation !== "Approved" && item.moderation !== "Pending"  && (
-                    <Button
-                      block
-                      onClick={() => handlePayClick(item, "moderation")}
-                    >
-                      Yêu cầu kiểm duyệt (₫100,000)
-                    </Button>
-                  )}
+                  <div className="flex justify-between text-sm text-gray-600">
+                    <span className="flex items-center gap-1">
+                      <Tag size={14} /> {item.categoryName || "N/A"}
+                    </span>
+                    <span className="flex items-center gap-1">
+                      {item.status === "active" ? (
+                        <CheckCircle size={14} className="text-green-600" />
+                      ) : (
+                        <XCircle size={14} className="text-gray-400" />
+                      )}
+                      {item.quantity} in stock
+                    </span>
+                  </div>
                 </div>
+
+                {item.status === "pending_pay" && (
+                  <Button
+                    type="primary"
+                    block
+                    className="mt-3"
+                    onClick={() => handlePayClick(item)}
+                  >
+                    Thanh toán ₫100,000
+                  </Button>
+                )}
               </div>
             </div>
           ))}
@@ -296,7 +268,7 @@ export default function MyProducts() {
             </p>
             <p className="text-gray-700 mb-2">
               <strong>Loại:</strong>{" "}
-              {selectedItem.itemType === "Ev" ? "Xe điện (EV)" : "Pin (Battery)"}
+              {selectedItem.itemType === "ev" ? "Xe điện (EV)" : "Pin (Battery)"}
             </p>
             <p className="text-gray-700 mb-2">
               <strong>Số dư ví hiện tại:</strong>{" "}
@@ -305,16 +277,6 @@ export default function MyProducts() {
             <p className="text-gray-700 mb-4">
               <strong>Phí thanh toán:</strong> ₫100,000
             </p>
-
-            {inlineMsg && (
-              <Alert
-                type={inlineMsg.type}
-                message={inlineMsg.text}
-                showIcon
-                className="mb-4"
-              />
-            )}
-
             <div className="flex justify-end gap-3">
               <Button onClick={() => setIsPayModalOpen(false)}>Hủy</Button>
               <Button

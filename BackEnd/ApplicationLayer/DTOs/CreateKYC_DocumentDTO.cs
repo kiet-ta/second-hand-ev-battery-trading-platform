@@ -1,9 +1,8 @@
-﻿using Domain.Common.Constants;
-using System;
+﻿using System;
 
 namespace Application.DTOs
 {
-    public class CreateKycDocumentDto
+    public class CreateKYC_DocumentDTO
     {
         public int UserId { get; set; }
 
@@ -17,7 +16,7 @@ namespace Application.DTOs
         public string? StoreName { get; set; }
         public int? StorePhone { get; set; }
         public string? StoreLogoUrl { get; set; }
-        public string Status { get; set; } = ComplaintStatus.Pending.ToString();
+        public string Status { get; set; } = "pending";
 
     }
 }

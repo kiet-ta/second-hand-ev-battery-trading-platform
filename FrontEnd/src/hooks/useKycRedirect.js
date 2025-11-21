@@ -6,39 +6,30 @@ export default function useKycRedirect() {
   const navigate = useNavigate();
   const location = useLocation();
 
-useEffect(() => {
-  const checkKyc = async () => {
-    try {
-      const userId = localStorage.getItem("userId");
-      if (!userId) {
-        navigate("/login");
-        return;
-      }
-
-      const user = await userApi.getUserByID(userId);
-      const kycStatus = user.kycStatus || "Not_Submitted";
-      const role = user.role || "user";
-      console.log(role)
-      if (role === "Seller") {
-        if (location.pathname === "/seller-registration" || location.pathname === "/pending-review") {
-          navigate("/");
+  useEffect(() => {
+    const checkKyc = async () => {
+      try {
+        const userId = localStorage.getItem("userId");
+        if (!userId) {
+          navigate("/login");
+          return;
         }
-        return;
+        
+        const user = await userApi.getUserByID(userId);
+        console.log(user)
+        const kycStatus = user.kycStatus || "not_submitted";
+        console.log("KYC Status:", kycStatus);
+
+        if (location.pathname === "/pending-review" && kycStatus === "not_submitted") {
+          navigate("/seller-registration");
+        } else if (location.pathname === "/seller-registration" && kycStatus === "pending") {
+          navigate("/pending-review");
+        }
+      } catch (error) {
+        console.error("KYC check failed:", error);
       }
+    };
 
-      if (location.pathname === "/pending-review" && kycStatus === "Not_Submitted") {
-        navigate("/seller-registration");
-      } else if (location.pathname === "/seller-registration" && kycStatus === "pending") {
-        navigate("/pending-review");
-      } else if (location.pathname === "/seller-form" && kycStatus === "pending") {
-        navigate("/pending-review");
-      }
-
-    } catch (error) {
-      console.error("KYC check failed:", error);
-    }
-  };
-
-  checkKyc();
-}, [location.pathname, navigate]);
+    checkKyc();
+  }, [location.pathname, navigate]);
 }

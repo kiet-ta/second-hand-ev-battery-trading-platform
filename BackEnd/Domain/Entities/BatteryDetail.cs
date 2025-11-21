@@ -14,8 +14,6 @@ public class BatteryDetail
     public decimal? Voltage { get; set; }
 
     public int? ChargeCycles { get; set; }
-    
-    public string Condition { get; set; }
 
     public DateTime? UpdatedAt { get; set; }
 

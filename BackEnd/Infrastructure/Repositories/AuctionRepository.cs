@@ -1,7 +1,6 @@
 using Application.DTOs.AuctionDtos;
 using Application.DTOs.ItemDtos;
 using Application.IRepositories;
-using Domain.Common.Constants;
 using Domain.Entities;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -21,7 +20,7 @@ public class AuctionRepository : IAuctionRepository
         await _context.Auctions.FirstOrDefaultAsync(a => a.ItemId == itemId);
 
     public async Task<IEnumerable<Auction>> GetActiveAuctionsAsync() =>
-        await _context.Auctions.Where(a => a.Status == AuctionStatus.Ongoing.ToString()).ToListAsync();
+        await _context.Auctions.Where(a => a.Status == "ongoing").ToListAsync();
 
     public async Task<(IEnumerable<Auction> auctions, int total)> GetAuctionsWithPaginationAsync(int page, int pageSize, string? status = null)
     {
@@ -48,11 +47,7 @@ public class AuctionRepository : IAuctionRepository
         await _context.SaveChangesAsync();
         return auction.AuctionId;
     }
-    public Task Update(Auction auction)
-    {
-        _context.Update(auction); 
-        return Task.CompletedTask;
-    }
+
     public async Task UpdateCurrentPriceAsync(Auction auction)
     {
         auction.UpdatedAt = DateTime.Now;
@@ -73,14 +68,15 @@ public class AuctionRepository : IAuctionRepository
         var auction = await GetByIdAsync(auctionId);
         if (auction != null)
         {
-            auction.TotalBids = await _context.Bids.CountAsync(b => b.AuctionId == auctionId && b.Status != AuctionStatus.Cancelled.ToString());
+            auction.TotalBids = await _context.Bids.CountAsync(b => b.AuctionId == auctionId && b.Status != "cancelled");
             auction.UpdatedAt = DateTime.Now;
+            await _context.SaveChangesAsync();
         }
     }
 
     public async Task<IEnumerable<Auction>> GetUpcomingAuctionsAsync()
       => await _context.Auctions
-            .Where(a => a.Status == AuctionStatus.Upcoming.ToString())
+            .Where(a => a.Status == "upcoming")
             .ToListAsync();
 
     public async Task<List<AuctionDto>> GetAllAsync(int page, int pageSize)
@@ -113,11 +109,12 @@ public class AuctionRepository : IAuctionRepository
         .Take(pageSize)
         .ToListAsync();
 
-        var now = DateTime.Now;
+        // help most accurate display
+        var now = DateTime.UtcNow;
         foreach (var a in result)
         {
-            a.Status = now < a.StartTime ? AuctionStatus.Upcoming.ToString() :
-                       now >= a.StartTime && now < a.EndTime ? AuctionStatus.Ongoing.ToString() : AuctionStatus.Ended.ToString();
+            a.Status = now < a.StartTime ? "upcoming" :
+                       now >= a.StartTime && now < a.EndTime ? "ongoing" : "ended";
         }
         return result;
     }
@@ -150,17 +147,18 @@ public class AuctionRepository : IAuctionRepository
     public async Task<IEnumerable<Auction>> GetEndedAuctionsToFinalizeAsync(DateTime currentTime)
     {
         return await _context.Auctions
-                             .Where(a => a.EndTime < currentTime && a.Status == AuctionStatus.Ongoing.ToString())
+                             .Where(a => a.EndTime < currentTime && a.Status == "ongoing")
                              .ToListAsync();
     }
 
     public async Task<bool> UpdateCurrentPriceAsync(int auctionId, decimal newPrice)
     {
+        // using ExecuteUpdateAsync cho hi?u qu?
         var affectedRows = await _context.Auctions
             .Where(a => a.AuctionId == auctionId)
             .ExecuteUpdateAsync(updates => updates
                 .SetProperty(a => a.CurrentPrice, newPrice)
-                .SetProperty(a => a.UpdatedAt, DateTime.Now)); //update timestamp
+                .SetProperty(a => a.UpdatedAt, DateTime.UtcNow)); //update timestamp
 
         return affectedRows > 0;
     }

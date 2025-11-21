@@ -1,11 +1,7 @@
-﻿using Application.DTOs;
-using Application.DTOs.ReviewDtos;
-using Application.IServices;
-using Application.Services;
-using Domain.Common.Constants;
-using Domain.Entities;
+﻿using Application.IServices;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
+using Application.DTOs.ReviewDtos;
 
 namespace PresentationLayer.Controllers
 {
@@ -14,69 +10,22 @@ namespace PresentationLayer.Controllers
     public class ReviewsController : ControllerBase
     {
         private readonly IReviewService _reviewService;
-        private readonly INotificationService _notificationService;
-        private readonly IProfanityCountService _profanityService;
-        private readonly IKycDocumentService _kycdocumentService;
 
-        public ReviewsController(
-      IReviewService reviewService,
-      IProfanityCountService profanityService,
-      INotificationService notificationService,
-      IKycDocumentService kycdocumentService)
+        public ReviewsController(IReviewService reviewService)
         {
             _reviewService = reviewService;
-            _profanityService = profanityService;
-            _notificationService = notificationService;
-            _kycdocumentService = kycdocumentService;
         }
+
         [HttpPost]
         public async Task<IActionResult> CreateReview([FromBody] CreateReviewDto dto)
         {
-            var userClaims = User.FindFirst("user_id")?.Value;
-            if (string.IsNullOrEmpty(userClaims) || !int.TryParse(userClaims, out int userId))
-                return Unauthorized("User ID not found in token.");
-
             if (dto == null)
                 return BadRequest("Review data is required.");
 
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
-            _profanityService.ProcessMessage(userId, dto.Comment);
-            int count = _profanityService.GetUserCount(userId);
-            bool containsBadWords = _profanityService.ContainsProfanity(dto.Comment);
 
-            if (containsBadWords)
-            {
-                CreateNotificationDto notification;
-
-                if (count == 1)
-                {
-                    notification = new CreateNotificationDto
-                    {
-                        TargetUserId = userId.ToString(),
-                        NotiType = NotificationType.Activities.ToString(),
-                        Title = "Inappropriate Comment",
-                        Message = "Warning: You have used inappropriate language in your review.",
-                    };
-                    return Ok("you had badword in review, dont do it again");
-                }
-                else 
-                {
-                    notification = new CreateNotificationDto
-                    {
-                        TargetUserId = userId.ToString(),
-                        NotiType = NotificationType.Activities.ToString(),
-                        Title = "Inappropriate Comment",
-                        Message = "You have been banned from comment due to repeated inappropriate language.",
-                      
-                    };
-                    await _kycdocumentService.WarningUserAsync(userId);
-                    return Ok("Badword");
-                }
-                await _notificationService.AddNewNotification(notification, 4, UserRole.Staff.ToString());
-                await _notificationService.SendNotificationAsync(notification.Message, userId.ToString());
-            }
-            var review = await _reviewService.CreateReviewAsync(dto, userId);
+            var review = await _reviewService.CreateReviewAsync(dto);
 
             return CreatedAtAction(
                 nameof(GetReviewsByTargetUser),
@@ -84,9 +33,6 @@ namespace PresentationLayer.Controllers
                 review
             );
         }
-
-
-
 
         [HttpGet("target/{targetUserId:int}")]
         public async Task<IActionResult> GetReviewsByTargetUser(int targetUserId)

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Application.DTOs
 {
-    public class UpdateAddressDto
+    public class UpdateAddressDTO
     {
         public string RecipientName { get; set; }
         public string Phone { get; set; }

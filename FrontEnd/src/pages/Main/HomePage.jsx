@@ -133,7 +133,9 @@ function HomePage() {
                 bg-[#FAF8F3] text-[#2C2C2C] font-['Inter']">
 
                 <GeminiChatWidget />
+
                 <div className="max-w-7xl mx-auto px-4 md:px-8 py-12">
+
                     {loading ? (
                         <div className="w-full h-[500px] bg-gray-200 rounded-xl shadow-2xl animate-pulse mb-16"></div>
                     ) : (
@@ -191,7 +193,7 @@ function HomePage() {
                         loading={loading}
                         userFavorites={userFavorites}
                         onFavoriteChange={refetchFavorites}
-                        itemType="Ev"
+                        itemType="ev"
                     />
 
                     <div className="my-16 text-center border-2 border-[#C4B5A0]/40 rounded-xl overflow-hidden shadow-lg bg-white">
@@ -215,7 +217,7 @@ function HomePage() {
                         loading={loading}
                         userFavorites={userFavorites}
                         onFavoriteChange={refetchFavorites}
-                        itemType="Battery"
+                        itemType="battery"
                     />
 
 <div className="mt-24">

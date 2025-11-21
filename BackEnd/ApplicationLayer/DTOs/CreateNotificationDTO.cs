@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Application.DTOs
 {
-    public class CreateNotificationDto
+    public class CreateNotificationDTO
     {
         public string NotiType { get; set; }
         public string Title { get; set; }

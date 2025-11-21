@@ -12,7 +12,6 @@ namespace Application.DTOs
         public string ItemType { get; set; }
         public string? Brand { get; set; }
         public int? Capacity { get; set; }
-        public string Condition { get; set; }
         public decimal? Voltage { get; set; }
         public int? ChargeCycles { get; set; }
         public decimal? ListedPrice { get; set; }
@@ -26,6 +25,5 @@ namespace Application.DTOs
 
         public string? ImageUrl { get; set; }
         public BuyerDto? Buyer { get; set; }
-        public int? OrderId { get; set; }
     }
 }

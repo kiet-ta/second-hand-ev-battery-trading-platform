@@ -12,6 +12,5 @@ namespace Application.DTOs
         public int Processing { get; set; }
         public int Completed { get; set; }
         public int Cancelled { get; set; }
-        public int Shipped { get; set; }
     }
 }

@@ -10,8 +10,6 @@ namespace Application.IServices
 {
     public interface IOrderService
     {
-        Task ConfirmOrderDeliveryAsync(int orderId, int buyerId);
-        Task ConfirmOrderShippingAsync(int orderId, int sellerId);
         Task<OrderDto> GetOrderByIdAsync(int id);
         Task<IEnumerable<OrderDto>> GetAllOrdersAsync();
         Task<int> CreateOrderAsync(OrderDto dto);

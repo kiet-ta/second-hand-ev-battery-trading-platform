@@ -20,7 +20,7 @@ namespace Infrastructure.Repositories
         {
             var entity = new OrderItem
             {
-                OrderId = orderItem.OrderId,
+                OrderId = null,
                 BuyerId = orderItem.BuyerId,
                 ItemId = orderItem.ItemId,
                 Quantity = orderItem.Quantity,
@@ -74,7 +74,7 @@ namespace Infrastructure.Repositories
         }
 
         public async Task UpdateRangeAsync(IEnumerable<OrderItem> orderItems)
-        {   
+        {
             _context.OrderItems.UpdateRange(orderItems);
             await _context.SaveChangesAsync();
         }

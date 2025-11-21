@@ -56,7 +56,7 @@ function PaymentSuccessPage() {
         <div className="flex justify-center gap-4 mt-6">
           <Button
             type="default"
-            href="/"
+            href="/orders"
             size="large"
             className="rounded-lg px-6 py-2 border-[#B8860B] text-[#2C2C2C] hover:border-[#D4AF37] hover:text-[#B8860B]"
           >

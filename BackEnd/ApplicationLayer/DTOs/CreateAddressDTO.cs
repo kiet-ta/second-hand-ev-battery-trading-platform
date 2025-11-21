@@ -2,7 +2,7 @@
 
 namespace Application.DTOs
 {
-    public class CreateAddressDto
+    public class CreateAddressDTO
     {
         public string RecipientName { get; set; }
         public string Phone { get; set; }

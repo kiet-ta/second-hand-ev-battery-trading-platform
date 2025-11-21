@@ -20,7 +20,7 @@ export default function BuyerViewSeller() {
     const [seller, setSeller] = useState(null);
     const [items, setItems] = useState([]);
     const [reviews, setReviews] = useState([]);
-    const [tab, setTab] = useState("Active");
+    const [tab, setTab] = useState("active");
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const [chatError, setChatError] = useState("");
@@ -102,7 +102,7 @@ export default function BuyerViewSeller() {
 
     const filteredItems = items.filter(
         (x) =>
-            (tab === "Active" && x.status === "Active") ||
+            (tab === "active" && x.status === "active") ||
             (tab === "sold" && x.status === "sold")
     );
 
@@ -209,16 +209,17 @@ export default function BuyerViewSeller() {
                     <div className="bg-white border border-[#F0E2B6] rounded-2xl shadow-sm p-6">
                         {/* Tabs */}
                         <div className="flex gap-6 border-b border-[#F0E2B6] mb-6">
-                            {["Active", "sold"].map((t) => (
+                            {["active", "sold"].map((t) => (
                                 <button
                                     key={t}
                                     onClick={() => setTab(t)}
-                                    className={`pb-3 px-1 font-semibold text-sm transition ${tab === t
-                                        ? "text-[#C99700] border-b-2 border-[#C99700]"
-                                        : "text-gray-600 hover:text-gray-800"
-                                        }`}
+                                    className={`pb-3 px-1 font-semibold text-sm transition ${
+                                        tab === t
+                                            ? "text-[#C99700] border-b-2 border-[#C99700]"
+                                            : "text-gray-600 hover:text-gray-800"
+                                    }`}
                                 >
-                                    {t === "Active" ? "Đang bán" : "Đã bán"} (
+                                    {t === "active" ? "Đang bán" : "Đã bán"} (
                                     {items.filter((x) => x.status === t).length || 0})
                                 </button>
                             ))}
@@ -227,7 +228,7 @@ export default function BuyerViewSeller() {
                         {/* Product List */}
                         {filteredItems.length === 0 ? (
                             <div className="text-center text-gray-500 py-10">
-                                {tab === "Active"
+                                {tab === "active"
                                     ? "Chưa có sản phẩm đang bán."
                                     : "Chưa có sản phẩm đã bán."}
                             </div>
@@ -236,11 +237,10 @@ export default function BuyerViewSeller() {
                                 {filteredItems.map((item) => (
                                     <Link
                                         key={item.itemId}
-                                        to={item.itemType == "Ev" ? `/ev/${item.itemId}` : `/battery/${item.itemId}`}
+                                        to={`/ev/${item.itemId}`}
                                         state={item.itemId}
                                         className="group bg-white border border-[#F0E2B6] rounded-xl overflow-hidden hover:shadow-md transition"
                                     >
-
                                         <div className="relative">
                                             {Array.isArray(item.images) && item.images.length > 1 ? (
                                                 <Slider {...carouselSettings}>
@@ -266,12 +266,13 @@ export default function BuyerViewSeller() {
                                                 />
                                             )}
                                             <span
-                                                className={`absolute top-2 left-2 px-2 py-1 text-xs font-semibold rounded-md text-white shadow-sm ${item.status === "Active"
-                                                    ? "bg-[#C99700]"
-                                                    : "bg-gray-500"
-                                                    }`}
+                                                className={`absolute top-2 left-2 px-2 py-1 text-xs font-semibold rounded-md text-white shadow-sm ${
+                                                    item.status === "active"
+                                                        ? "bg-[#C99700]"
+                                                        : "bg-gray-500"
+                                                }`}
                                             >
-                                                {item.status === "Active"
+                                                {item.status === "active"
                                                     ? "Đang bán"
                                                     : "Đã bán"}
                                             </span>

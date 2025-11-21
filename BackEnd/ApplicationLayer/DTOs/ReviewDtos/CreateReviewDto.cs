@@ -8,6 +8,7 @@ namespace Application.DTOs.ReviewDtos
 {
     public class CreateReviewDto
     {
+        public int ReviewerId { get; set; }
         public int TargetUserId { get; set; }
         public int ItemId { get; set; }
         public int Rating { get; set; }

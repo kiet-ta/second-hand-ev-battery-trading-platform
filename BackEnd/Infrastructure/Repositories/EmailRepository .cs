@@ -72,19 +72,9 @@ namespace Infrastructure.Repositories
         {
             return await _context.Complaints.FirstOrDefaultAsync(c => c.ComplaintId == id);
         }
-        public async Task<User> GetUserByComplaintId(int complaintId)
-        {
-            var complaint = await GetComplaint(complaintId);
-            if (complaint == null) throw new Exception("Complaint not found");
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.UserId == complaint.UserId);
-            if (user == null) throw new Exception("User not found");
-            return user;
-        }
-
         public async Task<string> SendResponseEmailToUser(CreateResponseMailDto dto, string staffName, string staffRole)
         {
-            var u = await GetUserByComplaintId(dto.complaintId);
-            var user = await GetUserByEmail(u.Email);
+            var user = await GetUserByEmail(dto.To);
             if (user == null) throw new Exception("User not found");
 
             var complaint = await GetComplaint(dto.complaintId);

@@ -40,7 +40,7 @@ export default function SellerAuctionPage({ onClose }) {
 
             const itemBody = {
                 itemId: 0,
-                itemType: "Ev",
+                itemType: "ev",
                 categoryId: 1,
                 title: formData.name,
                 description: formData.description,

@@ -1,7 +1,7 @@
 import axios from "axios";
 const baseURL = import.meta.env.VITE_API_BASE_URL + "item";
 
-const uploadImageApi = {
+const auctionApi = {
     uploadItemImage: async (itemId, files) => {
         const formData = new FormData();
         formData.append('itemId', itemId);
@@ -17,4 +17,4 @@ const uploadImageApi = {
         return response.data
     },
 }
-export default uploadImageApi
+export default auctionApi

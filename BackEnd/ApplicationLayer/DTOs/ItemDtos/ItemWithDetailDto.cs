@@ -21,7 +21,6 @@ namespace Application.DTOs.ItemDtos
         public DateTime UpdatedAt { get; set; }
         public int? UpdatedBy { get; set; }
         public string LicenseUrl { get; set; }
-        public string Status { get; set; }
 
         // Quan hệ phụ
         public List<ItemImageDto> ItemImage { get; set; }

@@ -14,7 +14,6 @@ namespace PresentationLayer.Controllers
     {
         private readonly IMailService _mailService;
 
-
         public MailController(IMailService mailService)
         {
             _mailService = mailService;

@@ -3,7 +3,6 @@ using Application.DTOs.UserDtos;
 using Application.IRepositories;
 using Application.IServices;
 using Application.Validations;
-using Domain.Common.Constants;
 using Domain.Entities;
 using FluentValidation;
 using Google.Apis.Auth;
@@ -60,7 +59,7 @@ namespace Application.Services
 
         public static int GenerateUserId()
         {
-            var now = DateTime.Now;
+            var now = DateTime.UtcNow;
             string timestamp = now.ToString("yyyyMMddHHmmss");
             int random = new Random().Next(100, 999);
             string combined = timestamp + random.ToString();
@@ -85,13 +84,13 @@ namespace Application.Services
                     FullName = dto.FullName.Trim(),
                     Email = dto.Email.ToLower(),
                     PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
-                    Role = UserRole.Buyer.ToString(),
+                    Role = "buyer",
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow,
                     IsDeleted = false,
-                    KycStatus = KycStatus.Not_submitted.ToString(),
-                    AccountStatus = UserStatus.Active.ToString(),
-                    Paid = UserPaid.Pending_Pay.ToString()
+                    KycStatus = "not_submitted",
+                    AccountStatus = "active",
+                    Paid = "pending"
                 };
                 await _uow.Users.AddAsync(user);
                 await _uow.SaveChangesAsync();
@@ -103,7 +102,7 @@ namespace Application.Services
                     Balance = 0,
                     HeldBalance = 0,
                     Currency = "vnd",
-                    Status = UserStatus.Active.ToString(),
+                    Status = "active",
                     UpdatedAt = DateTime.UtcNow
                 };
                 await _uow.Wallets.AddAsync(wallet);
@@ -198,7 +197,7 @@ namespace Application.Services
                 FullName = string.IsNullOrWhiteSpace(payload.Name) ? username : payload.Name,
                 Email = email,
                 PasswordHash = string.Empty, // No password for Google login
-                Role = UserRole.Buyer.ToString(),
+                Role = "buyer",
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow,
                 IsDeleted = false,
@@ -206,7 +205,6 @@ namespace Application.Services
             };
 
             await _userRepository.AddAsync(newUser);
-            await _userRepository.SaveChangesAsync();
 
             var sellected = await _userRepository.GetByIdAsync(newUser.UserId);
             var wallet = new Wallet
@@ -215,7 +213,7 @@ namespace Application.Services
                 Balance = 0,
                 HeldBalance = 0,
                 Currency = "vnd",
-                Status = UserStatus.Active.ToString(),
+                Status = "active",
                 UpdatedAt = DateTime.UtcNow
             };
             await _uow.Wallets.AddAsync(wallet);
@@ -250,7 +248,7 @@ namespace Application.Services
         {
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.UTF8.GetBytes(_jwtSecret);
-            var expires = DateTime.Now.AddHours(24); // 24 hours token
+            var expires = DateTime.UtcNow.AddHours(24); // 24 hours token
 
             var claims = new List<Claim>
             {
@@ -258,7 +256,7 @@ namespace Application.Services
                 new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
                 new Claim(ClaimTypes.Email, user.Email),
                 new Claim(ClaimTypes.Name, user.FullName ?? string.Empty),
-                new Claim(ClaimTypes.Role, user.Role ?? UserRole.Buyer.ToString()),
+                new Claim(ClaimTypes.Role, user.Role ?? "buyer"),
                 new Claim("auth_provider", provider)
             };
 
@@ -281,7 +279,7 @@ namespace Application.Services
                 UserId = user.UserId,
                 FullName = user.FullName,
                 Email = user.Email,
-                Role = user.Role ?? UserRole.Buyer.ToString(),
+                Role = user.Role ?? "buyer",
                 Token = tokenString,
                 ExpiresAt = expires,
                 AuthProvider = provider
@@ -306,10 +304,10 @@ namespace Application.Services
                 throw new UnauthorizedAccessException("The current password is incorrect.");
 
             user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
-            user.UpdatedAt = DateTime.Now;
+            user.UpdatedAt = DateTime.UtcNow;
 
             await _userRepository.UpdateAsync(user);
-            await _userRepository.SaveChangesAsync();
+
             return true;
         }
 
@@ -324,7 +322,7 @@ namespace Application.Services
             {
                 UserId = user.UserId,
                 OtpCode = otp,
-                ExpirationTime = DateTime.Now.AddMinutes(5)
+                ExpirationTime = DateTime.UtcNow.AddMinutes(5)
             };
 
             await _otpRepository.CreateAsync(token);
@@ -361,7 +359,6 @@ namespace Application.Services
 
             user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.NewPassword);
             await _userRepository.UpdateAsync(user);
-            await _userRepository.SaveChangesAsync();
         }
 
         private string GenerateOtp()
@@ -383,7 +380,7 @@ namespace Application.Services
             if (token == null)
                 throw new Exception("Invalid OTP code.");
 
-            if (token.ExpirationTime < DateTime.Now)
+            if (token.ExpirationTime < DateTime.UtcNow)
                 throw new Exception("Your OTP has expired. Please request a new one.");
 
             await _otpRepository.MarkAsUsedAsync(token);

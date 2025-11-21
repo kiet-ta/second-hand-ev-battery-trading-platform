@@ -37,6 +37,14 @@ services:
     networks:
       - e-battery-net
       
+  ai-service:
+    build:
+      context: ./AIIntegration
+      dockerfile: Dockerfile
+    restart: always
+    networks:
+      - e-battery-net
+
 volumes:
   sqlserver_data:
   

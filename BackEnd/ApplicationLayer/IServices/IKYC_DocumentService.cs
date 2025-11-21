@@ -1,14 +1,14 @@
 ﻿using Application.DTOs;
 using Domain.Entities;
 
-public interface IKycDocumentService
+public interface IKYC_DocumentService
 {
     Task BanUserAsync(int userId);
     Task ActivateUserAsync(int userId);
     Task WarningUserAsync(int userId);
 
-    Task ApproveKycAsync(int kycId, ApproveKycDocumentDto dto);
-    Task RejectKycAsync(int kycId, ApproveKycDocumentDto dto);
+    Task ApproveKycAsync(int kycId, ApproveKyc_DocumentDTO dto);
+    Task RejectKycAsync(int kycId, ApproveKyc_DocumentDTO dto);
 
     Task<IEnumerable<KycDocument>> GetPendingKycAsync();
     Task<IEnumerable<KycDocument>> GetApprovedKycAsync();

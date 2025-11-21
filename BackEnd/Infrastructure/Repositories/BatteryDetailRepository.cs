@@ -1,5 +1,4 @@
 ﻿using Application.IRepositories;
-using Domain.Common.Constants;
 using Domain.Entities;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -50,7 +49,7 @@ namespace Infrastructure.Repositories
         public async Task<IEnumerable<Item>> GetLatestBatteriesAsync(int count)
         {
             return await _context.Items
-                .Where(x => x.ItemType == ItemType.Battery.ToString() && !(x.IsDeleted == true))
+                .Where(x => x.ItemType == "Battery" && !(x.IsDeleted == true))
                 .OrderByDescending(x => x.CreatedAt)
                 .Take(count)
                 .ToListAsync();

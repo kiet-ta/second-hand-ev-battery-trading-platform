@@ -2,9 +2,7 @@
 using Application.DTOs.ItemDtos;
 using Application.IRepositories;
 using Application.IServices;
-using Domain.Common.Constants;
 using Domain.Entities;
-using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,17 +13,18 @@ namespace Application.Services
 {
     public class OrderService : IOrderService
     {
-        private readonly IUnitOfWork _unitOfWork;
-        private readonly ILogger<OrderService> _logger;
-        public OrderService( IUnitOfWork unitOfWork, ILogger<OrderService> logger)
+        private readonly IOrderRepository _orderRepository;
+        private readonly IOrderItemRepository _orderItemRepository;
+
+        public OrderService(IOrderRepository orderRepository, IOrderItemRepository orderItemRepository)
         {
-            _unitOfWork = unitOfWork;
-            _logger = logger;
+            _orderRepository = orderRepository;
+            _orderItemRepository = orderItemRepository;
         }
 
         public async Task<OrderDto> GetOrderByIdAsync(int id)
         {
-            var order = await _unitOfWork.Orders.GetByIdAsync(id);
+            var order = await _orderRepository.GetByIdAsync(id);
             if (order == null)
                 throw new Exception($"Order with ID {id} not found.");
 
@@ -48,7 +47,7 @@ namespace Application.Services
 
         public async Task<IEnumerable<OrderDto>> GetAllOrdersAsync()
         {
-            var orders = await _unitOfWork.Orders.GetAllAsync();
+            var orders = await _orderRepository.GetAllAsync();
             if (orders == null || !orders.Any())
                 throw new Exception("No orders found.");
             return orders.Select(order => new OrderDto
@@ -69,7 +68,7 @@ namespace Application.Services
             {
                 BuyerId = dto.BuyerId,
                 AddressId = dto.AddressId,
-                Status = OrderStatus.Pending.ToString(),
+                Status = "pending",
                 CreatedAt = dto.CreatedAt, //DateTime.Now,
                 UpdatedAt = dto.UpdatedAt, //DateTime.Now,
                 //OrderItems = dto.Items?.Select(i => new OrderItem
@@ -79,7 +78,7 @@ namespace Application.Services
                 //    Price = i.Price
                 //}).ToList()
             };
-            await _unitOfWork.Orders.AddAsync(order);
+            await _orderRepository.AddAsync(order);
             if (order.OrderId <= 0)
                 throw new Exception("Failed to create new order.");
             
@@ -88,28 +87,28 @@ namespace Application.Services
 
         public async Task<bool> UpdateOrderAsync(OrderDto dto)
         {
-            var order = await _unitOfWork.Orders.GetByIdAsync(dto.OrderId);
+            var order = await _orderRepository.GetByIdAsync(dto.OrderId);
             if (order == null)
                 throw new Exception($"Order with ID {dto.OrderId} not found.");
 
             order.Status = dto.Status;
             order.UpdatedAt = DateTime.Now;
-            await _unitOfWork.Orders.UpdateAsync(order);
+            await _orderRepository.UpdateAsync(order);
             return true;
         }
 
         public async Task<bool> DeleteOrderAsync(int id)
         {
-             var order = await _unitOfWork.Orders.GetByIdAsync(id);
+             var order = await _orderRepository.GetByIdAsync(id);
             if (order == null)
                 throw new Exception($"Order with ID {id} not found.");
-            await _unitOfWork.Orders.DeleteAsync(id);
+            await _orderRepository.DeleteAsync(id);
             return true;
         }
         public async Task<List<OrderDto>> GetOrdersByUserIdAsync(int userId)
         {
 
-            var orders = await _unitOfWork.Orders.GetOrdersByUserIdAsync(userId);
+            var orders = await _orderRepository.GetOrdersByUserIdAsync(userId);
             if (orders == null || orders.Count == 0)
                 throw new Exception($"No orders found for user ID {userId}.");
             return orders;
@@ -122,7 +121,7 @@ namespace Application.Services
                 throw new Exception("Order request cannot be null.");
 
             // Step 1: Validate items
-            var orderItems = await _unitOfWork.OrderItems.GetItemsByIdsAsync(request.OrderItemIds);
+            var orderItems = await _orderItemRepository.GetItemsByIdsAsync(request.OrderItemIds);
             if (!orderItems.Any())
                 throw new InvalidOperationException("No valid order items found");
 
@@ -132,21 +131,22 @@ namespace Application.Services
             {
                 BuyerId = request.BuyerId,
                 AddressId = request.AddressId,
-                Status = OrderStatus.Pending.ToString(),
+                Status = "pending",
                 CreatedAt = request.CreatedAt,
                 UpdatedAt = request.UpdatedAt
 
             };
-            var createdOrder = await _unitOfWork.Orders.AddOrderAsync(order);
+            var createdOrder = await _orderRepository.AddOrderAsync(order);
             if (createdOrder == null)
                 throw new Exception("Failed to create order.");
 
+            // Step 3: Update order items
             foreach (var item in orderItems)
             {
                 item.OrderId = createdOrder.OrderId;
             }
 
-            await _unitOfWork.OrderItems.UpdateRangeAsync(orderItems);
+            await _orderItemRepository.UpdateRangeAsync(orderItems);
 
             // Step 4: Build response
             var response = new OrderResponseDto
@@ -168,84 +168,6 @@ namespace Application.Services
             };
 
             return response;
-        }
-        public async Task ConfirmOrderShippingAsync(int orderId, int sellerId)
-        {
-            // TODO: Validate sellerId (ensure correct seller of this order)
-            var order = await _unitOfWork.Orders.GetByIdAsync(orderId);
-            if (order == null) throw new Exception("Order not found.");
-
-            // Check correct flow
-            if (order.Status != OrderStatus.Paid.ToString())
-                throw new InvalidOperationException("Order is not in 'paid' state.");
-
-            order.Status = OrderStatus.Shipped.ToString()  ;
-            order.UpdatedAt = DateTime.Now;
-            await _unitOfWork.Orders.UpdateAsync(order);
-
-            // TODO: Send notification to Buyer "Order is being delivered"
-        }
-        public async Task ConfirmOrderDeliveryAsync(int orderId, int buyerId)
-        {
-            await _unitOfWork.BeginTransactionAsync();
-            try
-            {
-                var order = await _unitOfWork.Orders.GetByIdAsync(orderId);
-                if (order == null) throw new Exception("Order not found.");
-                if (order.BuyerId != buyerId) throw new Exception("Unauthorized."); // Check correct Buyer
-
-                // Check correct flow
-                if (order.Status != OrderStatus.Shipped.ToString())
-                    throw new InvalidOperationException("Order is not in 'shipped' state.");
-
-                // 1. Get information (Seller, amount)
-                var orderItem = (await _unitOfWork.OrderItems.GetByOrderIdAsync(orderId)).FirstOrDefault();
-                if (orderItem == null) throw new InvalidOperationException("Order item not found.");
-
-                decimal orderAmount = orderItem.Price; // This is the amount the buyer paid.
-                var itemWithSeller = await _unitOfWork.Items.GetItemAndSellerByItemIdAsync(orderItem.ItemId);
-                if (itemWithSeller?.Seller == null) throw new InvalidOperationException("Seller not found.");
-
-                int sellerId = itemWithSeller.Seller.UserId;
-                var sellerWallet = await _unitOfWork.Wallets.GetWalletByUserIdAsync(sellerId);
-                if (sellerWallet == null) throw new InvalidOperationException("Seller wallet not found.");
-
-                // 2. Payout Calculation (The "final boss" logic)
-                decimal commissionFee = 0; // TODO: commission
-                decimal amountToSeller = orderAmount - commissionFee;
-
-                // 3.Transfer money to Seller wallet
-                bool updateSellerWallet = await _unitOfWork.Wallets.UpdateBalanceAsync(sellerWallet.WalletId, amountToSeller);
-                if (!updateSellerWallet)
-                    throw new Exception($"Failed to update seller wallet {sellerWallet.WalletId}.");
-
-                // 4. Create "Payout" Transaction for Seller
-                var payoutTransaction = new WalletTransaction
-                {
-                    WalletId = sellerWallet.WalletId,
-                    Amount = amountToSeller,
-                    Type = "payout", // là status nào
-                    CreatedAt = DateTime.Now,
-                    RefId = order.OrderId
-                };
-                await _unitOfWork.WalletTransactions.CreateTransactionAsync(payoutTransaction);
-
-                _logger.LogInformation($"Released {amountToSeller} to Seller {sellerId} for Order {orderId}.");
-
-                // 5. Update Order Status
-                order.Status = OrderStatus.Completed.ToString()   ;
-                order.UpdatedAt = DateTime.Now;
-                await _unitOfWork.Orders.UpdateAsync(order);
-
-                await _unitOfWork.CommitTransactionAsync();
-                // TODO: Send notification to Seller "You have received the money"
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error completing Order {OrderId}. Rolling back.", orderId);
-                await _unitOfWork.RollbackTransactionAsync();
-                throw;
-            }
         }
     }
 }
