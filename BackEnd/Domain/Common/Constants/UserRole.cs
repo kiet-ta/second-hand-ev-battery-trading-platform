@@ -8,9 +8,9 @@ namespace Domain.Common.Constants;
 
 public enum UserRole
 {
-    none,
-    buyer,
-    seller,
-    staff,
-    manager
+    None,
+    Buyer,
+    Seller,
+    Staff,
+    Manager
 }

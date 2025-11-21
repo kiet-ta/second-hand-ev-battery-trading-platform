@@ -3,7 +3,9 @@ using Application.DTOs.AuctionDtos;
 using Application.IServices;
 using Domain.Entities;
 using Google.Apis.Upload;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace PresentationLayer.Controllers;
 
@@ -42,10 +44,20 @@ public class AuctionController : ControllerBase
         return Ok(auctionDto);
     }
 
+    [Authorize]
     [HttpPost("{auctionId}/bid")]
     public async Task<IActionResult> PlaceBid(int auctionId, [FromBody] PlaceBidRequestDto request)
     {
-        await _auctionService.PlaceBidAsync(auctionId, request.UserId, request.BidAmount);
+        var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(userIdString))
+        {
+            return Unauthorized(new { message = "User ID not found in token." });
+        }
+        if (!int.TryParse(userIdString, out int authenticatedUserId))
+        {
+            return BadRequest(new { message = "Invalid User ID format in token." });
+        }
+        await _auctionService.PlaceBidAsync(auctionId, authenticatedUserId, request.BidAmount);
             return Ok(new { message = "Bid placed successfully." });
     }
 

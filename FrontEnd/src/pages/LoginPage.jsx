@@ -77,8 +77,8 @@ export default function LoginPage() {
             localStorage.setItem("user", JSON.stringify(userData));
 
             const role = userData.role?.toLowerCase();
-            if (role === "manager" || role === "staff") navigate("/manage");
-            else if (role === "seller") navigate("/seller");
+            if (role === "Manager" || role === "Staff") navigate("/manage");
+            else if (role === "Seller") navigate("/seller");
             else navigate("/");
         } catch (err) {
             console.error("Google Login Error:", err);
@@ -125,7 +125,9 @@ export default function LoginPage() {
             const data = await authApi.login({ email: email.trim(), password: password.trim() });
             const res = data.data;
             const newUser = { ...res, token: res.token };
-
+            localStorage.clear("userId")
+            localStorage.clear("token")
+            localStorage.clear("user")
             localStorage.setItem("userId", res.userId);
             localStorage.setItem("token", res.token);
             localStorage.setItem("user", JSON.stringify(newUser));
@@ -140,8 +142,8 @@ export default function LoginPage() {
 
             setUser(newUser);
             const role = res.role?.toLowerCase();
-            if (role === "manager" || role === "staff") navigate("/manage");
-            else if (role === "seller") navigate("/seller");
+            if (role === "Manager" || role === "Staff") navigate("/manage");
+            else if (role === "Seller") navigate("/seller");
             else navigate("/");
         } catch (err) {
             console.error("Login error:", err);

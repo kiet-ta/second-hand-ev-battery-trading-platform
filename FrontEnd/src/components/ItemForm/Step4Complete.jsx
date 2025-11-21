@@ -1,67 +1,49 @@
-import React from "react";
-import { Result, Button } from "antd";
+import React, { useMemo } from "react";
+import { Button, Card, Typography, Alert } from "antd";
 
 export default function Step4Complete({ walletInfo, onDeposit, onReset }) {
-  if (!walletInfo) {
-    return (
-      <Result
-        status="error"
-        title="Không thể lấy thông tin ví"
-        subTitle="Vui lòng thử lại sau."
-        extra={
-          <Button type="primary" onClick={onReset}>
-            Quay lại
-          </Button>
-        }
-      />
-    );
-  }
-
-  const canPayFee = walletInfo.balance >= 100000;
+  const balance = useMemo(() => walletInfo?.balance || 0, [walletInfo]);
 
   return (
-    <Result
-      status={canPayFee ? "success" : "warning"}
-      title={canPayFee ? "✅ Sản phẩm đã tạo thành công!" : "⚠️ Số dư không đủ"}
-      subTitle={
-        canPayFee
-          ? "Bạn có thể thanh toán phí ₫100,000 để sản phẩm được đăng."
-          : "Số dư ví hiện tại không đủ để thanh toán phí ₫100,000."
-      }
-      extra={[
-        <div key="wallet-box" className="text-left border rounded-md p-4 mb-3">
-          <h4 className="font-semibold mb-2">Thông tin ví</h4>
-          <p>
-            <strong>Số dư hiện tại:</strong>{" "}
-            {walletInfo.balance.toLocaleString("vi-VN", {
-              style: "currency",
-              currency: "VND",
-              minimumFractionDigits: 0,
-            })}
-          </p>
-          {canPayFee && (
-            <p className="text-green-600 mt-1">
-              Bạn có đủ số dư để thanh toán phí. Nhấn "Thanh toán & Hoàn tất" để kích hoạt sản phẩm.
-            </p>
-          )}
-          {!canPayFee && (
-            <p className="text-red-600 mt-1">
-              Số dư không đủ. Vui lòng nạp thêm tiền để đăng sản phẩm.
-            </p>
-          )}
-        </div>,
-        <Button
-          type="primary"
-          key="deposit"
-          disabled={!canPayFee}
-          onClick={onDeposit}
-        >
-          Thanh toán & Hoàn tất
-        </Button>,
-        <Button key="create" onClick={onReset}>
-          Tạo sản phẩm khác
-        </Button>,
-      ]}
-    />
+    <div className="flex flex-col gap-6">
+      <Card>
+        <Typography.Title level={4}>Hoàn tất tạo sản phẩm</Typography.Title>
+        <Typography.Paragraph>
+          Đây là bước cuối cùng. Vui lòng kiểm tra thông tin sản phẩm và số dư ví của bạn trước khi hoàn tất.
+        </Typography.Paragraph>
+
+        {balance >= 100000 ? (
+          <Alert
+            message={`Bạn có đủ tiền trong ví (${balance.toLocaleString()} đ). Nhấn "Thanh toán" để hoàn tất.`}
+            type="success"
+            showIcon
+            className="mb-4"
+          />
+        ) : (
+          <Alert
+            message={`Số dư ví hiện tại của bạn là ${balance.toLocaleString()} đ. Không đủ 100.000 đ.`}
+            type="warning"
+            showIcon
+            className="mb-4"
+          />
+        )}
+      </Card>
+
+      <div className="flex justify-between">
+        <Button onClick={onReset} danger>
+          Hủy & Quay lại trang chính
+        </Button>
+
+        {balance >= 100000 ? (
+          <Button type="primary" onClick={onDeposit}>
+            Thanh toán 100.000 đ
+          </Button>
+        ) : (
+          <Button type="primary" disabled>
+            Không thể thanh toán
+          </Button>
+        )}
+      </div>
+    </div>
   );
 }

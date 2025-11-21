@@ -144,16 +144,16 @@ export default function TransactionContent() {
             align: "center",
             render: (status) => {
                 const colorMap = {
-                    pending: "orange",
-                    completed: "green",
-                    failed: "red",
-                    expired: "blue",
+                    Pending: "orange",
+                    Completed: "green",
+                    Failed: "red",
+                    Expired: "blue",
                 };
                 const labelMap = {
-                    pending: "Đang chờ",
-                    completed: "Thành công",
-                    failed: "Thất bại",
-                    expired: "Hết hạn",
+                    Pending: "Đang chờ",
+                    Completed: "Thành công",
+                    Failed: "Thất bại",
+                    Expired: "Hết hạn",
                 };
                 return (
                     <Tag color={colorMap[status] || "default"}>
@@ -207,10 +207,10 @@ export default function TransactionContent() {
                                 style={{ width: 180 }}
                             >
                                 <Option value="all">Tất cả trạng thái</Option>
-                                <Option value="pending">Đang chờ</Option>
-                                <Option value="completed">Thành công</Option>
-                                <Option value="failed">Thất bại</Option>
-                                <Option value="expired">Hết hạn</Option>
+                                <Option value="Pending">Đang chờ</Option>
+                                <Option value="Completed">Thành công</Option>
+                                <Option value="Failed">Thất bại</Option>
+                                <Option value="Expired">Hết hạn</Option>
                             </Select>
 
                             <Button

@@ -35,6 +35,7 @@ namespace Application.DTOs.ItemDtos
 
         // Information detail Battery (if any)
         public int? Capacity { get; set; }
+        public string Condition { get; set; }
         public decimal? Voltage { get; set; }
         public int? ChargeCycles { get; set; }
 

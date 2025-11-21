@@ -3,8 +3,10 @@ import { Link } from 'react-router-dom';
 import favouriteApi from '../../api/favouriteApi';
 import { FiHeart } from 'react-icons/fi';
 import Slider from "react-slick";
-import "slick-carousel/slick/slick.css"; 
+import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
+import PropTypes from "prop-types";
+
 
 // Simple verified badge
 const VerifiedCheck = ({ className = "" }) => (
@@ -17,13 +19,27 @@ const VerifiedCheck = ({ className = "" }) => (
 );
 
 const FiArrowRight = ({ className }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
-    fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"
-    strokeLinejoin="round" className={className}>
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+  >
     <line x1="5" y1="12" x2="19" y2="12"></line>
     <polyline points="12 5 19 12 12 19"></polyline>
   </svg>
 );
+
+FiArrowRight.propTypes = {
+  className: PropTypes.string,
+};
+
 
 function FavoriteItemCard({
   favId,

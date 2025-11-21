@@ -18,23 +18,20 @@ const KycRouteGuard = ({ children }) => {
         }
 
         const user = await userApi.getUserByID(userId);
-
+        console.log(user.kycStatus)
         if (!user || !user.kycStatus) {
           navigate("/seller-register");
           return;
         }
 
         switch (user.kycStatus) {
-          case "not_submitted":
+          case "Not_Submitted":
             navigate("/seller-registration");
             break;
-          case "pending":
+          case "Pending":
             navigate("/pending-review");
             break;
-          case "rejected":
-            navigate("/seller-registration");
-            break;
-          case "approved":
+          case "Approved'":
           default:
             setLoading(false);
             break;

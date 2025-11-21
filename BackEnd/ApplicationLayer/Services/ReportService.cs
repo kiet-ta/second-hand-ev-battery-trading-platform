@@ -7,16 +7,17 @@ namespace Application.Services
 {
     public class ReportService : IReportService
     {
-        private readonly IReportRepository _reportRepository;
 
-        public ReportService(IReportRepository reportRepository)
+        private readonly IUnitOfWork _unitOfWork;
+
+        public ReportService(IReportRepository reportRepository, IUnitOfWork unitOfWork )
         {
-            _reportRepository = reportRepository;
+            _unitOfWork = unitOfWork;
         }
 
         public async Task<List<Report>> GetAllReport()
         {
-            var reports = await _reportRepository.GetAllReport();
+            var reports = await _unitOfWork.Reports.GetAllReport();
             if (reports == null || !reports.Any())
                 throw new Exception("No reports found in the system.");
 
@@ -28,7 +29,7 @@ namespace Application.Services
             if (id <= 0)
                 throw new ArgumentException("Invalid report ID.");
 
-            var report = await _reportRepository.GetReportById(id);
+            var report = await _unitOfWork.Reports.GetReportById(id);
             if (report == null)
                 throw new Exception($"No report found with ID = {id}.");
 
@@ -40,7 +41,7 @@ namespace Application.Services
             if (userId <= 0)
                 throw new ArgumentException("Invalid user ID.");
 
-            var reports = await _reportRepository.GetReportByUserId(userId);
+            var reports = await _unitOfWork.Reports.GetReportByUserId(userId);
             if (reports == null || !reports.Any())
                 throw new Exception($"No reports found for user ID = {userId}.");
 
@@ -52,7 +53,7 @@ namespace Application.Services
             if (assigneeId <= 0)
                 throw new ArgumentException("Invalid assignee ID.");
 
-            var reports = await _reportRepository.GetReportByAssigneeId(assigneeId);
+            var reports = await _unitOfWork.Reports.GetReportByAssigneeId(assigneeId);
             if (reports == null || !reports.Any())
                 throw new Exception($"No reports assigned to assignee ID = {assigneeId}.");
 
@@ -64,7 +65,7 @@ namespace Application.Services
             if (string.IsNullOrWhiteSpace(status))
                 throw new ArgumentException("Status cannot be null or empty.");
 
-            var reports = await _reportRepository.GetReportByStatus(status);
+            var reports = await _unitOfWork.Reports.GetReportByStatus(status);
             if (reports == null || !reports.Any())
                 throw new Exception($"No reports found with status '{status}'.");
 
@@ -82,7 +83,7 @@ namespace Application.Services
             if (assigneeId <= 0)
                 throw new ArgumentException("Invalid assignee ID.");
 
-            var updatedReport = await _reportRepository.UpdateReportStatus(id, status, assigneeId, day);
+            var updatedReport = await _unitOfWork.Reports.UpdateReportStatus(id, status, assigneeId, day);
             if (updatedReport == null)
                 throw new Exception($"Failed to update report with ID = {id}. The report may not exist.");
 
@@ -108,7 +109,7 @@ namespace Application.Services
             if (senderId <= 0)
                 throw new ArgumentException("Invalid senderId ID for report creation.");
 
-            var report = await _reportRepository.CreateReport(dto, senderId);
+            var report = await _unitOfWork.Reports.CreateReport(dto, senderId);
             if (report == null)
                 throw new Exception("Failed to create report. Please try again.");
 

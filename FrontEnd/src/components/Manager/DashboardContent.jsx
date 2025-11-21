@@ -237,9 +237,9 @@ export default function DashboardContent() {
                                     data={distribution.map((item) => ({
                                         ...item,
                                         name:
-                                            item.name === "battery"
+                                            item.name === "Battery"
                                                 ? "Pin"
-                                                : item.name === "ev"
+                                                : item.name === "Ev"
                                                     ? "Xe điện"
                                                     : item.name,
                                     }))}
@@ -304,9 +304,9 @@ export default function DashboardContent() {
                                             {currencyVND(t.totalAmount)}
                                         </td>
                                         <td className="py-2 capitalize text-slate-700">
-                                            {t.status === "completed"
+                                            {t.status === "Completed"
                                                 ? "Hoàn tất"
-                                                : t.status === "pending"
+                                                : t.status === "Pending"
                                                     ? "Đang xử lý"
                                                     : "Đã hủy"}
                                         </td>

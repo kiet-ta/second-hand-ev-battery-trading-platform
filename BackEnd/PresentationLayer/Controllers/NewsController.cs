@@ -39,7 +39,7 @@ namespace PresentationLayer.Controllers
         }
 
         [HttpPost("approve/{newsId}")]
-        public async Task<IActionResult> ApproveNews(int newsId, [FromBody] CreateNotificationDTO dto)
+        public async Task<IActionResult> ApproveNews(int newsId, [FromBody] CreateNotificationDto dto)
         {
             if (dto == null || string.IsNullOrWhiteSpace(dto.Message))
                 return BadRequest(new { message = "Notification content cannot be empty." });

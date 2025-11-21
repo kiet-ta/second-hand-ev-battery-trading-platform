@@ -17,7 +17,7 @@ namespace PresentationLayer.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateAddress([FromBody] CreateAddressDTO dto)
+        public async Task<IActionResult> CreateAddress([FromBody] CreateAddressDto dto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
@@ -68,7 +68,7 @@ namespace PresentationLayer.Controllers
 
  
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateAddress(int id, [FromBody] UpdateAddressDTO dto)
+        public async Task<IActionResult> UpdateAddress(int id, [FromBody] UpdateAddressDto dto)
         {
             var existing = await _addressService.GetAddressByIdAsync(id);
             if (existing == null) return NotFound(new { Message = "Address does not exist" });

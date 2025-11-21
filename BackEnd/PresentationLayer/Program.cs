@@ -44,7 +44,7 @@ namespace PresentationLayer
 
             app.MapControllers();
             app.MapHub<ChatHub>("/chatHub");
-
+            app.MapHub<AuctionHub>("/auctionHub");
             app.Run();
         }
     }

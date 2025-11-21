@@ -32,17 +32,17 @@ namespace PresentationLayer.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateBattery(CreateBatteryDetailDto dto)
+        public async Task<IActionResult> CreateBattery([FromBody] CreateBatteryDetailDto dto)
         {
             var created = await _batteryService.CreateAsync(dto);
             return CreatedAtAction(nameof(GetItem), new { id = created.ItemId }, created);
 
         }
 
-        [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateBattery(int itemId, UpdateBatteryDetailDto dto)
+        [HttpPut("{id:int}")]
+        public async Task<IActionResult> UpdateBattery(int id, [FromBody] UpdateBatteryDetailDto dto)
         {
-            await _batteryService.UpdateAsync(itemId, dto);
+            await _batteryService.UpdateAsync(id, dto);
             return Ok();
         }
 

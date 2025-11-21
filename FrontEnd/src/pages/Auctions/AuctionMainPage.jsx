@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import CarAuctionCard from "../../components/Cards/CardBidding";
 import auctionApi from "../../api/auctionApi";
+import PropTypes from "prop-types";
+
 
 function AuctionMainPage() {
   const [items, setItems] = useState([]);
@@ -8,21 +10,11 @@ function AuctionMainPage() {
   const fetchItems = async () => {
     try {
       const response = await auctionApi.getAuction();
-      const now = new Date().getTime();
-
-      // Normalize + compute real status
+      console.log(response)
       const normalized = response.data.map((item) => {
-        const start = new Date(item.startTime).getTime();
-        const end = new Date(item.endTime).getTime();
-
-        let status = "UPCOMING";
-        if (now >= start && now < end) status = "ONGOING";
-        else if (now >= end) status = "ENDED";
-
         return {
           ...item,
-          status,
-          category: item.type === "ev" ? "Xe điện" : "Pin xe điện",
+          category: item.type === "Ev" ? "Xe điện" : "Pin xe điện",
           currentBid: item.currentPrice || 0,
         };
       });
@@ -66,7 +58,7 @@ function AuctionMainPage() {
               startingPrice={item.startingPrice}
               startTime={item.startTime}
               endTime={item.endTime}
-              status={item.status} 
+              status={item.status}
               imageUrls={item.images}
             />
           ))
@@ -79,5 +71,24 @@ function AuctionMainPage() {
     </div>
   );
 }
+CarAuctionCard.propTypes = {
+  auctionID: PropTypes.number.isRequired,
+  id: PropTypes.number.isRequired,
+  title: PropTypes.string.isRequired,
+  category: PropTypes.string.isRequired,
+  currentBid: PropTypes.number,
+  startingPrice: PropTypes.number,
+  startTime: PropTypes.string,
+  endTime: PropTypes.string,
+  status: PropTypes.string,
+  imageUrls: PropTypes.arrayOf(
+    PropTypes.shape({
+      imageUrl: PropTypes.string,
+    })
+  ),
+
+  className: PropTypes.string,
+};
+
 
 export default AuctionMainPage;

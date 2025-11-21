@@ -40,21 +40,35 @@ function SearchPage() {
   const [detailFilters, setDetailFilters] = useState({});
   const [selectedDetails, setSelectedDetails] = useState({});
 
-  // Combine price ranges if itemType = all
+  // --- Update filters on URL param change ---
+  useEffect(() => {
+    const newQuery = searchParams.get("query") || "";
+    const newType = searchParams.get("itemType") || "all";
+
+    setFilters((prev) => ({
+      ...prev,
+      title: newQuery,
+      itemType: newType,
+      page: 1,
+    }));
+  }, [searchParams]);
+
+  // --- Combine price ranges ---
   const priceOptions = filters.itemType === 'EV'
     ? electricCarPriceRanges
     : filters.itemType === 'Battery'
       ? batteryPriceRanges
       : [...electricCarPriceRanges, ...batteryPriceRanges].reduce((acc, range) => {
-          if (!acc.find(r => r.label === range.label)) acc.push(range);
-          return acc;
-        }, []);
+        if (!acc.find(r => r.label === range.label)) acc.push(range);
+        return acc;
+      }, []);
 
+  // --- Fetch all items + details ---
   const fetchItems = useCallback(async () => {
     setIsLoading(true);
     try {
-      const data = await itemApi.getItemBySearch(
-        filters.itemType === '' ? null : filters.itemType,
+      const itemRes = await itemApi.getItemBySearch(
+        filters.itemType === '' || filters.itemType === 'all' ? null : filters.itemType,
         filters.title,
         filters.minPrice,
         filters.maxPrice,
@@ -64,18 +78,47 @@ function SearchPage() {
         filters.sortDir
       );
 
-      const filteredItems = (data.items || []).filter(item => {
+      const baseItems = itemRes.items || [];
+
+      let evDetails = [];
+      let batteryDetails = [];
+
+      if (filters.itemType === 'EV') {
+        const evRes = await itemApi.getEvDetailBySearch();
+        evDetails = evRes || [];
+      } else if (filters.itemType === 'Battery') {
+        const batRes = await itemApi.getBatteryDetailBySearch();
+        batteryDetails = batRes || [];
+      } else {
+        // itemType = all → get both
+        const [evRes, batRes] = await Promise.all([
+          itemApi.getEvDetailBySearch(),
+          itemApi.getBatteryDetailBySearch(),
+        ]);
+        evDetails = evRes || [];
+        batteryDetails = batRes || [];
+      }
+
+      // Merge all
+      const allDetails = [...evDetails, ...batteryDetails];
+      const merged = baseItems.map(item => {
+        const detail = allDetails.find(d => d.itemId === item.itemId);
+        return { ...item, itemDetail: detail || {} };
+      });
+
+      // Apply approved & seller filter
+      const filteredItems = merged.filter(item => {
         const moderationMatch = filters.approvedOnly ? item.moderation === 'approved_tag' : true;
         const sellerMatch = filters.sellerName
-          ? item.sellerName.toLowerCase().includes(filters.sellerName.toLowerCase())
+          ? item.sellerName?.toLowerCase().includes(filters.sellerName.toLowerCase())
           : true;
         return moderationMatch && sellerMatch;
       });
 
       setItemList(filteredItems);
-      setTotalPages(data.totalPages || 1);
-    } catch (error) {
-      console.error("Lỗi khi tải sản phẩm:", error);
+      setTotalPages(itemRes.totalPages || 1);
+    } catch (err) {
+      console.error("Lỗi khi tải sản phẩm:", err);
       setItemList([]);
       setTotalPages(1);
     } finally {
@@ -85,7 +128,7 @@ function SearchPage() {
 
   useEffect(() => { fetchItems(); }, [fetchItems]);
 
-  // Sync URL params
+  // --- Sync filters with URL ---
   useEffect(() => {
     const newSearchParams = {
       ...(filters.itemType && { itemType: filters.itemType }),
@@ -102,6 +145,7 @@ function SearchPage() {
     setSearchParams(newSearchParams, { replace: true });
   }, [filters, setSearchParams]);
 
+  // --- Build dynamic detail filter options ---
   useEffect(() => {
     if (itemList.length === 0) {
       setDetailFilters({});
@@ -109,13 +153,15 @@ function SearchPage() {
       return;
     }
 
-    const keys =
+    const detailKeys =
       filters.itemType === 'Battery'
         ? ['brand', 'capacity', 'voltage', 'chargeCycles']
-        : ['brand', 'model', 'version', 'year', 'bodyStyle', 'color'];
+        : filters.itemType === 'EV'
+          ? ['brand', 'model', 'version', 'year', 'bodyStyle', 'color']
+          : ['brand', 'model', 'version', 'year', 'bodyStyle', 'color', 'capacity', 'voltage', 'chargeCycles'];
 
     const options = {};
-    keys.forEach(key => {
+    detailKeys.forEach(key => {
       const values = [
         ...new Set(
           itemList
@@ -123,15 +169,24 @@ function SearchPage() {
             .filter(v => v !== null && v !== undefined && v !== '')
         ),
       ];
-      if (values.length > 0) options[key] = values.sort();
+
+      if (values.length > 0) {
+        options[key] = values.sort((a, b) => {
+          if (typeof a === "number" && typeof b === "number") {
+            return a - b;
+          }
+          return String(a).localeCompare(String(b), "vi", { sensitivity: "base" });
+        });
+      }
     });
+
 
     setDetailFilters(options);
   }, [itemList, filters.itemType]);
 
-  // Apply all filters (itemDetail + existing)
+  // --- Apply all filters (including detail) ---
   const filteredList = itemList
-    .filter(i => i.status === "active")
+    .filter(i => i.status === "Active")
     .filter(i => {
       const detail = i.itemDetail || {};
       return Object.keys(selectedDetails).every(key => {
@@ -172,6 +227,7 @@ function SearchPage() {
   const currentPriceRangeValue =
     filters.minPrice === '' && filters.maxPrice === '' ? '-' : `${filters.minPrice}-${filters.maxPrice}`;
 
+  // --- Render ---
   return (
     <div className='w-full flex mt-2 bg-[#FAF8F3] p-4 min-h-screen'>
       {/* Sidebar */}
@@ -194,7 +250,7 @@ function SearchPage() {
           </select>
         </div>
 
-        {/* Approved Only */}
+        {/* Approved */}
         <div className='pt-6'>
           <label className='inline-flex items-center'>
             <input
@@ -220,7 +276,7 @@ function SearchPage() {
           />
         </div>
 
-        {/* 🔩 Dynamic Item Detail Filters */}
+        {/* Dynamic Detail Filters */}
         {Object.keys(detailFilters).length > 0 && (
           <div className='pt-6 border-t border-[#C4B5A0] mt-6'>
             <h3 className='font-semibold mb-3 text-[#B8860B]'>Chi tiết sản phẩm</h3>

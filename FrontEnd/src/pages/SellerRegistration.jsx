@@ -1,33 +1,30 @@
-import React, { useState } from "react";
-import kycApi from "../api/kycApi";
-
-import StepIndicator from "../components/Seller/SellerForm/SellerIndicator";
-import Step0_AccountType from "../components/Seller/SellerForm/Step0AccountType";
-import Step1_PersonalInfo from "../components/Seller/SellerForm/Step1InfoForm";
-import Step2_KYC from "../components/Seller/SellerForm/Step2IDVerification";
-import Step3_StoreInfo from "../components/Seller/SellerForm/Step3BusinessInfo";
-import Step4_Confirmation from "../components/Seller/SellerForm/Step4Confirmation";
-import userApi from "../api/userApi";
+import React, { useState, useEffect, useCallback } from "react";
+import { Spin } from "antd";
 import { useNavigate } from "react-router-dom";
-import useKycRedirect from "../hooks/useKycRedirect";
-
-const SellerRegistrationForm = () => {
-  const navigate = useNavigate
-      useKycRedirect();
-  
-
+import { uploadToCloudinary } from "../utils/uploadToCloudinary";
+import kycApi from "../api/kycApi";
+import userApi from "../api/userApi";
+import SellerIndicator from "../components/Seller/SellerForm/SellerIndicator";
+import Step0AccountType from "../components/Seller/SellerForm/Step0AccountType";
+import Step1PersonalInfo from "../components/Seller/SellerForm/Step1InfoForm";
+import Step2KYCVerification from "../components/Seller/SellerForm/Step2IDVerification";
+import Step3StoreInfo from "../components/Seller/SellerForm/Step3BusinessInfo";
+import Step4Confirm from "../components/Seller/SellerForm/Step4Confirmation";
+import useKycRedirect from '../hooks/useKycRedirect';
+export default function SellerRegistrationForm() {
+  useKycRedirect()
+  const navigate = useNavigate();
   const [userId] = useState(localStorage.getItem("userId"));
-  const [currentStep, setCurrentStep] = useState(1);
-  const [kycPayload, setKycPayload] = useState(null);
+
   const [formData, setFormData] = useState({
     accountType: "",
     fullName: "",
     email: "",
     phone: "",
+    bio: "",
     idCardFrontUrl: "",
     idCardBackUrl: "",
     selfieUrl: "",
-    bio: "",
     storeLogoUrl: "",
     storeAddress: {
       recipientName: "",
@@ -36,113 +33,172 @@ const SellerRegistrationForm = () => {
       ward: "",
       district: "",
       province: "",
+      provinceCode: "",
+      districtCode: "",
+      wardCode: "",
     },
   });
 
-  const nextStep = () => setCurrentStep((prev) => prev + 1);
-  const prevStep = () => setCurrentStep((prev) => prev - 1);
+  const [currentStep, setCurrentStep] = useState(0);
+  const [visitedMaxStep, setVisitedMaxStep] = useState(0);
+  const [submitting, setSubmitting] = useState(false);
+  const [uploadLoading, setUploadLoading] = useState({});
 
-  const handleSubmit = async () => {
-    if (formData.accountType === "store") {
-      const payload = {
-        idCardUrl: `${formData.idCardFrontUrl},${formData.idCardBackUrl}`,
-        selfieUrl: formData.selfieUrl,
-        storeName: formData.storeAddress.recipientName,
-        storePhone: formData.storeAddress.phone,
-        storeLogoUrl: formData.storeAddress.logoUrl
-      };
-      setKycPayload(payload);
-    }
-    else {
-      const payload = {
-      idCardUrl: `${formData.idCardFrontUrl},${formData.idCardBackUrl}`,
-      selfieUrl: formData.selfieUrl,
-      };
-      setKycPayload(payload);
-    }
-    try {
-      const user = await userApi.getUserByID(userId);
-      const updatedUser = {
-      ...user,
-      bio: formData.bio,
-      kycStatus: "pending",
-      updatedAt: new Date().toISOString(),
-    };      
-      await kycApi.postKYC(userId, kycPayload);
-      await userApi.putUser(userId, updatedUser);
-      navigate("/pending-review");
-
-    } catch (error) {
-      console.error("Error submitting form:", error);
-    }
-  };
-
-  const renderStep = () => {
-    switch (currentStep) {
-      case 1:
-        return (
-          <Step0_AccountType
-            formData={formData}
-            setFormData={setFormData}
-            nextStep={nextStep}
-          />
-        );
-      case 2:
-        return (
-          <Step1_PersonalInfo
-            formData={formData}
-            setFormData={setFormData}
-            nextStep={nextStep}
-            prevStep={prevStep}
-          />
-        );
-      case 3:
-        return (
-          <Step2_KYC
-            formData={formData}
-            setFormData={setFormData}
-            nextStep={nextStep}
-            prevStep={prevStep}
-          />
-        );
-      case 4:
-        if (formData.accountType === "personal") {
-          setCurrentStep(5);
-          return null;
-        }
-        return (
-          <Step3_StoreInfo
-            formData={formData}
-            setFormData={setFormData}
-            nextStep={nextStep}
-            prevStep={prevStep}
-          />
-        );
-      case 5:
-        return (
-          <Step4_Confirmation
-            formData={formData}
-            prevStep={prevStep}
-            handleSubmit={handleSubmit}
-          />
-        );
-      default:
-        return null;
-    }
-  };
+  useEffect(() => {
+    let mounted = true;
+    const fetchUser = async () => {
+      try {
+        if (!userId) return;
+        const user = await userApi.getUserByID(userId);
+        if (!mounted) return;
+        setFormData((prev) => ({
+          ...prev,
+          fullName: user.fullName || prev.fullName,
+          email: user.email || prev.email,
+          phone: user.phone || prev.phone,
+          bio: user.bio || prev.bio,
+          user, // store full user for reference
+        }));
+      } catch (_) {}
+    };
+    fetchUser();
+    return () => (mounted = false);
+  }, [userId]);
 
   const totalSteps = formData.accountType === "store" ? 5 : 4;
 
+  const nextStep = useCallback(() => {
+    setCurrentStep((s) => {
+      const next = Math.min(s + 1, totalSteps - 1);
+      setVisitedMaxStep((m) => Math.max(m, next));
+      return next;
+    });
+  }, [totalSteps]);
+
+  const prevStep = useCallback(() => setCurrentStep((s) => Math.max(0, s - 1)), []);
+
+  const goToStep = (n) => {
+    if (n <= visitedMaxStep) setCurrentStep(n);
+  };
+
+  const updateFormData = useCallback((partial) => {
+    setFormData((prev) => ({ ...prev, ...partial }));
+  }, []);
+
+  const updateStoreAddress = useCallback((partial) => {
+    setFormData((prev) => ({
+      ...prev,
+      storeAddress: { ...prev.storeAddress, ...partial },
+    }));
+  }, []);
+
+  const handleImageFile = async (file, field, isStoreLogo = false) => {
+    if (!file) return;
+    setUploadLoading((l) => ({ ...l, [field]: true }));
+    try {
+      const url = await uploadToCloudinary(file);
+      if (isStoreLogo) updateFormData({ storeLogoUrl: url });
+      else updateFormData({ [field]: url });
+    } catch (_) {
+    } finally {
+      setUploadLoading((l) => ({ ...l, [field]: false }));
+    }
+  };
+
+  const handleSubmit = async () => {
+    setSubmitting(true);
+    try {
+      const payload =
+        formData.accountType === "store"
+          ? {
+              idCardUrl: `${formData.idCardFrontUrl},${formData.idCardBackUrl}`,
+              selfieUrl: formData.selfieUrl,
+              storeName: formData.storeAddress.recipientName,
+              storePhone: formData.storeAddress.phone,
+              storeLogoUrl: formData.storeLogoUrl,
+            }
+          : {
+              idCardUrl: `${formData.idCardFrontUrl},${formData.idCardBackUrl}`,
+              selfieUrl: formData.selfieUrl,
+            };
+
+      const user = await userApi.getUserByID(userId);
+      const updatedUser = {
+        ...user,
+        bio: formData.bio,
+        kycStatus: "Pending",
+        updatedAt: new Date().toISOString(),
+      };
+
+      await kycApi.postKYC(userId, payload);
+      await userApi.putUser(userId, updatedUser);
+
+      navigate("/pending-review");
+    } catch (_) {
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   return (
-    <div className="max-w-2xl mx-auto p-6 bg-white rounded-xl shadow-lg my-10">
-      <StepIndicator
+    <div className="max-w-2xl mx-auto p-6 bg-white rounded-xl shadow my-8">
+      <SellerIndicator
         currentStep={currentStep}
         totalSteps={totalSteps}
-        accountType={formData.accountType}
+        onStepClick={goToStep}
       />
-      <div className="mt-8">{renderStep()}</div>
+
+      <div className="mt-6">
+        {currentStep === 0 && (
+          <Step0AccountType
+            formData={formData}
+            setFormData={setFormData}
+            nextStep={nextStep}
+          />
+        )}
+
+        {currentStep === 1 && (
+          <Step1PersonalInfo
+            formData={formData}
+            setFormData={setFormData}
+            nextStep={nextStep}
+            prevStep={prevStep}
+          />
+        )}
+
+        {currentStep === 2 && (
+          <Step2KYCVerification
+            formData={formData}
+            setFormData={setFormData}
+            handleImageFile={handleImageFile}
+            uploadLoading={uploadLoading}
+            nextStep={nextStep}
+            prevStep={prevStep}
+          />
+        )}
+
+        {currentStep === 3 && formData.accountType === "store" && (
+          <Step3StoreInfo
+            formData={formData}
+            setFormData={setFormData}
+            updateStoreAddress={updateStoreAddress}
+            nextStep={nextStep}
+            prevStep={prevStep}
+            handleImageFile={handleImageFile}
+            uploadLoading={uploadLoading}
+          />
+        )}
+
+        {((currentStep === 3 && formData.accountType !== "store") ||
+          currentStep === 4) && (
+          <Step4Confirm
+            formData={formData}
+            prevStep={prevStep}
+            handleSubmit={handleSubmit}
+            submitting={submitting}
+          />
+        )}
+      </div>
     </div>
   );
-};
-
-export default SellerRegistrationForm;
+}

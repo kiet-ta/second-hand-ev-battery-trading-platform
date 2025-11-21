@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import chatApi from "../../api/chatApi";
+import PropTypes from "prop-types";
+
 
 const ChatWithSellerButton = ({ buyerId, sellerId, product }) => {
   const navigate = useNavigate();
@@ -21,7 +23,7 @@ const ChatWithSellerButton = ({ buyerId, sellerId, product }) => {
 
       if (type === "interest") {
         messageText = JSON.stringify({
-          type: "ev",
+          type: "Ev",
           title: product.title,
           price: product.price,
           imageUrl: product.imageUrl,
@@ -110,9 +112,9 @@ const ChatWithSellerButton = ({ buyerId, sellerId, product }) => {
               <button
                 onClick={(e) => {
                   setShowConfirm(false)
-                e.preventDefault();
-                e.stopPropagation();
-              }}
+                  e.preventDefault();
+                  e.stopPropagation();
+                }}
                 className="px-4 py-2 rounded-xl bg-gray-200 text-gray-700 font-medium hover:bg-gray-300 transition"
               >
                 Hủy
@@ -134,6 +136,16 @@ const ChatWithSellerButton = ({ buyerId, sellerId, product }) => {
       )}
     </div>
   );
+};
+ChatWithSellerButton.propTypes = {
+  buyerId: PropTypes.number.isRequired,
+  sellerId: PropTypes.number.isRequired,
+  product: PropTypes.shape({
+    id: PropTypes.number.isRequired,
+    title: PropTypes.string.isRequired,
+    price: PropTypes.number.isRequired,
+    imageUrl: PropTypes.string,
+  }).isRequired,
 };
 
 export default ChatWithSellerButton;
