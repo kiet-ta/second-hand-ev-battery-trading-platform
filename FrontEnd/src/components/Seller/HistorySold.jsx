@@ -57,7 +57,7 @@ export default function HistorySold() {
 
     const getStatusColor = (status) => {
         switch (status) {
-            case "Sold":
+            case "Completed":
                 return "bg-green-100 text-green-800";
             case "Processing":
                 return "bg-blue-100 text-blue-800";
@@ -73,7 +73,7 @@ export default function HistorySold() {
 
     const getStatusText = (status) => {
         switch (status) {
-            case "Sold":
+            case "Completed":
                 return "Hoàn thành";
             case "Processing":
                 return "Đang xử lý";
@@ -508,7 +508,7 @@ export default function HistorySold() {
                                 Đóng
                             </button>
 
-                            {(selectedSale.status == "Pending" ||selectedSale.status == "Processing") && (
+                            {(selectedSale.status == "Pending" || selectedSale.status == "Processing") && (
                                 <button
                                     disabled={confirming}
                                     onClick={async () => {

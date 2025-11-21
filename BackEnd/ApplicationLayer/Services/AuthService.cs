@@ -124,10 +124,10 @@ namespace Application.Services
 
             if (!BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash))
                 throw new InvalidOperationException("Invalid password");
-            if (user.AccountStatus == UserStatus.Ban.ToString())
-            {
-                throw new InvalidOperationException($"Account is not active. Status: {user.AccountStatus}");
-            }
+            //if (user.AccountStatus == UserStatus.Ban.ToString())
+            //{
+            //    throw new InvalidOperationException($"Account is not active. Status: {user.AccountStatus}");
+            //}
             return GenerateToken(user);
         }
 
@@ -186,13 +186,13 @@ namespace Application.Services
 
             if (existing != null)
             {
-                var requiredStatus = "Ban";
+                //var requiredStatus = "Ban";
 
-                if (existing.AccountStatus == requiredStatus)
-                {
-                    _logger.LogWarning("Login attempt for non-active account: {Email}, Status: {Status}", email, existing.AccountStatus);
-                    throw new InvalidOperationException($"Tài khoản đã bị {existing.AccountStatus}. Vui lòng liên hệ hỗ trợ.");
-                }
+                //if (existing.AccountStatus == requiredStatus)
+                //{
+                //    _logger.LogWarning("Login attempt for non-active account: {Email}, Status: {Status}", email, existing.AccountStatus);
+                //    throw new InvalidOperationException($"Tài khoản đã bị {existing.AccountStatus}. Vui lòng liên hệ hỗ trợ.");
+                //}
                 _logger.LogInformation("User found, generating token for: {Email}", email);
                 return GenerateToken(existing, provider: "google");
             }
