@@ -15,7 +15,7 @@ export default function MyProducts() {
   const [isPayModalOpen, setIsPayModalOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
   const [wallet, setWallet] = useState(null);
-  const [payType, setPayType] = useState(null); // "listing" | "moderation"
+  const [payType, setPayType] = useState(null);
   const [payLoading, setPayLoading] = useState(false);
   const [inlineMsg, setInlineMsg] = useState(null);
 
@@ -111,7 +111,7 @@ export default function MyProducts() {
       if (payType === "listing") {
         const paymentState = updatePayload.status == "Auction_Pending_Pay" ? "Auction_Active" : "Active"
         updatePayload.status = paymentState;
-      } 
+      }
       if (payType === "moderation") updatePayload.moderation = "Pending";
 
       await itemApi.putItem(selectedItem.itemId, updatePayload);
@@ -147,7 +147,7 @@ export default function MyProducts() {
       case "Pending_Pay":
         return "Chờ thanh toán";
       case "Auction_Pending_Pay":
-      return "Đang hoạt động (Đấu giá)"
+        return "Đang hoạt động (Đấu giá)"
       case "Rejected":
         return "Bị từ chối";
       default:
@@ -228,11 +228,10 @@ export default function MyProducts() {
                   className="w-full h-48 object-cover"
                 />
                 <span
-                  className={`absolute top-2 right-2 text-xs font-semibold px-2 py-1 rounded-full ${
-                    item.status === "Active"
+                  className={`absolute top-2 right-2 text-xs font-semibold px-2 py-1 rounded-full ${item.status === "Active"
                       ? "bg-green-100 text-green-700"
                       : "bg-gray-100 text-gray-600"
-                  }`}
+                    }`}
                 >
                   {translateStatus(item.status)}
                 </span>
@@ -263,7 +262,7 @@ export default function MyProducts() {
                     </Button>
                   )}
 
-                  {item.moderation !== "Approved" && item.moderation !== "Pending"  && (
+                  {item.moderation !== "Approved" && item.moderation !== "Pending" && (
                     <Button
                       block
                       onClick={() => handlePayClick(item, "moderation")}
