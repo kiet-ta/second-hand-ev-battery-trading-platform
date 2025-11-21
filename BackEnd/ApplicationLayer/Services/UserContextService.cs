@@ -28,7 +28,6 @@ namespace Application.Services
             if (user?.Identity?.IsAuthenticated != true)
                 throw new UnauthorizedAccessException("User not authenticated");
 
-            // Thử lấy userId từ các claim phổ biến
             var userIdClaim = user.FindFirst("userId")?.Value
                 ?? user.FindFirst("sub")?.Value
                 ?? user.FindFirst(ClaimTypes.NameIdentifier)?.Value
@@ -36,7 +35,6 @@ namespace Application.Services
 
             if (string.IsNullOrEmpty(userIdClaim))
             {
-                // Debug: In ra tất cả claims
                 var claims = string.Join(", ", user.Claims.Select(c => $"{c.Type}={c.Value}"));
                 Console.WriteLine($"Available claims: {claims}");
                 throw new UnauthorizedAccessException("User ID claim not found in token");
@@ -57,7 +55,6 @@ namespace Application.Services
             if (user?.Identity?.IsAuthenticated != true)
                 throw new UnauthorizedAccessException("User not authenticated");
 
-            // Thử lấy userId từ các claim phổ biến
             var userIdClaim = user.FindFirst("userId")?.Value
                 ?? user.FindFirst("sub")?.Value
                 ?? user.FindFirst(ClaimTypes.NameIdentifier)?.Value
@@ -65,7 +62,6 @@ namespace Application.Services
 
             if (string.IsNullOrEmpty(userIdClaim))
             {
-                // Debug: In ra tất cả claims
                 var claims = string.Join(", ", user.Claims.Select(c => $"{c.Type}={c.Value}"));
                 Console.WriteLine($"Available claims: {claims}");
                 throw new UnauthorizedAccessException("User ID claim not found in token");

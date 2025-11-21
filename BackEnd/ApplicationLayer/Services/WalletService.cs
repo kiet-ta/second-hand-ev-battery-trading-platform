@@ -39,7 +39,6 @@ public class WalletService : IWalletService
     {
         var transactions = await _unitOfWork.WalletTransactions.GetTransactionsByWalletIdAsync(walletId);
 
-        // Map danh sách Transaction entities sang DTOs
         return transactions.Select(t => new WalletTransactionDto
         {
             TransactionId = t.TransactionId,

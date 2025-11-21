@@ -23,21 +23,6 @@ namespace PresentationLayer.Controllers
             _uploadService = uploadService;
         }
 
-        //[HttpGet("count-by-role")]
-        //public async Task<IActionResult> CountUsersByRole()
-        //{
-        //    var result = await _userService.GetUsersByRoleAsync();
-        //    return Ok(result);
-        //}
-
-        //[HttpPost("Register")]
-        //public async Task<IActionResult> AddUser([FromBody] CreateUserDto dto)
-        //{
-
-        //    var result = await _userService.AddUserAsync(dto);
-        //    return Ok(result);
-        //}
-
         [HttpGet("{userId}/avatar")]
         public async Task<IActionResult> GetUserAvatar(int userId)
         {
@@ -71,10 +56,6 @@ namespace PresentationLayer.Controllers
                 AvatarUrl = avatarUrl
             });
         }
-
-        //[HttpGet]
-        //[Authorize(Roles = "manager,staff")]
-        //public async Task<IActionResult> Get() => Ok(await _userService.GetAllUsersAsync());
 
         [HttpGet("{id}")]
         public async Task<IActionResult> Get(int id)
