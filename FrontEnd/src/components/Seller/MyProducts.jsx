@@ -18,7 +18,7 @@ export default function MyProducts() {
   const [isPayModalOpen, setIsPayModalOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
   const [wallet, setWallet] = useState(null);
-  const [payType, setPayType] = useState(null); // "listing" | "moderation"
+  const [payType, setPayType] = useState(null);
   const [payLoading, setPayLoading] = useState(false);
   const [inlineMsg, setInlineMsg] = useState(null);
   const [feeCommission, setFeeCommission] = useState(0);

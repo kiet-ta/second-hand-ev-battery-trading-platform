@@ -81,8 +81,8 @@ export default function OrderPage() {
           it.detail?.evDetail
             ? `${it.detail.evDetail.brand} ${it.detail.evDetail.model}`
             : it.detail?.batteryDetail
-            ? `${it.detail.batteryDetail.brand}`
-            : "";
+              ? `${it.detail.batteryDetail.brand}`
+              : "";
         return (
           title.toLowerCase().includes(s) ||
           brandModel.toLowerCase().includes(s)
@@ -93,7 +93,6 @@ export default function OrderPage() {
   return (
     <div className="min-h-screen bg-[#FAF8F3] py-8 px-4">
       <div className="max-w-6xl mx-auto">
-        <h1 className="text-2xl md:text-3xl font-roboto font-bold mb-6">Đơn hàng của tôi</h1>
 
         {/* Tabs */}
         <div className="flex items-center gap-4 mb-4 overflow-x-auto">
@@ -101,11 +100,10 @@ export default function OrderPage() {
             <button
               key={t.key}
               onClick={() => setActiveTab(t.key)}
-              className={`px-4 py-2 rounded-md text-sm font-medium ${
-                activeTab === t.key
+              className={`px-4 py-2 rounded-md text-sm font-medium ${activeTab === t.key
                   ? "bg-white text-[#D97706] border border-[#D97706]"
                   : "bg-white/60 text-gray-700 hover:bg-white"
-              }`}
+                }`}
             >
               {t.label}
             </button>
