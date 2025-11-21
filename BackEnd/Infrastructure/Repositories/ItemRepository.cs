@@ -240,7 +240,7 @@ namespace Infrastructure.Repositories
         public async Task<ItemWithDetailDto?> GetItemWithDetailsAsync(int id)
         {
             var query = from i in _context.Items
-                        where i.ItemId == id && !(i.IsDeleted == true)
+                        where i.ItemId == id && !(i.IsDeleted == true) 
                         join im in _context.ItemImages
                             on i.ItemId equals im.ItemId into imj
                         from itemImage in imj.DefaultIfEmpty()
@@ -281,7 +281,7 @@ namespace Infrastructure.Repositories
         public async Task<IEnumerable<ItemWithDetailDto>> GetAllItemsWithDetailsAsync()
         {
             var query = from i in _context.Items
-                        where !(i.IsDeleted == true)
+                        where !(i.IsDeleted == true) && i.Status == "Active"
                         join im in _context.ItemImages
                             on i.ItemId equals im.ItemId into imj
                         from itemImage in imj.DefaultIfEmpty()

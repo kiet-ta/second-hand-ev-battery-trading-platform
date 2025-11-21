@@ -57,12 +57,11 @@ export default function HistorySold() {
 
     const getStatusColor = (status) => {
         switch (status) {
-            case "Sold":
+            case "Completed":
                 return "bg-green-100 text-green-800";
             case "Processing":
                 return "bg-blue-100 text-blue-800";
             case "Pending":
-            case "Pending_Approval":
                 return "bg-yellow-100 text-yellow-800";
             case "Shipped":
                 return "bg-purple-100 text-purple-800";
@@ -73,11 +72,11 @@ export default function HistorySold() {
 
     const getStatusText = (status) => {
         switch (status) {
-            case "Sold":
+            case "Completed":
                 return "Hoàn thành";
             case "Processing":
                 return "Đang xử lý";
-            case "pending":
+            case "Pending":
                 return "Đợi xử lí"
             case "Pending_Approval":
                 return "Chờ thanh toán";
@@ -234,10 +233,10 @@ export default function HistorySold() {
                     <div className="flex gap-3 flex-wrap">
                         {[
                             { label: "Tất cả", value: "all" },
-                            { label: "Hoàn thành", value: "Sold" },
-                            { label: "Đang xử lý", value: "Processing" },
-                            { label: "Chờ thanh toán", value: "Pending" },
+                            { label: "Chờ xử lí", value: "Pending" },
+                            { label: "Chờ thanh toán", value: "Shipping" },
                             { label: "Đã giao", value: "Shipped" },
+                            { label: "Hoàn thành", value: "Completed" }
                         ].map((btn) => (
                             <button
                                 key={btn.value}

@@ -63,7 +63,7 @@ namespace Infrastructure.Repositories
         public async Task<IEnumerable<Item>> GetLatestEVsAsync(int count)
         {
             return await _ctx.Items
-                .Where(x => x.ItemType == ItemType.Ev.ToString() && !(x.IsDeleted == true))
+                .Where(x => x.ItemType == ItemType.Ev.ToString() && !(x.IsDeleted == true) && x.Status == "Active")
                 .OrderByDescending(x => x.CreatedAt)
                 .Take(count)
                 .ToListAsync();

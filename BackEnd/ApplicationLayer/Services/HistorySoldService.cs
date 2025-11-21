@@ -85,7 +85,7 @@ namespace Application.Services
             }
 
             var paginatedItemsQuery = allItemsQuery
-                .OrderByDescending(i => i.UpdatedAt)
+                .OrderByDescending(i => i.CreatedAt)
                 .Skip((pagination.PageNumber - 1) * pagination.PageSize)
                 .Take(pagination.PageSize);
 

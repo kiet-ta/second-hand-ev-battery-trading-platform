@@ -143,7 +143,10 @@ export default function OrderCard({ order, onViewItem, onMarkReceived, onOpenRev
                                 x{firstItem?.quantity || 1}
                             </div>
                             <div className="text-xl font-extrabold text-[#D97706]">
-                                {(firstItem?.price || 0).toLocaleString("vi-VN")}₫
+                                {(firstItem?.price * firstItem?.quantity).toLocaleString("vi-VN")}₫
+                            </div>
+                            <div>
+                                <span className="text-sm text-gray-500"> ({firstItem?.quantity} x {firstItem?.price?.toLocaleString("vi-VN")}₫)</span>
                             </div>
                         </div>
                     </div>

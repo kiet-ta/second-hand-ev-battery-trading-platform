@@ -166,6 +166,9 @@ export default function MyProducts() {
         return "Chờ thanh toán";
       case "Auction_Pending_Pay":
         return "Chờ thanh toán"
+            case "Sold":
+        return "Đã bán";
+
       case "Rejected":
         return "Bị từ chối";
       default:
@@ -181,6 +184,8 @@ export default function MyProducts() {
         return "Đang chờ kiểm duyệt";
       case "Rejected":
         return "Bị từ chối kiểm duyệt";
+      case "Sold":
+        return "Đã bán";
       default:
         return "Chưa kiểm duyệt";
     }

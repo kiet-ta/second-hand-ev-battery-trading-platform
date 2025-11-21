@@ -4,8 +4,8 @@ import { Link, useLocation } from "react-router-dom";
 import orderItemApi from "../../api/orderItemApi";
 import itemApi from "../../api/itemApi";
 import addressApi from "../../api/addressLocalApi";
-import { message, Spin } from "antd";
 import { FiMapPin } from "react-icons/fi";
+import { Spin } from "antd";
 
 function CartPage() {
     const location = useLocation();
@@ -13,7 +13,7 @@ function CartPage() {
     const [cartItems, setCartItems] = useState([]);
     const [totalPrice, setTotalPrice] = useState(0);
     const [selectedItemIds, setSelectedItemIds] = useState([]);
-
+    const [errorMessage, setErrorMessage] = useState("");
     const [addresses, setAddresses] = useState([]);
     const [selectedAddressId, setSelectedAddressId] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -22,7 +22,66 @@ function CartPage() {
         if (typeof price !== 'number') return '0 đ';
         return price.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' });
     };
+    const validateStockBeforeCheckout = async () => {
+        try {
+            // Fetch latest stock for selected items
+            const stockCheckPromises = cartItems
+                .filter(item => selectedItemIds.includes(item.id))
+                .map(item => itemApi.getItemById(item.id));
 
+            const latestItems = await Promise.all(stockCheckPromises);
+
+            let outOfStockItems = [];
+            let changedQuantityItems = [];
+
+            const updatedCart = cartItems.map(item => {
+                const latest = latestItems.find(i => i.itemId === item.id);
+                if (!latest) return item;
+
+                // Stock = 0 → cannot buy
+                if (latest.quantity === 0) {
+                    outOfStockItems.push(item.name);
+                    return { ...item, stock: 0, quantity: 0 };
+                }
+
+                // If quantity > latest stock → adjust down
+                if (item.quantity > latest.quantity) {
+                    changedQuantityItems.push({
+                        name: item.name,
+                        old: item.quantity,
+                        new: latest.quantity
+                    });
+
+                    return { ...item, stock: latest.quantity, quantity: latest.quantity };
+                }
+
+                return { ...item, stock: latest.quantity };
+            });
+
+            setCartItems(updatedCart);
+
+            if (outOfStockItems.length > 0) {
+                setErrorMessage(`Sản phẩm hết hàng: ${outOfStockItems.join(", ")}`);
+                return false;
+            }
+
+            if (changedQuantityItems.length > 0) {
+                setErrorMessage(
+                    "Một số sản phẩm có số lượng thay đổi do tồn kho:",
+                );
+                changedQuantityItems.forEach(item =>
+                    setErrorMessage(`${item.name}: ${item.old} → ${item.new}`)
+                );
+                return false;
+            }
+
+            return true;
+        } catch (error) {
+            console.error("Error validating stock:", error);
+            setErrorMessage("Không thể kiểm tra tồn kho.");
+            return false;
+        }
+    };
     const fetchCartAndAddressData = async () => {
         setIsLoading(true);
         try {
@@ -38,9 +97,11 @@ function CartPage() {
             ]);
 
             let combinedCartData = [];
+
             if (orderItemsResponse && orderItemsResponse.length > 0) {
                 const aggregatedItemsMap = new Map();
 
+                // --- AGGREGATE DUPLICATES ---
                 orderItemsResponse.forEach((item) => {
                     const existingItem = aggregatedItemsMap.get(item.itemId);
                     if (existingItem) {
@@ -54,9 +115,26 @@ function CartPage() {
                     }
                 });
 
+                // --- REMOVE DUPLICATE orderItemIds ---
+                const duplicateIds = [];
+
+                aggregatedItemsMap.forEach((item) => {
+                    if (item.orderItemIdsToDelete.length > 1) {
+                        const [keep, ...duplicates] = item.orderItemIdsToDelete;
+                        item.orderItemIdsToDelete = [keep];
+                        duplicateIds.push(...duplicates);
+                    }
+                });
+
+                if (duplicateIds.length > 0) {
+                    await Promise.all(
+                        duplicateIds.map((id) => orderItemApi.deleteOrderItem(id))
+                    );
+                }
+
+                // --- FETCH ITEM DETAILS ---
                 const uniqueOrderItems = Array.from(aggregatedItemsMap.values());
                 const itemDetailPromises = uniqueOrderItems.map((item) =>
-                    // Fetch full item detail to get itemType and images
                     itemApi.getItemById(item.itemId)
                 );
                 const itemDetails = await Promise.all(itemDetailPromises);
@@ -85,17 +163,20 @@ function CartPage() {
                             itemType: detail.itemType,
                             orderItemIdsToDelete: orderItem.orderItemIdsToDelete
                         };
-                    }).filter(Boolean);
+                    })
+                    .filter(Boolean);
 
                 setCartItems(combinedCartData);
-
             } else {
                 setCartItems([]);
             }
 
+            // --- ADDRESS LOADING ---
             if (addressesResponse && addressesResponse.length > 0) {
                 setAddresses(addressesResponse);
-                const defaultAddress = addressesResponse.find(addr => addr.isDefault) || addressesResponse[0];
+                const defaultAddress =
+                    addressesResponse.find((addr) => addr.isDefault) ||
+                    addressesResponse[0];
                 if (defaultAddress) {
                     setSelectedAddressId(defaultAddress.addressId);
                 }
@@ -104,12 +185,15 @@ function CartPage() {
                 setSelectedAddressId(null);
             }
 
-            const currentSelectedIds = JSON.parse(localStorage.getItem('selectedCartItemIds') || '[]');
+            // --- RESTORE SELECTED ITEMS ---
+            const currentSelectedIds = JSON.parse(
+                localStorage.getItem("selectedCartItemIds") || "[]"
+            );
             const validSelectedIds = combinedCartData
-                .map(item => item.id)
-                .filter(id => currentSelectedIds.includes(id));
-            setSelectedItemIds(validSelectedIds);
+                .map((item) => item.id)
+                .filter((id) => currentSelectedIds.includes(id));
 
+            setSelectedItemIds(validSelectedIds);
         } catch (error) {
             setCartItems([]);
             setAddresses([]);
@@ -117,7 +201,6 @@ function CartPage() {
             setIsLoading(false);
         }
     };
-
     useEffect(() => {
         fetchCartAndAddressData();
     }, []);
@@ -233,7 +316,7 @@ function CartPage() {
             .map(item => ({
                 ...item,
                 image: item.images?.[0]?.imageUrl || "https://placehold.co/100x100/e2e8f0/374151?text=?", // Pass only first image URL
-                images: undefined 
+                images: undefined
             }));
 
         return {
@@ -279,8 +362,8 @@ function CartPage() {
                                 <CardCart
                                     key={item.id}
                                     id={item.id}
-                                    images={item.images} // Pass images array
-                                    itemType={item.itemType} // Pass itemType
+                                    images={item.images} 
+                                    itemType={item.itemType} 
                                     title={item.name}
                                     price={item.price}
                                     quantity={item.quantity}
@@ -312,7 +395,8 @@ function CartPage() {
                                     key={addr.addressId}
                                     onClick={() => {
                                         setSelectedAddressId(addr.addressId),
-                                         console.log(addr.addressId)}}
+                                            console.log(addr.addressId)
+                                    }}
                                     className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${selectedAddressId === addr.addressId ? 'border-[#B8860B] bg-yellow-50' : 'border-[#E8E4DC] hover:border-[#C4B5A0]'
                                         }`}
                                 >
@@ -352,7 +436,7 @@ function CartPage() {
                             Xóa
                         </button>
                     </div>
-
+                            <div className="font-bold text-red-500">{errorMessage}</div>
                     <div className="flex items-center space-x-6">
                         <div className="text-[#2C2C2C]">
                             <span className="mr-2">Tổng cộng ({selectedItemIds.length} sản phẩm):</span>
@@ -364,6 +448,13 @@ function CartPage() {
                             <button
                                 className="bg-[#D4AF37] text-[#2C2C2C] px-8 py-3 rounded-lg font-bold shadow-md hover:bg-[#B8860B] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                 disabled={selectedItemIds.length === 0 || !selectedAddressId || isLoading}
+                                onClick={async (e) => {
+                                    e.preventDefault();
+
+                                    const ok = await validateStockBeforeCheckout();
+                                    if (!ok) return; 
+                                    window.location.href = "/checkout";
+                                }}
                             >
                                 Mua ngay
                             </button>
