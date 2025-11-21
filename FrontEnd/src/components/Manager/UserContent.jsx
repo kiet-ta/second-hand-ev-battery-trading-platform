@@ -59,7 +59,7 @@ export default function UserContent() {
     }
   }, []);
 
-  // ✅ Fetch users with validation & caching control
+  // Fetch users with validation & caching control
   const fetchUsers = useCallback(async (pageNum = 1) => {
     setLoading(true);
     try {
@@ -80,7 +80,7 @@ export default function UserContent() {
     fetchUsers(page);
   }, [page, fetchUsers]);
 
-  // ✅ Memoized filtering for performance
+  // Memoized filtering for performance
   const filteredUsers = useMemo(() => {
     if (!users.length) return [];
 
@@ -137,7 +137,7 @@ export default function UserContent() {
     [currentUserId, users, sendBanEmail]
   );
 
-  // ✅ CSV export (no popup)
+  // CSV export (no popup)
   const exportToCSV = useCallback(() => {
     if (!filteredUsers.length) return;
 
@@ -198,10 +198,10 @@ export default function UserContent() {
             role === "Buyer"
               ? "blue"
               : role === "Seller"
-              ? "green"
-              : role === "Staff"
-              ? "orange"
-              : "purple";
+                ? "green"
+                : role === "Staff"
+                  ? "orange"
+                  : "purple";
           return <Tag color={color}>{role.toUpperCase()}</Tag>;
         },
       },
@@ -211,10 +211,10 @@ export default function UserContent() {
         key: "accountStatus",
         render: (status) => {
           const map = {
-            active: { color: "green", text: "Đang hoạt động" },
-            warning1: { color: "orange", text: "Cảnh cáo 1" },
-            warning2: { color: "volcano", text: "Cảnh cáo 2" },
-            ban: { color: "red", text: "Bị cấm" },
+            Active: { color: "green", text: "Đang hoạt động" },
+            Warning1: { color: "orange", text: "Cảnh cáo 1" },
+            Warning2: { color: "volcano", text: "Cảnh cáo 2" },
+            Ban: { color: "red", text: "Bị cấm" },
           };
           const info = map[status] || { color: "default", text: status };
           return <Tag color={info.color}>{info.text}</Tag>;

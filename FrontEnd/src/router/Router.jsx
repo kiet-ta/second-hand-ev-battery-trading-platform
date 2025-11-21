@@ -49,8 +49,6 @@ import AccountSetting from "../pages/Profile/AccountSetting";
 import AddressSetting from "../pages/Profile/AddressSetting";
 import NotificationSetting from "../pages/Profile/NotificationSetting";
 import SecuritySetting from "../pages/Profile/SecuritySetting";
-import PurchaseSection from "../pages/Profile/PurchaseSection";
-import SettingsSection from "../pages/Profile/SettingsSection";
 import WalletTransactionPage from "../pages/Profile/WalletTransactionPage";
 
 /* ---------------------------
@@ -166,7 +164,6 @@ export const router = createBrowserRouter([
         ],
       },
       { path: "purchase", element: <OrderPage /> },
-      { path: "settings", element: <SettingsSection /> },
       { path: "chats", element: <ChatRoomWrapper /> },
     ],
   },

@@ -74,7 +74,7 @@ export default function ChangePassword() {
         throw new Error(msg || "Đổi mật khẩu thất bại!");
       }
 
-      toast.success("✅ Mật khẩu đã được thay đổi thành công!");
+      toast.success("Mật khẩu đã được thay đổi thành công!");
       const rememberEmail = localStorage.getItem("rememberEmail");
       if (rememberEmail) {
         localStorage.setItem("rememberPassword", formData.newPassword);
@@ -150,8 +150,8 @@ export default function ChangePassword() {
                     strength.label === "Yếu"
                       ? "33%"
                       : strength.label === "Trung bình"
-                      ? "66%"
-                      : "100%",
+                        ? "66%"
+                        : "100%",
                 }}
               />
               <span

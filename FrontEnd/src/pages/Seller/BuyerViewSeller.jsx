@@ -213,11 +213,10 @@ export default function BuyerViewSeller() {
                                 <button
                                     key={t}
                                     onClick={() => setTab(t)}
-                                    className={`pb-3 px-1 font-semibold text-sm transition ${
-                                        tab === t
-                                            ? "text-[#C99700] border-b-2 border-[#C99700]"
-                                            : "text-gray-600 hover:text-gray-800"
-                                    }`}
+                                    className={`pb-3 px-1 font-semibold text-sm transition ${tab === t
+                                        ? "text-[#C99700] border-b-2 border-[#C99700]"
+                                        : "text-gray-600 hover:text-gray-800"
+                                        }`}
                                 >
                                     {t === "Active" ? "Đang bán" : "Đã bán"} (
                                     {items.filter((x) => x.status === t).length || 0})
@@ -237,10 +236,11 @@ export default function BuyerViewSeller() {
                                 {filteredItems.map((item) => (
                                     <Link
                                         key={item.itemId}
-                                        to={`/ev/${item.itemId}`}
+                                        to={item.itemType == "Ev" ? `/ev/${item.itemId}` : `/battery/${item.itemId}`}
                                         state={item.itemId}
                                         className="group bg-white border border-[#F0E2B6] rounded-xl overflow-hidden hover:shadow-md transition"
                                     >
+
                                         <div className="relative">
                                             {Array.isArray(item.images) && item.images.length > 1 ? (
                                                 <Slider {...carouselSettings}>
@@ -266,11 +266,10 @@ export default function BuyerViewSeller() {
                                                 />
                                             )}
                                             <span
-                                                className={`absolute top-2 left-2 px-2 py-1 text-xs font-semibold rounded-md text-white shadow-sm ${
-                                                    item.status === "Active"
-                                                        ? "bg-[#C99700]"
-                                                        : "bg-gray-500"
-                                                }`}
+                                                className={`absolute top-2 left-2 px-2 py-1 text-xs font-semibold rounded-md text-white shadow-sm ${item.status === "Active"
+                                                    ? "bg-[#C99700]"
+                                                    : "bg-gray-500"
+                                                    }`}
                                             >
                                                 {item.status === "Active"
                                                     ? "Đang bán"

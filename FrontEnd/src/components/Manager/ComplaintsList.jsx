@@ -32,7 +32,7 @@ export default function ComplaintList() {
   const token = localStorage.getItem("token");
   const baseURL = import.meta.env.VITE_API_BASE_URL;
 
-  // ✅ Lấy danh sách complaint
+  //  Lấy danh sách complaint
   const fetchComplaints = async () => {
     setLoading(true);
     try {
@@ -64,7 +64,7 @@ export default function ComplaintList() {
     fetchComplaints();
   }, []);
 
-  // ✅ Lọc và tìm kiếm
+  //  Lọc và tìm kiếm
   useEffect(() => {
     let list = [...complaints];
     if (statusFilter !== "all") list = list.filter((c) => c.status === statusFilter);
@@ -80,7 +80,7 @@ export default function ComplaintList() {
     setFiltered(list);
   }, [complaints, search, statusFilter, levelFilter]);
 
-  // ✅ Xem chi tiết complaint
+  //  Xem chi tiết complaint
   const openDetailModal = async (id) => {
     setModalVisible(true);
     setModalLoading(true);
@@ -100,7 +100,7 @@ export default function ComplaintList() {
     }
   };
 
-  // ✅ Cập nhật trạng thái
+  //  Cập nhật trạng thái
   const updateStatus = async (id, newStatus) => {
     try {
       const res = await fetch(`${baseURL}complaints/${id}/status?status=${newStatus}`, {
@@ -108,7 +108,7 @@ export default function ComplaintList() {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (!res.ok) throw new Error();
-      message.success(`✅ Trạng thái chuyển sang "${newStatus}".`);
+      message.success(` Trạng thái chuyển sang "${newStatus}".`);
       setModalVisible(false);
       fetchComplaints();
     } catch {
@@ -116,7 +116,7 @@ export default function ComplaintList() {
     }
   };
 
-  // ✅ Cập nhật mức độ nghiêm trọng
+  //  Cập nhật mức độ nghiêm trọng
   const updateLevel = async (id, newLevel) => {
     try {
       const res = await fetch(`${baseURL}complaints/${id}/level`, {
@@ -135,7 +135,7 @@ export default function ComplaintList() {
     }
   };
 
-  // ✅ Giao staff xử lý
+  //  Giao staff xử lý
   const assignToStaff = async (id, staffId) => {
     try {
       const res = await fetch(`${baseURL}complaints/assignee/${staffId}`, {
@@ -149,10 +149,39 @@ export default function ComplaintList() {
     }
   };
 
-  // ✅ Badge màu trạng thái
+
+  const translateStatus = (status) => {
+    switch (status) {
+      case "Pending":
+        return "Đang chờ xử lý";
+      case "In_Review":
+        return "Đang xem xét";
+      case "Resolved":
+        return "Đã giải quyết";
+      default:
+        return status;
+    }
+  };
+
+  const translateLevel = (level) => {
+    switch (level) {
+      case "Low":
+        return "Thấp";
+      case "Medium":
+        return "Trung bình";
+      case "High":
+        return "Cao";
+      default:
+        return level;
+    }
+  };
+
+
+
+  // Badge màu trạng thái
   const statusBadge = (status) => {
     switch (status) {
-      case "Pending_ComplaintStatus":
+      case "Pending":
         return "bg-yellow-100 text-yellow-700";
       case "In_Review":
         return "bg-blue-100 text-blue-700";
@@ -175,7 +204,7 @@ export default function ComplaintList() {
     <div className="p-6 bg-gray-50 min-h-screen">
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-semibold">📋 Quản lý khiếu nại</h1>
+        <h1 className="text-2xl font-semibold"> Quản lý khiếu nại</h1>
         <button
           onClick={fetchComplaints}
           className="flex items-center gap-2 px-4 py-2 bg-white border rounded-lg hover:bg-gray-100"
@@ -247,14 +276,14 @@ export default function ComplaintList() {
                 <td className="p-3">{i + 1}</td>
                 <td className="p-3">{c.userId}</td>
                 <td className="p-3">{c.reason}</td>
-                <td className="p-3 capitalize">{c.severityLevel}</td>
+                <td className="p-3 capitalize">{translateLevel(c.severityLevel)}</td>
                 <td className="p-3">
                   <span
                     className={`px-2 py-1 rounded text-xs font-medium ${statusBadge(
                       c.status
                     )}`}
                   >
-                    {c.status}
+                    {translateStatus(c.status)}
                   </span>
                 </td>
                 <td className="p-3 text-center">
@@ -273,7 +302,7 @@ export default function ComplaintList() {
 
       {/* Modal chi tiết */}
       <Modal
-        title="🧾 Chi tiết khiếu nại"
+        title=" Chi tiết khiếu nại"
         open={modalVisible}
         onCancel={() => setModalVisible(false)}
         footer={null}

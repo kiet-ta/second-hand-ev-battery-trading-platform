@@ -1,6 +1,26 @@
 import React, { useEffect, useState } from "react";
-import { Table, Tag, Button, Spin, Select, Space, Input, Modal } from "antd";
-import { Check, XCircle, Search } from "lucide-react";
+import {
+    Table,
+    Tag,
+    Button,
+    Dropdown,
+    Menu,
+    Spin,
+    message,
+    Select,
+    Space,
+    Input,
+    Modal,
+    Divider,
+} from "antd";
+import {
+    Check,
+    XCircle,
+    Search,
+    Download,
+    MoreHorizontal,
+    Settings,
+} from "lucide-react";
 import { motion } from "framer-motion";
 import itemApi from "../../api/itemApi";
 
@@ -25,15 +45,10 @@ export default function ProductModeration() {
                 const key = `${item.itemId}-${item.itemType}`;
                 if (!uniqueMap.has(key)) uniqueMap.set(key, item);
             });
-
-            // Sort by createdAt descending
-            const sorted = Array.from(uniqueMap.values()).sort(
-                (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
-            );
-
-            setProducts(sorted);
+            setProducts(Array.from(uniqueMap.values()));
         } catch (err) {
             console.error("❌ Lỗi tải sản phẩm:", err);
+            message.error("Không thể tải danh sách sản phẩm");
         } finally {
             setLoading(false);
         }
@@ -65,15 +80,13 @@ export default function ProductModeration() {
         setFilteredProducts(filtered);
     }, [products, typeFilter, statusFilter, searchQuery]);
 
-    const handleToggle = async (item) => {
+    const handleAction = async (id, action) => {
         try {
-            const updatedStatus =
-                item.moderation === "Approved" ? "Pending" : "Approved";
-
+            const item = await itemApi.getItemDetailByID(id);
             const payload = {
                 ...item,
                 updatedAt: new Date().toISOString(),
-                moderation: updatedStatus,
+                moderation: action,
                 images:
                     item.itemImage?.map((img) => ({
                         imageId: img.imageId,
@@ -82,11 +95,51 @@ export default function ProductModeration() {
                 evDetail: item.evDetail || null,
                 batteryDetail: item.batteryDetail || null,
             };
-            await itemApi.putItem(item.itemId, payload);
+            await itemApi.putItem(id, payload);
+            message.success(" Cập nhật trạng thái thành công!");
             await fetchProducts();
         } catch (err) {
             console.error(err);
+            message.error(" Cập nhật thất bại");
         }
+    };
+
+    const exportToCSV = () => {
+        if (filteredProducts.length === 0) {
+            message.info("Không có dữ liệu để xuất.");
+            return;
+        }
+
+        const headers = [
+            "ID",
+            "Tên sản phẩm",
+            "Loại",
+            "Thương hiệu",
+            "Giá (VND)",
+            "Trạng thái",
+        ];
+        const rows = filteredProducts.map((p) => [
+            p.itemId,
+            p.title,
+            p.itemType === "Ev" ? "Xe điện" : "Pin",
+            p.evDetail?.brand || p.batteryDetail?.brand || "N/A",
+            p.price,
+            p.moderation ? p.moderation : "Pending",
+        ]);
+
+        const csvContent =
+            "data:text/csv;charset=utf-8," +
+            [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");
+
+        const link = document.createElement("a");
+        link.setAttribute("href", encodeURI(csvContent));
+        link.setAttribute(
+            "download",
+            `products_export_${new Date().toISOString().slice(0, 10)}.csv`
+        );
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
     };
 
     const columns = [
@@ -127,7 +180,7 @@ export default function ProductModeration() {
                         {text}
                     </strong>
                     <div className="text-xs text-slate-500">
-                        {record.itemType === "Ev" ? "Xe điện" : "Pin"}
+                        {record.itemType === "ev" ? "Xe điện" : "Pin"}
                     </div>
                 </div>
             ),
@@ -148,8 +201,9 @@ export default function ProductModeration() {
             render: (status) => {
                 if (!status) return <Tag color="orange">Chờ duyệt</Tag>;
                 const map = {
-                    approved: { color: "green", text: "Đã duyệt" },
-                    reject: { color: "red", text: "Từ chối" },
+                    Approved: { color: "green", text: "Đã duyệt" },
+                    Rejected: { color: "red", text: "Từ chối" },
+                    Pending: { color: "orange", text: "Chờ duyệt" }
                 };
                 const info = map[status] || { color: "default", text: "Không rõ" };
                 return <Tag color={info.color}>{info.text}</Tag>;
@@ -160,15 +214,35 @@ export default function ProductModeration() {
             key: "actions",
             align: "center",
             render: (_, record) => {
-                const isApproved = record.moderation === "Approved";
+                const menu = (
+                    <Menu
+                        onClick={({ key }) => handleAction(record.itemId, key)}
+                        items={[
+                            {
+                                key: "Approved",
+                                label: (
+                                    <div className="flex items-center gap-2 text-green-600">
+                                        <Check size={16} />
+                                        Duyệt
+                                    </div>
+                                ),
+                            },
+                            {
+                                key: "Rejected",
+                                label: (
+                                    <div className="flex items-center gap-2 text-red-600">
+                                        <XCircle size={16} />
+                                        Từ chối
+                                    </div>
+                                ),
+                            },
+                        ]}
+                    />
+                );
                 return (
-                    <Button
-                        type={isApproved ? "default" : "primary"}
-                        danger={isApproved}
-                        onClick={() => handleToggle(record)}
-                    >
-                        {isApproved ? "Từ chối" : "Duyệt"}
-                    </Button>
+                    <Dropdown overlay={menu} trigger={["click"]}>
+                        <Button type="text" icon={<MoreHorizontal size={18} />} />
+                    </Dropdown>
                 );
             },
         },
@@ -176,6 +250,7 @@ export default function ProductModeration() {
 
     return (
         <div className="bg-white p-4 rounded-xl shadow-sm">
+            {/* Bộ lọc & tìm kiếm */}
             <div className="flex justify-between items-center mb-4 flex-wrap gap-3">
                 <h2 className="text-xl font-semibold text-[#4F39F6]">
                     📦 Danh sách sản phẩm chờ duyệt
@@ -193,8 +268,8 @@ export default function ProductModeration() {
 
                     <Select value={typeFilter} onChange={setTypeFilter} style={{ width: 140 }}>
                         <Option value="all">Tất cả loại</Option>
-                        <Option value="Ev">Xe điện</Option>
-                        <Option value="Battery">Pin</Option>
+                        <Option value="ev">Xe điện</Option>
+                        <Option value="battery">Pin</Option>
                     </Select>
 
                     <Select value={statusFilter} onChange={setStatusFilter} style={{ width: 160 }}>
@@ -203,13 +278,23 @@ export default function ProductModeration() {
                         <Option value="Approved">Đã duyệt</Option>
                         <Option value="Rejected">Từ chối</Option>
                     </Select>
+
+                    <Button
+                        type="default"
+                        icon={<Download size={16} />}
+                        onClick={exportToCSV}
+                    >
+                        Xuất CSV
+                    </Button>
                 </Space>
             </div>
 
+            {/* Đếm số lượng */}
             <div className="text-sm text-slate-600 mb-3">
                 Hiển thị <b>{filteredProducts.length}</b> sản phẩm
             </div>
 
+            {/* Bảng */}
             {loading ? (
                 <div className="flex justify-center items-center h-[50vh]">
                     <Spin size="large" />
@@ -225,6 +310,109 @@ export default function ProductModeration() {
                 />
             )}
 
+            {/* 🟣 Modal chi tiết sản phẩm (phóng to hình & chữ) */}
+            <Modal
+                open={isModalOpen}
+                onCancel={() => setIsModalOpen(false)}
+                footer={null}
+                width={950}
+                title={
+                    <b className="text-xl text-[#4F39F6] tracking-wide">
+                        🔍 Chi tiết sản phẩm
+                    </b>
+                }
+            >
+                {selectedItem ? (
+                    <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.3 }}
+                        className="space-y-8"
+                    >
+                        {/* Hình ảnh */}
+                        <div className="flex gap-5 justify-center flex-wrap">
+                            {selectedItem.itemImage?.map((img) => (
+                                <img
+                                    key={img.imageId}
+                                    src={img.imageUrl}
+                                    alt="Ảnh sản phẩm"
+                                    className="w-56 h-56 object-cover rounded-2xl border border-gray-300 shadow-lg hover:scale-105 transition-transform duration-300"
+                                />
+                            ))}
+                        </div>
+
+                        {/* Thông tin sản phẩm */}
+                        <div className="bg-gray-50 p-7 rounded-2xl shadow-md border border-gray-200">
+
+
+                            <div className="grid grid-cols-2 md:grid-cols-3 gap-x-10 gap-y-4 text-gray-800 text-base leading-relaxed">
+                                <p><b className="font-semibold">Tên sản phẩm:</b> {selectedItem.title}</p>
+                                <p><b className="font-semibold">Loại:</b> {selectedItem.itemType === "ev" ? "Xe điện" : "Pin"}</p>
+                                <p><b className="font-semibold">Giá:</b> {selectedItem.price.toLocaleString()} VND</p>
+                                <p>
+                                    <b className="font-semibold">Trạng thái:</b>{" "}
+                                    <Tag
+                                        color={
+                                            selectedItem.moderation?.includes("reject")
+                                                ? "error"
+                                                : selectedItem.moderation?.includes("approve")
+                                                    ? "success"
+                                                    : "warning"
+                                        }
+                                        className="ml-1 text-base px-3 py-1 rounded-md"
+                                    >
+                                        {selectedItem.moderation || "Chờ duyệt"}
+                                    </Tag>
+                                </p>
+
+                                {selectedItem.itemType === "ev" ? (
+                                    <>
+                                        <p><b className="font-semibold">Mã sản phẩm:</b> {selectedItem.evDetail?.itemId}</p>
+                                        <p><b className="font-semibold">Thương hiệu:</b> {selectedItem.evDetail?.brand}</p>
+                                        <p><b className="font-semibold">Dòng xe:</b> {selectedItem.evDetail?.model}</p>
+                                        <p><b className="font-semibold">Phiên bản:</b> {selectedItem.evDetail?.version}</p>
+                                        <p><b className="font-semibold">Năm sản xuất:</b> {selectedItem.evDetail?.year}</p>
+                                        <p><b className="font-semibold">Màu sắc:</b> {selectedItem.evDetail?.color}</p>
+                                        <p><b className="font-semibold">Kiểu dáng:</b> {selectedItem.evDetail?.bodyStyle}</p>
+                                        <p><b className="font-semibold">Biển số:</b> {selectedItem.evDetail?.licensePlate}</p>
+                                        <p><b className="font-semibold">Chủ sở hữu trước:</b> {selectedItem.evDetail?.previousOwners}</p>
+                                        <p><b className="font-semibold">Số km đã đi:</b> {selectedItem.evDetail?.mileage} km</p>
+                                        <p><b className="font-semibold">Phụ kiện đi kèm:</b> {selectedItem.evDetail?.hasAccessories ? "Có" : "Không"}</p>
+                                        <p><b className="font-semibold">Giấy đăng ký hợp lệ:</b> {selectedItem.evDetail?.isRegistrationValid ? "Có" : "Không"}</p>
+                                        <p>
+                                            <b className="font-semibold">Giấy phép xe:</b>{" "}
+                                            <a
+                                                href={selectedItem.evDetail?.licenseUrl}
+                                                target="_blank"
+                                                rel="noreferrer"
+                                                className="text-[#4F39F6] underline hover:text-[#3a28c6] font-medium"
+                                            >
+                                                Xem hình
+                                            </a>
+                                        </p>
+                                        <p><b className="font-semibold">Ngày cập nhật:</b> {new Date(selectedItem.evDetail?.updatedAt).toLocaleString()}</p>
+                                    </>
+                                ) : (
+                                    <>
+                                        <p><b className="font-semibold">Mã sản phẩm:</b> {selectedItem.batteryDetail?.itemId}</p>
+                                        <p><b className="font-semibold">Thương hiệu:</b> {selectedItem.batteryDetail?.brand}</p>
+                                        <p><b className="font-semibold">Model:</b> {selectedItem.batteryDetail?.model}</p>
+                                        <p><b className="font-semibold">Dung lượng:</b> {selectedItem.batteryDetail?.capacity} kWh</p>
+                                        <p><b className="font-semibold">Điện áp:</b> {selectedItem.batteryDetail?.voltage} V</p>
+                                        <p><b className="font-semibold">Số chu kỳ sạc:</b> {selectedItem.batteryDetail?.chargeCycles}</p>
+                                        <p><b className="font-semibold">Tình trạng:</b> {selectedItem.batteryDetail?.condition || "Chưa rõ"}</p>
+                                        <p><b className="font-semibold">Ngày cập nhật:</b> {new Date(selectedItem.batteryDetail?.updatedAt).toLocaleString()}</p>
+                                    </>
+                                )}
+                            </div>
+                        </div>
+                    </motion.div>
+                ) : (
+                    <div className="flex justify-center py-10">
+                        <Spin size="large" />
+                    </div>
+                )}
+            </Modal>
         </div>
     );
 }
