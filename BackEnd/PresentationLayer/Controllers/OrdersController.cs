@@ -80,7 +80,7 @@ namespace PresentationLayer.Controllers
         [Authorize(Roles = "Seller")]
         public async Task<IActionResult> ConfirmShipping(int id)
         {
-            var sellerId = 0; // TODO: Lấy sellerId từ JWT
+            var sellerId = 0;
             await _orderService.ConfirmOrderShippingAsync(id, sellerId);
             return Ok(new { Message = "Order status updated to Shipped." });
         }
@@ -89,7 +89,7 @@ namespace PresentationLayer.Controllers
         [Authorize(Roles = "Buyer")]
         public async Task<IActionResult> ConfirmDelivery(int id)
         {
-            var buyerId = 0; // TODO: Lấy buyerId từ JWT
+            var buyerId = 0;
             await _orderService.ConfirmOrderDeliveryAsync(id, buyerId);
             return Ok(new { Message = "Order completed and funds released to seller." });
         }

@@ -38,7 +38,7 @@ public class PaymentService : IPaymentService
         {
             throw new NullReferenceException($"Không tìm thấy đơn hàng với ID: {orderId}");
         }
-        if (order.Status != OrderStatus.Paid.ToString() && order.Status != OrderStatus.Pending.ToString())
+        if (order.Status != OrderStatus.Completed.ToString() && order.Status != OrderStatus.Pending.ToString())
         {
             return;
         }
@@ -68,7 +68,7 @@ public class PaymentService : IPaymentService
 
         if (order.Status == OrderStatus.Pending.ToString())
         {
-            order.Status = OrderStatus.Paid.ToString();
+            order.Status = OrderStatus.Completed.ToString();
             order.UpdatedAt = DateTime.UtcNow;
         }
         await _unitOfWork.Orders.UpdateAsync(order);
@@ -206,7 +206,7 @@ public class PaymentService : IPaymentService
                 TotalAmount = request.TotalAmount,
                 Method = request.Method,
                 Status = PaymentStatus.Pending.ToString(),
-                PaymentType = "order_purchase", // status gì đây
+                PaymentType = "order_purchase",
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
             };
@@ -616,7 +616,7 @@ public class PaymentService : IPaymentService
 
         if (order.Status == OrderStatus.Pending.ToString())
         {
-            order.Status = OrderStatus.Paid.ToString();
+            order.Status = OrderStatus.Completed.ToString();
 
             foreach (var orderItem in order.OrderItems)
             {
@@ -646,9 +646,8 @@ public class PaymentService : IPaymentService
             // Send email confirm/notification to user
             // await _mailService.SendPurchaseSuccessMail(order);
         }
-        else if (order.Status == OrderStatus.Paid.ToString())
+        else if (order.Status == OrderStatus.Completed.ToString())
         {
-            // Xử lý tính toán lặp lại (Idempotency): Đơn hàng đã được thanh toán, bỏ qua.
         }
         else
         {
