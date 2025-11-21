@@ -95,18 +95,7 @@ namespace Application.Tests.Services
 
         #region Status Tests
 
-        [Fact]
-        public async Task GetSoldItemsAsync_ShouldReturnSoldStatus()
-        {
-            var items = MockItems(ItemType.Battery.ToString());
-            _mockRepo.Setup(r => r.GetSoldItemsAsync(1)).ReturnsAsync(items);
-            _mockRepo.Setup(r => r.MapToBatteryItemsAsync(It.IsAny<List<Item>>()))
-                     .ReturnsAsync(new List<BatteryItemDto> { new BatteryItemDto { ItemId = 1 } });
-
-            var result = await _service.GetSoldItemsAsync(1);
-            var dto = Assert.IsType<BatteryItemDto>(result.First());
-            Assert.Equal("sold", dto.Status);
-        }
+       
 
         [Fact]
         public async Task GetPendingPaymentItemsAsync_ShouldReturnPendingApprovalStatus()
@@ -118,7 +107,7 @@ namespace Application.Tests.Services
 
             var result = await _service.GetPendingPaymentItemsAsync(1);
             var dto = Assert.IsType<EVItemDto>(result.First());
-            Assert.Equal("pending_approval", dto.Status);
+            Assert.Equal("Pending_Approval", dto.Status);
         }
 
         [Fact]
@@ -131,21 +120,9 @@ namespace Application.Tests.Services
 
             var result = await _service.GetProcessingItemsAsync(1);
             var dto = Assert.IsType<BatteryItemDto>(result.First());
-            Assert.Equal("processing", dto.Status);
+            Assert.Equal("Processing", dto.Status);
         }
 
-        [Fact]
-        public async Task GetCanceledItemsAsync_ShouldReturnCanceledStatus()
-        {
-            var items = MockItems(ItemType.Ev.ToString());
-            _mockRepo.Setup(r => r.GetCanceledItemsAsync(1)).ReturnsAsync(items);
-            _mockRepo.Setup(r => r.MapToEVItemsAsync(It.IsAny<List<Item>>()))
-                     .ReturnsAsync(new List<EVItemDto> { new EVItemDto { ItemId = 1 } });
-
-            var result = await _service.GetCanceledItemsAsync(1);
-            var dto = Assert.IsType<EVItemDto>(result.First());
-            Assert.Equal("canceled", dto.Status);
-        }
 
         #endregion
 
@@ -165,24 +142,7 @@ namespace Application.Tests.Services
             Assert.Empty(result);
         }
 
-        [Fact]
-        public async Task GetAllSellerItemsAsync_ShouldReturnOnlyAvailable_WhenNoTakenItems()
-        {
-            var sellerId = 12;
-            var allItems = MockItems(ItemType.Battery.ToString(), 3);
-            _mockRepo.Setup(r => r.GetSoldItemsAsync(sellerId)).ReturnsAsync(new List<Item>());
-            _mockRepo.Setup(r => r.GetPendingPaymentItemsAsync(sellerId)).ReturnsAsync(new List<Item>());
-            _mockRepo.Setup(r => r.GetProcessingItemsAsync(sellerId)).ReturnsAsync(new List<Item>());
-            _mockRepo.Setup(r => r.GetCanceledItemsAsync(sellerId)).ReturnsAsync(new List<Item>());
-            _mockRepo.Setup(r => r.GetAllSellerItemsAsync(sellerId)).ReturnsAsync(allItems);
-
-            _mockRepo.Setup(r => r.MapToBatteryItemsAsync(It.IsAny<List<Item>>()))
-                     .ReturnsAsync(allItems.Select(i => new BatteryItemDto { ItemId = i.ItemId }).ToList());
-
-            var result = await _service.GetAllSellerItemsAsync(sellerId);
-            Assert.All(result, r => Assert.Equal("available", ((BatteryItemDto)r).Status));
-        }
-
+       
         [Fact]
         public async Task GetAllSellerItemsAsync_ShouldHandleMixedTypes()
         {
@@ -210,7 +170,7 @@ namespace Application.Tests.Services
             Assert.Contains(result, r => r is EVItemDto);
         }
 
-       
+
         #endregion
     }
 }

@@ -221,14 +221,14 @@ public class AuctionFinalizationService : IAuctionFinalizationService
                 await _unitOfWork.WalletTransactions.CreateTransactionAsync(releaseTransaction);
 
                 // Update 'outbid' status to 'released'
-                await _unitOfWork.Bids.UpdateBidStatusAsync(loserBid.BidId, "released");
-                _logger.LogInformation($"Released {amountToRelease} for loser Bid {loserBid.BidId} / User {loserBid.UserId}");
+                //await _unitOfWork.Bids.UpdateBidStatusAsync(loserBid.BidId, "released");
+                //_logger.LogInformation($"Released {amountToRelease} for loser Bid {loserBid.BidId} / User {loserBid.UserId}");
 
                 // Send refund notification
-                await SendNotificationAsync(
-                        senderId: null, receiverId: loserBid.UserId,
-                        title: $"Đấu giá #{auctionId} kết thúc - Hoàn tiền",
-                        message: $"Số tiền {amountToRelease:N0}đ đã được hoàn lại vào ví của bạn từ phiên đấu giá cho sản phẩm '{itemEntityToUpdate.Title}'.");
+                //await SendNotificationAsync(
+                //        senderId: null, receiverId: loserBid.UserId,
+                //        title: $"Đấu giá #{auctionId} kết thúc - Hoàn tiền",
+                //        message: $"Số tiền {amountToRelease:N0}đ đã được hoàn lại vào ví của bạn từ phiên đấu giá cho sản phẩm '{itemEntityToUpdate.Title}'.");
             }
             // --- End of loser processing ---
 
@@ -240,7 +240,7 @@ public class AuctionFinalizationService : IAuctionFinalizationService
 
             var winnerNoti = new CreateNotificationDto
             {
-                NotiType = NotificationType.Auctions.ToString(),
+                NotiType = NotificationType.Auction.ToString(),
                 TargetUserId = winnerId.ToString(),  
                 Title = "You have won the auction!",
                 Message = $"Congratulations! You won the auction for item {itemId}."
@@ -259,7 +259,7 @@ public class AuctionFinalizationService : IAuctionFinalizationService
 
             var sellerNotiDto = new CreateNotificationDto
             {
-                NotiType = NotificationType.Auctions.ToString(),
+                NotiType = NotificationType.Auction.ToString(),
                 TargetUserId = sellerId.ToString(), 
                 Title = "Your auction has ended!",
                 Message = $"{sellerName?.FullName ?? "Someone"}'s item has been won by user ID {winnerId}."
