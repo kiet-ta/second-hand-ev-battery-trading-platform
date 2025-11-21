@@ -85,8 +85,8 @@ Currently, the project uses **Docker and Docker Compose** for deployment.
 
 ## Team
 
-* **TAK1ST** (Project Leader)
-* Quynh Chi
-* Tecookie
-* CoCoIT
-* TuCore
+* [**kiet-ta** (Project Leader)](https://github.com/kiet-ta)
+* [Quynh Chi](https://github.com/ottise)
+* [Tecookie](https://github.com/Tecookie)
+* [CoCoIT](https://github.com/coco-doit6879)
+* [TuCore](https://github.com/TuCore)

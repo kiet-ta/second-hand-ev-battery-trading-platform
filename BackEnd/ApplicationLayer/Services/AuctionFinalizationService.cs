@@ -237,15 +237,41 @@ public class AuctionFinalizationService : IAuctionFinalizationService
             _logger.LogInformation("Successfully finalized Auction {AuctionId}", auctionId);
 
             // Send notification to winner and seller (after successful commit)
-            await SendNotificationAsync(
-                    senderId: null, receiverId: winnerId,
-                    title: $"Chúc mừng! Bạn đã thắng đấu giá #{auctionId}",
-                    message: $"Bạn đã thắng phiên đấu giá cho sản phẩm '{itemEntityToUpdate.Title}' với giá {winningAmount:N0}đ. Đơn hàng #{newOrder.OrderId} đã được tạo.");
 
-            await SendNotificationAsync(
-                senderId: null, receiverId: sellerId,
-                title: $"Sản phẩm '{itemEntityToUpdate.Title}' đã được bán qua đấu giá #{auctionId}",
-                message: $"Bạn có đơn hàng mới #{newOrder.OrderId}. Hãy chuẩn bị hàng và giao cho người mua.");
+            var winnerNoti = new CreateNotificationDto
+            {
+                NotiType = NotificationType.Auctions.ToString(),
+                TargetUserId = winnerId.ToString(),  
+                Title = "You have won the auction!",
+                Message = $"Congratulations! You won the auction for item {itemId}."
+            };
+
+            _ = _notificationService.AddNewNotification(winnerNoti, 0, "");
+
+            await _notificationService.SendNotificationAsync(
+                message: winnerNoti.Message,
+                targetUserId: winnerNoti.TargetUserId
+            );
+
+
+
+            var sellerName = await _unitOfWork.Users.GetByIdAsync((int)sellerId);
+
+            var sellerNotiDto = new CreateNotificationDto
+            {
+                NotiType = NotificationType.Auctions.ToString(),
+                TargetUserId = sellerId.ToString(), 
+                Title = "Your auction has ended!",
+                Message = $"{sellerName?.FullName ?? "Someone"}'s item has been won by user ID {winnerId}."
+            };
+
+            _ = _notificationService.AddNewNotification(sellerNotiDto, 0, "");
+
+            await _notificationService.SendNotificationAsync(
+                message: sellerNotiDto.Message,
+                targetUserId: sellerNotiDto.TargetUserId
+            );
+
         }
         catch (Exception ex)
         {
