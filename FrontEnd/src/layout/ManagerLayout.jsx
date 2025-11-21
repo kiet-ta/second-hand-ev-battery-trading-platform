@@ -96,7 +96,7 @@ export default function ManagerLayout({ onRefresh, onAddStaff, children }) {
                         </div>
                         <div>
                             <p className="text-sm text-slate-500 leading-tight">
-                                Cóc Mua Xe - Nền tảng giao dịch Xe điện & Pin
+                                Cóc Mua Xe - Nền tảng giao dịch Xe điện & Pin Cũ
                             </p>
                             <h1 className="text-lg font-semibold text-slate-800 -mt-0.5">
                                 Quản lý

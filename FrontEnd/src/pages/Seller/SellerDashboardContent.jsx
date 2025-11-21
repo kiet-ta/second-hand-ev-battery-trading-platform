@@ -36,6 +36,7 @@ export default function SellerDashboardContent() {
                     headers: { Authorization: `Bearer ${token}` },
                 });
                 const data = await res.json();
+                console.log("cc", data);
                 setDashboardData(data);
             } catch (err) {
                 console.error("❌ Lỗi khi tải dữ liệu:", err);
@@ -138,15 +139,7 @@ export default function SellerDashboardContent() {
                             </div>
                         </div>
 
-                        <div className="flex items-center gap-3">
-                            <Star size={20} className="text-gray-600" />
-                            <div>
-                                <div className="text-2xl font-bold text-gray-900">
-                                    {dashboardData?.productStatistics?.featured ?? 0}
-                                </div>
-                                <div className="text-sm text-gray-500">Nổi bật</div>
-                            </div>
-                        </div>
+
                     </div>
                 </div>
 
