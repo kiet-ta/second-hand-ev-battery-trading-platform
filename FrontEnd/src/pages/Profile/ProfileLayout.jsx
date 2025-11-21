@@ -18,14 +18,13 @@ export default function ProfileLayout() {
         { to: "/profile", label: "Hồ sơ cá nhân", icon: <FaRegUser /> },
         { to: "/profile/purchase", label: "Đơn hàng của tôi", icon: <LuClipboardList /> },
         { to: "/profile/chats", label: "Trò chuyện", icon: <IoChatboxOutline /> },
-        { to: "/profile/settings", label: "Cài đặt", icon: <IoSettingsOutline /> },
     ];
 
     const handleLogoutConfirm = () => {
         const rememberEmail = localStorage.getItem("rememberEmail");
         const rememberPassword = localStorage.getItem("rememberPassword");
 
-        localStorage.clear(); 
+        localStorage.clear();
         if (rememberEmail && rememberPassword) {
             localStorage.setItem("rememberEmail", rememberEmail);
             localStorage.setItem("rememberPassword", rememberPassword);
