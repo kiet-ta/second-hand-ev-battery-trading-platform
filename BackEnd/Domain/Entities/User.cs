@@ -27,7 +27,7 @@ public class User
 
     public string? KycStatus { get; set; }
 
-    public string? AccountStatus { get; set; }
+    public string AccountStatus { get; set; }
 
     public DateTime CreatedAt { get; set; }
 

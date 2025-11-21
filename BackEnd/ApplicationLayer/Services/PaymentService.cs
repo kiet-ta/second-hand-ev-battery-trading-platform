@@ -407,7 +407,6 @@ public class PaymentService : IPaymentService
 
                 foreach (var orderId in orderIdsToUpdate)
                 {
-                    // Gọi phương thức cập nhật tồn kho và trạng thái Order
                     await UpdateItemInventoryForOrderAsync(orderId);
                 }
 

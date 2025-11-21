@@ -19,5 +19,5 @@ public class OrderItem
 
     public bool IsDeleted { get; set; }
 
-    public Order Order { get; set; }
+    //public Order Order { get; set; }
 }
