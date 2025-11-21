@@ -95,16 +95,10 @@ import BuyNowCheckoutPage from "../pages/Main/BuyNowCheckoutPage";
 import CommissionSettings from "../components/Manager/CommissionSettings";
 import NewsList from "../pages/Footers/NewsList";
 import NewsDetail from "../pages/Footers/NewsDetail";
+import SellerRegistrationFeePage from "../pages/SellerRegistrationFeePage";
+import BannedPage from "../pages/BannedPage";
 
-/* ---------------------------
-   Router definition
-   --------------------------- */
-const ProfileNestedFormsPlaceholder = () => (
-  <div className="profile-main">
-    {/* Profile index placeholder (ProfileMain handles nested rendering) */}
-    <div>Profile/Account Forms Placeholder</div>
-  </div>
-);
+
 
 export const router = createBrowserRouter([
   // MAIN LAYOUT (Public / Buyer)
@@ -126,7 +120,7 @@ export const router = createBrowserRouter([
       { path: "seller-form", element: <SellerForm /> },
       { path: "success", element: <SuccessPage /> },
       { path: "News", element: <NewsList /> },
-      { path: "news/:id", element: <NewsDetail /> },
+      { path: "news/:newsId", element: <NewsDetail /> },
       { path: "about", element: <AboutPage /> },
       { path: "careers", element: <CareersPage /> },
       { path: "press", element: <PressPage /> },
@@ -140,13 +134,15 @@ export const router = createBrowserRouter([
       { path: "compare", element: <CompareEVPage /> },
       { path: "pending-review", element: <SellerPendingReview /> },
       { path: "recharge", element: <RechargePage /> },
-      { path: "checkout/buy-now", element: <BuyNowCheckoutPage /> }
+      { path: "checkout/buy-now", element: <BuyNowCheckoutPage /> },
+      { path: "seller-payment", element: <SellerRegistrationFeePage /> }
     ],
   },
 
   { path: "/login", element: <LoginPage /> },
   { path: "/register", element: <RegisterPage /> },
   { path: "/forgot-password", element: <ForgotPasswordPage /> },
+  { path: "/banned", element: <BannedPage /> },
 
   {
     path: "/profile",
@@ -200,7 +196,7 @@ export const router = createBrowserRouter([
           { path: "complaints", element: <ComplaintsList /> },
           { path: "transactions", element: <TransactionsContent /> },
           { path: "notifications", element: <NotificationCreator /> },
-          { path: "News", element: <NewsPage /> },
+          { path: "news", element: <NewsPage /> },
           { path: "reports", element: <ReportsContent /> },
           { path: "settings", element: <SettingsContent /> },
           { path: "fee", element: <CommissionSettings /> },
@@ -208,6 +204,7 @@ export const router = createBrowserRouter([
       },
     ],
   },
+
 
   // STANDALONE ROUTES (outside main layout)
   { path: "/bought", element: <PurchaseHistory /> },

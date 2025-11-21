@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
 import ManagerLayout from "../../layout/ManagerLayout";
-import AddStaff from "../../components/Manager/AddStaff";
 
 function LogoutConfirmationModal({ onCancel, onConfirm }) {
     return (
@@ -21,13 +20,12 @@ function LogoutConfirmationModal({ onCancel, onConfirm }) {
 export default function ManagerDashboard() {
     const navigate = useNavigate();
     const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
-    const [showAddStaffModal, setShowAddStaffModal] = useState(false);
 
     const handleLogoutConfirm = () => {
         const rememberEmail = localStorage.getItem("rememberEmail");
         const rememberPassword = localStorage.getItem("rememberPassword");
 
-        localStorage.clear(); 
+        localStorage.clear();
         if (rememberEmail && rememberPassword) {
             localStorage.setItem("rememberEmail", rememberEmail);
             localStorage.setItem("rememberPassword", rememberPassword);
@@ -37,13 +35,11 @@ export default function ManagerDashboard() {
     };
 
 
-    const handleAddStaff = () => setShowAddStaffModal(true);
-    const handleCloseAddStaff = () => setShowAddStaffModal(false);
     const handleRefresh = () => window.location.reload();
 
     return (
         <ManagerLayout
-            onAddStaff={handleAddStaff}
+
             onLogout={() => setShowLogoutConfirm(true)}
             onRefresh={handleRefresh}
         >
@@ -57,13 +53,7 @@ export default function ManagerDashboard() {
                     />
                 )}
 
-                {showAddStaffModal && (
-                    <AddStaff
-                        isOpen={showAddStaffModal}
-                        onClose={handleCloseAddStaff}
-                        onSuccess={handleCloseAddStaff}
-                    />
-                )}
+
             </AnimatePresence>
         </ManagerLayout>
     );

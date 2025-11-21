@@ -62,7 +62,7 @@ namespace Infrastructure.Repositories
 
             foreach (var item in items)
             {
-                item.Status = "processing";
+                item.Status = "Processing";
             }
 
             return items;
@@ -84,7 +84,7 @@ namespace Infrastructure.Repositories
 
             foreach (var item in items)
             {
-                item.Status = "pending_approval";
+                item.Status = "Pending_Approval";
             }
 
             return items;
@@ -125,7 +125,7 @@ namespace Infrastructure.Repositories
 
             foreach (var item in items)
             {
-                item.Status = "canceled";
+                item.Status = "Canceled";
             }
 
             return items;
@@ -147,7 +147,7 @@ namespace Infrastructure.Repositories
 
             foreach (var item in items)
             {
-                item.Status = "sold";
+                item.Status = "Sold";
             }
 
             return items;
@@ -165,9 +165,9 @@ namespace Infrastructure.Repositories
                         join img in _context.ItemImages on item.ItemId equals img.ItemId into images
                         from img in images.DefaultIfEmpty()
                         join oi in _context.OrderItems on item.ItemId equals oi.ItemId into orderItems
-                        from oi in orderItems.DefaultIfEmpty()
+                        from oi in orderItems
                         join o in _context.Orders on oi.OrderId equals o.OrderId into orders
-                        from o in orders.DefaultIfEmpty()
+                        from o in orders
                         join u in _context.Users on o.BuyerId equals u.UserId into buyers
                         from u in buyers.DefaultIfEmpty()
                         join a in _context.Addresses on o.AddressId equals a.AddressId into addresses
@@ -186,11 +186,11 @@ namespace Infrastructure.Repositories
                             Voltage = battery.Voltage,
                             ChargeCycles = battery.ChargeCycles,
                             ListedPrice = item.Price,
-                            ActualPrice = pd != null ? pd.Amount : (decimal?)null,
+                            ActualPrice = oi != null ? item.Price * oi.Quantity : item.Price,
                             PaymentMethod = p != null ? p.Method : null,
 
-                            CreatedAt = item.CreatedAt,
-                            SoldAt = item.UpdatedAt,
+                            CreatedAt = o != null ? o.CreatedAt : item.CreatedAt,
+                            SoldAt = o != null ? o.UpdatedAt : item.UpdatedAt,
                             ImageUrl = img != null ? img.ImageUrl : null,
                             Buyer = u != null ? new BuyerDto
                             {
@@ -199,8 +199,10 @@ namespace Infrastructure.Repositories
                                 Phone = u.Phone,
                                 Address = a != null ? $"{a.Street}, {a.Ward}, {a.District}, {a.Province}" : null
                             } : null,
-                            OrderId = o != null ? o.OrderId : (int?)null
+                            OrderId = o != null ? o.OrderId : (int?)null,
+                            Status = o.Status
                         };
+           
 
             return await query.ToListAsync();
         }
@@ -212,7 +214,7 @@ namespace Infrastructure.Repositories
                         //join img in _context.ItemImages on item.ItemId equals img.ItemId into images
                         //from img in images.DefaultIfEmpty()
                         join oi in _context.OrderItems on item.ItemId equals oi.ItemId into orderItems
-                        from oi in orderItems.DefaultIfEmpty()
+                        from oi in orderItems
                         join o in _context.Orders on oi.OrderId equals o.OrderId into orders
                         from o in orders.DefaultIfEmpty()
                         join u in _context.Users on o.BuyerId equals u.UserId into buyers
@@ -236,10 +238,10 @@ namespace Infrastructure.Repositories
                             Voltage = battery.Voltage,
                             ChargeCycles = battery.ChargeCycles,
                             ListedPrice = item.Price,
-                            ActualPrice = pd != null ? pd.Amount : (decimal?)null,
+                            ActualPrice = oi != null ? item.Price * oi.Quantity : item.Price,
                             PaymentMethod = p != null ? p.Method : null,
-                            CreatedAt = item.CreatedAt,
-                            SoldAt = item.UpdatedAt,
+                            CreatedAt = o != null ? o.CreatedAt : item.CreatedAt,
+                            SoldAt = o != null ? o.UpdatedAt : item.UpdatedAt,
                             ImageUrl = (from img_ in _context.ItemImages
                                         where img_.ItemId == item.ItemId
                                         select img_.ImageUrl).FirstOrDefault(),
@@ -251,7 +253,7 @@ namespace Infrastructure.Repositories
                                 Address = a != null ? $"{a.Street}, {a.Ward}, {a.District}, {a.Province}" : null
                             } : null,
                             OrderId = o != null ? o.OrderId : (int?)null,
-                            Status = o.Status != null ? o.Status : null
+                            Status = o.Status 
                             // Gán trạng thái đã tính toán
                         };
 
@@ -268,7 +270,7 @@ namespace Infrastructure.Repositories
                         join img in _context.ItemImages on item.ItemId equals img.ItemId into images
                         from img in images.DefaultIfEmpty()
                         join oi in _context.OrderItems on item.ItemId equals oi.ItemId into orderItems
-                        from oi in orderItems.DefaultIfEmpty()
+                        from oi in orderItems
                         join o in _context.Orders on oi.OrderId equals o.OrderId into orders
                         from o in orders.DefaultIfEmpty()
                         join u in _context.Users on o.BuyerId equals u.UserId into buyers
@@ -289,11 +291,11 @@ namespace Infrastructure.Repositories
                             Color = ev.Color,
                             Year = ev.Year,
                             ListedPrice = item.Price,
-                            ActualPrice = pd != null ? pd.Amount : (decimal?)null,
+                            ActualPrice = oi != null ? item.Price * oi.Quantity : item.Price,
                             PaymentMethod = p != null ? p.Method : null,
 
-                            CreatedAt = item.CreatedAt,
-                            SoldAt = item.UpdatedAt,
+                            CreatedAt = o != null ? o.CreatedAt : item.CreatedAt,
+                            SoldAt = o != null ? o.UpdatedAt : item.UpdatedAt,
                             ImageUrl = img != null ? img.ImageUrl : null,
                             Buyer = u != null ? new BuyerDto
                             {
@@ -315,7 +317,7 @@ namespace Infrastructure.Repositories
                         //join img in _context.ItemImages on item.ItemId equals img.ItemId into images
                         //from img in images.DefaultIfEmpty()
                         join oi in _context.OrderItems on item.ItemId equals oi.ItemId into orderItems
-                        from oi in orderItems.DefaultIfEmpty()
+                        from oi in orderItems
                         join o in _context.Orders on oi.OrderId equals o.OrderId into orders
                         from o in orders.DefaultIfEmpty()
                         join u in _context.Users on o.BuyerId equals u.UserId into buyers
@@ -338,11 +340,11 @@ namespace Infrastructure.Repositories
                             Color = ev.Color,
                             Year = ev.Year,
                             ListedPrice = item.Price,
-                            ActualPrice = pd != null ? pd.Amount : (decimal?)null,
+                            ActualPrice = oi != null ? item.Price * oi.Quantity : item.Price,
                             PaymentMethod = p != null ? p.Method : null,
 
-                            CreatedAt = item.CreatedAt,
-                            SoldAt = item.UpdatedAt,
+                            CreatedAt = o != null ? o.CreatedAt : item.CreatedAt,
+                            SoldAt = o != null ? o.UpdatedAt : item.UpdatedAt,
                             ImageUrl = (from img_ in _context.ItemImages
                                         where img_.ItemId == item.ItemId
                                         select img_.ImageUrl).FirstOrDefault(),

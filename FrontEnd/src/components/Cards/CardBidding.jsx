@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef, memo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import notificationApi from '../../api/notificationApi';
 import auctionApi from '../../api/auctionApi';
 import itemApi from '../../api/itemApi';
 
@@ -60,20 +59,6 @@ const formatCountdown = (status, startTimeStr, endTimeStr) => {
   };
 };
 
-const sendGroupNotification = async (userIds, title, message) => {
-  const SENDER_ID = 4;
-  const payloads = userIds.map(uid => ({
-    notiType: "Activities",
-    senderId: SENDER_ID,
-    senderRole: "Manager",
-    title,
-    message,
-    targetUserId: uid.toLocaleString(),
-  }));
-
-  await Promise.all(payloads.map(p => notificationApi.createNotification(p).catch(() => null)));
-};
-
 // --- MAIN COMPONENT ---
 const CarAuctionCard = ({
   auctionID,
@@ -91,10 +76,6 @@ const CarAuctionCard = ({
   const [currentSlide, setCurrentSlide] = useState(0);
   const [countdown, setCountdown] = useState(() => formatCountdown(status, startTime, endTime));
   const [bidders, setBidders] = useState([]);
-  const [sellerId, setSellerId] = useState(null);
-
-  const endNotiSent = useRef(false);
-  const warnNotiSent = useRef(false);
   const placeholder = `https://placehold.co/600x400/fdfaf5/9c8c6a?text=${encodeURIComponent(title)}`;
 
   // Fetch bidders
@@ -112,26 +93,12 @@ const CarAuctionCard = ({
       .catch(() => {});
   }, [auctionID, id, status]);
 
-  // Countdown + Notifications
+  // Countdown
   useEffect(() => {
     const tick = () => {
       const newCountdown = formatCountdown(status, startTime, endTime);
       setCountdown(newCountdown);
-
-      if (status === 'Ongoing' && bidders.length > 0 && !newCountdown.isFinished) {
-        const { distance } = newCountdown;
-        if (distance <= 300000 && !warnNotiSent.current) {
-          warnNotiSent.current = true;
-          console.log('Sending ending soon notification to bidders:', bidders);
-          sendGroupNotification(bidders, `⏰ Sắp kết thúc!`, `Đấu giá cho "${title}" chỉ còn dưới 5 phút!`);
-        }
-        if (distance <= 0 && !endNotiSent.current) {
-          endNotiSent.current = true;
-          sendGroupNotification(bidders, `✅ Đấu giá kết thúc`, `Sản phẩm "${title}" đã kết thúc.`);
-        }
-      }
     };
-
     const id = setInterval(tick, 1000);
     return () => clearInterval(id);
   }, [status, startTime, endTime, bidders, title]);
@@ -183,7 +150,7 @@ const CarAuctionCard = ({
       </div>
 
       {/* Card Body */}
-      <div className="p-5 flex flex-col flex-grow text-[#2e2a27]">
+      <div className="p-5 flex flex-col grow text-[#2e2a27]">
         <p className="text-sm text-gray-500 mb-1">{category}</p>
         <h2 className="text-lg font-bold leading-snug line-clamp-2">{title}</h2>
 

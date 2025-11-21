@@ -21,16 +21,20 @@ useEffect(() => {
       console.log(role)
       if (role === "Seller") {
         if (location.pathname === "/seller-registration" || location.pathname === "/pending-review") {
-          navigate("/");
+          if(user.paid === "Registered")
+          navigate("/seller")
         }
+        if(location.pathname === "/seller" && user.paid === "Pending_Pay")
+                      navigate("/seller-payment")
+
         return;
       }
 
       if (location.pathname === "/pending-review" && kycStatus === "Not_Submitted") {
         navigate("/seller-registration");
-      } else if (location.pathname === "/seller-registration" && kycStatus === "pending") {
+      } else if (location.pathname === "/seller-registration" && kycStatus === "Pending") {
         navigate("/pending-review");
-      } else if (location.pathname === "/seller-form" && kycStatus === "pending") {
+      } else if (location.pathname === "/seller-form" && kycStatus === "Pending") {
         navigate("/pending-review");
       }
 

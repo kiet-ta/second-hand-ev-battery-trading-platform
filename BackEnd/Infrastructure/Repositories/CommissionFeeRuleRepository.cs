@@ -17,6 +17,13 @@ public class CommissionFeeRuleRepository : ICommissionFeeRuleRepository
     public async Task<CommissionFeeRule?> GetByIdAsync(int id) =>
         await _context.CommissionFeeRules.FindAsync(id);
 
+    public async Task<CommissionFeeRule?> GetByFeeCodeAsync(string feeCode)
+    {
+        return await _context.CommissionFeeRules.Where(fee => fee.FeeCode.StartsWith(feeCode) && fee.IsActive)
+                                                .OrderByDescending(fee => fee.CreatedAt)
+                                                .FirstOrDefaultAsync();
+    }
+
     public async Task AddAsync(CommissionFeeRule rule)
     {
         _context.CommissionFeeRules.Add(rule);

@@ -92,9 +92,8 @@ namespace Infrastructure.Repositories
 
             if (complaint == null) return false;
 
-            complaint.Status = status.ToLower();
+            complaint.Status = status;
             complaint.UpdatedAt = DateTime.Now;
-            complaint.AssignTo = assignTo;
 
             await _context.SaveChangesAsync();
             return true;

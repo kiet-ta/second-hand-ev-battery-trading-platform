@@ -70,11 +70,11 @@ export default function ComplaintList() {
     if (statusFilter !== "all") list = list.filter((c) => c.status === statusFilter);
     if (levelFilter !== "all") list = list.filter((c) => c.severityLevel === levelFilter);
     if (search.trim()) {
-      const q = search.toLowerCase();
+      const q = search;
       list = list.filter(
         (c) =>
-          c.reason?.toLowerCase().includes(q) ||
-          c.description?.toLowerCase().includes(q)
+          c.reason?.includes(q) ||
+          c.description?.includes(q)
       );
     }
     setFiltered(list);
@@ -135,19 +135,6 @@ export default function ComplaintList() {
     }
   };
 
-  //  Giao staff xử lý
-  const assignToStaff = async (id, staffId) => {
-    try {
-      const res = await fetch(`${baseURL}complaints/assignee/${staffId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!res.ok) throw new Error();
-      message.success("👤 Đã giao khiếu nại cho nhân viên xử lý.");
-      setModalVisible(false);
-    } catch {
-      message.error("Không thể giao nhân viên.");
-    }
-  };
 
 
   const translateStatus = (status) => {
@@ -366,18 +353,6 @@ export default function ComplaintList() {
                   <CheckCircle size={16} /> Đã xử lý
                 </button>
               )}
-              <Select
-                placeholder="Giao cho staff..."
-                style={{ width: 180 }}
-                onChange={(staffId) =>
-                  assignToStaff(selectedComplaint.complaintId, staffId)
-                }
-                options={staffList.map((s) => ({
-                  value: s.id,
-                  label: s.name,
-                }))}
-                suffixIcon={<UserCheck size={16} />}
-              />
             </div>
           </div>
         ) : (

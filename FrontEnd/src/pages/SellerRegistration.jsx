@@ -59,7 +59,7 @@ export default function SellerRegistrationForm() {
           bio: user.bio || prev.bio,
           user, // store full user for reference
         }));
-      } catch (_) {}
+      } catch (_) { }
     };
     fetchUser();
     return () => (mounted = false);
@@ -111,24 +111,35 @@ export default function SellerRegistrationForm() {
       const payload =
         formData.accountType === "store"
           ? {
-              idCardUrl: `${formData.idCardFrontUrl},${formData.idCardBackUrl}`,
-              selfieUrl: formData.selfieUrl,
-              storeName: formData.storeAddress.recipientName,
-              storePhone: formData.storeAddress.phone,
-              storeLogoUrl: formData.storeLogoUrl,
-            }
+            idCardUrl: `${formData.idCardFrontUrl},${formData.idCardBackUrl}`,
+            selfieUrl: formData.selfieUrl,
+            storeName: formData.storeAddress.recipientName,
+            storePhone: formData.storeAddress.phone,
+            storeLogoUrl: formData.storeLogoUrl,
+          }
           : {
-              idCardUrl: `${formData.idCardFrontUrl},${formData.idCardBackUrl}`,
-              selfieUrl: formData.selfieUrl,
-            };
+            idCardUrl: `${formData.idCardFrontUrl},${formData.idCardBackUrl}`,
+            selfieUrl: formData.selfieUrl,
+          };
 
       const user = await userApi.getUserByID(userId);
-      const updatedUser = {
-        ...user,
-        bio: formData.bio,
-        kycStatus: "Pending",
-        updatedAt: new Date().toISOString(),
-      };
+
+      const updatedUser =
+        formData.accountType === "store"
+          ? {
+            ...user,
+            bio: formData.bio,
+            kycStatus: "Pending",
+            isStore: true,
+            updatedAt: new Date().toISOString(),
+          }
+          : {
+            ...user,
+            bio: formData.bio,
+            kycStatus: "Pending",
+            isStore: false,
+            updatedAt: new Date().toISOString(),
+          };
 
       await kycApi.postKYC(userId, payload);
       await userApi.putUser(userId, updatedUser);
@@ -191,13 +202,13 @@ export default function SellerRegistrationForm() {
 
         {((currentStep === 3 && formData.accountType !== "store") ||
           currentStep === 4) && (
-          <Step4Confirm
-            formData={formData}
-            prevStep={prevStep}
-            handleSubmit={handleSubmit}
-            submitting={submitting}
-          />
-        )}
+            <Step4Confirm
+              formData={formData}
+              prevStep={prevStep}
+              handleSubmit={handleSubmit}
+              submitting={submitting}
+            />
+          )}
       </div>
     </div>
   );

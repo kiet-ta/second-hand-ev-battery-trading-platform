@@ -43,7 +43,7 @@ export default function AddCompareModal({ open, onClose, BASE }) {
     }, [open]);
 
     const filteredItems = useMemo(() => {
-        const keyword = search.toLowerCase().trim();
+        const keyword = search.trim();
 
         let result = items.filter((it) => {
             const price = it.price || 0;
@@ -53,9 +53,9 @@ export default function AddCompareModal({ open, onClose, BASE }) {
 
             const matchesKeyword =
                 !keyword ||
-                it.title?.toLowerCase().includes(keyword) ||
-                it.evDetail?.brand?.toLowerCase().includes(keyword) ||
-                it.batteryDetail?.brand?.toLowerCase().includes(keyword);
+                it.title?.includes(keyword) ||
+                it.evDetail?.brand?.includes(keyword) ||
+                it.batteryDetail?.brand?.includes(keyword);
 
             const matchesPrice =
                 price >= priceRange[0] && price <= priceRange[1];

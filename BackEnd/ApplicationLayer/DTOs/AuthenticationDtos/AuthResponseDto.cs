@@ -13,6 +13,7 @@ namespace Application.DTOs.AuthenticationDtos
         public string FullName { get; set; } = string.Empty;
         public string Email { get; set; } = null!;
         public string Role { get; set; } = UserRole.Buyer.ToString();
+        public string AccountStatus { get; set; }
         public string Token { get; set; } = null!;
         public DateTime ExpiresAt { get; set; }
         public string AuthProvider { get; set; } = "local"; // ???

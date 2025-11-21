@@ -98,7 +98,7 @@ export default function NewsDetail() {
               </h3>
               <p className="text-gray-600">{author.bio}</p>
               <p className="text-gray-400 text-sm mt-1">
-                {author.gender} • {author.phone}
+                {translateKey(author.gender)} • {author.phone}
               </p>
             </div>
           </div>
@@ -138,3 +138,12 @@ export default function NewsDetail() {
     </div>
   );
 }
+
+function translateKey(key) {
+  const dict = {
+    Female: "Nữ",
+    Male: "Nam",
+  };
+  return dict[key] || key;
+}
+

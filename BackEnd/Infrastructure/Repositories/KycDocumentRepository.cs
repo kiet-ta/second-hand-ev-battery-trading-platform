@@ -42,7 +42,7 @@ namespace Infrastructure.Repositories
             if (user == null) throw new Exception($"User {id} not found");
             user.Role = role;
             user.KycStatus = status;
-
+            user.Paid = "Pending_Pay";
             _context.Users.Update(user);
             await _context.SaveChangesAsync();
         }

@@ -332,7 +332,7 @@
 //            var itemDto = new ItemDto
 //            {
 //                Title = "Test Item",
-//                ItemType = null 
+//                ItemType = null
 //            };
 
 //            // Act
@@ -343,7 +343,7 @@
 
 //            Assert.NotNull(_capturedItem);
 //            Assert.Equal("Test Item", _capturedItem.Title);
-//            Assert.Null(_capturedItem.ItemType); 
+//            Assert.Null(_capturedItem.ItemType);
 //            Assert.Equal("pending", _capturedItem.Status); // Default status
 //            Assert.False(_capturedItem.IsDeleted); // Default IsDeleted
 //        }

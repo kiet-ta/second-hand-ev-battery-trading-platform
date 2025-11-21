@@ -5,7 +5,7 @@ import NotificationToast from './NotificationToast';
 const SSEListener = ({ userId, onNewNotification }) => {
   const [toasts, setToasts] = useState([]);
   const baseURL = import.meta.env.VITE_BACKEND_BASE_URL;
-  const sseEndpoint = `${baseURL}api/Notifications/register?userId=${userId}`;
+  const sseEndpoint = `${baseURL}api/notification/register?userId=${userId}`;
 
   const dismissToast = useCallback((id) => {
     setToasts((prev) => prev.filter((n) => n.id !== id));

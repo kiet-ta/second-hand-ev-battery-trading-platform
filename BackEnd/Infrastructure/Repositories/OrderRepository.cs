@@ -179,5 +179,14 @@ namespace Infrastructure.Repositories
                 .Where(o => o.Status == OrderStatus.Completed.ToString() && o.CreatedAt >= startDate && o.CreatedAt <= endDate)
                 .ToListAsync();
         }
+        public async Task<Order> GetOrderWithItemsAsync(int orderId)
+        {
+            var order = await _context.Orders
+                .Include(o => o.OrderItems) // Eager loading OrderItems
+                .AsSplitQuery()
+                .FirstOrDefaultAsync(o => o.OrderId == orderId);
+
+            return order;
+        }
     }
 }

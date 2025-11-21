@@ -6,6 +6,9 @@ public interface ICommissionFeeRuleService
 {
     Task<IEnumerable<CommissionFeeRule>> GetAllAsync();
     Task<CommissionFeeRule?> GetByIdAsync(int id);
+
+    Task<CommissionFeeRule?> GetByFeeCodeAsync(string feeCode);
+
     Task AddAsync(CommissionFeeRule rule);
     Task<CommissionFeeRule> ToggleStatusAsync(CommissionFeeRule rule);
 }

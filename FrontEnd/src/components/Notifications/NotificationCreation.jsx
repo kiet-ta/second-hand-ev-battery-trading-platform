@@ -5,9 +5,7 @@ import { Send, CheckCircle, AlertTriangle } from "lucide-react";
 export default function NotificationCreator() {
     const [formData, setFormData] = useState({
         notiType: "Activities", // Maps to NotiType
-        senderId: 1, // Maps to SenderId
-        senderRole: "Manager", // Maps to SenderRole
-        targetUserId: "user-123", // 🎯 Maps to TargetUserId (Required for targeting)
+        targetUserId: "123", // 🎯 Maps to TargetUserId (Required for targeting)
         title: "", // Maps to Title
         message: "", // Maps to Message
     });
@@ -42,7 +40,7 @@ export default function NotificationCreator() {
             notiType: formData.notiType,
             title: formData.title,
             message: formData.message,
-            targetUserId: formData.targetUserId // 🎯 Send the required field
+            targetUserId: formData.targetUserId 
         };
 
         try {
@@ -124,21 +122,6 @@ export default function NotificationCreator() {
                     />
                 </div>
                 
-                {/* Sender Role (Read-only for manager example) */}
-                <div>
-                    <label htmlFor="senderRole" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                        Vai Trò Người Gửi (Sender Role)
-                    </label>
-                    <input
-                        type="text"
-                        id="senderRole"
-                        name="senderRole"
-                        value={formData.senderRole}
-                        readOnly
-                        className="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md p-2 bg-gray-100 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-400 cursor-not-allowed"
-                    />
-                </div>
-
                 {/* Title */}
                 <div>
                     <label htmlFor="title" className="block text-sm font-medium text-gray-700 dark:text-gray-300">

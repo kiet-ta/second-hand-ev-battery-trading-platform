@@ -10,6 +10,7 @@ import {
   FaSearch,
   FaShoppingCart,
   FaSuitcase,
+  FaShoppingBasket,
 } from "react-icons/fa";
 import { FiHeart } from "react-icons/fi";
 import { IoMdHome } from "react-icons/io";
@@ -19,6 +20,7 @@ import Logo from "./Logo";
 import walletApi from "../api/walletApi";
 import NotificationDropdown from "./DropDowns/NotificationDropdown";
 import ProfileDropDown from "./DropDowns/ProfileDropDown";
+import userApi from "../api/userApi";
 
 const { Option } = Select;
 
@@ -74,16 +76,16 @@ function Navbar({ data }) {
 
   // ✅ Seller click logic
   const handleSellerClick = () => {
-    const jwt = localStorage.getItem("token");
-    if (!jwt) {
+    const userId = localStorage.getItem("userId");
+    if (!userId) {
       message.warning("Vui lòng đăng nhập để truy cập kênh người bán");
       return navigate("/login");
     }
 
     try {
-      const decodeJWT = jwtDecode(jwt);
-      if (decodeJWT.role === "Buyer") navigate("/seller-registration");
-      else if (decodeJWT.role === "Manager") navigate("/manage");
+      const userRole = userApi.getUserByID(userId).role
+      if (userRole === "Buyer") navigate("/seller-registration");
+      else if (userRole === "Manager") navigate("/manage");
       else navigate("/seller");
     } catch (error) {
       console.error("Invalid token:", error);
@@ -137,16 +139,20 @@ function Navbar({ data }) {
           <div className="flex items-center">
             {data ? (
               <>
-                <div>
-                  <Link
-                    className="flex items-center mr-2 hover:text-[#B8860B] font-medium text-sm transition-colors"
-                    to="/complaint"
-                  >
-                    <IoHelp /> Gửi yêu cầu
-                  </Link>
-                </div>
-                <NotificationDropdown userId={data.userId} />
-                <div className="ml-4">
+                <Link
+                  className="mx-3 gap-2 hover:text-[#B8860B] font-medium text-sm flex"
+                  to="/complaint"
+                >
+                  <IoHelp /> Gửi yêu cầu
+                </Link>
+                <Link
+                  className="flex items-center mx-3 gap-2 hover:text-[#B8860B] font-medium text-sm transition-colors"
+                  to="/profile/purchase"
+                >
+                  <FaShoppingBasket /> Đơn hàng của tôi
+                </Link >
+                <NotificationDropdown userId={data.userId} className="flex items-center mx-3 gap-2 hover:text-[#B8860B] font-medium text-sm transition-colors" />
+                <div className="mx-3">
                   <ProfileDropDown users={data} walletBalance={walletBalance} />
                 </div>
               </>

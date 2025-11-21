@@ -13,7 +13,8 @@ import itemApi from "../../api/itemApi";
 import userApi from "../../api/userApi";
 import reviewApi from "../../api/reviewApi";
 import ChatWithSellerButton from "../../components/Buttons/ChatWithSellerButton";
-import  placeholder  from "../../assets/images/placeholder.png";
+import placeholder from "../../assets/images/placeholder.png";
+import { useParams } from "react-router-dom";
 
 // Star Rating Component
 const StarRating = ({ rating }) => (
@@ -48,7 +49,7 @@ const VerifiedCheck = () => (
 function EVDetails() {
   const location = useLocation();
   const navigate = useNavigate();
-  const itemId = location.state;
+  const { id } = useParams();
   const [item, setItem] = useState(null);
   const [sellerProfile, setSellerProfile] = useState(null);
   const [reviews, setReviews] = useState([]);
@@ -75,7 +76,7 @@ function EVDetails() {
 
   // Fetch item, seller, and reviews
   useEffect(() => {
-    if (!itemId) {
+    if (!id) {
       setFeedback({ type: "error", msg: "Không tìm thấy sản phẩm." });
       setLoading(false);
       return;
@@ -84,14 +85,14 @@ function EVDetails() {
     const fetchItemData = async () => {
       try {
         setLoading(true);
-        const itemData = await itemApi.getItemDetailByID(itemId);
+        const itemData = await itemApi.getItemDetailByID(id);
         setItem(itemData);
         setIsVerified(itemData.moderation === "Approved");
 
         const seller = await userApi.getUserByID(itemData.updatedBy);
         setSellerProfile(seller);
 
-        const reviewRes = await reviewApi.getReviewByItemID(itemId);
+        const reviewRes = await reviewApi.getReviewByItemID(id);
         const rawReviews = reviewRes || [];
         const latestReviewsMap = new Map();
 
@@ -131,7 +132,7 @@ function EVDetails() {
     };
 
     fetchItemData();
-  }, [itemId]);
+  }, [id]);
 
   const handleShowPhone = () => {
     if (isNaN(userId)) {

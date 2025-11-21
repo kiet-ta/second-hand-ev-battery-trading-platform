@@ -5,6 +5,7 @@ using Application.Services;
 using Domain.Common.Constants;
 using Domain.Entities;
 using Moq;
+using Moq.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -105,7 +106,7 @@ namespace Application.Tests.Services
 
             var result = await _service.GetSoldItemsAsync(1);
             var dto = Assert.IsType<BatteryItemDto>(result.First());
-            Assert.Equal("sold", dto.Status);
+            Assert.Equal("Sold", dto.Status);
         }
 
         [Fact]
@@ -118,7 +119,7 @@ namespace Application.Tests.Services
 
             var result = await _service.GetPendingPaymentItemsAsync(1);
             var dto = Assert.IsType<EVItemDto>(result.First());
-            Assert.Equal("pending_approval", dto.Status);
+            Assert.Equal("Pending_Approval", dto.Status);
         }
 
         [Fact]
@@ -131,7 +132,7 @@ namespace Application.Tests.Services
 
             var result = await _service.GetProcessingItemsAsync(1);
             var dto = Assert.IsType<BatteryItemDto>(result.First());
-            Assert.Equal("processing", dto.Status);
+            Assert.Equal("Processing", dto.Status);
         }
 
         [Fact]
@@ -144,7 +145,7 @@ namespace Application.Tests.Services
 
             var result = await _service.GetCanceledItemsAsync(1);
             var dto = Assert.IsType<EVItemDto>(result.First());
-            Assert.Equal("canceled", dto.Status);
+            Assert.Equal("Canceled", dto.Status);
         }
 
         #endregion
@@ -180,7 +181,7 @@ namespace Application.Tests.Services
                      .ReturnsAsync(allItems.Select(i => new BatteryItemDto { ItemId = i.ItemId }).ToList());
 
             var result = await _service.GetAllSellerItemsAsync(sellerId);
-            Assert.All(result, r => Assert.Equal("available", ((BatteryItemDto)r).Status));
+            Assert.All(result, r => Assert.Equal("Available", ((BatteryItemDto)r).Status));
         }
 
         [Fact]
@@ -210,7 +211,27 @@ namespace Application.Tests.Services
             Assert.Contains(result, r => r is EVItemDto);
         }
 
-       
+
+        #endregion
+
+        #region Exceptions - Items Null
+
+        [Fact]
+        public async Task GetProcessingItemsAsync_ShouldThrow_WhenItemsNull()
+        {
+            _mockRepo.Setup(r => r.GetProcessingItemsAsync(3)).ReturnsAsync((List<Item>?)null);
+
+            await Assert.ThrowsAsync<Exception>(() => _service.GetProcessingItemsAsync(3));
+        }
+
+        [Fact]
+        public async Task GetSoldItemsAsync_ShouldThrow_WhenItemsNull()
+        {
+            _mockRepo.Setup(r => r.GetSoldItemsAsync(4)).ReturnsAsync((List<Item>?)null);
+
+            await Assert.ThrowsAsync<Exception>(() => _service.GetSoldItemsAsync(4));
+        }
+
         #endregion
     }
 }

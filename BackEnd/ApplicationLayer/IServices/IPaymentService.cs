@@ -19,4 +19,6 @@ public interface IPaymentService
     Task<PaymentResponseDto> CreateDepositPaymentLinkAsync(int userId, decimal amount);
 
     Task<bool> ConfirmOrderAndSplitPaymentAsync(int orderId, int buyerId);
+
+    Task ProcessSuccessfulPaymentAsync(int orderId, string transactionId, decimal amount);
 }

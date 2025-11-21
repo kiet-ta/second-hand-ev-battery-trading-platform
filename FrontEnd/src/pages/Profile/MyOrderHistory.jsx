@@ -29,6 +29,7 @@ export default function OrderPage() {
     try {
       setLoading(true);
       const res = await orderApi.getOrdersByBuyerId(buyerId);
+
       const enriched = await Promise.all(
         (res || []).map(async (order) => {
           const items = await Promise.all(
@@ -42,9 +43,17 @@ export default function OrderPage() {
               }
             })
           );
-          return { ...order, items };
+
+          // --- Calculate total price ---
+          const totalPrice = items.reduce(
+            (sum, it) => sum + (it.detail?.price || 0) * (it.quantity || 0),
+            0
+          );
+
+          return { ...order, items, totalPrice };
         })
       );
+
       setOrders(enriched);
     } catch (err) {
       console.error("fetchOrders error", err);
@@ -53,7 +62,6 @@ export default function OrderPage() {
       setLoading(false);
     }
   }, [buyerId]);
-
   useEffect(() => {
     fetchOrders();
   }, [fetchOrders]);
@@ -101,8 +109,8 @@ export default function OrderPage() {
               key={t.key}
               onClick={() => setActiveTab(t.key)}
               className={`px-4 py-2 rounded-md text-sm font-medium ${activeTab === t.key
-                  ? "bg-white text-[#D97706] border border-[#D97706]"
-                  : "bg-white/60 text-gray-700 hover:bg-white"
+                ? "bg-white text-[#D97706] border border-[#D97706]"
+                : "bg-white/60 text-gray-700 hover:bg-white"
                 }`}
             >
               {t.label}

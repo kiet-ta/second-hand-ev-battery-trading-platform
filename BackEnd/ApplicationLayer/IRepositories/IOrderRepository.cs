@@ -25,5 +25,6 @@ namespace Application.IRepositories
         Task<Order> AddOrderAsync(Order order);
         Task<decimal> GetRevenueThisMonthAsync(DateTime now);
         Task<IEnumerable<Order>> GetOrdersWithinRangeAsync(DateTime startDate, DateTime endDate);
+        Task<Order> GetOrderWithItemsAsync(int orderId);
     }
 }

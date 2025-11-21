@@ -103,9 +103,9 @@ public class AuctionService : IAuctionService
 
     public async Task<CreateAuctionResponse> CreateAuctionAsync(CreateAuctionRequest request)
     {
-        var existingItem = await _unitOfWork.Items.GetByIdAsync(request.ItemId);
-        if (existingItem == null)
-            throw new KeyNotFoundException($"Item with ID {request.ItemId} not found.");
+        //var existingItem = await _unitOfWork.Items.GetByIdAsync(request.ItemId);
+        //if (existingItem == null)
+        //    throw new KeyNotFoundException($"Item with ID {request.ItemId} not found.");
 
         // check item has not in auction
         var existingAuction = await _unitOfWork.Auctions.GetByItemIdAsync(request.ItemId);

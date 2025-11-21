@@ -22,9 +22,9 @@ const itemApi = {
         const response = await axios.get(`${baseURL}/search`, { params: { itemType, title, minPrice, maxPrice, page, pageSize, sortBy, sortDir } })
         return response.data;
     },
-    getBatteryDetailBySearch: async (brand, capacity, voltage, chargeCycle) => {
+    getBatteryDetailBySearch: async (brand, capacity,condition, voltage, chargeCycle) => {
         const response = await axios.get(`${linkBaseURL}battery-details/search`,{ params: {
-            brand, capacity, voltage, chargeCycle
+            brand, capacity, condition,voltage, chargeCycle
         }})
         return response.data;
     },

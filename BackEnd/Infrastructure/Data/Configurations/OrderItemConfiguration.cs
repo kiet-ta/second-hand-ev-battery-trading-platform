@@ -41,7 +41,7 @@ namespace Infrastructure.Data.Configurations
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__order_ite__item___5FB337D6");
 
-            entity.HasOne<Order>().WithMany()
+            entity.HasOne<Order>().WithMany(o => o.OrderItems)
                 .HasForeignKey(d => d.OrderId)
                 .HasConstraintName("FK__order_ite__is_de__5EBF139D");
         }

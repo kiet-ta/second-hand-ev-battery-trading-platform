@@ -17,4 +17,5 @@ public class Order
 
     public DateTime UpdatedAt { get; set; }
 
+    public ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
 }
