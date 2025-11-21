@@ -50,7 +50,7 @@ namespace Infrastructure.Repositories
         public async Task<IEnumerable<Item>> GetLatestBatteriesAsync(int count)
         {
             return await _context.Items
-                .Where(x => x.ItemType == ItemType.Battery.ToString() && !(x.IsDeleted == true))
+                .Where(x => x.ItemType == ItemType.Battery.ToString() && !(x.IsDeleted == true) && x.Status == "Active")
                 .OrderByDescending(x => x.CreatedAt)
                 .Take(count)
                 .ToListAsync();

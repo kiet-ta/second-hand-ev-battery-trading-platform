@@ -384,7 +384,14 @@ function BatteryDetails() {
                 max={item.quantity}
                 value={quantity}
                 onChange={setQuantity}
+                disabled={item.quantity === 0}
               />
+              {item.quantity === 0 ? <>
+                <div className="font-bold text-red-500">Đã hết hàng</div>
+              </>
+                :
+                <></>}
+
             </div>
 
             {feedback && (
@@ -400,15 +407,25 @@ function BatteryDetails() {
 
             <div className="flex flex-col sm:flex-row gap-3 mt-6">
               <button
-                onClick={handleAddToCart}
-                className="flex-1 bg-[#B8860B] text-white font-bold py-3 px-6 rounded-lg hover:bg-[#A47500] transition"
+                onClick={item.quantity > 0 ? handleAddToCart : null}
+                disabled={item.quantity === 0}
+                className={`flex-1 font-bold py-3 px-6 rounded-lg transition
+                    ${item.quantity === 0
+                    ? "bg-gray-300 text-gray-600 cursor-not-allowed"
+                    : "bg-[#B8860B] text-white hover:bg-[#A47500]"
+                  }`}
               >
                 <FiShoppingCart className="inline mr-2" />
                 Thêm vào giỏ hàng
               </button>
               <button
-                onClick={handleBuyNow}
-                className="flex-1 bg-green-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-green-700 transition"
+                onClick={item.quantity > 0 ? handleBuyNow : null}
+                disabled={item.quantity === 0}
+                className={`flex-1 font-bold py-3 px-6 rounded-lg transition
+    ${item.quantity === 0
+                    ? "bg-gray-300 text-gray-600 cursor-not-allowed"
+                    : "bg-green-600 text-white hover:bg-green-700"
+                  }`}
               >
                 <FiCreditCard className="inline mr-2" />
                 Mua ngay
