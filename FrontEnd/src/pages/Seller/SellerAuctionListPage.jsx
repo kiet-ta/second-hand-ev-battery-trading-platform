@@ -39,11 +39,11 @@ export default function SellerAuctionListPage() {
 
     const getStatusColor = (status) => {
         switch (status?.toUpperCase()) {
-            case "Upcoming":
+            case "UPCOMING":
                 return "bg-yellow-100 text-yellow-700";
-            case "Ongoing":
+            case "ONGOING":
                 return "bg-green-100 text-green-700";
-            case "Ended":
+            case "ENDED":
                 return "bg-gray-100 text-gray-500";
             default:
                 return "bg-gray-50 text-gray-400";

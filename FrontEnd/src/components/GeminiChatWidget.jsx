@@ -5,16 +5,16 @@ import { Link } from "react-router-dom";
 
 // 🚗 DỮ LIỆU SẢN PHẨM (Để tạo link)
 const productData = [
-  { "id": 1, "loai": "Ev", "ten": "Tesla Model 3 2022", "mo_ta": "Tesla Model 3 đã qua sử dụng, tình trạng tốt", "gia_vnd": 800000000 },
+  { "id": 1, "loai": "ev", "ten": "Tesla Model 3 2022", "mo_ta": "Tesla Model 3 đã qua sử dụng, tình trạng tốt", "gia_vnd": 800000000 },
   { "id": 2, "loai": "pin", "ten": "Pin Li-ion 50kWh", "mo_ta": "Pin dung lượng cao cho xe điện", "gia_vnd": 150000000 },
-  { "id": 3, "loai": "Ev", "ten": "VinFast VF e34", "mo_ta": "Xe SUV điện VinFast, đời 2023", "gia_vnd": 650000000 },
+  { "id": 3, "loai": "ev", "ten": "VinFast VF e34", "mo_ta": "Xe SUV điện VinFast, đời 2023", "gia_vnd": 650000000 },
   { "id": 4, "loai": "pin", "ten": "Pin Li-ion 30kWh", "mo_ta": "Pin tiêu chuẩn cho xe máy điện", "gia_vnd": 50000000 },
-  { "id": 5, "loai": "Ev", "ten": "Tesla Model S 2021", "mo_ta": "Sedan điện hạng sang", "gia_vnd": 1200000000 },
+  { "id": 5, "loai": "ev", "ten": "Tesla Model S 2021", "mo_ta": "Sedan điện hạng sang", "gia_vnd": 1200000000 },
   { "id": 6, "loai": "pin", "ten": "Pin Li-ion 40kWh", "mo_ta": "Pin dung lượng trung bình", "gia_vnd": 100000000 },
-  { "id": 7, "loai": "Ev", "ten": "VinFast VF 8", "mo_ta": "Xe SUV điện VinFast mới", "gia_vnd": 900000000 },
-  { "id": 8, "loai": "Ev", "ten": "Used Nissan Leaf 2019", "mo_ta": "Pre-owned Nissan Leaf, low mileage", "gia_vnd": 450000000 },
+  { "id": 7, "loai": "ev", "ten": "VinFast VF 8", "mo_ta": "Xe SUV điện VinFast mới", "gia_vnd": 900000000 },
+  { "id": 8, "loai": "ev", "ten": "Used Nissan Leaf 2019", "mo_ta": "Pre-owned Nissan Leaf, low mileage", "gia_vnd": 450000000 },
   { "id": 9, "loai": "pin", "ten": "High-Capacity Battery 60kWh", "mo_ta": "Extended range battery", "gia_vnd": 200000000 },
-  { "id": 10, "loai": "Ev", "ten": "Hyundai Ioniq 5", "mo_ta": "Hyundai Ioniq 5 2023, đủ đồ", "gia_vnd": 950000000 }
+  { "id": 10, "loai": "ev", "ten": "Hyundai Ioniq 5", "mo_ta": "Hyundai Ioniq 5 2023, đủ đồ", "gia_vnd": 950000000 }
 ];
 
 // Hàm phân tích link (không đổi)
@@ -31,7 +31,7 @@ const parseMessageWithLinks = (text) => {
   return parts.map((part, index) => {
     const product = productData.find(p => p.ten === part);
     if (product) {
-      const detailUrl = product.loai === "Ev" ? `/ev/${product.id}` : `/battery/${product.id}`;
+      const detailUrl = product.loai === "ev" ? `/ev/${product.id}` : `/battery/${product.id}`;
       return (
         <Link 
           key={index} 

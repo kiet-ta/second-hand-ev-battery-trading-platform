@@ -1,6 +1,5 @@
 ﻿using Application.DTOs;
 using Application.IRepositories;
-using Domain.Common.Constants;
 using Domain.Entities;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -31,7 +30,7 @@ namespace Infrastructure.Repositories
             {
                 return false;
             }
-            news.Status = NewsStatus.Approved.ToString();
+            news.Status = "approved";
             await _context.SaveChangesAsync();
             return true;
         }
@@ -42,7 +41,7 @@ namespace Infrastructure.Repositories
             {
                 return false;
             }
-            news.Status = NewsStatus.Cancelled.ToString();
+            news.Status = "cancelled";
             await _context.SaveChangesAsync();
             return true;
         }
@@ -62,7 +61,7 @@ namespace Infrastructure.Repositories
             var news = new News
             {
                 Title = dto.Title,
-                Status = NewsStatus.Pending.ToString(),
+                Status =  "pending",
                 PublishDate = DateTime.UtcNow,
                 Category = dto.Category,
                 Summary = dto.Summary,

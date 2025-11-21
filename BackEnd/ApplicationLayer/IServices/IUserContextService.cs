@@ -9,7 +9,6 @@ namespace Application.IServices
     public interface IUserContextService
     {
         long GetCurrentUserId();
-        int GetUserId();
         //string GetCurrentUserRole();
     }
 }

@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Application.IRepositories
 {
-    public interface IKycDocumentRepository
+    public interface IKYC_DocumentRepository
     {
         Task<User?> GetByIdAsync(int id);
         Task UpdateAccountStatusAsync(int id, string status);

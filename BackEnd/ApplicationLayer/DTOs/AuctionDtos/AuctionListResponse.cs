@@ -2,7 +2,7 @@ namespace Application.DTOs.AuctionDtos;
 
 public class AuctionListResponse
 {
-    public string Status { get; set; } = "success"; 
+    public string Status { get; set; } = "success";
     public List<AuctionDto> Data { get; set; } = new();
     public AuctionMeta Meta { get; set; } = new();
 }

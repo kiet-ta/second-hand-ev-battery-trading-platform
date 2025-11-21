@@ -11,27 +11,15 @@ const itemApi = {
         return response.data;
     },
     getItemByLatestEV: async () => {
-        const response = await axios.get(linkBaseURL + "ev-details" + "/latest-evs?count=4")
+        const response = await axios.get(linkBaseURL + "ev-details" + "/latest-evs", 10)
         return response.data;
     },
     getItemByLatestBattery: async () => {
-        const response = await axios.get(linkBaseURL + "battery-details" + "/latest-batteries?count=4")
+        const response = await axios.get(linkBaseURL + "battery-details" + "/latest-batteries", 10)
         return response.data;
     },
     getItemBySearch: async (itemType, title, minPrice, maxPrice, page, pageSize, sortBy, sortDir) => {
         const response = await axios.get(`${baseURL}/search`, { params: { itemType, title, minPrice, maxPrice, page, pageSize, sortBy, sortDir } })
-        return response.data;
-    },
-    getBatteryDetailBySearch: async (brand, capacity, voltage, chargeCycle) => {
-        const response = await axios.get(`${linkBaseURL}battery-details/search`,{ params: {
-            brand, capacity, voltage, chargeCycle
-        }})
-        return response.data;
-    },
-    getEvDetailBySearch: async (brand, model, year, color, isRegistrationValid) => { 
-        const response = await axios.get(`${linkBaseURL}ev-details/search`,{ params: {
-            brand, model, year, color, isRegistrationValid
-        }})
         return response.data;
     },
     getItemById: async (id) => {
@@ -60,7 +48,7 @@ const itemApi = {
         return response.data
     },
     putItemDetailBattery: async (itemId, batteryData) => {
-        const response = await axios.put(linkBaseURL + "battery-details" + `/${itemId}`, batteryData)
+        const response = await axios.put(baseURL + "battery-details" + `/${itemId}`, batteryData)
         return response.data
     },
     deleteItem: async (itemId) => {

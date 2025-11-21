@@ -36,8 +36,8 @@ const SearchFilters = ({
                     onChange={(e) => setFilterRole(e.target.value)}
                 >
                     <option value="all">Tất cả vai trò</option>
-                    <option value="Buyer">Người mua</option>
-                    <option value="Seller">Người bán</option>
+                    <option value="buyer">Người mua</option>
+                    <option value="seller">Người bán</option>
                 </select>
             </div>
         </div>

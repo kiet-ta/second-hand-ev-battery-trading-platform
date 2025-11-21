@@ -13,8 +13,8 @@ namespace Application.Mappings
     {
         public AddressProfile()
         {
-            CreateMap<Address, CreateAddressDto>().ReverseMap();
-            CreateMap<Address, UpdateAddressDto>().ReverseMap();
+            CreateMap<Address, CreateAddressDTO>().ReverseMap();
+            CreateMap<Address, UpdateAddressDTO>().ReverseMap();
         }
     }
 }

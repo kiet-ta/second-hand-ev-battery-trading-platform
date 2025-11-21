@@ -1,6 +1,6 @@
-import React, { useState } from "react";
-import { Form, Input, InputNumber, Radio, Select, Checkbox, Upload, Image, Modal } from "antd";
-import { PlusOutlined } from "@ant-design/icons";
+import React from "react";
+import { Form, Input, InputNumber, Radio, Select, Checkbox } from "antd";
+import ImageUploadField from "../Seller/SellerForm/ImageUploadField"; // adjust path if needed
 
 const { TextArea } = Input;
 const { Option } = Select;
@@ -24,16 +24,12 @@ export default function Step1ItemDetails({ form, onFinish, evData }) {
   const categoryId = Form.useWatch("categoryId", form);
   const brand = Form.useWatch("brand", form);
   const model = Form.useWatch("model", form);
-  const [fileList, setFileList] = useState([]);
-  const [previewVisible, setPreviewVisible] = useState(false);
-  const [previewImage, setPreviewImage] = useState("");
 
   // EV-specific data
   const evBrands = categoryId === 1 && evData ? Object.keys(evData) : [];
   const evModels = categoryId === 1 && brand ? Object.keys(evData[brand] || {}) : [];
   const evVersions = categoryId === 1 && brand && model ? evData[brand][model] || [] : [];
 
-  // License plate validation
   const validateLicensePlate = (_, value) => {
     if (!value) return Promise.resolve();
     const regex = /^\d{2}[A-Z]{1,2}-\d{3,4}(\.\d{2})?$/;
@@ -42,26 +38,10 @@ export default function Step1ItemDetails({ form, onFinish, evData }) {
       : Promise.reject("Biển số xe không hợp lệ (VD: 30A-123.45)");
   };
 
-
-  const handleChange = ({ fileList: newFileList }) => {
-    setFileList(newFileList.slice(-1)); // only allow 1 file
-    const file = newFileList[0]?.originFileObj;
-    if (file) {
-      form.setFieldsValue({ licenseFile: file });
-    }
-  }
-  const handlePreview = async (file) => {
-    if (!file.url && !file.preview) {
-      file.preview = await new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.readAsDataURL(file.originFileObj);
-        reader.onload = () => resolve(reader.result);
-        reader.onerror = (err) => reject(err);
-      });
-    }
-    setPreviewImage(file.url || file.preview);
-    setPreviewVisible(true);
+  const handleLicenseUpload = (url) => {
+    form.setFieldsValue({ licenseUrl: url });
   };
+
   return (
     <Form
       form={form}
@@ -203,36 +183,17 @@ export default function Step1ItemDetails({ form, onFinish, evData }) {
           </Form.Item>
 
           <Form.Item
-            name="licenseFile"
+            name="licenseUrl"
             label="Ảnh giấy đăng ký xe"
             rules={[{ required: true, message: "Vui lòng tải lên ảnh giấy đăng ký xe" }]}
           >
-            <>
-              <Upload
-                accept="image/*"
-                listType="picture-card"
-                fileList={fileList}
-                onChange={handleChange}
-                onPreview={handlePreview}
-                beforeUpload={() => false} // prevent auto-upload
-              >
-                {fileList.length === 0 && (
-                  <div>
-                    <PlusOutlined />
-                    <div style={{ marginTop: 8 }}>Upload</div>
-                  </div>
-                )}
-              </Upload>
-
-              <Modal
-                visible={previewVisible}
-                footer={null}
-                onCancel={() => setPreviewVisible(false)}
-              >
-                <img alt="Preview" style={{ width: "100%" }} src={previewImage} />
-              </Modal>
-            </>
+            <ImageUploadField
+              label="Giấy đăng ký xe"
+              imageUrl={form.getFieldValue("licenseUrl")}
+              onUpload={handleLicenseUpload}
+            />
           </Form.Item>
+
           <Form.Item name="hasAccessories" valuePropName="checked">
             <Checkbox>Có phụ kiện kèm theo</Checkbox>
           </Form.Item>

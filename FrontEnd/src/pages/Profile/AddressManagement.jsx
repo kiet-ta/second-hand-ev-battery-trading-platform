@@ -3,16 +3,12 @@ import "../../assets/styles/AddressManagement.css";
 import addressApi from "../../hooks/services/addressApi";
 import { motion, AnimatePresence } from "framer-motion";
 import axios from "axios";
-import Swal from "sweetalert2";
-import { useNavigate } from "react-router-dom";
-
 
 const GHN_TOKEN = import.meta.env.VITE_GHN_TOKEN;
 
 const AddressManagement = () => {
     const [provinces, setProvinces] = useState([]);
     const [districts, setDistricts] = useState([]);
-    const navigate = useNavigate();
     const [wards, setWards] = useState([]);
 
     const baseURL = import.meta.env.VITE_API_BASE_URL;
@@ -157,20 +153,8 @@ const AddressManagement = () => {
         });
     };
 
-    // ======================= CRUD HANDLERS =======================
+    // ======================= ✏️ CRUD HANDLERS =======================
     const handleAddNew = () => {
-        if (!currentUser?.phone || currentUser.phone === "0000000000") {
-            Swal.fire({
-                icon: "warning",
-                title: "Thiếu số điện thoại!",
-                text: "Bạn cần cập nhật số điện thoại trước khi thêm địa chỉ mới.",
-                confirmButtonText: "Đi đến cập nhật",
-                confirmButtonColor: "#3498DB"
-            }).then(() => {
-                navigate("/profile");
-            });
-            return;
-        }
         setEditingId(null);
         setFormData({
             provinceCode: "",
@@ -246,7 +230,7 @@ const AddressManagement = () => {
         if (window.confirm("Bạn có chắc muốn xóa địa chỉ này?")) {
             try {
                 await addressApi.deleteAddress(id);
-                await loadAddresses(); // reload danh sách sau khi xóa
+                await loadAddresses(); // ✅ reload danh sách sau khi xóa
             } catch (err) {
                 console.error("Lỗi xóa address:", err);
                 alert("Có lỗi khi xóa địa chỉ!");
@@ -266,7 +250,7 @@ const AddressManagement = () => {
             }
             await loadAddresses();
         } catch (err) {
-            console.error(" Lỗi đặt mặc định:", err);
+            console.error("❌ Lỗi đặt mặc định:", err);
         }
     };
 

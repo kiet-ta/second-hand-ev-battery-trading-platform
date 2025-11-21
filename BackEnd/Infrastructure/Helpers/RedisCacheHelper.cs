@@ -75,6 +75,6 @@ namespace Infrastructure.Helpers
             var json = Encoding.UTF8.GetString(outStream.ToArray());
             return json;
         }
-
+        
     }
 }

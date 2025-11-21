@@ -7,18 +7,18 @@ import ItemDetailModal from "../../components/Modals/ItemDetailModal";
 import ReviewModal from "../../components/Modals/ReviewModal";
 
 const TABS = [
-  { key: "All", label: "Tất cả" },
-  { key: "Pending", label: "Chờ xác nhận" },
-  { key: "Paid", label: "Đã thanh toán" },
-  { key: "Shipped", label: "Vận chuyển" },
-  { key: "Completed", label: "Hoàn thành" },
-  { key: "Canceled", label: "Đã hủy" },
+  { key: "all", label: "Tất cả" },
+  { key: "pending", label: "Chờ xác nhận" },
+  { key: "paid", label: "Đã thanh toán" },
+  { key: "shipped", label: "Vận chuyển" },
+  { key: "completed", label: "Hoàn thành" },
+  { key: "canceled", label: "Đã hủy" },
 ];
 
 export default function OrderPage() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("All");
+  const [activeTab, setActiveTab] = useState("all");
   const [search, setSearch] = useState("");
   const [selectedItemId, setSelectedItemId] = useState(null);
   const [itemModalOpen, setItemModalOpen] = useState(false);
@@ -69,7 +69,7 @@ export default function OrderPage() {
 
   // filter & search
   const filtered = orders
-    .filter((o) => (activeTab === "All" ? true : o.status === activeTab))
+    .filter((o) => (activeTab === "all" ? true : o.status === activeTab))
     .filter((order) => {
       if (!search) return true;
       const s = search.toLowerCase();
@@ -81,8 +81,8 @@ export default function OrderPage() {
           it.detail?.evDetail
             ? `${it.detail.evDetail.brand} ${it.detail.evDetail.model}`
             : it.detail?.batteryDetail
-              ? `${it.detail.batteryDetail.brand}`
-              : "";
+            ? `${it.detail.batteryDetail.brand}`
+            : "";
         return (
           title.toLowerCase().includes(s) ||
           brandModel.toLowerCase().includes(s)
@@ -93,6 +93,7 @@ export default function OrderPage() {
   return (
     <div className="min-h-screen bg-[#FAF8F3] py-8 px-4">
       <div className="max-w-6xl mx-auto">
+        <h1 className="text-2xl md:text-3xl font-roboto font-bold mb-6">Đơn hàng của tôi</h1>
 
         {/* Tabs */}
         <div className="flex items-center gap-4 mb-4 overflow-x-auto">
@@ -100,10 +101,11 @@ export default function OrderPage() {
             <button
               key={t.key}
               onClick={() => setActiveTab(t.key)}
-              className={`px-4 py-2 rounded-md text-sm font-medium ${activeTab === t.key
+              className={`px-4 py-2 rounded-md text-sm font-medium ${
+                activeTab === t.key
                   ? "bg-white text-[#D97706] border border-[#D97706]"
                   : "bg-white/60 text-gray-700 hover:bg-white"
-                }`}
+              }`}
             >
               {t.label}
             </button>

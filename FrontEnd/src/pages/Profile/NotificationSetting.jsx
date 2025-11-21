@@ -15,7 +15,7 @@ const mapApiToState = (apiNoti) => ({
   id: apiNoti.id,
   title: apiNoti.title,
   content: apiNoti.message,
-  category: apiNoti.notiType ? apiNoti.notiType.toLowerCase() : "Activities",
+  category: apiNoti.notiType ? apiNoti.notiType.toLowerCase() : "activities",
   type: apiNoti.type || "giao_dich",
   time: formatTimeAgo(apiNoti.createdAt),
   isUnread: !apiNoti.isRead,
@@ -49,7 +49,7 @@ const activityFilterCategories = [
 export default function ProfileNotificationsPage() {
   const userId = localStorage.getItem("userId");
   const [notifications, setNotifications] = useState([]);
-  const [activeTab, setActiveTab] = useState("Activities");
+  const [activeTab, setActiveTab] = useState("activities");
   const [activeFilter, setActiveFilter] = useState("all");
 
   // Pagination state
@@ -90,7 +90,7 @@ export default function ProfileNotificationsPage() {
   const filteredNotifications = useMemo(() => {
     let filtered = notifications.filter(n => n.category === activeTab);
 
-    if (activeTab === "Activities") {
+    if (activeTab === "activities") {
       if (activeFilter === "unread") filtered = filtered.filter(n => n.isUnread);
       else if (activeFilter !== "all") filtered = filtered.filter(n => n.type === activeFilter);
     }
@@ -125,7 +125,7 @@ export default function ProfileNotificationsPage() {
 
       {/* Tabs */}
       <div className="flex border-b border-gray-300 mb-3">
-        {["Activities", "News"].map(tab => (
+        {["activities", "news"].map(tab => (
           <button
             key={tab}
             onClick={() => {
@@ -139,13 +139,13 @@ export default function ProfileNotificationsPage() {
                 : "text-gray-500 hover:text-gray-700"
             }`}
           >
-            {tab === "Activities" ? "Hoạt Động" : "Tin Tức"}
+            {tab === "activities" ? "Hoạt Động" : "Tin Tức"}
           </button>
         ))}
       </div>
 
       {/* Filters */}
-      {activeTab === "Activities" && (
+      {activeTab === "activities" && (
         <div className="flex items-center flex-wrap gap-2 mb-4">
           <Filter className="w-4 h-4 text-gray-500" />
           {activityFilterCategories.map(([id, label]) => (
@@ -171,7 +171,7 @@ export default function ProfileNotificationsPage() {
       <div className="space-y-3">
         {paginatedNotifications.length === 0 ? (
           <p className="text-center text-gray-500 py-4">
-            {activeTab === "Activities"
+            {activeTab === "activities"
               ? "Không có hoạt động nào."
               : "Không có tin tức nào."}
           </p>

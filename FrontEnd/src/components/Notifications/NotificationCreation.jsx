@@ -4,9 +4,9 @@ import { Send, CheckCircle, AlertTriangle } from "lucide-react";
 
 export default function NotificationCreator() {
     const [formData, setFormData] = useState({
-        notiType: "Activities", // Maps to NotiType
+        notiType: "activities", // Maps to NotiType
         senderId: 1, // Maps to SenderId
-        senderRole: "Manager", // Maps to SenderRole
+        senderRole: "manager", // Maps to SenderRole
         targetUserId: "user-123", // 🎯 Maps to TargetUserId (Required for targeting)
         title: "", // Maps to Title
         message: "", // Maps to Message
@@ -40,6 +40,8 @@ export default function NotificationCreator() {
 
         const apiPayload = {
             notiType: formData.notiType,
+            senderId: parseInt(formData.senderId),
+            senderRole: formData.senderRole,
             title: formData.title,
             message: formData.message,
             targetUserId: formData.targetUserId // 🎯 Send the required field
@@ -102,8 +104,8 @@ export default function NotificationCreator() {
                         onChange={handleChange}
                         className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                     >
-                        <option value="Activities">activities (Hoạt Động)</option>
-                        <option value="News">news (Tin Tức)</option>
+                        <option value="activities">activities (Hoạt Động)</option>
+                        <option value="news">news (Tin Tức)</option>
                     </select>
                 </div>
 

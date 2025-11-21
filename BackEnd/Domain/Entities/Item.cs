@@ -19,7 +19,7 @@ public class Item
 
     public int Quantity { get; set; }
 
-    public string Status { get; set; }
+    public string? Status { get; set; }
 
     public DateTime CreatedAt { get; set; }
 

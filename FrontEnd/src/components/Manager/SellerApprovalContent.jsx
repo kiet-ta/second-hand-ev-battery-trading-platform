@@ -24,10 +24,10 @@ const KycDocumentCard = ({ document, onApprove, onReject }) => {
       <p>
         <b>Trạng thái:</b> 
         <Tag color={
-          document.status === "Pending" ? "orange" : 
-          document.status === "Approved" ? "green" : "red"
+          document.status === "pending" ? "orange" : 
+          document.status === "approved" ? "green" : "red"
         }>
-          {document.status === "Pending" ? "Chờ duyệt" : document.status === "Approved" ? "Đã duyệt" : "Từ chối"}
+          {document.status === "pending" ? "Chờ duyệt" : document.status === "approved" ? "Đã duyệt" : "Từ chối"}
         </Tag>
       </p>
       <textarea
@@ -51,7 +51,7 @@ export default function SellerApprovalContent() {
   const [searchQuery, setSearchQuery] = useState("");
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedSeller, setSelectedSeller] = useState(null);
-  const [kycTab, setKycTab] = useState("Pending");
+  const [kycTab, setKycTab] = useState("pending");
   const [kycDocs, setKycDocs] = useState([]);
   const [kycLoading, setKycLoading] = useState(false);
 
@@ -95,9 +95,9 @@ export default function SellerApprovalContent() {
     setKycLoading(true);
     try {
       let response;
-      if (kycTab === "Pending") response = await kycApi.getPendingKYC(userId);
-      if (kycTab === "Approved") response = await kycApi.getApprovedKYC(userId);
-      if (kycTab === "Rejected") response = await kycApi.getRejectedKYC(userId);
+      if (kycTab === "pending") response = await kycApi.getPendingKYC(userId);
+      if (kycTab === "approved") response = await kycApi.getApprovedKYC(userId);
+      if (kycTab === "rejected") response = await kycApi.getRejectedKYC(userId);
       setKycDocs(response || []);
     } catch (err) {
       console.error("Lỗi khi tải KYC:", err);
@@ -211,13 +211,13 @@ export default function SellerApprovalContent() {
         width={800}
       >
         <div className="mb-4 flex gap-3">
-          {["Pending","Approved","rejected"].map(tab => (
+          {["pending","approved","rejected"].map(tab => (
             <Button
               key={tab}
               type={kycTab===tab ? "primary":"default"}
               onClick={() => { setKycTab(tab); fetchKycDocuments(selectedSeller.userId); }}
             >
-              {tab === "Pending" ? "Chờ duyệt" : tab === "Approved" ? "Đã duyệt" : "Từ chối"}
+              {tab === "pending" ? "Chờ duyệt" : tab === "approved" ? "Đã duyệt" : "Từ chối"}
             </Button>
           ))}
         </div>

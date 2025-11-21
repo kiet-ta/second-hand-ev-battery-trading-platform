@@ -1,9 +1,7 @@
 ﻿using Application.DTOs;
 using Application.IServices;
-using Domain.Common.Constants;
 using Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace PresentationLayer.Controllers
@@ -14,12 +12,10 @@ namespace PresentationLayer.Controllers
     public class ComplaintsController : ControllerBase
     {
         private readonly IComplaintService _complaintService;
-        private readonly IMailService _mailService;
 
-        public ComplaintsController(IComplaintService complaintService, IMailService mailService)
+        public ComplaintsController(IComplaintService complaintService)
         {
             _complaintService = complaintService;
-            _mailService = mailService;
         }
 
         private int GetCurrentUserId()
@@ -100,43 +96,6 @@ namespace PresentationLayer.Controllers
                 newStatus = status,
                 assignedTo = userId
             });
-        }
-        [HttpPost("resolve")]
-        public async Task<IActionResult> ResolveComlaint([FromBody] CreateResponseMailDto dto)
-        {
-            var userIdClaim = User.FindFirst("user_id")?.Value;
-            if (userIdClaim == null)
-                return Unauthorized("User ID not found in token.");
-
-            int userId = int.Parse(userIdClaim);
-
-
-            var staffName = User.FindFirst(ClaimTypes.Name)?.Value;
-            var staffRole = User.FindFirst(ClaimTypes.Role)?.Value;
-
-            if (string.IsNullOrWhiteSpace(staffName))
-                return BadRequest("Staff name not found in token.");
-            if (string.IsNullOrWhiteSpace(staffRole))
-                return BadRequest("Staff role not found in token.");
-
-            if (dto == null)
-                return BadRequest("Request body cannot be null.");
-            bool mailSent = await _mailService.SendResponseComplaintMailAsync(dto, staffName, staffRole);
-
-            if (mailSent)
-            {
-                await _complaintService.UpdateStatusComplaint(dto.complaintId, ComplaintStatus.Resolved.ToString(), userId);
-                return Ok(new
-                {
-                    complaintId = dto.complaintId,
-                    newStatus = ComplaintStatus.Resolved.ToString(),
-                    assignedTo = userId
-                });
-            }
-            else
-            {
-                return StatusCode(500, "Failed to send response email.");
-            }
         }
 
 

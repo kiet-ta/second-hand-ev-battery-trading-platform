@@ -41,12 +41,12 @@ const PermissionChecker = ({ permissionId, children }) => {
       }
 
       // Managers bypass all permission checks
-      if (decoded.role === "Manager") {
+      if (decoded.role === "manager") {
         originalOnClick?.();
         return;
       }
 
-      if (decoded.role !== "Staff") {
+      if (decoded.role !== "staff") {
         setNoPermissionInfo({
           permissionName: `ID ${permissionId}`,
           description: "Bạn không phải nhân viên",

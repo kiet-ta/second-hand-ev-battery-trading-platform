@@ -1,51 +1,35 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
-import { Spin, Tag, Select } from "antd";
+import { Spin, Tag } from "antd";
 import { Send, AlertCircle, Clock, Search } from "lucide-react";
-import { toast, ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
-
 
 export default function ComplaintPage() {
-  // Danh sách lý do cố định
-  const complaintReasons = [
-    { reason: "Lỗi thanh toán", level: "High" },
-    { reason: "Giao hàng chậm", level: "Medium" },
-    { reason: "Không nhận được hàng", level: "High" },
-    { reason: "Sản phẩm không đúng mô tả", level: "High" },
-    { reason: "Nhân viên hỗ trợ chậm", level: "Low" },
-    { reason: "Lỗi hiển thị", level: "Low" },
-    { reason: "Lỗi reset mật khẩu", level: "Medium" },
-    { reason: "Lỗi đăng ký", level: "High" },
-    { reason: "Khác", level: "Medium" },
-  ];
-
   const [form, setForm] = useState({
     reason: "",
     description: "",
-    severityLevel: "Low",
+    severityLevel: "low",
   });
-
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [complaints, setComplaints] = useState([]);
   const [fetching, setFetching] = useState(true);
-  const [customReason, setCustomReason] = useState("");
 
   const baseURL = import.meta.env.VITE_API_BASE_URL;
   const userId = localStorage.getItem("userId");
   const token = localStorage.getItem("token");
 
-  // Validation
+  // Validation logic
   const validateForm = useCallback(() => {
     const newErrors = {};
-    if (!form.reason) newErrors.reason = "Vui lòng chọn lý do khiếu nại.";
+    if (!form.reason.trim()) newErrors.reason = "Vui lòng nhập lý do khiếu nại.";
     if (!form.description.trim())
       newErrors.description = "Vui lòng mô tả chi tiết vấn đề.";
+    if (!["low", "medium", "high"].includes(form.severityLevel))
+      newErrors.severityLevel = "Mức độ không hợp lệ.";
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   }, [form]);
 
-  // Fetch complaints
+  // Fetch complaints (memoized)
   const fetchComplaints = useCallback(async () => {
     try {
       const res = await fetch(`${baseURL}complaints/me?userId=${userId}`, {
@@ -64,14 +48,9 @@ export default function ComplaintPage() {
     fetchComplaints();
   }, [fetchComplaints]);
 
-  // Submit complaint
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!validateForm()) {
-      toast.warning("Vui lòng nhập đầy đủ thông tin trước khi gửi.");
-      return;
-    }
-
+    if (!validateForm()) return;
 
     setLoading(true);
     try {
@@ -83,37 +62,31 @@ export default function ComplaintPage() {
         },
         body: JSON.stringify({
           userId: Number(userId),
-          reason: form.reason || customReason,
+          reason: form.reason.trim(),
           description: form.description.trim(),
-          status: "Pending",
+          status: "pending",
           severityLevel: form.severityLevel,
           isDeleted: false,
         }),
       });
 
       if (res.ok) {
-        setForm({ reason: "", description: "", severityLevel: "Low" });
+        setForm({ reason: "", description: "", severityLevel: "low" });
         fetchComplaints();
-        toast.success(" Gửi khiếu nại thành công!");
-      } else {
-        toast.error(" Gửi thất bại, thử lại sau!");
       }
-    } catch (error) {
-      toast.error(" Lỗi hệ thống, thử lại sau!");
     } finally {
       setLoading(false);
     }
   };
 
-  // Render trạng thái
   const statusTag = useMemo(
     () => (status) => {
       switch (status) {
-        case "Pending":
+        case "pending":
           return <Tag color="gold">Đang chờ</Tag>;
-        case "In_Review":
+        case "in_review":
           return <Tag color="blue">Đang xem xét</Tag>;
-        case "Resolved":
+        case "resolved":
           return <Tag color="green">Đã xử lý</Tag>;
         default:
           return <Tag>Không xác định</Tag>;
@@ -124,7 +97,6 @@ export default function ComplaintPage() {
 
   return (
     <main className="min-h-[80vh] bg-[#FAF9F6] py-12 px-4 flex flex-col items-center">
-      {/* FORM */}
       <div className="max-w-2xl w-full bg-white shadow-md border border-[#E5E4E2] rounded-2xl p-8 mb-12">
         <h1 className="text-3xl font-semibold text-[#4B3F2F] mb-8 flex items-center gap-2">
           <AlertCircle className="text-[#D4A017]" />
@@ -132,55 +104,27 @@ export default function ComplaintPage() {
         </h1>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Lý do */}
+          {/* Reason */}
           <div>
             <label className="block text-sm font-medium text-[#4B3F2F] mb-2">
               Lý do khiếu nại
             </label>
-            <Select
+            <input
+              type="text"
+              name="reason"
               value={form.reason}
-              placeholder="Chọn lý do khiếu nại"
-              className="w-full"
-              onChange={(value) => {
-                const selected = complaintReasons.find((r) => r.reason === value);
-
-                if (value === "Khác") {
-                  setForm({
-                    ...form,
-                    reason: "Khác",
-                    severityLevel: "Medium",
-                  });
-                } else {
-                  setForm({
-                    ...form,
-                    reason: value,
-                    severityLevel: selected?.level || "Low",
-                  });
-                  setCustomReason("");
-                }
-              }}
-              options={complaintReasons.map((r) => ({
-                value: r.reason,
-                label: r.reason,
-              }))}
+              onChange={(e) => setForm({ ...form, reason: e.target.value })}
+              placeholder="Ví dụ: Lỗi thanh toán, giao hàng trễ..."
+              className={`w-full border rounded-lg p-3 bg-[#FCFCFA] focus:ring-2 focus:ring-[#D4A017] ${
+                errors.reason ? "border-red-400" : "border-[#E0DFDB]"
+              }`}
             />
-            {form.reason === "Khác" && (
-              <input
-                type="text"
-                placeholder="Nhập lý do khác..."
-                value={customReason}
-                onChange={(e) => setCustomReason(e.target.value)}
-                className="mt-3 w-full border rounded-lg p-3 bg-[#FCFCFA] focus:ring-2 focus:ring-[#D4A017]"
-              />
-            )}
             {errors.reason && (
               <p className="text-red-500 text-sm mt-1">{errors.reason}</p>
             )}
           </div>
 
-
-
-          {/* Mô tả */}
+          {/* Description */}
           <div>
             <label className="block text-sm font-medium text-[#4B3F2F] mb-2">
               Mô tả chi tiết
@@ -193,12 +137,37 @@ export default function ComplaintPage() {
               }
               rows={4}
               placeholder="Hãy mô tả chi tiết vấn đề bạn gặp phải..."
-              className={`w-full border rounded-lg p-3 bg-[#FCFCFA] resize-none focus:ring-2 focus:ring-[#D4A017] ${errors.description ? "border-red-400" : "border-[#E0DFDB]"
-                }`}
+              className={`w-full border rounded-lg p-3 bg-[#FCFCFA] resize-none focus:ring-2 focus:ring-[#D4A017] ${
+                errors.description ? "border-red-400" : "border-[#E0DFDB]"
+              }`}
             />
             {errors.description && (
+              <p className="text-red-500 text-sm mt-1">{errors.description}</p>
+            )}
+          </div>
+
+          {/* Severity */}
+          <div>
+            <label className="block text-sm font-medium text-[#4B3F2F] mb-2">
+              Mức độ nghiêm trọng
+            </label>
+            <select
+              name="severityLevel"
+              value={form.severityLevel}
+              onChange={(e) =>
+                setForm({ ...form, severityLevel: e.target.value })
+              }
+              className={`w-full border rounded-lg p-3 bg-[#FCFCFA] focus:ring-2 focus:ring-[#D4A017] ${
+                errors.severityLevel ? "border-red-400" : "border-[#E0DFDB]"
+              }`}
+            >
+              <option value="low">Thấp</option>
+              <option value="medium">Trung bình</option>
+              <option value="high">Cao</option>
+            </select>
+            {errors.severityLevel && (
               <p className="text-red-500 text-sm mt-1">
-                {errors.description}
+                {errors.severityLevel}
               </p>
             )}
           </div>
@@ -214,7 +183,7 @@ export default function ComplaintPage() {
         </form>
       </div>
 
-      {/* LIST HISTORY */}
+      {/* Complaint list */}
       <div className="max-w-5xl w-full bg-white shadow-sm border border-[#E5E4E2] rounded-2xl p-6">
         <h2 className="text-2xl font-semibold mb-6 flex items-center gap-2 text-[#4B3F2F]">
           <Clock className="text-[#D4A017]" />
@@ -226,8 +195,9 @@ export default function ComplaintPage() {
             <Spin tip="Đang tải dữ liệu..." />
           </div>
         ) : complaints.length === 0 ? (
-          <p className="text-center text-slate-500 py-6 flex items-center justify-center gap-2">
-            <Search className="w-5 h-5" /> Bạn chưa gửi khiếu nại nào.
+          <p className="text-center text-slate-500 py-6">
+            <Search className="inline w-5 h-5 mr-1" />
+            Bạn chưa gửi khiếu nại nào.
           </p>
         ) : (
           <div className="overflow-x-auto">
@@ -246,13 +216,7 @@ export default function ComplaintPage() {
                   <tr key={c.complaintId} className="hover:bg-[#FAFAF8]">
                     <td className="py-3 px-4 border-b text-slate-700">{i + 1}</td>
                     <td className="py-3 px-4 border-b">{c.reason}</td>
-                    <td className="py-3 px-4 border-b">
-                      {c.severityLevel === "Low"
-                        ? "Thấp"
-                        : c.severityLevel === "Medium"
-                          ? "Trung bình"
-                          : "Cao"}
-                    </td>
+                    <td className="py-3 px-4 border-b capitalize">{c.severityLevel}</td>
                     <td className="py-3 px-4 border-b">{statusTag(c.status)}</td>
                     <td className="py-3 px-4 border-b text-slate-500">
                       {new Date(c.createdAt).toLocaleDateString("vi-VN")}
@@ -264,7 +228,6 @@ export default function ComplaintPage() {
           </div>
         )}
       </div>
-      <ToastContainer position="top-right" autoClose={2500} />
     </main>
   );
 }

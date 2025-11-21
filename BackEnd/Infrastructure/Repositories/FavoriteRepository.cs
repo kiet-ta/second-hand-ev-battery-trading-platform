@@ -2,7 +2,6 @@
 using Application.DTOs.ItemDtos;
 using Application.DTOs.ItemDtos.BatteryDto;
 using Application.IRepositories;
-using Domain.Common.Constants;
 using Domain.Entities;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -54,7 +53,7 @@ namespace Infrastructure.Repositories
 
             foreach (var fav in favorites)
             {
-                if (fav.ItemType == ItemType.Ev.ToString())
+                if (fav.ItemType == "ev")
                 {
                     var detail = await _context.EVDetails
                         .Where(d => d.ItemId == fav.ItemId)
@@ -77,7 +76,7 @@ namespace Infrastructure.Repositories
 
                     fav.ItemDetail = detail;
                 }
-                else if (fav.ItemType == ItemType.Battery.ToString())
+                else if (fav.ItemType == "battery")
                 {
                     var detail = await _context.BatteryDetails
                         .Where(d => d.ItemId == fav.ItemId)
@@ -85,7 +84,6 @@ namespace Infrastructure.Repositories
                         {
                             Brand = d.Brand,
                             Capacity = d.Capacity,
-                            Condition = d.Condition,
                             Voltage = d.Voltage,
                             ChargeCycles = d.ChargeCycles
                         })

@@ -14,20 +14,23 @@ namespace Application.Services
 {
     public class ItemImageService : IItemImageService
     {
-        private readonly IUnitOfWork _unitOfWork;
+        private readonly IItemRepository _itemRepository;
+        private readonly IItemImageRepository _imageRepository;
         private readonly Cloudinary _cloudinary;
 
         public ItemImageService(
-           
-            Cloudinary cloudinary, IUnitOfWork unitOfWork)
+            IItemRepository itemRepository,
+            IItemImageRepository imageRepository,
+            Cloudinary cloudinary)
         {
+            _itemRepository = itemRepository;
+            _imageRepository = imageRepository;
             _cloudinary = cloudinary;
-            _unitOfWork = unitOfWork;
         }
 
         public async Task<IEnumerable<string>> UploadItemImagesAsync(int itemId, List<IFormFile> files)
         {
-            var item = await _unitOfWork.Items.GetByItemIdAsync(itemId);
+            var item = await _itemRepository.GetByItemIdAsync(itemId);
             if (item == null)
                 throw new Exception($"Item not found with ID = {itemId}");
 
@@ -56,11 +59,11 @@ namespace Application.Services
                     ItemId = itemId,
                     ImageUrl = url
                 };
-                await _unitOfWork.Items.AddImageAsync(entity);
+                await _itemRepository.AddImageAsync(entity);
                 uploadedUrls.Add(url);
             }
 
-            await _unitOfWork.Items.SaveChangesAsync();
+            await _itemRepository.SaveChangesAsync();
             return uploadedUrls;
         }
     }

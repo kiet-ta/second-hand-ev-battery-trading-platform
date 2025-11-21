@@ -142,9 +142,9 @@ export function ChatRoom({ currentUserId, initialRoomId }) {
 
       try {
         await notificationApi.createNotification({
-          notiType: "Activities",
+          notiType: "activities",
           senderId: loggedInUserId,
-          senderRole: "Manager",
+          senderRole: "manager",
           title: "💬 Tin nhắn mới",
           message: `Bạn có tin nhắn: "${message.slice(0, 50)}${
             message.length > 50 ? "..." : ""
@@ -230,8 +230,8 @@ Created At: ${msg.createdAt || new Date().toISOString()}
       await complaintApi.postComplaint({
         reason: "Inappropriate content",
         description,
-        status: "Pending",
-        severityLevel: "Medium",
+        status: "pending",
+        severityLevel: "medium",
         isDeleted: false,
       });
       showToast("Đã gửi báo cáo!", "success");
@@ -357,7 +357,7 @@ Created At: ${msg.createdAt || new Date().toISOString()}
                 let itemData = null;
                 try {
                   const parsed = JSON.parse(msg.text);
-                  if (parsed.type === "Ev") itemData = parsed;
+                  if (parsed.type === "ev") itemData = parsed;
                 } catch {}
 
                 if (itemData) {

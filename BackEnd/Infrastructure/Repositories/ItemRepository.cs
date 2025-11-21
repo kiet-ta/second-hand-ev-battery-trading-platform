@@ -2,7 +2,6 @@
 using Application.DTOs.ItemDtos.BatteryDto;
 using Application.DTOs.UserDtos;
 using Application.IRepositories;
-using Domain.Common.Constants;
 using Domain.Entities;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -75,7 +74,7 @@ namespace Infrastructure.Repositories
                         join u in _context.Users
                             on i.UpdatedBy equals u.UserId into gj
                         from user in gj.DefaultIfEmpty()
-                        where i.IsDeleted == false && i.Status == ItemStatus.Active.ToString()
+                        where i.IsDeleted == false && i.Status == "active"
                         select new ItemDto
                         {
                             ItemId = i.ItemId,
@@ -96,11 +95,11 @@ namespace Infrastructure.Repositories
                                 {
                                     ImageId = img.ImageId,
                                     ImageUrl = img.ImageUrl
-                                }).ToList(),
+                                }).ToList()
                         };
 
             // Filter by itemType
-            if (!string.IsNullOrWhiteSpace(itemType) && itemType.ToLower() != "all") //?????
+            if (!string.IsNullOrWhiteSpace(itemType) && itemType.ToLower() != "all")
             {
                 query = query.Where(i => i.ItemType == itemType.Trim().ToLower());
             }
@@ -164,7 +163,7 @@ namespace Infrastructure.Repositories
                         })
                         .FirstOrDefaultAsync();
                 }
-                else if (item.ItemType == ItemType.Battery.ToString())
+                else if (item.ItemType == "battery")
                 {
                     var detail = await _context.BatteryDetails
                         .Where(d => d.ItemId == item.ItemId)
@@ -172,7 +171,6 @@ namespace Infrastructure.Repositories
                         {
                             Brand = d.Brand,
                             Capacity = d.Capacity,
-                            Condition = d.Condition,
                             Voltage = d.Voltage,
                             ChargeCycles = d.ChargeCycles
                         })
@@ -197,6 +195,9 @@ namespace Infrastructure.Repositories
 
         public void Delete(Item item)
         {
+            // I fixed here because Update() will mark the whole entity as Modified → if the service only has IsDeleted = true set then it's OK, but if the entity is being tracked, it might override other fields.
+            //item.IsDeleted = true;
+            //_context.Items.Update(item); // soft delete
 
             item.IsDeleted = true;
             _context.Entry(item).Property(x => x.IsDeleted).IsModified = true;
@@ -222,7 +223,7 @@ namespace Infrastructure.Repositories
         public async Task<IEnumerable<Item>> GetLatestEVsAsync(int count)
         {
             return await _context.Items
-                .Where(x => x.ItemType == ItemType.Ev.ToString() && !(x.IsDeleted == true) && x.Status == ItemStatus.Active.ToString())
+                .Where(x => x.ItemType == "ev" && !(x.IsDeleted == true) && x.Status == "active")
                 .OrderByDescending(x => x.CreatedAt)
                 .Take(count)
                 .ToListAsync();
@@ -231,7 +232,7 @@ namespace Infrastructure.Repositories
         public async Task<IEnumerable<Item>> GetLatestBatteriesAsync(int count)
         {
             return await _context.Items
-                .Where(x => x.ItemType == ItemType.Battery.ToString() && !(x.IsDeleted == true) && x.Status == ItemStatus.Active.ToString())
+                .Where(x => x.ItemType == "battery" && !(x.IsDeleted == true) && x.Status == "active")
                 .OrderByDescending(x => x.CreatedAt)
                 .Take(count)
                 .ToListAsync();
@@ -260,7 +261,6 @@ namespace Infrastructure.Repositories
                             Price = i.Price,
                             Moderation = i.Moderation,
                             Quantity = i.Quantity,
-                            Status = i.Status,
                             CreatedAt = i.CreatedAt,
                             UpdatedAt = i.UpdatedAt,
                             UpdatedBy = i.UpdatedBy,
@@ -301,7 +301,6 @@ namespace Infrastructure.Repositories
                             Price = i.Price,
                             Quantity = i.Quantity,
                             Moderation = i.Moderation,
-                            Status = i.Status,
                             CreatedAt = i.CreatedAt,
                             UpdatedAt = i.UpdatedAt,
                             UpdatedBy = i.UpdatedBy,
@@ -324,7 +323,7 @@ namespace Infrastructure.Repositories
             var baseQuery = from payment in _context.Payments
                             join pd in _context.PaymentDetails on payment.PaymentId equals pd.PaymentId
                             join item in _context.Items on pd.ItemId equals item.ItemId
-                            where payment.UserId == userId && payment.Status == PaymentStatus.Completed.ToString()
+                            where payment.UserId == userId && payment.Status == "completed"
                             // Left Join EV_Detail
                             join ev in _context.EVDetails on item.ItemId equals ev.ItemId into evJoin
                             from ev in evJoin.DefaultIfEmpty()
@@ -358,7 +357,6 @@ namespace Infrastructure.Repositories
                     Color = x.ev.Color,
                     Mileage = x.ev.Mileage,
                     Capacity = x.bat.Capacity,
-                    Condition = x.bat.Condition,
                     Voltage = x.bat.Voltage,
                     ChargeCycles = x.bat.ChargeCycles,
                     ItemAmount = x.pd.Amount,
@@ -402,7 +400,7 @@ namespace Infrastructure.Repositories
                             join oi in _context.OrderItems on pd.OrderId equals oi.OrderId
                             join o in _context.Orders on oi.OrderId equals o.OrderId
                             join item in _context.Items on pd.ItemId equals item.ItemId
-                            where payment.UserId == userId && payment.Status == PaymentStatus.Completed.ToString() && o.Status == OrderStatus.Completed.ToString()
+                            where payment.UserId == userId && payment.Status == "completed" && o.Status == "completed"
                             // Left Join EV_Detail
                             join ev in _context.EVDetails on item.ItemId equals ev.ItemId into evJoin
                             from ev in evJoin.DefaultIfEmpty()
@@ -436,7 +434,6 @@ namespace Infrastructure.Repositories
                     Color = x.ev.Color,
                     Mileage = x.ev.Mileage,
                     Capacity = x.bat.Capacity,
-                    Condition = x.bat.Condition,
                     Voltage = x.bat.Voltage,
                     ChargeCycles = x.bat.ChargeCycles,
                     ItemAmount = x.pd.Amount,
@@ -494,7 +491,7 @@ namespace Infrastructure.Repositories
                                     where
                                         i.UpdatedBy == sellerId &&
                                         //o.Status == "completed" //&& 
-                                        p.Status == PaymentStatus.Completed.ToString()
+                                        p.Status == "completed"
                                     select pd.PaymentDetailId;
 
             var totalProductLinesSold = await productLinesQuery.CountAsync();
@@ -525,7 +522,7 @@ namespace Infrastructure.Repositories
             return await _context.Items
                 .Where(i => i.UpdatedBy == sellerId
                             && !i.IsDeleted
-                            && i.Status == ItemStatus.Active.ToString())
+                            && i.Status == "active")
                 .AsNoTracking()
                 .ToListAsync();
         }
@@ -535,7 +532,7 @@ namespace Infrastructure.Repositories
             return await _context.Items
                 .CountAsync(i => i.UpdatedBy == sellerId
                                  && !i.IsDeleted
-                                 && i.Status == ItemStatus.Active.ToString());
+                                 && i.Status == "active");
         }
 
         public async Task<IEnumerable<ItemSellerDto>> GetItemsBySellerIdAsync(int sellerId)
@@ -560,8 +557,7 @@ namespace Infrastructure.Repositories
                             {
                                 ImageId = img.ImageId,
                                 ImageUrl = img.ImageUrl
-                            }).ToList(),
-                            Moderation = i.Moderation
+                            }).ToList()
                         };
 
             return await query.ToListAsync();
@@ -570,7 +566,7 @@ namespace Infrastructure.Repositories
         public async Task<int> CountActiveAsync()
         {
             return await _context.Items
-                .CountAsync(i => i.Status == ItemStatus.Active.ToString() && i.IsDeleted == false);
+                .CountAsync(i => i.Status == "active" && i.IsDeleted == false);
         }
 
         public async Task<IEnumerable<(string ItemType, int Count)>> GetItemTypeCountsAsync()
@@ -611,7 +607,6 @@ namespace Infrastructure.Repositories
                         Description = i.Description,
                         Price = i.Price,
                         Quantity = i.Quantity,
-                        Status = i.Status,
                         CreatedAt = i.CreatedAt,
                         UpdatedAt = i.UpdatedAt,
                         UpdatedBy = i.UpdatedBy,
@@ -653,7 +648,6 @@ namespace Infrastructure.Repositories
                                          ItemId = b.ItemId,
                                          Brand = b.Brand,
                                          Capacity = b.Capacity,
-                                         Condition = b.Condition,
                                          Voltage = b.Voltage,
                                          ChargeCycles = b.ChargeCycles,
                                          UpdatedAt = b.UpdatedAt,
@@ -723,7 +717,6 @@ namespace Infrastructure.Repositories
                                          ItemId = b.ItemId,
                                          Brand = b.Brand,
                                          Capacity = b.Capacity,
-                                         Condition = b.Condition,
                                          Voltage = b.Voltage,
                                          ChargeCycles = b.ChargeCycles,
                                          UpdatedAt = b.UpdatedAt,
@@ -780,9 +773,6 @@ namespace Infrastructure.Repositories
 
             if (request.Capacity.HasValue)
                 query = query.Where(b => b.Capacity == request.Capacity);
-
-            if (!string.IsNullOrEmpty(request.Condition))
-                query = query.Where(b => b.Condition == request.Condition);
 
             if (request.Voltage.HasValue)
                 query = query.Where(b => b.Voltage == request.Voltage);

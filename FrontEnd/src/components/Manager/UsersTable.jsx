@@ -50,20 +50,20 @@ const UsersTable = ({ users = [], onView, onEdit, onDelete }) => {
                             {/* Vai trò */}
                             <td>
                                 <span
-                                    className={`role-badge ${user.role === "Seller" ? "Seller" : "Buyer"
+                                    className={`role-badge ${user.role === "seller" ? "seller" : "buyer"
                                         }`}
                                 >
-                                    {user.role === "Seller" ? " Người bán" : " Người mua"}
+                                    {user.role === "seller" ? " Người bán" : " Người mua"}
                                 </span>
                             </td>
 
                             {/* Trạng thái */}
                             <td>
                                 <span
-                                    className={`status-badge ${user.status === "Active" ? "Active" : "inactive"
+                                    className={`status-badge ${user.status === "active" ? "active" : "inactive"
                                         }`}
                                 >
-                                    {user.status === "Active" ? " Hoạt động" : " Không hoạt động"}
+                                    {user.status === "active" ? " Hoạt động" : " Không hoạt động"}
                                 </span>
                             </td>
 

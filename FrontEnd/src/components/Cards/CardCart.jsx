@@ -1,8 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { MinusIcon, PlusIcon, Trash2 } from 'lucide-react';
-import PropTypes from "prop-types";
-
 
 function CardCart({
   id,
@@ -124,27 +122,5 @@ function CardCart({
     </div>
   );
 }
-
-CardCart.propTypes = {
-  id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
-  images: PropTypes.arrayOf(
-    PropTypes.shape({
-      imageUrl: PropTypes.string,
-    })
-  ),
-  itemType: PropTypes.oneOf(["ev", "battery"]).isRequired,
-  title: PropTypes.string.isRequired,
-  price: PropTypes.number,
-  quantity: PropTypes.number.isRequired,
-  stock: PropTypes.number.isRequired,
-
-  onQuantityChange: PropTypes.func.isRequired,
-  onRemove: PropTypes.func.isRequired,
-  onSelect: PropTypes.func.isRequired,
-  isSelected: PropTypes.bool.isRequired,
-
-  formatVND: PropTypes.func.isRequired,
-};
-
 
 export default CardCart;

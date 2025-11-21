@@ -64,7 +64,7 @@ export default function ItemDetailModal({ itemId, open, onClose }) {
               {item.title}
             </Descriptions.Item>
             <Descriptions.Item label="Loại">
-              {item.itemType === "Ev" ? (
+              {item.itemType === "ev" ? (
                 <Tag color="blue">Xe điện</Tag>
               ) : (
                 <Tag color="green">Pin</Tag>
@@ -77,7 +77,7 @@ export default function ItemDetailModal({ itemId, open, onClose }) {
             </Descriptions.Item>
             <Descriptions.Item label="Số lượng">{item.quantity}</Descriptions.Item>
             <Descriptions.Item label="Trạng thái kiểm duyệt">
-              {item.moderation === "Approved" ? (
+              {item.moderation === "approved_tag" ? (
                 <Tag color="green">Đã duyệt</Tag>
               ) : (
                 <Tag color="red">Bị từ chối</Tag>

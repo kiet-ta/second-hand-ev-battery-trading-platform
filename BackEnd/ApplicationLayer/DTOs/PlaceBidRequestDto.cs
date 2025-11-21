@@ -2,7 +2,7 @@
 {
     public class PlaceBidRequestDto
     {
-        //public int UserId { get; set; }
+        public int UserId { get; set; }
         public decimal BidAmount { get; set; }
     }
 }

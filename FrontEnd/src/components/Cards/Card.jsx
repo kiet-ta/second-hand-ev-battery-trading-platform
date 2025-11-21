@@ -3,6 +3,8 @@ import { Link, useNavigate } from "react-router-dom";
 import Slider from "react-slick";
 import {
     FiHeart,
+    FiZap,
+    FiShoppingCart,
     FiArrowRight,
     FiBarChart2,
 } from "react-icons/fi";
@@ -14,14 +16,12 @@ import {
     getCompareList,
     removeFromCompare,
 } from "../../utils/compareUtils";
-import PropTypes from "prop-types";
 
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import ChatWithSellerButton from "../Buttons/ChatWithSellerButton";
-import itemApi from "../../api/itemApi";
 
-// Badge xác minh
+// ✅ Badge xác minh
 const VerifiedCheck = ({ className = "" }) => (
     <div
         className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 ${className}`}
@@ -40,10 +40,6 @@ const VerifiedCheck = ({ className = "" }) => (
         Đã Duyệt
     </div>
 );
-
-VerifiedCheck.propTypes = {
-    className: PropTypes.string,
-};
 
 function CardComponent({
     id,
@@ -81,18 +77,15 @@ function CardComponent({
 
     useEffect(() => {
         const sync = () => setIsCompared(getCompareList().some((x) => x.itemId === id));
-
-        globalThis.addEventListener("compare:added", sync);
-        globalThis.addEventListener("compare:removed", sync);
-        globalThis.addEventListener("compare:cleared", sync);
-
+        window.addEventListener("compare:added", sync);
+        window.addEventListener("compare:removed", sync);
+        window.addEventListener("compare:cleared", sync);
         return () => {
-            globalThis.removeEventListener("compare:added", sync);
-            globalThis.removeEventListener("compare:removed", sync);
-            globalThis.removeEventListener("compare:cleared", sync);
+            window.removeEventListener("compare:added", sync);
+            window.removeEventListener("compare:removed", sync);
+            window.removeEventListener("compare:cleared", sync);
         };
     }, [id]);
-
 
     const carouselSettings = useMemo(
         () => ({
@@ -113,65 +106,22 @@ function CardComponent({
             e.stopPropagation();
             if (isProcessing) return;
             setIsProcessing(true);
-
             try {
                 if (!userId) {
                     navigate("/login");
                     return;
                 }
-
-                let existingOrderItems = [];
-                try {
-                    const res = await orderItemApi.getOrderItem(userId);
-                    existingOrderItems = Array.isArray(res) ? res : [];
-                } catch (err) {
-                    // ✅ Backend may return 404 if no cart items — treat as empty cart
-                    if (err.response && err.response.status === 404) {
-                        existingOrderItems = [];
-                    } else {
-                        throw err; // rethrow unexpected errors
-                    }
-                }
-
-                // 🔹 Check if the current item already exists
-                const existingItem = existingOrderItems.find(
-                    (oi) => oi.itemId === id
-                );
-
-                if (existingItem) {
-                    // ✅ Update existing item (PUT)
-                    const itemData = await itemApi.getItemById(id);
-                    const availableStock = itemData?.quantity ?? 0;
-                    const newQuantity = existingItem.quantity + 1;
-
-                    if (newQuantity > availableStock) {
-                        return; // Stop here — don’t update
-                    }
-                    const payload = {
-                        quantity: newQuantity,
-                        price: price,
-                    };
-
-                    await orderItemApi.putOrderItem(existingItem.orderItemId, payload);
-                } else {
-                    // 🆕 Create new item (POST)
-                    const payload = {
-                        buyerId: userId,
-                        itemId: id,
-                        quantity: 1,
-                        price,
-                    };
-                    await orderItemApi.postOrderItem(payload);
-                }
-
+                const payload = { buyerId: userId, itemId: id, quantity: 1, price };
+                await orderItemApi.postOrderItem(payload);
             } catch (err) {
-                console.error("❌ Error adding/updating item:", err);
+                console.error("Error adding item:", err);
             } finally {
                 setIsProcessing(false);
             }
         },
         [id, price, userId, isProcessing]
     );
+
     const handleBuyNow = async (e) => {
         e.preventDefault();
         e.stopPropagation();
@@ -207,7 +157,7 @@ function CardComponent({
                 totalAmount: price,
                 orderItems: [
                     {
-                        id: createdOrderItem.orderItemId,
+                        id: id,
                         name: title || "Sản phẩm",
                         price,
                         quantity: 1,
@@ -248,7 +198,7 @@ function CardComponent({
                     setFavoriteId(null);
                 } else {
                     const res = await favouriteApi.postFavourite({
-                        userId: Number.parseInt(userId, 10),
+                        userId: parseInt(userId, 10),
                         itemId: id,
                         createdAt: new Date().toISOString(),
                     });
@@ -300,7 +250,7 @@ function CardComponent({
         ? "flex items-center justify-center w-10 h-10 rounded-full bg-red-400 text-white hover:bg-red-500 shadow-lg"
         : "flex items-center justify-center w-10 h-10 rounded-full bg-white text-red-500 hover:bg-red-50 shadow-lg";
 
-    const detailUrl = type === "Ev" ? `/ev/${id}` : `/battery/${id}`;
+    const detailUrl = type === "ev" ? `/ev/${id}` : `/battery/${id}`;
 
     return (
         <Link to={detailUrl} state={id} className="block group">
@@ -308,11 +258,11 @@ function CardComponent({
                 {/* Ảnh sản phẩm */}
                 <div className="relative">
                     <Slider {...carouselSettings}>
-                        {displayImages.map((img) => (
-                            <div key={img.imageUrl} className="aspect-w-16 aspect-h-9 relative">
+                        {displayImages.map((img, i) => (
+                            <div key={i} className="aspect-w-16 aspect-h-9 relative">
                                 <img
                                     src={img.imageUrl}
-                                    alt={title}
+                                    alt={`${title}-${i}`}
                                     className="w-full p-2 rounded-2xl h-60 object-cover"
                                 />
                                 {isVerified && (
@@ -323,7 +273,6 @@ function CardComponent({
                             </div>
                         ))}
                     </Slider>
-
 
                     <div className="absolute top-3 right-3 z-10 flex flex-col items-end space-y-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                         <button
@@ -378,7 +327,7 @@ function CardComponent({
                         </div>
                     </div>
                     <div className="flex justify-between items-center pt-4 border-t border-gray-100">
-                        {type === "Battery" ? (
+                        {type === "battery" ? (
                             <div className="flex justify-around items-center w-full gap-4">
                                 <button
                                     onClick={handleBuyNow}
@@ -403,7 +352,7 @@ function CardComponent({
                                     buyerId={userId}
                                     sellerId={updatedBy}
                                     product={{ title, price, imageUrl: displayImages[0]?.imageUrl || "https://placehold.co/100x100/e2e8f0/374151?text=?" }}
-
+                                    
                                 />
                             </div>
                         )}
@@ -413,36 +362,5 @@ function CardComponent({
         </Link>
     );
 }
-CardComponent.propTypes = {
-    id: PropTypes.number.isRequired,
-    title: PropTypes.string.isRequired,
-    price: PropTypes.number.isRequired,
-
-    itemImages: PropTypes.arrayOf(
-        PropTypes.shape({
-            imageUrl: PropTypes.string.isRequired,
-        })
-    ),
-
-    type: PropTypes.string.isRequired,
-
-    year: PropTypes.number,
-    mileage: PropTypes.number,
-
-    isVerified: PropTypes.bool,
-
-    userFavorites: PropTypes.arrayOf(
-        PropTypes.shape({
-            favId: PropTypes.number,
-            itemId: PropTypes.number,
-        })
-    ),
-
-    updatedBy: PropTypes.oneOfType([
-        PropTypes.string,
-        PropTypes.number,
-    ]),
-};
-
 
 export default memo(CardComponent);

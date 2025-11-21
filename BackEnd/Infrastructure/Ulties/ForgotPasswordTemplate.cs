@@ -25,7 +25,7 @@ namespace Infrastructure.Ulties
                     <a href='{systemUrl}' 
                        style='display:inline-block; background:#0066cc; color:#fff; text-decoration:none; 
                               padding:10px 20px; border-radius:5px; margin-top:10px;'>Go to Reset Page</a>
-                    <p style='margin-top:20px; font-size:12px; color:#888;'>© {DateTime.Now.Year} Cóc Mua Xe</p>
+                    <p style='margin-top:20px; font-size:12px; color:#888;'>© {DateTime.UtcNow.Year} Cóc Mua Xe</p>
                 </div>
             </body>
             </html>";

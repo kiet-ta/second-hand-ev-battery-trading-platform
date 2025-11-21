@@ -26,15 +26,14 @@ export default function AddCompareModal({ open, onClose, BASE }) {
                 const data = await res.json();
 
                 const existing = getCompareList();
-                const existingIds = new Set(existing.map((x) => x.itemId));
+                const existingIds = existing.map((x) => x.itemId);
 
                 const filtered = data.filter(
-                    (it) => !existingIds.has(it.itemId)
+                    (it) => !existingIds.includes(it.itemId)
                 );
-
                 setItems(filtered);
             } catch (err) {
-                console.error("Lỗi khi tải danh sách xe/pin:", err);
+                console.error("❌ Lỗi khi tải danh sách xe/pin:", err);
             } finally {
                 setLoading(false);
             }
@@ -155,7 +154,7 @@ export default function AddCompareModal({ open, onClose, BASE }) {
                     <div className="flex justify-between items-center mb-4">
                         <h2 className="text-xl font-semibold text-gray-800 flex items-center gap-2">
                             <SlidersHorizontal size={20} className="text-[#D4AF37]" />
-                            {currentType === "Battery"
+                            {currentType === "battery"
                                 ? "Thêm pin vào so sánh"
                                 : "Thêm xe vào so sánh"}
                         </h2>
@@ -230,7 +229,7 @@ export default function AddCompareModal({ open, onClose, BASE }) {
                             <div className="flex flex-wrap gap-2">
                                 {activeTags.map((tag, i) => (
                                     <span
-                                        key={tag}
+                                        key={i}
                                         className="flex items-center gap-1 bg-[#FFF5CC] text-[#B8860B] px-3 py-1 rounded-full text-xs font-medium border border-[#D4AF37]/30"
                                     >
                                         {tag}

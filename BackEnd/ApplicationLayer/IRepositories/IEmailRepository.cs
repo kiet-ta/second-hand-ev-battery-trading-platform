@@ -14,7 +14,7 @@ namespace Application.IRepositories
 
         Task<string> GetPurchaseFailedTemplate(string userName, string orderId, string reason, string url);
         Task<string> SendResponseEmailToUser(CreateResponseMailDto dto, string staffName, string staffRole);
-        Task<User> GetUserByComplaintId(int complaintId);
+        
 
         Task<string?> GetForgotPasswordTemplate(string email, string to, string otp, string systemUrl);
         Task<string?> GetPasswordChangedTemplate(string email, string to, string loginUrl);

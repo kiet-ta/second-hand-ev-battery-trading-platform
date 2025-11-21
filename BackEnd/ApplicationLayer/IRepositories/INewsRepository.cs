@@ -16,6 +16,7 @@ namespace Application.IRepositories
         Task<bool> SetCanclledStatusAsync(int newsId);
         Task<News> CreateNews(CreateNewsDto dto);
         Task<bool> DeleteNewsById(int newsId);
+
         Task<bool> UpdateNewsStatusAsync(int newsId, string status);
     }
 }

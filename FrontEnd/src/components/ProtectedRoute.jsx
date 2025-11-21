@@ -24,12 +24,12 @@ const parseJwt = (token) => {
 const ProtectedRoute = ({ allowedRoles }) => {
     const token = localStorage.getItem("token");
     const decodedToken = token ? parseJwt(token) : null;
-    const userRole = decodedToken?.role;
+    const userRole = decodedToken?.role?.toLowerCase();
 
     if (!token || !userRole) {
         return <Navigate to="/login" replace />;
     }
-    if (allowedRoles =="Seller" && userRole !="Seller"){
+    if (allowedRoles == "seller" && userRole != "seller"){
         return <Navigate to="/seller-registration" replace/>
     }
     if (allowedRoles.includes(userRole)) {

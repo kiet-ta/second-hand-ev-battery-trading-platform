@@ -10,12 +10,11 @@ namespace Application.Services
 {
     public class FavoriteService : IFavoriteService
     {
-        private readonly IUnitOfWork _unitOfWork;
+        private readonly IFavoriteRepository _favoriteRepository;
 
-        public FavoriteService(IFavoriteRepository favoriteRepository, IUnitOfWork unitOfWork)
+        public FavoriteService(IFavoriteRepository favoriteRepository)
         {
-
-            _unitOfWork = unitOfWork;
+            _favoriteRepository = favoriteRepository ?? throw new ArgumentNullException(nameof(favoriteRepository));
         }
 
         public async Task<Favorite> CreateFavoriteAsync(CreateFavoriteDto dto)
@@ -24,7 +23,7 @@ namespace Application.Services
                 throw new ArgumentNullException(nameof(dto));
 
             // Check for duplicate favorite
-            bool exists = await _unitOfWork.Favorites.ExistsAsync(dto.UserId, dto.ItemId);
+            bool exists = await _favoriteRepository.ExistsAsync(dto.UserId, dto.ItemId);
             if (exists)
             {
                 throw new InvalidOperationException("This item is already in the user's favorites.");
@@ -37,7 +36,7 @@ namespace Application.Services
                 CreatedAt = dto.CreatedAt
             };
 
-            var created = await _unitOfWork.Favorites.AddAsync(favorite)
+            var created = await _favoriteRepository.AddAsync(favorite)
                 ?? throw new InvalidOperationException("Failed to create favorite.");
 
             return created;
@@ -48,7 +47,7 @@ namespace Application.Services
             if (userId <= 0)
                 throw new ArgumentException("User ID must be positive.", nameof(userId));
 
-            var favorites = await _unitOfWork.Favorites.GetFavoritesByUserIdAsync(userId)
+            var favorites = await _favoriteRepository.GetFavoritesByUserIdAsync(userId)
                 ?? throw new InvalidOperationException("Failed to retrieve favorites.");
 
             return favorites;
@@ -61,7 +60,7 @@ namespace Application.Services
             if (itemId <= 0)
                 throw new ArgumentException("Item ID must be positive.", nameof(itemId));
 
-            return await _unitOfWork.Favorites.ExistsAsync(userId, itemId);
+            return await _favoriteRepository.ExistsAsync(userId, itemId);
         }
 
         public async Task<bool> DeleteFavoriteAsync(int favId, int userId)
@@ -71,13 +70,13 @@ namespace Application.Services
             if (userId <= 0)
                 throw new ArgumentException("User ID must be positive.", nameof(userId));
 
-            var favorite = await _unitOfWork.Favorites.GetByIdAsync(favId)
+            var favorite = await _favoriteRepository.GetByIdAsync(favId)
                 ?? throw new InvalidOperationException("Favorite not found.");
 
             if (favorite.UserId != userId)
                 throw new InvalidOperationException("User is not authorized to delete this favorite.");
 
-            await _unitOfWork.Favorites.DeleteAsync(favorite);
+            await _favoriteRepository.DeleteAsync(favorite);
             return true;
         }
     }

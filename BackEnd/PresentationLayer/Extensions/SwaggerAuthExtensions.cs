@@ -37,8 +37,7 @@ public static class SwaggerAuthExtensions
 
                         if (!string.IsNullOrEmpty(accessToken) &&
                             (path.StartsWithSegments("/notificationHub") ||
-                             path.StartsWithSegments("/chatHub") ||
-                             path.StartsWithSegments("/auctionHub")))
+                             path.StartsWithSegments("/chatHub")))
                         {
                             context.Token = accessToken;
                         }

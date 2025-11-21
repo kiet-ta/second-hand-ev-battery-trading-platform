@@ -8,26 +8,26 @@ namespace Application.Services
 {
     public class NewsService : INewsService
     {
-        private readonly IUnitOfWork _unitOfWork;
+        private readonly INewsRepository _newsRepository;
 
-        public NewsService(IUnitOfWork unitOfWork)
+        public NewsService(INewsRepository newsRepository)
         {
-            _unitOfWork = unitOfWork;
+            _newsRepository = newsRepository;
         }
 
         public async Task<IEnumerable<News>> GetAllNewsAsync(int page, int pageSize)
         {
-            return await _unitOfWork.News.GetAllNewsAsync(page, pageSize);
+            return await _newsRepository.GetAllNewsAsync(page, pageSize);
         }
         public async Task<bool> ApproveNewsAsync(int newsId)
         {
-            var result = await _unitOfWork.News.SetApprovedStatusAsync(newsId);
+            var result = await _newsRepository.SetApprovedStatusAsync(newsId);
             if (!result)
                 throw new Exception($"Failed to approve news with ID {newsId}");
             if (newsId <= 0)
                 throw new ArgumentException("Invalid news ID.");
 
-            var success = await _unitOfWork.News.SetApprovedStatusAsync(newsId);
+            var success = await _newsRepository.SetApprovedStatusAsync(newsId);
             if (!success)
                 throw new KeyNotFoundException($"News with ID {newsId} not found.");
 
@@ -36,17 +36,17 @@ namespace Application.Services
 
         public async Task<News> GetNewsById(int id)
         {
-            return await _unitOfWork.News.GetNewsByIdAsync(id);
+            return await _newsRepository.GetNewsByIdAsync(id);
         }
         public async Task<bool> CancelNewsAsync(int newsId)
         {
-            var result = await _unitOfWork.News.SetCanclledStatusAsync(newsId);
+            var result = await _newsRepository.SetCanclledStatusAsync(newsId);
             if (!result)
                 throw new Exception($"Failed to cancel news with ID {newsId}");
             if (newsId <= 0)
                 throw new ArgumentException("Invalid news ID.");
 
-            var success = await _unitOfWork.News.SetCanclledStatusAsync(newsId);
+            var success = await _newsRepository.SetCanclledStatusAsync(newsId);
             if (!success)
                 throw new KeyNotFoundException($"News with ID {newsId} not found.");
 
@@ -61,7 +61,7 @@ namespace Application.Services
             if (string.IsNullOrWhiteSpace(dto.Title))
                 throw new ArgumentException("News title cannot be empty.");
 
-            await _unitOfWork.News.CreateNews(dto);
+            await _newsRepository.CreateNews(dto);
             return true;
         }
 
@@ -70,7 +70,7 @@ namespace Application.Services
             if (newsId <= 0)
                 throw new ArgumentException("Invalid news ID.");
 
-            var success = await _unitOfWork.News.DeleteNewsById(newsId);
+            var success = await _newsRepository.DeleteNewsById(newsId);
             if (!success)
                 throw new KeyNotFoundException($"News with ID {newsId} not found.");
         }
@@ -80,7 +80,7 @@ namespace Application.Services
             if (newsId <= 0)
                 throw new ArgumentException("Invalid news ID.");
 
-            var success = await _unitOfWork.News.UpdateNewsStatusAsync(newsId, "cancelled");
+            var success = await _newsRepository.UpdateNewsStatusAsync(newsId, "cancelled");
             if (!success)
                 throw new KeyNotFoundException($"News with ID {newsId} not found.");
 

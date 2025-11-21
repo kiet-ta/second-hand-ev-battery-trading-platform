@@ -1,11 +1,11 @@
 import React from "react";
 
-const steps = ["Pending", "Paid", "Shipped", "Completed"];
+const steps = ["pending", "paid", "shipped", "completed"];
 const labels = {
-  Pending: "Chờ thanh toán",
-  Paid: "Đã thanh toán",
-  Shipped: "Đang giao hàng",
-  Completed: "Hoàn tất",
+  pending: "Chờ thanh toán",
+  paid: "Đã thanh toán",
+  shipped: "Đang giao hàng",
+  completed: "Hoàn tất",
 };
 
 const OrderStatusBar = ({ status }) => {

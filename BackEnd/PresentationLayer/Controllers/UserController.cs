@@ -117,7 +117,7 @@ namespace PresentationLayer.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "Manager,Staff")]
+        [Authorize(Roles = "manager,staff")]
         public async Task<IActionResult> GetAllUsers([FromQuery] int page = 1, [FromQuery] int pageSize = 20)
         {
             if (page <= 0 || pageSize <= 0)

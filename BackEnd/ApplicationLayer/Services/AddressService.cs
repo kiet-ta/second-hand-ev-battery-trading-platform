@@ -6,11 +6,11 @@ namespace Application.Services
 {
     public class AddressService : IAddressService
     {
-        private readonly IUnitOfWork _unitOfWork;
+        private readonly IAddressRepository _addressRepository;
 
-        public AddressService(IUnitOfWork unitOfWork)
+        public AddressService(IAddressRepository addressRepository)
         {
-            _unitOfWork = unitOfWork;
+            _addressRepository = addressRepository;
         }
 
 
@@ -21,55 +21,55 @@ namespace Application.Services
 
             address.IsDeleted = false;
 
-            var existingAddresses = await _unitOfWork.Address.GetAddressesByUserIdAsync(address.UserId);
+            var existingAddresses = await _addressRepository.GetAddressesByUserIdAsync(address.UserId);
 
             if (existingAddresses.Any(a => (bool)a.IsDefault))
                 address.IsDefault = false;
 
-            await _unitOfWork.Address.AddAddressAsync(address);
+            await _addressRepository.AddAddressAsync(address);
         }
 
 
 
         public async Task DeleteAddressAsync(int addressId)
         {
-            var existing = await _unitOfWork.Address.GetAddressByIdAsync(addressId);
+            var existing = await _addressRepository.GetAddressByIdAsync(addressId);
             if (existing == null || (existing.IsDeleted == true))
             {
                 throw new KeyNotFoundException("Address does not exist");
             }
 
-            await _unitOfWork.Address.DeleteAddressAsync(existing);
+            await _addressRepository.DeleteAddressAsync(existing);
         }
 
         public Task<List<Address>> GetAddressesByUserIdAsync(int userId)
         {
-            return _unitOfWork.Address.GetAddressesByUserIdAsync(userId);
+            return _addressRepository.GetAddressesByUserIdAsync(userId);
         }
 
         public Task<Address?> GetAddressByIdAsync(int addressId)
         {
-            return _unitOfWork.Address.GetAddressByIdAsync(addressId);
+            return _addressRepository.GetAddressByIdAsync(addressId);
         }
 
         public Task<List<Address>> GetAllAddressesAsync()
         {
-            return _unitOfWork.Address.GetAllAddressesAsync();
+            return _addressRepository.GetAllAddressesAsync();
         }
 
         public async Task UpdateAddressAsync(Address address)
         {
-            var existing = await _unitOfWork.Address.GetAddressByIdAsync(address.AddressId);
+            var existing = await _addressRepository.GetAddressByIdAsync(address.AddressId);
             if (existing == null || (existing.IsDeleted == true))
             {
                 throw new KeyNotFoundException("Address does not exist");
             }
 
-            await _unitOfWork.Address.UpdateAddressAsync(address);
+            await _addressRepository.UpdateAddressAsync(address);
         }
         public async Task<Address> GetAddressDefaultByUserId(int userId)
         {
-            var address = await _unitOfWork.Address.GetAddressDefaultByUserId(userId);
+            var address = await _addressRepository.GetAddressDefaultByUserId(userId);
 
             if (address == null)
             {

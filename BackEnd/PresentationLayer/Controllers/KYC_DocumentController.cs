@@ -1,5 +1,4 @@
 ﻿using Application.DTOs;
-using Domain.Common.Constants;
 using Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -8,11 +7,11 @@ namespace PresentationLayer.Controllers
 {
     [ApiController]
     [Route("api/kyc-document")]   
-    public class KycDocumentController : ControllerBase
+    public class KYC_DocumentController : ControllerBase
     {
-        private readonly IKycDocumentService _kycService;
+        private readonly IKYC_DocumentService _kycService;
 
-        public KycDocumentController(IKycDocumentService kycService)
+        public KYC_DocumentController(IKYC_DocumentService kycService)
         {
             _kycService = kycService;
         }
@@ -46,7 +45,7 @@ namespace PresentationLayer.Controllers
         }
 
         [HttpPut("kyc/{kycId}/approve")]
-        public async Task<IActionResult> ApproveKyc(int kycId, [FromBody] ApproveKycDocumentDto dto)
+        public async Task<IActionResult> ApproveKyc(int kycId, [FromBody] ApproveKyc_DocumentDTO dto)
         {
                 if (dto == null || dto.VerifiedBy == null)
                     return BadRequest(new { error = "Missing verification info" });
@@ -57,7 +56,7 @@ namespace PresentationLayer.Controllers
         }
 
         [HttpPut("kyc/{kycId}/reject")]
-        public async Task<IActionResult> RejectKyc(int kycId, [FromBody] ApproveKycDocumentDto dto)
+        public async Task<IActionResult> RejectKyc(int kycId, [FromBody] ApproveKyc_DocumentDTO dto)
         {
            
                 if (dto == null || dto.VerifiedBy == null)
@@ -91,7 +90,7 @@ namespace PresentationLayer.Controllers
 
 
         [HttpPost("users/{userId}/kyc")]
-        public async Task<IActionResult> CreateKyc(int userId, [FromBody] CreateKycDocumentDto kycDto)
+        public async Task<IActionResult> CreateKyc(int userId, [FromBody] CreateKYC_DocumentDTO kycDto)
         {
             if (kycDto == null)
             {
@@ -112,7 +111,7 @@ namespace PresentationLayer.Controllers
                     StoreName = kycDto.StoreName,
                     StorePhone = kycDto.StorePhone,
                     StoreLogoUrl = kycDto.StoreLogoUrl,
-                    Status = KycStatus.Pending.ToString(),
+                    Status = "pending",
                 };
 
                 await _kycService.CreateKycDocumentAsync(kyc, userId);
