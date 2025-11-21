@@ -59,7 +59,7 @@ namespace PresentationLayer.Controllers
                     };
                     return Ok("you had badword in review, dont do it again");
                 }
-                else 
+                else
                 {
                     notification = new CreateNotificationDTO
                     {
@@ -67,7 +67,7 @@ namespace PresentationLayer.Controllers
                         NotiType = "activities",
                         Title = "Inappropriate Comment",
                         Message = "You have been banned from comment due to repeated inappropriate language.",
-                      
+
                     };
                     await _kycdocumentService.WarningUserAsync(userId);
                     return Ok("Badword");
