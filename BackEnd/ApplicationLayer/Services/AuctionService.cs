@@ -123,7 +123,7 @@ public class AuctionService : IAuctionService
             CurrentPrice = null,
             StartTime = request.StartTime,
             EndTime = request.EndTime,
-            Status = DateTime.Now >= request.StartTime ? "ongoing" : "upcoming",
+            Status = DateTime.Now >= request.StartTime ? AuctionStatus.Ongoing.ToString() : AuctionStatus.Upcoming.ToString(),
             TotalBids = 0,
             CreatedAt = DateTime.Now,
             UpdatedAt = DateTime.Now
@@ -154,7 +154,7 @@ public class AuctionService : IAuctionService
         {
             var auction = await _unitOfWork.Auctions.GetByIdAsync(auctionId);
 
-            if (auction == null || auction.Status != "Ongoing" || now < auction.StartTime || now > auction.EndTime)
+            if (auction == null || auction.Status != AuctionStatus.Ongoing.ToString()|| now < auction.StartTime || now > auction.EndTime)
             {
                 await _unitOfWork.RollbackTransactionAsync();
                 throw new InvalidOperationException("Auction is not active or has ended.");
@@ -253,7 +253,7 @@ public class AuctionService : IAuctionService
             // Note: If it was already 'Outbid', we don't need to change it, but changing it to 'Outbid' again doesn't hurt.
             if (previousHeldBid != null && previousHeldBid.Status == BidStatus.Active.ToString())
             {
-                await _unitOfWork.Bids.UpdateBidStatusAsync(previousHeldBid.BidId, "outbid");
+                await _unitOfWork.Bids.UpdateBidStatusAsync(previousHeldBid.BidId, BidStatus.OutBid.ToString());
                 _logger.LogInformation("Updated previous bid {PreviousBidId} for User {UserId} to 'outbid'.", previousHeldBid.BidId, userId);
             }
 
@@ -263,7 +263,7 @@ public class AuctionService : IAuctionService
             // Update the previous global winner to 'outbid'
             if (previousHighestBid != null && previousHighestBid.UserId != userId)
             {
-                await _unitOfWork.Bids.UpdateBidStatusAsync(previousHighestBid.BidId, "outbid");
+                await _unitOfWork.Bids.UpdateBidStatusAsync(previousHighestBid.BidId, BidStatus.OutBid.ToString());
                 _logger.LogInformation("User {PreviousHighestUserId}'s bid {PreviousHighestBidId} is now 'outbid'.", previousHighestBid.UserId, previousHighestBid.BidId);
             }
 
@@ -287,7 +287,7 @@ public class AuctionService : IAuctionService
                 var outbidMessage = $"You have been outbid on auction #{auctionId}. The new price is {bidAmount:N0}đ.";
                 var notiDto = new CreateNotificationDto
                 {
-                    NotiType = "auction",
+                    NotiType =NotificationType.Auction.ToString(),
                     TargetUserId = previousHighestBid.UserId.ToString(),
                     Title = "You have been outbid!",
                     Message = outbidMessage
@@ -315,8 +315,8 @@ public class AuctionService : IAuctionService
 
         foreach (var auction in upcomingAuctions)
         {
-            if (auction.StartTime < now && auction.Status == "upcoming")
-                await _unitOfWork.Auctions.UpdateStatusAsync(auction, "ongoing");
+            if (auction.StartTime < now && auction.Status == AuctionStatus.Upcoming.ToString())
+                await _unitOfWork.Auctions.UpdateStatusAsync(auction, AuctionStatus.Ongoing.ToString());
         }
 
         // Update ongoing to ended
@@ -325,7 +325,7 @@ public class AuctionService : IAuctionService
         foreach (var auction in ongoingAuctions)
         {
             if (auction.EndTime < now)
-                await _unitOfWork.Auctions.UpdateStatusAsync(auction, "ended");
+                await _unitOfWork.Auctions.UpdateStatusAsync(auction, AuctionStatus.Ended.ToString());
         }
     }
 
@@ -390,11 +390,11 @@ public class AuctionService : IAuctionService
         string status;
 
         if (now < auction.StartTime)
-            status = "upcoming";
+            status = AuctionStatus.Upcoming.ToString();
         else if (now >= auction.StartTime && now < auction.EndTime)
-            status = "ongoing";
+            status = AuctionStatus.Ongoing.ToString();
         else
-            status = "ended";
+            status = AuctionStatus.Ended.ToString();
 
         return new AuctionStatusDto
         {

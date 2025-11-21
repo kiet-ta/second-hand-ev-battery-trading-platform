@@ -8,7 +8,7 @@ namespace Domain.Common.Constants
 {
     public enum NotificationType
     {
-        News, Activities, Auctions
+        News, Activities, Auction
 
     }
 }
