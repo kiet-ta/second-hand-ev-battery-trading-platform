@@ -507,7 +507,7 @@ export default function HistorySold() {
                                 Đóng
                             </button>
 
-                            {(selectedSale.status == "Pending" ||selectedSale.status == "Processing") && (
+                            {(selectedSale.status == "Pending" || selectedSale.status == "Processing") && (
                                 <button
                                     disabled={confirming}
                                     onClick={async () => {

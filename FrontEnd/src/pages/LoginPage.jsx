@@ -88,7 +88,7 @@ export default function LoginPage() {
         e.preventDefault();
         setError("");
 
-        // simple validation
+
         if (!email || !password) {
             setError("Vui lòng nhập đầy đủ thông tin đăng nhập.");
             return;
@@ -124,6 +124,10 @@ export default function LoginPage() {
             const data = await authApi.login({ email: email.trim(), password: password.trim() });
             const res = data.data;
             const newUser = { ...res, token: res.token };
+            if (res.accountStatus === "Ban") {
+                navigate("/banned");
+                return;
+            }
             localStorage.clear("userId")
             localStorage.clear("token")
             localStorage.clear("user")

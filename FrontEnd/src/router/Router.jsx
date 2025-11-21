@@ -96,6 +96,7 @@ import CommissionSettings from "../components/Manager/CommissionSettings";
 import NewsList from "../pages/Footers/NewsList";
 import NewsDetail from "../pages/Footers/NewsDetail";
 import SellerRegistrationFeePage from "../pages/SellerRegistrationFeePage";
+import BannedPage from "../pages/BannedPage";
 
 
 
@@ -134,13 +135,14 @@ export const router = createBrowserRouter([
       { path: "pending-review", element: <SellerPendingReview /> },
       { path: "recharge", element: <RechargePage /> },
       { path: "checkout/buy-now", element: <BuyNowCheckoutPage /> },
-      { path: "seller-payment", element: <SellerRegistrationFeePage/>}
+      { path: "seller-payment", element: <SellerRegistrationFeePage /> }
     ],
   },
 
   { path: "/login", element: <LoginPage /> },
   { path: "/register", element: <RegisterPage /> },
   { path: "/forgot-password", element: <ForgotPasswordPage /> },
+  { path: "/banned", element: <BannedPage /> },
 
   {
     path: "/profile",
