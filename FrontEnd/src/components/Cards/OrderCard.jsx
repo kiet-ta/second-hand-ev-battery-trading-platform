@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from "react";
 import orderApi from "../../api/orderApi";
-import reviewApi from "../../api/reviewApi"; // 👈 make sure this exists
+import reviewApi from "../../api/reviewApi";
 import { FiChevronRight } from "react-icons/fi";
 import userApi from "../../api/userApi";
 import paymentApi from "../../api/paymentApi";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const STATUS_LABEL = {
     Pending: { label: "Chờ xác nhận", color: "text-gray-600", bg: "bg-gray-100" },
@@ -71,9 +73,10 @@ export default function OrderCard({ order, onViewItem, onMarkReceived, onOpenRev
             setLoading(true);
             await paymentApi.confirmOrder(order.orderId)
             onMarkReceived && onMarkReceived();
+            toast.success("Bạn đã xác nhận nhận hàng!")
         } catch (err) {
             console.error("update order failed", err);
-            alert("Cập nhật trạng thái thất bại");
+            toast.error("Cập nhật trạng thái thất bại.");
         } finally {
             setLoading(false);
         }
@@ -222,6 +225,7 @@ export default function OrderCard({ order, onViewItem, onMarkReceived, onOpenRev
                     </div>
                 </div>
             </div>
+            <ToastContainer />
         </div>
     );
 }

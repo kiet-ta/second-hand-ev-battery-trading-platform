@@ -57,14 +57,23 @@ export default function HistorySold() {
 
     const getStatusColor = (status) => {
         switch (status) {
-            case "Completed":
-                return "bg-green-100 text-green-800";
-            case "Processing":
+            case "Active":
+            case "Auction_Active":
                 return "bg-blue-100 text-blue-800";
+
             case "Pending":
+            case "Auction_Pending_Pay":
+            case "Pending_Pay":
                 return "bg-yellow-100 text-yellow-800";
+
+            case "Sold":
+            case "Completed":
             case "Shipped":
-                return "bg-purple-100 text-purple-800";
+                return "bg-green-100 text-green-800";
+
+            case "Rejected":
+                return "bg-red-100 text-red-800";
+
             default:
                 return "bg-gray-100 text-gray-800";
         }
@@ -72,20 +81,33 @@ export default function HistorySold() {
 
     const getStatusText = (status) => {
         switch (status) {
-            case "Completed":
-                return "Hoàn thành";
-            case "Processing":
-                return "Đang xử lý";
+            case "Active":
+                return "Đang bán";
+            case "Auction_Active":
+                return "Đang đấu giá";
+
             case "Pending":
-                return "Đợi xử lí"
-            case "Pending_Approval":
+                return "Chờ xử lý";
+            case "Pending_Pay":
                 return "Chờ thanh toán";
+            case "Auction_Pending_Pay":
+                return "Chờ thanh toán (Đấu giá)";
+
+            case "Sold":
+                return "Đã bán";
             case "Shipped":
                 return "Đã giao";
+            case "Completed":
+                return "Hoàn tất";
+
+            case "Rejected":
+                return "Bị từ chối";
+
             default:
                 return "Không xác định";
         }
     };
+
 
     const totalRevenueEV = sales
         .filter(
@@ -121,34 +143,8 @@ export default function HistorySold() {
         return matchStatus && matchType;
     });
 
-    const exportToCSV = () => {
-        if (sales.length === 0) return;
-        const headers = [
-            "Mã SP",
-            "Tiêu đề",
-            "Loại SP",
-            "Trạng thái",
-            "Giá niêm yết",
-            "Giá thực tế",
-            "Ngày bán",
-        ];
-        const rows = sales.map((s) => [
-            s.itemId,
-            s.title,
-            s.itemType,
-            getStatusText(s.status),
-            s.listedPrice,
-            s.actualPrice,
-            s.soldAt ? new Date(s.soldAt).toLocaleDateString("vi-VN") : "--",
-        ]);
-        const csv =
-            "data:text/csv;charset=utf-8," +
-            [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");
-        const link = document.createElement("a");
-        link.href = encodeURI(csv);
-        link.download = `sales_history_${new Date().toISOString().slice(0, 10)}.csv`;
-        link.click();
-    };
+
+
 
     // Loading skeleton
     if (loading) {
@@ -167,19 +163,7 @@ export default function HistorySold() {
     return (
         <div className="min-h-screen bg-gray-50 p-6">
             <div className="max-w-7xl mx-auto">
-                {/* Header */}
-                <div className="flex justify-between items-center mb-8 flex-wrap gap-3">
-                    <div>
-                        <h1 className="text-3xl font-bold text-gray-900 mb-1">Lịch sử bán hàng</h1>
-                        <p className="text-gray-600">Theo dõi giao dịch bán xe & pin của bạn</p>
-                    </div>
-                    <button
-                        onClick={exportToCSV}
-                        className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
-                    >
-                        <Download className="w-4 h-4" /> Xuất CSV
-                    </button>
-                </div>
+
 
                 {/* Stats */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
@@ -229,47 +213,32 @@ export default function HistorySold() {
                 </div>
 
                 {/* Bộ lọc */}
-                <div className="bg-white rounded-lg shadow-sm p-4 mb-6 flex gap-3 flex-wrap justify-between">
-                    <div className="flex gap-3 flex-wrap">
-                        {[
-                            { label: "Tất cả", value: "all" },
-                            { label: "Chờ xử lí", value: "Pending" },
-                            { label: "Chờ thanh toán", value: "Shipping" },
-                            { label: "Đã giao", value: "Shipped" },
-                            { label: "Hoàn thành", value: "Completed" }
-                        ].map((btn) => (
-                            <button
-                                key={btn.value}
-                                onClick={() => setFilter(btn.value)}
-                                className={`px-4 py-2 rounded-lg border text-sm font-medium transition-all duration-300 ${filter === btn.value
-                                    ? "bg-indigo-50 border-indigo-300 text-indigo-700 shadow-sm"
-                                    : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50"
-                                    }`}
-                            >
-                                {btn.label}
-                            </button>
-                        ))}
-                    </div>
-
-                    <div className="flex gap-3">
-                        {[
-                            { label: "Tất cả SP", value: "all" },
-                            { label: "Xe điện", value: "Ev" },
-                            { label: "Pin", value: "Battery" },
-                        ].map((btn) => (
-                            <button
-                                key={btn.value}
-                                onClick={() => setFilterType(btn.value)}
-                                className={`px-4 py-2 rounded-lg border text-sm font-medium transition-all duration-300 ${filterType === btn.value
-                                    ? "bg-indigo-50 border-indigo-300 text-indigo-700 shadow-sm"
-                                    : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50"
-                                    }`}
-                            >
-                                {btn.label}
-                            </button>
-                        ))}
-                    </div>
+                <div className="flex gap-3 flex-wrap">
+                    {[
+                        { label: "Tất cả", value: "all" },
+                        { label: "Đang bán", value: "Active" },
+                        { label: "Đấu giá", value: "Auction_Active" },
+                        { label: "Chờ xử lý", value: "Pending" },
+                        { label: "Chờ thanh toán", value: "Pending_Pay" },
+                        { label: "Đang thanh toán (Đấu giá)", value: "Auction_Pending_Pay" },
+                        { label: "Đã bán", value: "Sold" },
+                        { label: "Đã giao", value: "Shipped" },
+                        { label: "Hoàn tất", value: "Completed" },
+                        { label: "Từ chối", value: "Rejected" },
+                    ].map((btn) => (
+                        <button
+                            key={btn.value}
+                            onClick={() => setFilter(btn.value)}
+                            className={`px-4 py-2 rounded-lg border text-sm font-medium transition-all duration-300 ${filter === btn.value
+                                ? "bg-indigo-50 border-indigo-300 text-indigo-700 shadow-sm"
+                                : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50"
+                                }`}
+                        >
+                            {btn.label}
+                        </button>
+                    ))}
                 </div>
+
 
                 {/* Danh sách */}
                 {filteredSales.length === 0 ? (

@@ -1,14 +1,17 @@
 import React, { useEffect, useState } from "react";
 import { Tag, Search } from "lucide-react";
-import { Form, Input, InputNumber, Checkbox, Select, Modal, Button, Spin, Alert } from "antd";
+import { Form, Input, InputNumber, Checkbox, Select, Modal, Button, Spin, Alert, Divider } from "antd";
 import ProductCreationModal from "../ItemForm/ProductCreationModal";
 import walletApi from "../../api/walletApi";
 import itemApi from "../../api/itemApi";
 import commissionApi from "../../api/commissionApi";
 import userApi from "../../api/userApi";
-import { toast, ToastContainer } from "react-toastify";
 import evData from "../../assets/datas/evData";
+import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+const { TextArea } = Input;
+const { Option } = Select;
+
 
 export default function MyProducts() {
   const [products, setProducts] = useState([]);
@@ -19,6 +22,16 @@ export default function MyProducts() {
   const [form] = Form.useForm();
   const brand = Form.useWatch("brand", form);
   const model = Form.useWatch("model", form);
+  const [isPayModalOpen, setIsPayModalOpen] = useState(false);
+  const [selectedItem, setSelectedItem] = useState(null);
+  const [wallet, setWallet] = useState(null);
+  const [payType, setPayType] = useState(null); // "listing" | "moderation"
+  const [payLoading, setPayLoading] = useState(false);
+  const [inlineMsg, setInlineMsg] = useState(null);
+  const [feeCommission, setFeeCommission] = useState(0);
+  const [moderationCommission, setModerationCommission] = useState(0);
+
+
 
   const evBrands = Object.keys(evData);
   const evModels = brand ? Object.keys(evData[brand]) : [];
@@ -105,7 +118,7 @@ export default function MyProducts() {
         return "Chờ thanh toán";
       case "Auction_Pending_Pay":
         return "Chờ thanh toán"
-            case "Sold":
+      case "Sold":
         return "Đã bán";
 
       case "Rejected":
@@ -123,6 +136,8 @@ export default function MyProducts() {
         return "Đang chờ kiểm duyệt";
       case "Rejected":
         return "Bị từ chối kiểm duyệt";
+      case "Not_Submitted":
+        return "Chưa kiểm duyệt";
       case "Sold":
         return "Đã bán";
       default:
@@ -144,6 +159,90 @@ export default function MyProducts() {
       setDeleteLoading(false);
     }
   };
+
+  const formatCurrency = (num) =>
+    new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(num);
+
+  const handlePayClick = async (item, type) => {
+    try {
+      setInlineMsg(null);
+      setPayLoading(true);
+      const [walletData, itemDetail] = await Promise.all([
+        walletApi.getWalletByUser(sellerId),
+        itemApi.getItemDetailByID(item.itemId),
+      ]);
+      setWallet(walletData);
+      setSelectedItem(itemDetail);
+      setPayType(type);
+      setIsPayModalOpen(true);
+    } catch (err) {
+      console.error(err);
+      setInlineMsg({ type: "error", text: "Không thể tải dữ liệu thanh toán." });
+    } finally {
+      setPayLoading(false);
+    }
+  };
+
+  const handleConfirmPayment = async () => {
+    if (!wallet || (wallet.balance < feeCommission && payType == "listing") || (wallet.balance < moderationCommission && payType == "moderation")) {
+      setInlineMsg({
+        type: "error",
+        text: `Số dư ví không đủ để thanh toán.`,
+      });
+      return;
+    }
+
+    setPayLoading(true);
+    setInlineMsg(null);
+
+    try {
+      const userId = localStorage.getItem("userId");
+      const amount = payType === "listing" ? feeCommission : moderationCommission
+      await walletApi.withdrawWallet({
+        userId,
+        amount: amount,
+        type: "Withdraw",
+        ref: selectedItem.itemId,
+        description:
+          payType === "listing"
+            ? `Phí đăng bán sản phẩm ${selectedItem.title}`
+            : `Phí kiểm duyệt sản phẩm ${selectedItem.title}`,
+      });
+
+      const updatePayload = {
+        ...selectedItem,
+        updatedAt: new Date().toISOString(),
+        updatedBy: sellerId,
+      };
+      if (payType === "listing") {
+        const paymentState = updatePayload.status == "Auction_Pending_Pay" ? "Auction_Active" : "Active"
+        updatePayload.status = paymentState;
+      }
+      if (payType === "moderation") updatePayload.moderation = "Pending";
+
+      await itemApi.putItem(selectedItem.itemId, updatePayload);
+
+      setInlineMsg({
+        type: "success",
+        text:
+          payType === "listing"
+            ? " Thanh toán đăng bán thành công! Sản phẩm đã được kích hoạt."
+            : " Đã gửi yêu cầu kiểm duyệt thành công!",
+      });
+
+      setTimeout(() => {
+        setIsPayModalOpen(false);
+        fetchProducts();
+      }, 1500);
+    } catch (error) {
+      console.error(error);
+      setInlineMsg({ type: "error", text: "Có lỗi xảy ra khi xử lý thanh toán." });
+    } finally {
+      setPayLoading(false);
+    }
+  };
+
+  const categoryId = editingItem?.itemType === "Ev" ? 1 : 2;
 
   const handleUpdateItem = async () => {
     try {
@@ -174,9 +273,9 @@ export default function MyProducts() {
 
       if (editingItem.itemType === "Battery") {
         const batteryPayload = {
-          brand: values.brand,
+          brand: editingItem.brand,
           capacity: Number(values.capacity),
-          condition: values.condition,
+          condition: editingItem.condition || values.condition,
           voltage: Number(values.voltage),
           chargeCycles: Number(values.chargeCycles),
         };
@@ -190,7 +289,7 @@ export default function MyProducts() {
         description: editingItem.description,
         price: Number(editingItem.price),
         quantity: Number(editingItem.quantity),
-        categoryId: editingItem.categoryId,
+        categoryId: categoryId,
         status: editingItem.status || "Active",
         moderation: "Not_Submitted",
         updatedAt: new Date().toISOString(),
@@ -268,7 +367,7 @@ export default function MyProducts() {
                 <div className="flex gap-2 mt-2">
                   <Button
                     onClick={() => {
-                      setEditingItem(item);
+                      setEditingItem({ ...item, categoryId: item.itemType === "Ev" ? 1 : 2 });
                       setIsEditModalOpen(true);
                     }}
                     className="w-1/2"
@@ -285,6 +384,20 @@ export default function MyProducts() {
                   </Button>
                 </div>
               )}
+              {(item.moderation === "Not_Submitted" || item.moderation === "Rejected") && (
+                <Button block onClick={() => handlePayClick(item, "moderation")}>
+                  Yêu cầu kiểm duyệt (₫{moderationCommission})
+                </Button>
+              )}
+              {item.status === "Pending_Pay" || item.status === "Auction_Pending_Pay" ? (
+                <Button
+                  type="primary"
+                  block
+                  onClick={() => handlePayClick(item, "listing")}
+                >
+                  Thanh toán đăng bán (₫{feeCommission})
+                </Button>
+              ) : null}
             </div>
           </div>
         ))}
@@ -295,186 +408,245 @@ export default function MyProducts() {
         onCancel={() => setIsEditModalOpen(false)}
         footer={null}
         title="Sửa sản phẩm"
-        width={600}
+        width={650}
       >
         {editingItem && (
-          <div className="space-y-4">
-            {/* THÔNG TIN CHUNG */}
-            <Input
-              value={editingItem.title}
-              placeholder="Tên sản phẩm"
-              onChange={(e) => setEditingItem({ ...editingItem, title: e.target.value })}
-              className="w-full border p-2 rounded"
-            />
+          <Form layout="vertical" className="space-y-4">
 
-            <TextArea
-              rows={3}
-              value={editingItem.description}
-              placeholder="Mô tả chi tiết"
-              onChange={(e) => setEditingItem({ ...editingItem, description: e.target.value })}
-              className="w-full border p-2 rounded"
-            />
 
-            <InputNumber
-              value={editingItem.price}
-              onChange={(val) => setEditingItem({ ...editingItem, price: Number(val) })}
-              className="w-full border p-2 rounded"
-              min={1000}
-              placeholder="Giá (VND)"
-            />
 
-            <InputNumber
-              value={editingItem.quantity}
-              onChange={(val) => setEditingItem({ ...editingItem, quantity: Number(val) })}
-              className="w-full border p-2 rounded"
-              min={1}
-              placeholder="Số lượng"
-            />
+            <Form.Item label="Tên sản phẩm">
+              <Input
+                value={editingItem.title}
+                placeholder="Nhập tên sản phẩm..."
+                onChange={(e) => setEditingItem({ ...editingItem, title: e.target.value })}
+              />
+            </Form.Item>
 
-            {/* =================== EV DETAILS =================== */}
-            {editingItem.itemType === "Ev" && (
+            <Form.Item label="Mô tả chi tiết">
+              <TextArea
+                rows={3}
+                value={editingItem.description}
+                placeholder="Mô tả sản phẩm..."
+                onChange={(e) => setEditingItem({ ...editingItem, description: e.target.value })}
+              />
+            </Form.Item>
+
+            <div className="grid grid-cols-2 gap-4">
+              <Form.Item label="Giá (VND)">
+                <InputNumber
+                  min={1000}
+                  value={editingItem.price}
+                  onChange={(val) => setEditingItem({ ...editingItem, price: Number(val) })}
+                  style={{ width: "100%" }}
+                />
+              </Form.Item>
+
+              <Form.Item label="Số lượng">
+                <InputNumber
+                  min={1}
+                  value={editingItem.quantity}
+                  onChange={(val) => setEditingItem({ ...editingItem, quantity: Number(val) })}
+                  style={{ width: "100%" }}
+                />
+              </Form.Item>
+            </div>
+
+            {/* ===== XE ĐIỆN EV ===== */}
+            {editingItem?.itemType === "Ev" && (
               <>
-                <h3 className="font-semibold text-gray-700 mt-4 mb-2">
-                  Thông tin xe điện (EV)
-                </h3>
 
-                {/*  Brand (Dropdown từ evData) */}
-                <Select
-                  value={editingItem.brand}
-                  className="w-full"
-                  placeholder="Chọn hãng xe"
-                  onChange={(val) => {
-                    setEditingItem((prev) => ({
-                      ...prev,
-                      brand: val,
-                      model: "", // reset model & version
-                      version: "",
-                    }));
-                  }}
-                >
-                  {Object.keys(evData).map((brand) => (
-                    <Option key={brand} value={brand}>{brand}</Option>
-                  ))}
-                </Select>
+                {/* Brand / Model */}
+                <div className="grid grid-cols-2 gap-4">
+                  <Form.Item label="Hãng xe">
+                    <Select
+                      value={editingItem.brand}
+                      onChange={(val) => setEditingItem({ ...editingItem, brand: val, model: "", version: "" })}
+                    >
+                      {Object.keys(evData).map((b) => (
+                        <Option key={b} value={b}>{b}</Option>
+                      ))}
+                    </Select>
+                  </Form.Item>
 
-                {/*  Model (theo Brand) */}
-                {editingItem.brand && (
+                  <Form.Item label="Mẫu xe">
+                    <Select
+                      value={editingItem.model}
+                      disabled={!editingItem.brand}
+                      onChange={(val) => setEditingItem({ ...editingItem, model: val, version: "" })}
+                    >
+                      {Object.keys(evData[editingItem.brand] || {}).map((m) => (
+                        <Option key={m} value={m}>{m}</Option>
+                      ))}
+                    </Select>
+                  </Form.Item>
+                </div>
+
+                {/* Version / Year */}
+                <div className="grid grid-cols-2 gap-4">
+                  <Form.Item label="Phiên bản">
+                    <Select
+                      value={editingItem.version}
+                      disabled={!editingItem.model}
+                      onChange={(val) => setEditingItem({ ...editingItem, version: val })}
+                    >
+                      {(evData[editingItem.brand]?.[editingItem.model] || []).map((v) => (
+                        <Option key={v} value={v}>{v}</Option>
+                      ))}
+                    </Select>
+                  </Form.Item>
+
+                  <Form.Item label="Năm sản xuất">
+                    <Select
+                      value={editingItem.year}
+                      onChange={(val) => setEditingItem({ ...editingItem, year: Number(val) })}
+                    >
+                      {Array.from({ length: 20 }, (_, i) => 2024 - i).map((y) => (
+                        <Option key={y} value={y}>{y}</Option>
+                      ))}
+                    </Select>
+                  </Form.Item>
+                </div>
+
+                {/* Body / Color */}
+                <div className="grid grid-cols-2 gap-4">
+                  <Form.Item label="Kiểu dáng">
+                    <Select
+                      value={editingItem.bodyStyle}
+                      onChange={(val) => setEditingItem({ ...editingItem, bodyStyle: val })}
+                    >
+                      {bodyStyles.map((b) => (
+                        <Option key={b} value={b}>{b}</Option>
+                      ))}
+                    </Select>
+                  </Form.Item>
+
+                  <Form.Item label="Màu sắc">
+                    <Select
+                      value={editingItem.color}
+                      onChange={(val) => setEditingItem({ ...editingItem, color: val })}
+                    >
+                      {colors.map((c) => (
+                        <Option key={c} value={c}>{c}</Option>
+                      ))}
+                    </Select>
+                  </Form.Item>
+                </div>
+              </>
+            )}
+
+            {/* ===== PIN BATTERY ===== */}
+            {editingItem?.itemType === "Battery" && (
+              <>
+
+                <Form.Item label="Thương hiệu">
                   <Select
-                    value={editingItem.model}
-                    className="w-full mt-2"
-                    placeholder="Chọn mẫu xe"
-                    onChange={(val) => {
-                      setEditingItem((prev) => ({
-                        ...prev,
-                        model: val,
-                        version: "",  // Reset version
-                      }));
-                    }}
+                    value={editingItem.brand}
+                    onChange={(val) => setEditingItem({ ...editingItem, brand: val })}
                   >
-                    {Object.keys(evData[editingItem.brand] || {}).map((model) => (
-                      <Option key={model} value={model}>{model}</Option>
+                    {batteryBrands.map((b) => (
+                      <Option key={b} value={b}>{b}</Option>
                     ))}
                   </Select>
-                )}
+                </Form.Item>
 
-                {/*  Version (theo Model) */}
-                {editingItem.model && (
+                <div className="grid grid-cols-3 gap-4">
+                  <Form.Item label="Dung lượng (kWh)">
+                    <InputNumber
+                      value={editingItem.capacity}
+                      onChange={(val) => setEditingItem({ ...editingItem, capacity: Number(val) })}
+                      style={{ width: "100%" }}
+                    />
+                  </Form.Item>
+
+                  <Form.Item label="Điện áp (V)">
+                    <InputNumber
+                      value={editingItem.voltage}
+                      onChange={(val) => setEditingItem({ ...editingItem, voltage: Number(val) })}
+                      style={{ width: "100%" }}
+                    />
+                  </Form.Item>
+
+                  <Form.Item label="Chu kỳ sạc">
+                    <InputNumber
+                      value={editingItem.chargeCycles}
+                      onChange={(val) => setEditingItem({ ...editingItem, chargeCycles: Number(val) })}
+                      style={{ width: "100%" }}
+                    />
+                  </Form.Item>
+                </div>
+
+                <Form.Item label="Tình trạng pin">
                   <Select
-                    value={editingItem.version}
-                    className="w-full mt-2"
-                    placeholder="Chọn phiên bản"
-                    onChange={(val) => setEditingItem({ ...editingItem, version: val })}
+                    value={editingItem.condition}
+                    onChange={(val) => setEditingItem({ ...editingItem, condition: val })}
                   >
-                    {(evData[editingItem.brand]?.[editingItem.model] || []).map((ver) => (
-                      <Option key={ver} value={ver}>{ver}</Option>
-                    ))}
+                    <Option value="New">Mới</Option>
+                    <Option value="Old">Cũ</Option>
                   </Select>
-                )}
-
-                {/*  Năm sản xuất */}
-                <Select
-                  value={editingItem.year}
-                  className="w-full"
-                  placeholder="Năm sản xuất"
-                  onChange={(val) => setEditingItem({ ...editingItem, year: Number(val) })}
-                >
-                  {Array.from({ length: 20 }, (_, i) => 2024 - i).map((y) => (
-                    <Option key={y} value={y}>{y}</Option>
-                  ))}
-                </Select>
-
-                <Select
-                  value={editingItem.categoryId}
-                  className="w-full"
-                  placeholder="Chọn loại sản phẩm"
-                  onChange={(val) => setEditingItem({ ...editingItem, categoryId: val })}
-                >
-                  <Option value={1}>Xe điện (EV)</Option>
-                  <Option value={2}>Pin</Option>
-                  <Option value={3}>Phụ kiện</Option>
-                </Select>
-
-                {/*  Kiểu dáng */}
-                <Select
-                  value={editingItem.bodyStyle}
-                  className="w-full"
-                  placeholder="Kiểu dáng"
-                  onChange={(val) => setEditingItem({ ...editingItem, bodyStyle: val })}
-                >
-                  {bodyStyles.map((b) => (
-                    <Option key={b} value={b}>{b}</Option>
-                  ))}
-                </Select>
-
-                {/*  Màu sắc */}
-                <Select
-                  value={editingItem.color}
-                  className="w-full"
-                  placeholder="Màu sắc"
-                  onChange={(val) => setEditingItem({ ...editingItem, color: val })}
-                >
-                  {colors.map((c) => (
-                    <Option key={c} value={c}>{c}</Option>
-                  ))}
-                </Select>
-
-                <InputNumber
-                  value={editingItem.mileage}
-                  onChange={(val) => setEditingItem({ ...editingItem, mileage: Number(val) })}
-                  className="w-full"
-                  placeholder="Số km đã đi"
-                />
-
-                <InputNumber
-                  value={editingItem.previousOwners}
-                  onChange={(val) => setEditingItem({ ...editingItem, previousOwners: Number(val) })}
-                  className="w-full"
-                  placeholder="Số chủ sở hữu trước"
-                />
-
-                <Input
-                  value={editingItem.licensePlate}
-                  onChange={(e) => setEditingItem({ ...editingItem, licensePlate: e.target.value })}
-                  className="w-full"
-                  placeholder="Biển số xe (VD: 30A-123.45)"
-                />
-
-                <Checkbox
-                  checked={editingItem.hasAccessories}
-                  onChange={(e) =>
-                    setEditingItem({ ...editingItem, hasAccessories: e.target.checked })
-                  }
-                >
-                  Có phụ kiện kèm theo
-                </Checkbox>
+                </Form.Item>
               </>
             )}
 
             {/* BUTTON SAVE */}
-            <Button type="primary" block onClick={handleUpdateItem}>
+            <Button type="primary" block className="mt-4 !h-[45px] !text-base" onClick={handleUpdateItem}>
               Lưu thay đổi
             </Button>
+          </Form>
+        )}
+      </Modal>
+      <Modal
+        title="Xác nhận thanh toán"
+        open={isPayModalOpen}
+        onCancel={() => setIsPayModalOpen(false)}
+        footer={null}
+      >
+        {payLoading ? (
+          <div className="flex justify-center py-6">
+            <Spin />
           </div>
+        ) : selectedItem ? (
+          <>
+            <p className="text-gray-700 mb-2">
+              <strong>Sản phẩm:</strong> {selectedItem?.title}
+            </p>
+            <p className="text-gray-700 mb-2">
+              <strong>Loại:</strong>{" "}
+              {selectedItem.itemType === "Ev" ? "Xe điện (EV)" : "Pin (Battery)"}
+            </p>
+            <p className="text-gray-700 mb-2">
+              <strong>Số dư ví hiện tại:</strong>{" "}
+              {formatCurrency(wallet?.balance || 0)}
+            </p>
+            <p className="text-gray-700 mb-4">
+              {payType == "listing" ?
+                <><strong>Phí thanh toán: </strong> đ{feeCommission}</> :
+                <><strong>Phí thanh toán: </strong> đ{moderationCommission}</>}
+
+            </p>
+
+            {inlineMsg && (
+              <Alert
+                type={inlineMsg.type}
+                message={inlineMsg.text}
+                showIcon
+                className="mb-4"
+              />
+            )}
+
+            <div className="flex justify-end gap-3">
+              <Button onClick={() => setIsPayModalOpen(false)}>Hủy</Button>
+              <Button
+                type="primary"
+                loading={payLoading}
+                onClick={handleConfirmPayment}
+              >
+                Xác nhận thanh toán
+              </Button>
+            </div>
+          </>
+        ) : (
+          <p className="text-center text-gray-500">Không có dữ liệu để hiển thị.</p>
         )}
       </Modal>
 

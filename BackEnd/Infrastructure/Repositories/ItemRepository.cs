@@ -494,7 +494,7 @@ namespace Infrastructure.Repositories
                                     where
                                         i.UpdatedBy == sellerId &&
                                         //o.Status == "completed" //&& 
-                                        p.Status == PaymentStatus.Completed.ToString()
+                                        o.Status == OrderStatus.Completed.ToString()
                                     select pd.PaymentDetailId;
 
             var totalProductLinesSold = await productLinesQuery.CountAsync();
