@@ -8,6 +8,8 @@ public interface ICommissionFeeRuleRepository
 
     Task<CommissionFeeRule?> GetByIdAsync(int id);
 
+    Task<CommissionFeeRule?> GetByFeeCodeAsync(string feeCode);
+
     Task AddAsync(CommissionFeeRule rule);
 
     Task UpdateAsync(CommissionFeeRule rule);

@@ -62,7 +62,7 @@ namespace Infrastructure.Repositories
 
             foreach (var item in items)
             {
-                item.Status = "processing";
+                item.Status = "Processing";
             }
 
             return items;
@@ -84,7 +84,7 @@ namespace Infrastructure.Repositories
 
             foreach (var item in items)
             {
-                item.Status = "pending_approval";
+                item.Status = "Pending_Approval";
             }
 
             return items;
@@ -125,7 +125,7 @@ namespace Infrastructure.Repositories
 
             foreach (var item in items)
             {
-                item.Status = "canceled";
+                item.Status = "Canceled";
             }
 
             return items;
@@ -147,7 +147,7 @@ namespace Infrastructure.Repositories
 
             foreach (var item in items)
             {
-                item.Status = "sold";
+                item.Status = "Sold";
             }
 
             return items;
@@ -186,11 +186,11 @@ namespace Infrastructure.Repositories
                             Voltage = battery.Voltage,
                             ChargeCycles = battery.ChargeCycles,
                             ListedPrice = item.Price,
-                            ActualPrice = pd != null ? pd.Amount : (decimal?)null,
+                            ActualPrice = item.Price * oi.Quantity,
                             PaymentMethod = p != null ? p.Method : null,
 
-                            CreatedAt = item.CreatedAt,
-                            SoldAt = item.UpdatedAt,
+                            CreatedAt = o.CreatedAt,
+                            SoldAt = o.UpdatedAt,
                             ImageUrl = img != null ? img.ImageUrl : null,
                             Buyer = u != null ? new BuyerDto
                             {
@@ -199,8 +199,10 @@ namespace Infrastructure.Repositories
                                 Phone = u.Phone,
                                 Address = a != null ? $"{a.Street}, {a.Ward}, {a.District}, {a.Province}" : null
                             } : null,
-                            OrderId = o != null ? o.OrderId : (int?)null
+                            OrderId = o != null ? o.OrderId : (int?)null,
+                            Status = o.Status
                         };
+           
 
             return await query.ToListAsync();
         }
@@ -236,10 +238,10 @@ namespace Infrastructure.Repositories
                             Voltage = battery.Voltage,
                             ChargeCycles = battery.ChargeCycles,
                             ListedPrice = item.Price,
-                            ActualPrice = pd != null ? pd.Amount : (decimal?)null,
+                            ActualPrice = item.Price * oi.Quantity,
                             PaymentMethod = p != null ? p.Method : null,
-                            CreatedAt = item.CreatedAt,
-                            SoldAt = item.UpdatedAt,
+                            CreatedAt = o.CreatedAt,
+                            SoldAt = o.UpdatedAt,
                             ImageUrl = (from img_ in _context.ItemImages
                                         where img_.ItemId == item.ItemId
                                         select img_.ImageUrl).FirstOrDefault(),
@@ -289,11 +291,11 @@ namespace Infrastructure.Repositories
                             Color = ev.Color,
                             Year = ev.Year,
                             ListedPrice = item.Price,
-                            ActualPrice = pd != null ? pd.Amount : (decimal?)null,
+                            ActualPrice = item.Price * oi.Quantity,
                             PaymentMethod = p != null ? p.Method : null,
 
-                            CreatedAt = item.CreatedAt,
-                            SoldAt = item.UpdatedAt,
+                            CreatedAt = o.CreatedAt,
+                            SoldAt = o.UpdatedAt,
                             ImageUrl = img != null ? img.ImageUrl : null,
                             Buyer = u != null ? new BuyerDto
                             {
@@ -338,11 +340,11 @@ namespace Infrastructure.Repositories
                             Color = ev.Color,
                             Year = ev.Year,
                             ListedPrice = item.Price,
-                            ActualPrice = pd != null ? pd.Amount : (decimal?)null,
+                            ActualPrice = item.Price * oi.Quantity,
                             PaymentMethod = p != null ? p.Method : null,
 
-                            CreatedAt = item.CreatedAt,
-                            SoldAt = item.UpdatedAt,
+                            CreatedAt = o.CreatedAt,
+                            SoldAt = o.UpdatedAt,
                             ImageUrl = (from img_ in _context.ItemImages
                                         where img_.ItemId == item.ItemId
                                         select img_.ImageUrl).FirstOrDefault(),

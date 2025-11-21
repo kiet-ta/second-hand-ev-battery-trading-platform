@@ -196,8 +196,10 @@ namespace Application.Services
                 throw new Exception("Associated user not found for KYC document.");
             if (user != null)
             {
+                user.Role = UserRole.Seller.ToString();
                 user.KycStatus = KycStatus.Rejected.ToString();
                 await _unitOfWork.Users.UpdateAsync(user);
+                await _unitOfWork.Users.SaveChangesAsync();
             }
         }
     }

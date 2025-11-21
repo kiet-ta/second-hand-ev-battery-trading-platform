@@ -59,7 +59,7 @@ function HomePage() {
 
 
 
-    const isItemVerified = (item) => item.moderation === 'approved_tag';
+    const isItemVerified = (item) => item.moderation === 'Approved';
 
 
 
@@ -141,8 +141,8 @@ function HomePage() {
                             imageUrl="https://excelbattery.com/wp-content/uploads/2023/11/final-banner1.jpg"
                             title="Khai Phá Năng Lượng Tương Lai"
                             description="Khám phá các linh kiện xe điện hiếm và hiệu suất cao. Mỗi sản phẩm đều được tuyển chọn dành cho người sành sỏi."
-                            link="/evs-and-batteries"
                             ctaText="Khám Phá Bộ Sưu Tập"
+                            link="/news/1002"
                         />
                     )}
 

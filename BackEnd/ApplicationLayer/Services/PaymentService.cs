@@ -30,6 +30,52 @@ public class PaymentService : IPaymentService
         _unitOfWork = unitOfWork;
     }
 
+    private async Task UpdateItemInventoryForOrderAsync(int orderId)
+    {
+        var order = await _unitOfWork.Orders.GetOrderWithItemsAsync(orderId);
+
+        if (order == null)
+        {
+            throw new NullReferenceException($"Không tìm thấy đơn hàng với ID: {orderId}");
+        }
+        if (order.Status != OrderStatus.Paid.ToString() && order.Status != OrderStatus.Pending.ToString())
+        {
+            return;
+        }
+
+        foreach (var orderItem in order.OrderItems)
+        {
+            var item = await _unitOfWork.Items.GetByIdAsync(orderItem.ItemId);
+
+            if (item != null)
+            {
+                if (item.Quantity >= orderItem.Quantity)
+                {
+                    item.Quantity -= orderItem.Quantity;
+
+                    if (item.Quantity == 0)
+                    {
+                        item.Status = ItemStatus.Sold.ToString();
+                    }
+                    _unitOfWork.Items.Update(item);
+                }
+                else
+                {
+                    throw new InvalidOperationException($"Lỗi tồn kho: Item ID {item.ItemId} không đủ số lượng.");
+                }
+            }
+        }
+
+        if (order.Status == OrderStatus.Pending.ToString())
+        {
+            order.Status = OrderStatus.Paid.ToString();
+            order.UpdatedAt = DateTime.UtcNow;
+        }
+        await _unitOfWork.Orders.UpdateAsync(order);
+
+        await _unitOfWork.SaveChangesAsync();
+    }
+
     // Once the order is completed, the money will be divided between the MANAGER and the SELLER.
     public async Task<bool> ConfirmOrderAndSplitPaymentAsync(int orderId, int buyerId)
     {
@@ -59,14 +105,16 @@ public class PaymentService : IPaymentService
 
             await _unitOfWork.BeginTransactionAsync();
 
+            var seller = await _unitOfWork.Users.GetByIdAsync(sellerId.Value);
             var sellerWallet = await _unitOfWork.Wallets.GetWalletByUserIdAsync(sellerId);
             var managerWallet = await _unitOfWork.Wallets.GetManagerWalletAsync();
 
             if (sellerWallet == null)
                 throw new Exception($"Không tìm thấy ví cho Seller (ID: {sellerId}).");
-
-            string feeCode = "FEE001";
-            var commissionRule = await _unitOfWork.CommissionFeeRules.GetActiveRuleByCodeAsync(feeCode); // Hard Core
+            string feeCode;
+            if (seller.IsStore) feeCode = "FEESL";
+            else feeCode = "FEEPL";
+                var commissionRule = await _unitOfWork.CommissionFeeRules.GetByFeeCodeAsync(feeCode); // Hard Core
             if (commissionRule == null)
                 throw new Exception("Không tìm thấy quy tắc hoa hồng 'FEE001'.");
 
@@ -196,8 +244,19 @@ public class PaymentService : IPaymentService
                 await _unitOfWork.WalletTransactions.CreateTransactionAsync(walletTransaction);
 
                 await _unitOfWork.Payments.UpdatePaymentStatusAsync(payment.PaymentId, "completed");
+                //TuCore
+                var orderIdsToUpdate = request.Details
+                        .Where(d => d.OrderId.HasValue)
+                        .Select(d => d.OrderId.Value)
+                        .Distinct()
+                        .ToList();
 
-                await UpdateRelatedEntitiesInternalAsync(request.Details);
+                foreach (var orderId in orderIdsToUpdate)
+                {
+                    await UpdateItemInventoryForOrderAsync(orderId);
+                }
+
+                //await UpdateRelatedEntitiesInternalAsync(request.Details);
 
                 await _unitOfWork.CommitTransactionAsync();
 
@@ -338,7 +397,19 @@ public class PaymentService : IPaymentService
             {
                 Console.WriteLine($"[Webhook] Xử lý Mua hàng (Escrow) cho PaymentId: {info.PaymentId}");
 
-                await UpdateRelatedEntitiesInternalAsync(info.Details);
+                //await UpdateRelatedEntitiesInternalAsync(info.Details);
+                //TuCore
+                var orderIdsToUpdate = info.Details
+                        .Where(d => d.OrderId.HasValue)
+                        .Select(d => d.OrderId.Value)
+                        .Distinct()
+                        .ToList();
+
+                foreach (var orderId in orderIdsToUpdate)
+                {
+                    // Gọi phương thức cập nhật tồn kho và trạng thái Order
+                    await UpdateItemInventoryForOrderAsync(orderId);
+                }
 
                 if (!int.TryParse(_config["AppSettings:SystemWalletUserId"], out int systemWalletUserId))
                     throw new Exception("SystemWalletUserId is not configured");
@@ -532,6 +603,57 @@ public class PaymentService : IPaymentService
                     item.UpdatedAt = DateTime.UtcNow;
                 }
             }
+        }
+    }
+
+    public async Task ProcessSuccessfulPaymentAsync(int orderId, string transactionId, decimal amount)
+    {
+        var order = await _unitOfWork.Orders.GetOrderWithItemsAsync(orderId);
+
+        if (order == null)
+        {
+            throw new NullReferenceException($"Không tìm thấy đơn hàng với ID: {orderId}");
+        }
+
+        if (order.Status == OrderStatus.Pending.ToString())
+        {
+            order.Status = OrderStatus.Paid.ToString();
+
+            foreach (var orderItem in order.OrderItems)
+            {
+                var item = await _unitOfWork.Items.GetByIdAsync(orderItem.ItemId);
+
+                if (item != null)
+                {
+                    if (item.Quantity >= orderItem.Quantity)
+                    {
+                        item.Quantity -= orderItem.Quantity;
+
+                        if (item.Quantity == 0)
+                        {
+                            item.Status = ItemStatus.Sold.ToString();
+                        }
+                        _unitOfWork.Items.Update(item);
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException($"Lỗi tồn kho: Item ID {item.ItemId} không đủ số lượng.");
+                    }
+                }
+            }
+
+            await _unitOfWork.SaveChangesAsync();
+
+            // Send email confirm/notification to user
+            // await _mailService.SendPurchaseSuccessMail(order);
+        }
+        else if (order.Status == OrderStatus.Paid.ToString())
+        {
+            // Xử lý tính toán lặp lại (Idempotency): Đơn hàng đã được thanh toán, bỏ qua.
+        }
+        else
+        {
+            throw new InvalidOperationException($"Đơn hàng {orderId} đang ở trạng thái không thể thanh toán: {order.Status}");
         }
     }
 }
