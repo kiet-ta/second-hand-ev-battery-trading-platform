@@ -793,5 +793,57 @@ namespace Infrastructure.Repositories
 
             return await query.ToListAsync();
         }
+        public async Task<int> GetCurrentItemQuantityAsync(int itemId)
+        {
+            // Giả sử có một lớp Entity tên là 'Item' với trường 'Quantity'
+            var item = await _context.Items
+                                     .AsNoTracking() // Dùng AsNoTracking nếu bạn chỉ đọc dữ liệu
+                                     .FirstOrDefaultAsync(i => i.ItemId == itemId);
+
+            if (item == null)
+            {
+                // Xử lý khi không tìm thấy Item, có thể trả về 0 hoặc ném ngoại lệ
+                throw new KeyNotFoundException($"Item with ID {itemId} not found.");
+            }
+
+            return item.Quantity;
+        }
+        public async Task UpdateItemQuantityAsync(int itemId, int quantityToSubtract)
+        {
+            if (quantityToSubtract <= 0)
+            {
+                throw new ArgumentException("Quantity to subtract must be greater than 0.", nameof(quantityToSubtract));
+            }
+
+            // 1. Tìm Item cần cập nhật
+            var item = await _context.Items
+                                     .FirstOrDefaultAsync(i => i.ItemId == itemId);
+
+            if (item == null)
+            {
+                throw new KeyNotFoundException($"Item with ID {itemId} not found.");
+            }
+
+            // 2. KIỂM TRA TỒN KHO TRƯỚC KHI TRỪ (Kiểm tra lại lần cuối cùng)
+            if (item.Quantity < quantityToSubtract)
+            {
+                // Nếu không đủ, ném ngoại lệ để kích hoạt Rollback Transaction trong Service Layer
+                throw new InvalidOperationException($"Insufficient stock for Item ID {itemId}. Current quantity: {item.Quantity}. Required: {quantityToSubtract}.");
+            }
+
+            // 3. THỰC HIỆN TRỪ KHO
+            item.Quantity -= quantityToSubtract;
+
+            // 4. Lưu thay đổi
+            // **Lưu ý:** Việc này sẽ nằm trong Transaction được quản lý bởi UnitOfWork/Service Layer.
+            // Nếu SaveChanges() được gọi ở đây, nó sẽ commit ngay lập tức. Tốt nhất là chỉ gọi
+            // SaveChanges() một lần ở cuối Transaction trong Order Service.
+
+            // Nếu bạn muốn repository tự quản lý SaveChanges:
+             await _context.SaveChangesAsync();
+
+            // Nếu bạn muốn Repository chỉ thay đổi trạng thái và Service/UnitOfWork gọi SaveChanges (Cách khuyến nghị):
+            // Không cần gọi SaveChanges ở đây, chỉ cần đảm bảo entity đã được attach và thay đổi.
+        }
     }
 }
