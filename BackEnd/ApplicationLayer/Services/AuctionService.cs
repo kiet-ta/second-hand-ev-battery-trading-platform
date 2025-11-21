@@ -293,6 +293,10 @@ public class AuctionService : IAuctionService
                     Message = outbidMessage
                 };
                 _ = _notificationService.AddNewNotification(notiDto, 0, "");
+
+                await _notificationService.SendNotificationAsync(
+               message: outbidMessage,
+               targetUserId: notiDto.TargetUserId);
             }
             return newBidHistory;
 
