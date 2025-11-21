@@ -54,7 +54,7 @@ const menu = [
 ];
 
 // --- MAIN LAYOUT ---
-export default function ManagerLayout({ onRefresh, onAddStaff, children }) {
+export default function ManagerLayout({ onRefresh, children }) {
     const navigate = useNavigate();
     const location = useLocation();
     const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
@@ -154,14 +154,7 @@ export default function ManagerLayout({ onRefresh, onAddStaff, children }) {
                             icon={<Settings size={18} className="text-slate-700" />}
                         />
                         <div className="p-4 grid grid-cols-1 gap-2">
-                            {/* Thêm tài khoản nhân viên */}
-                            <button
-                                onClick={onAddStaff}
-                                className="flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-200 text-sm text-slate-700 hover:bg-slate-50 text-left"
-                            >
-                                <UserPlus2 size={16} className="text-indigo-600" />
-                                Thêm tài khoản nhân viên
-                            </button>
+
 
                             {/* Duyệt người bán */}
                             <button

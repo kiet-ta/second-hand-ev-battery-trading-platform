@@ -4,7 +4,8 @@ import { router } from './router/Router.jsx'
 import React from 'react'
 function App() {
   return (
-    <RouterProvider router={router} />
+    <RouterProvider router={router} />,
+    <GeminiChatWidget />
   )
 }
 export default App

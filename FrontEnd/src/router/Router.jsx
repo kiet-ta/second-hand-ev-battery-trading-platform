@@ -205,6 +205,7 @@ export const router = createBrowserRouter([
     ],
   },
 
+
   // STANDALONE ROUTES (outside main layout)
   { path: "/bought", element: <PurchaseHistory /> },
   { path: "/payment/success", element: <PaymentSuccessPage /> },
