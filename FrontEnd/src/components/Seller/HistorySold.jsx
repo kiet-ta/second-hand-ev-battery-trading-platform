@@ -510,14 +510,6 @@ export default function HistorySold() {
                                 </button>
                             )}
 
-                            <button
-                                onClick={() =>
-                                    message.success("🧾 Đang tạo hóa đơn PDF... (chưa implement)")
-                                }
-                                className="flex-1 px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center justify-center gap-2"
-                            >
-                                <Download className="w-5 h-5" /> Tải hóa đơn
-                            </button>
                         </div>
                     </div>
                 </div>

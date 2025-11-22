@@ -94,10 +94,8 @@ export default function DashboardContent() {
             <div className="grid sm:grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
                 <StatTile
                     icon={<DollarSign size={18} className="text-slate-800" />}
-                    label="Doanh thu (tháng)"
-                    value={currencyVND(metrics.revenueThisMonth)}
-                    hint={`Tổng năm: ${currencyVND(revenueTotal)}`}
-                    trend={metrics?.growth ?? 0}
+                    label="Doanh thu"
+                    value={currencyVND(revenueTotal)}
                 />
                 <StatTile
                     icon={<Users size={18} className="text-slate-800" />}
@@ -110,13 +108,6 @@ export default function DashboardContent() {
                     label="Sản phẩm đang hoạt động"
                     value={metrics.activeListings.toLocaleString("vi-VN")}
                     hint="Xe điện & Pin"
-                />
-                <StatTile
-                    icon={<TrendingUp size={18} className="text-slate-800" />}
-                    label="Tăng trưởng theo tháng"
-                    value={`${metrics.growth}%`}
-                    hint="So với tháng trước"
-                    trend={metrics?.growth ?? 0}
                 />
             </div>
 

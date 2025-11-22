@@ -41,7 +41,7 @@ export default function ProductModeration() {
             setLoading(true);
             const data = await itemApi.getItemDetail();
             const uniqueMap = new Map();
-            data.forEach((item) => {
+            data.filter(res => res.moderation != 'Not_Submitted').forEach((item) => {
                 const key = `${item.itemId}-${item.itemType}`;
                 if (!uniqueMap.has(key)) uniqueMap.set(key, item);
             });

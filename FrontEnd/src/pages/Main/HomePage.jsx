@@ -142,7 +142,7 @@ function HomePage() {
                             title="Khai Phá Năng Lượng Tương Lai"
                             description="Khám phá các linh kiện xe điện hiếm và hiệu suất cao. Mỗi sản phẩm đều được tuyển chọn dành cho người sành sỏi."
                             ctaText="Khám Phá Bộ Sưu Tập"
-                            link="/news/12"
+                            link="/news/1"
                         />
                     )}
 

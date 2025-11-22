@@ -101,7 +101,7 @@ export default function OrderCard({ order, onViewItem, onMarkReceived, onOpenRev
                                 : "Đang tải..."}
                         </div>
                         <div className="text-xs text-gray-500">
-                            {new Date(order.createdAt).toLocaleString()}
+                            {new Date(order.createdAt).toLocaleDateString()}
                         </div>
                     </div>
                 </div>

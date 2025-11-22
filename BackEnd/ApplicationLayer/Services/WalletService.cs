@@ -129,4 +129,39 @@ public class WalletService : IWalletService
             CreatedAt = transaction.CreatedAt
         };
     }
+
+    public async Task<WalletTransactionDto> RevenueAsync(WithdrawRequestDto request)
+    {
+        var wallet = await _unitOfWork.Wallets.GetWalletByUserIdAsync(request.UserId);
+        if (wallet == null)
+        {
+            throw new KeyNotFoundException("User wallet not found.");
+        }
+
+        if (wallet.Balance < request.Amount)
+        {
+            throw new InvalidOperationException("Insufficient wallet balance.");
+        }
+
+        var transaction = new WalletTransaction
+        {
+            WalletId = wallet.WalletId,
+            Amount = request.Amount, 
+            Type = request.Type,
+            RefId = request.RefId,
+            CreatedAt = DateTime.Now
+        };
+
+        var transactionId = await _unitOfWork.WalletTransactions.CreateTransactionAsync(transaction);
+        transaction.TransactionId = transactionId;
+
+        return new WalletTransactionDto
+        {
+            TransactionId = transaction.TransactionId,
+            Amount = transaction.Amount,
+            Type = transaction.Type,
+            ReferenceId = transaction.RefId,
+            CreatedAt = transaction.CreatedAt
+        };
+    }
 }

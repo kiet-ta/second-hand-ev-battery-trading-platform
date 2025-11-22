@@ -25,43 +25,43 @@ export default function OrderPage() {
   const [reviewPayload, setReviewPayload] = useState(null);
   const buyerId = localStorage.getItem("userId");
 
-  const fetchOrders = useCallback(async () => {
-    try {
-      setLoading(true);
-      const res = await orderApi.getOrdersByBuyerId(buyerId);
+const fetchOrders = useCallback(async () => {
+  try {
+    setLoading(true);
+    const res = await orderApi.getOrdersByBuyerId(buyerId);
 
-      const enriched = await Promise.all(
-        (res || []).map(async (order) => {
-          const items = await Promise.all(
-            (order.items || []).map(async (it) => {
-              try {
-                const detail = await itemApi.getItemDetailByID(it.itemId);
-                return { ...it, detail };
-              } catch (err) {
-                console.error("item detail fetch failed", err);
-                return { ...it, detail: null };
-              }
-            })
-          );
+    const enriched = await Promise.all(
+      (res || []).map(async (order) => {
+        const items = await Promise.all(
+          (order.items || []).map(async (it) => {
+            try {
+              const detail = await itemApi.getItemDetailByID(it.itemId);
+              return { ...it, detail };
+            } catch (err) {
+              console.error("item detail fetch failed", err);
+              return { ...it, detail: null };
+            }
+          })
+        );
 
-          // --- Calculate total price ---
-          const totalPrice = items.reduce(
-            (sum, it) => sum + (it.detail?.price || 0) * (it.quantity || 0),
-            0
-          );
+        // --- Calculate total price ---
+        const totalPrice = items.reduce(
+          (sum, it) => sum + (it.detail?.price || 0) * (it.quantity || 0),
+          0
+        );
 
-          return { ...order, items, totalPrice };
-        })
-      );
+        return { ...order, items, totalPrice };
+      })
+    );
 
-      setOrders(enriched);
-    } catch (err) {
-      console.error("fetchOrders error", err);
-      setOrders([]);
-    } finally {
-      setLoading(false);
-    }
-  }, [buyerId]);
+    setOrders(enriched);
+  } catch (err) {
+    console.error("fetchOrders error", err);
+    setOrders([]);
+  } finally {
+    setLoading(false);
+  }
+}, [buyerId]);
   useEffect(() => {
     fetchOrders();
   }, [fetchOrders]);
@@ -109,8 +109,8 @@ export default function OrderPage() {
               key={t.key}
               onClick={() => setActiveTab(t.key)}
               className={`px-4 py-2 rounded-md text-sm font-medium ${activeTab === t.key
-                ? "bg-white text-[#D97706] border border-[#D97706]"
-                : "bg-white/60 text-gray-700 hover:bg-white"
+                  ? "bg-white text-[#D97706] border border-[#D97706]"
+                  : "bg-white/60 text-gray-700 hover:bg-white"
                 }`}
             >
               {t.label}
@@ -124,7 +124,7 @@ export default function OrderPage() {
             <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
             <input
               className="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-200 bg-white focus:outline-none focus:shadow-sm"
-              placeholder="Bạn có thể tìm kiếm theo tên Shop, ID đơn hàng hoặc Tên Sản phẩm"
+              placeholder="Tìm kiếm sản phẩm"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />

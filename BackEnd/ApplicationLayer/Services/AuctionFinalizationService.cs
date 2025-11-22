@@ -240,7 +240,7 @@ public class AuctionFinalizationService : IAuctionFinalizationService
 
             var winnerNoti = new CreateNotificationDto
             {
-                NotiType = NotificationType.Auctions.ToString(),
+                NotiType = NotificationType.Activities.ToString(),
                 TargetUserId = winnerId.ToString(),  
                 Title = "You have won the auction!",
                 Message = $"Congratulations! You won the auction for item {itemId}."
@@ -259,7 +259,7 @@ public class AuctionFinalizationService : IAuctionFinalizationService
 
             var sellerNotiDto = new CreateNotificationDto
             {
-                NotiType = NotificationType.Auctions.ToString(),
+                NotiType = NotificationType.Auction.ToString(),
                 TargetUserId = sellerId.ToString(), 
                 Title = "Your auction has ended!",
                 Message = $"{sellerName?.FullName ?? "Someone"}'s item has been won by user ID {winnerId}."

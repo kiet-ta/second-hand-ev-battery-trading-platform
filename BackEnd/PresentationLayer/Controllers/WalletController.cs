@@ -62,4 +62,16 @@ public class WalletController : ControllerBase
         var transactionResult = await _walletService.WithdrawAsync(request);
         return Ok(new { message = $"{request.Type} successful.", transaction = transactionResult });
     }
+
+    [HttpPost("revenue")]
+
+    public async Task<IActionResult> RecordRevenue([FromBody] WithdrawRequestDto request)
+    {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+        var transactionResult = await _walletService.RevenueAsync(request);
+        return Ok(new { message = $"{request.Type} successful.", transaction = transactionResult });
+    }
 }

@@ -3,6 +3,7 @@ import StarRating from "../StarRatting"; // Import the star component
 import ImageUploader from "../ImageUploader"; // Assuming this is your uploader component's path
 import { X } from "lucide-react";
 import reviewApi from "../../api/reviewApi";
+import itemApi from "../../api/itemApi";
 
 export default function ReviewModal({ order, isOpen, onClose, onReviewSubmit }) {
     const [rating, setRating] = useState(0);
@@ -31,10 +32,10 @@ export default function ReviewModal({ order, isOpen, onClose, onReviewSubmit }) 
         }
         setError("");
         setIsSubmitting(true);
-
+        const sellerId = await itemApi.getItemById(order.itemId).then(item => item.updatedBy);
         const reviewData = {
             reviewerId: localStorage.getItem("userId"),
-            targetUserId: 1, // ASSUMPTION: Your order object has a 'sellerId'
+            targetUserId: sellerId,
             itemId: order.itemId,
             rating: rating,
             comment: comment,

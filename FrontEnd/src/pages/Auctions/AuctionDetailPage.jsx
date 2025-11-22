@@ -21,45 +21,55 @@ import itemApi from "../../api/itemApi";
 
 const LOGGED_IN_USER_ID = localStorage.getItem("userId");
 
-// ---------------- Countdown Hook ----------------
-const useCountdown = (endTimeStr) => {
-  const calculateTimeRemaining = useCallback(() => {
-    if (!endTimeStr) return { time: "N/A", isFinished: true };
-    const now = new Date().getTime();
-    const endTime = new Date(endTimeStr).getTime();
-    const distance = endTime - now;
-    if (distance < 0) return { time: "00h 00m 00s", isFinished: true };
+// ---------------- Countdown & Status Hook ----------------
+const useAuctionCountdown = (startTimeStr, endTimeStr) => {
+  const calc = useCallback(() => {
+    // If no times provided, mark finished
+    if (!startTimeStr && !endTimeStr) return { time: "N/A", isFinished: true, status: "unknown" };
 
-    const days = Math.floor(distance / (1000 * 60 * 60 * 24));
-    const hours = Math.floor(
-      (distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
-    );
-    const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-    const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+    const now = Date.now();
+    const start = startTimeStr ? new Date(startTimeStr).getTime() : null;
+    const end = endTimeStr ? new Date(endTimeStr).getTime() : null;
 
-    const pad = (n) => String(n).padStart(2, "0");
+    // upcoming: before start
+    if (start && now < start) {
+      const diff = start - now;
+      return { time: formatDuration(diff), isFinished: false, status: "upcoming", target: start };
+    }
 
-    if (days > 0)
-      return {
-        time: `${days}d ${pad(hours)}h ${pad(minutes)}m`,
-        isFinished: false,
-      };
+    // ongoing: between start and end (or if no start given, before end)
+    if ((start && end && now >= start && now < end) || (!start && end && now < end)) {
+      const diff = end - now;
+      return { time: formatDuration(diff), isFinished: false, status: "ongoing", target: end };
+    }
 
-    return {
-      time: `${pad(hours)}h ${pad(minutes)}m ${pad(seconds)}s`,
-      isFinished: false,
-    };
-  }, [endTimeStr]);
+    // ended
+    return { time: "00h 00m 00s", isFinished: true, status: "ended", target: end || (start || Date.now()) };
+  }, [startTimeStr, endTimeStr]);
 
-  const [countdown, setCountdown] = useState(calculateTimeRemaining);
+  const [state, setState] = useState(calc);
 
   useEffect(() => {
-    if (!endTimeStr) return;
-    const id = setInterval(() => setCountdown(calculateTimeRemaining()), 1000);
+    const id = setInterval(() => setState(calc()), 1000);
     return () => clearInterval(id);
-  }, [calculateTimeRemaining, endTimeStr]);
+  }, [calc]);
 
-  return countdown;
+  return state;
+};
+
+const formatDuration = (ms) => {
+  if (ms <= 0) return "00h 00m 00s";
+  const days = Math.floor(ms / (1000 * 60 * 60 * 24));
+  ms -= days * (1000 * 60 * 60 * 24);
+  const hours = Math.floor(ms / (1000 * 60 * 60));
+  ms -= hours * (1000 * 60 * 60);
+  const minutes = Math.floor(ms / (1000 * 60));
+  ms -= minutes * (1000 * 60);
+  const seconds = Math.floor(ms / 1000);
+
+  const pad = (n) => String(n).padStart(2, "0");
+  if (days > 0) return `${days}d ${pad(hours)}h ${pad(minutes)}m`;
+  return `${pad(hours)}h ${pad(minutes)}m ${pad(seconds)}s`;
 };
 
 // ---------------- Main Component ----------------
@@ -83,7 +93,13 @@ function AuctionDetailPage() {
   const stepPrice =
     auction?.stepPrice && auction.stepPrice > 0 ? auction.stepPrice : 100000;
 
-  const countdown = useCountdown(auction?.endTime);
+  // Use both startTime and endTime to determine status & countdown
+  const countdown = useAuctionCountdown(auction?.startTime, auction?.endTime);
+
+  // Derived flags from countdown.status
+  const isUpcoming = countdown.status === "upcoming";
+  const isOngoing = countdown.status === "ongoing";
+  const isEnded = countdown.status === "ended";
 
   // ---------------- SignalR Setup ----------------
   useEffect(() => {
@@ -186,6 +202,12 @@ function AuctionDetailPage() {
   const handlePlaceBid = async () => {
     if (!LOGGED_IN_USER_ID) return navigate("/login");
 
+    // if upcoming, don't allow bidding
+    if (isUpcoming) {
+      setErrorMsg("Đấu giá chưa bắt đầu.");
+      return;
+    }
+
     const minBid = getMinBid();
     if (bidAmount < minBid)
       return setErrorMsg(`Giá đặt tối thiểu: ${minBid.toLocaleString("vi-VN")} đ`);
@@ -221,7 +243,6 @@ function AuctionDetailPage() {
     "https://placehold.co/800x600/eee/999?text=No+Image";
 
   const displayPrice = auction.currentPrice || auction.startingPrice || 0;
-  const isOngoing = !countdown.isFinished;
 
   // NAV Buttons for image
   const handlePrev = () => {
@@ -305,7 +326,8 @@ function AuctionDetailPage() {
               <div className="flex justify-center items-center gap-2">
                 <FiClock className="text-2xl text-[#B8860B]" />
                 <span className="text-3xl font-bold">
-                  {isOngoing ? countdown.time : "ĐÃ KẾT THÚC"}
+                  {/* If upcoming, show countdown to start; if ongoing show time to end; if ended show ended */}
+                  {isUpcoming ? countdown.time : isOngoing ? countdown.time : "ĐÃ KẾT THÚC"}
                 </span>
               </div>
             </div>
@@ -318,8 +340,9 @@ function AuctionDetailPage() {
                     {displayPrice.toLocaleString("vi-VN")} đ
                   </p>
                 </div>
-                <Tag color="gold">Bước giá: {stepPrice.toLocaleString()} đ</Tag>
               </div>
+                              <Tag color="gold">Bước giá: {stepPrice.toLocaleString()} đ</Tag>
+
             </div>
 
             <div className="mt-6">
@@ -357,7 +380,7 @@ function AuctionDetailPage() {
                   onClick={handlePlaceBid}
                   className="bg-[#D4AF37] hover:bg-[#B8860B]"
                 >
-                  {isOngoing ? "Đặt Giá" : "Đã kết thúc"}
+                  {isUpcoming ? "Chưa bắt đầu" : isOngoing ? "Đặt Giá" : "Đã kết thúc"}
                 </Button>
               </Space.Compact>
             </div>

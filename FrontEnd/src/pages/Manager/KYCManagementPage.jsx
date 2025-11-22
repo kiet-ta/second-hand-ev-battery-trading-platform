@@ -21,7 +21,19 @@ const ImageModal = ({ url, onClose }) => {
 };
 
 const KycDocumentCard = ({ document, onApprove, onReject }) => {
-  const idCardImages = document.idCardUrl ? document.idCardUrl.split(',') : [];
+  let idCardImages = [];
+
+  if (document.idCardUrl) {
+    try {
+      const parsed = JSON.parse(document.idCardUrl);
+
+      if (parsed.front) idCardImages.push(parsed.front);
+      if (parsed.back) idCardImages.push(parsed.back);
+    } catch {
+      // fallback if data is old format ("url1,url2")
+      idCardImages = document.idCardUrl.split(',');
+    }
+  }
   const [showRejectInput, setShowRejectInput] = useState(false);
   const [rejectNote, setRejectNote] = useState('');
   const [message, setMessage] = useState(null);
@@ -49,10 +61,10 @@ const KycDocumentCard = ({ document, onApprove, onReject }) => {
         <h3 className="font-semibold text-sm">Người dùng #{document.userId}</h3>
         <span
           className={`px-2 py-0.5 text-xs font-semibold rounded ${document.status === 'Pending'
-              ? 'bg-yellow-100 text-yellow-800'
-              : document.status === 'Approved'
-                ? 'bg-green-100 text-green-800'
-                : 'bg-red-100 text-red-800'
+            ? 'bg-yellow-100 text-yellow-800'
+            : document.status === 'Approved'
+              ? 'bg-green-100 text-green-800'
+              : 'bg-red-100 text-red-800'
             }`}
         >
           {document.status === 'Pending'
@@ -147,13 +159,13 @@ const KycDocumentCard = ({ document, onApprove, onReject }) => {
       {/* Action buttons */}
       {document.status === 'Pending' && (
         <div className="mt-1 flex flex-col gap-1">
-          <PermissionChecker permissionId={3}>          
+          <PermissionChecker permissionId={3}>
             <button
-            onClick={() => onApprove(document.docId, 'Đã duyệt')}
-            className="bg-green-500 text-white py-1 rounded hover:bg-green-600 transition text-sm"
-          >
-            Duyệt
-          </button>
+              onClick={() => onApprove(document.docId, 'Đã duyệt')}
+              className="bg-green-500 text-white py-1 rounded hover:bg-green-600 transition text-sm"
+            >
+              Duyệt
+            </button>
           </PermissionChecker>
 
           <button
@@ -217,6 +229,7 @@ const KycManagementPage = () => {
       } else if (currentTab === 'Rejected') {
         response = await kycApi.getRejectedKYC();
       }
+      console.log('KYC Documents:', response);
       setDocuments(response);
     } catch (err) {
       console.error('Lỗi tải KYC:', err);
@@ -293,7 +306,7 @@ const KycManagementPage = () => {
             Đã duyệt
           </button>
           <button
-            onClick={() => setCurrentTab('rejected')}
+            onClick={() => setCurrentTab('Rejected')}
             className={`whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm ${getTabClass(
               'Rejected'
             )}`}

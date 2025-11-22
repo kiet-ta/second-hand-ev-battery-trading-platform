@@ -198,12 +198,6 @@ export default function HistoryBought() {
         <div className="max-w-7xl mx-auto">
           <div className="flex justify-between items-center mb-6 flex-wrap gap-3">
             <h1 className="text-3xl font-bold">🛒 Lịch sử mua hàng</h1>
-            <button
-              onClick={exportToCSV}
-              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
-            >
-              Xuất CSV
-            </button>
           </div>
 
           {/* --- Quick Stats --- */}
