@@ -27,9 +27,20 @@ namespace Infrastructure.Data.Configurations
             entity.Property(e => e.Price)
                 .HasColumnType("decimal(18, 2)")
                 .HasColumnName("price");
+            entity.Property(e => e.Status)
+                .HasMaxLength(20)
+                .HasColumnName("status");
+
             entity.Property(e => e.Quantity)
                 .HasDefaultValue(1)
                 .HasColumnName("quantity");
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("getdate()")
+                .HasColumnName("created_at");
+            entity.Property(e => e.UpdatedAt)
+                .HasDefaultValueSql("getdate()")
+                .HasColumnName("updated_at");
+
 
             //entity.HasOne(d => d.Buyer).WithMany(p => p.OrderItems)
             //    .HasForeignKey(d => d.BuyerId)

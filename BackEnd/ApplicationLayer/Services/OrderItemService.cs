@@ -25,12 +25,47 @@ namespace Application.Services
 
             if (request.Quantity <= 0)
                 throw new ArgumentException("Quantity must be greater than 0.", nameof(request.Quantity));
+            var listOfCart = await _unitOfWork.OrderItems.GetCartItemsByBuyerIdAsync(request.BuyerId);
+            var existingCart = listOfCart.FirstOrDefault(ci => ci.ItemId == request.ItemId && !ci.IsDeleted && ci.OrderId == null);
+            if (existingCart != null)
+            {
+                var item = await _unitOfWork.Items.GetByIdAsync(request.ItemId);
+                if (item == null)
+                {
+                    throw new KeyNotFoundException($"Item with ID {request.ItemId} not found.");
+                }
+                if (existingCart.Quantity + request.Quantity > item.Quantity)
+                {
+                    throw new InvalidOperationException("Adding the requested quantity exceeds available stock.");
+                }
+                else 
+                {
+                    existingCart.Price = request.Price;
+                    existingCart.Quantity += request.Quantity;
+                    await _unitOfWork.OrderItems.UpdateAsync(existingCart);
+                    return new OrderItemDto
+                    {
+                        OrderItemId = existingCart.OrderItemId,
+                        ItemId = existingCart.ItemId,
+                        Quantity = existingCart.Quantity,
+                        Price = existingCart.Price
+                    };
+                }
 
-            var result = await _unitOfWork.OrderItems.CreateOrderItemAsync(request);
-            if (result == null)
-                throw new Exception("Failed to create order item. Repository returned null.");
-
-            return result;
+            }
+            else 
+            {
+                var newOrderItem = await _unitOfWork.OrderItems.CreateOrderItemAsync(request);
+                if (newOrderItem == null)
+                    throw new Exception("Failed to create order item.");
+                return new OrderItemDto
+                {
+                    OrderItemId = newOrderItem.OrderItemId,
+                    ItemId = newOrderItem.ItemId,
+                    Quantity = newOrderItem.Quantity,
+                    Price = newOrderItem.Price
+                };
+            }
         }
 
 
@@ -43,7 +78,6 @@ namespace Application.Services
             if (items == null)
                 throw new Exception($"Failed to retrieve cart items for buyer ID {buyerId}.");
             if (!items.Any())
-                //throw new Exception($"No items found in cart for buyer ID {buyerId}.");
                 return Enumerable.Empty<OrderItemDto>();
 
             return items.Select(o => new OrderItemDto
@@ -69,11 +103,7 @@ namespace Application.Services
 
             if (dto.Quantity <= 0)
                 throw new ArgumentException("Quantity must be greater than 0.", nameof(dto.Quantity));
-            if (dto.Price < 0)
-                throw new ArgumentException("Price cannot be negative.", nameof(dto.Price));
-
             orderItem.Quantity = dto.Quantity;
-            orderItem.Price = dto.Price;
 
             await _unitOfWork.OrderItems.UpdateAsync(orderItem);
             return true;

@@ -11,7 +11,8 @@ public class Order
 
     public int AddressId { get; set; }
 
-    public string? Status { get; set; }
+    public decimal ShippingPrice { get; set; }
+
 
     public DateTime CreatedAt { get; set; }
 

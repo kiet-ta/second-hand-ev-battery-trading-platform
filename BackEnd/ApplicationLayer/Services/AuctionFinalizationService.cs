@@ -136,7 +136,6 @@ public class AuctionFinalizationService : IAuctionFinalizationService
             {
                 BuyerId = winnerId,
                 AddressId = winnerAddress.AddressId, 
-                Status = OrderStatus.Pending.ToString(), 
                 CreatedAt = DateTime.Now,
                 UpdatedAt = DateTime.Now
             };
@@ -165,6 +164,7 @@ public class AuctionFinalizationService : IAuctionFinalizationService
                 ItemId = itemId,
                 Quantity = itemWithSeller.Item.Quantity,
                 Price = winningAmount,
+                Status = OrderItemStatus.Pending.ToString(),
                 IsDeleted = false
             };
 
@@ -241,7 +241,7 @@ public class AuctionFinalizationService : IAuctionFinalizationService
 
             var winnerNoti = new CreateNotificationDto
             {
-                NotiType = NotificationType.Auctions.ToString(),
+                NotiType = NotificationType.Auction.ToString(),
                 TargetUserId = winnerId.ToString(),  
                 Title = "You have won the auction!",
                 Message = $"Congratulations! You won the auction for item {itemId}."

@@ -11,6 +11,8 @@ import {
 import { RiBattery2ChargeLine } from "react-icons/ri";
 import { message } from "antd";
 import orderApi from "../../api/orderApi";
+import itemApi from "../../api/itemApi"; // uses the getItemDetailByID method
+import addressApi from "../../hooks/services/addressApi";
 
 export default function HistorySold() {
     const [sales, setSales] = useState([]);
@@ -19,36 +21,14 @@ export default function HistorySold() {
     const [selectedSale, setSelectedSale] = useState(null);
     const [loading, setLoading] = useState(true);
     const [confirming, setConfirming] = useState(false);
+    const [addressDetail, setAddressDetail] = useState(null);
+
     const baseURL = import.meta.env.VITE_API_BASE_URL;
 
     const sellerId = localStorage.getItem("userId");
     const token = localStorage.getItem("token");
 
-    useEffect(() => {
-        const fetchSales = async () => {
-            try {
-                const res = await fetch(
-                    `${baseURL}history?sellerId=${sellerId}&PageNumber=1&PageSize=10`,
-                    {
-                        headers: {
-                            Authorization: `Bearer ${token}`,
-                            "Content-Type": "application/json",
-                        },
-                    }
-                );
-                if (!res.ok) throw new Error("Không thể tải dữ liệu");
-                const data = await res.json();
-                console.log("📦 API trả về:", data);
-                setSales(data?.items || []);
-            } catch (err) {
-                console.error("❌ Lỗi khi tải lịch sử bán:", err);
-            } finally {
-                setLoading(false);
-            }
-        };
-        fetchSales();
-    }, [sellerId, token, baseURL]);
-
+    // Helper formatters
     const formatPrice = (price) =>
         new Intl.NumberFormat("vi-VN", {
             style: "currency",
@@ -56,7 +36,7 @@ export default function HistorySold() {
         }).format(price || 0);
 
     const getStatusColor = (status) => {
-        switch (status) {
+        switch ((status || "").toString()) {
             case "Active":
             case "Auction_Active":
                 return "bg-blue-100 text-blue-800";
@@ -80,7 +60,7 @@ export default function HistorySold() {
     };
 
     const getStatusText = (status) => {
-        switch (status) {
+        switch ((status || "").toString()) {
             case "Active":
                 return "Đang bán";
             case "Auction_Active":
@@ -108,43 +88,173 @@ export default function HistorySold() {
         }
     };
 
+    useEffect(() => {
+        const fetchSales = async () => {
+            setLoading(true);
+            try {
+                // Fetch history (handle both old/detailed and new/minimal shapes)
+                const res = await fetch(
+                    `${baseURL}history?sellerId=${sellerId}&PageNumber=1&PageSize=50`,
+                    {
+                        headers: {
+                            Authorization: `Bearer ${token}`,
+                            "Content-Type": "application/json",
+                        },
+                    }
+                );
 
+                if (!res.ok) {
+                    throw new Error("Không thể tải dữ liệu lịch sử");
+                }
+
+                const data = await res.json();
+                // support both: { items: [...] } (old) or [...] (new)
+                const rawList = data?.items ?? data ?? [];
+
+                // For each raw entry, fetch item detail and then merge fields.
+                const merged = await Promise.all(
+                    rawList.map(async (r) => {
+                        // Some APIs return different field names; normalize:
+                        const orderItemId = r.orderItemId ?? r.orderItemID ?? r.id ?? null;
+                        const orderId = r.orderId ?? r.orderID ?? r.order_id ?? r.order ?? null;
+                        const itemId = r.itemId ?? r.itemID ?? r.item_id ?? r.item ?? null;
+
+                        // fetch item detail if we have itemId
+                        let itemDetail = null;
+                        try {
+                            if (itemId != null) {
+                                // itemApi.getItemDetailByID should return the object shown in your example
+                                const resp = await itemApi.getItemDetailByID(itemId);
+                                // If itemApi returns wrapped response, try to normalize:
+                                itemDetail = resp?.data ?? resp;
+                            }
+                        } catch (err) {
+                            console.error("Lỗi lấy chi tiết item", itemId, err);
+                        }
+
+                        // Determine useful numeric fields with fallback to older field names
+                        const totalAmount =
+                            Number(r.totalAmount ?? r.total_amount ?? r.actualPrice ?? r.price ?? 0) || 0;
+                        const feeValue =
+                            Number(r.feeValue ?? r.fee_value ?? r.fee ?? 0) || 0;
+                        const quantity =
+                            Number(r.quantity ?? itemDetail?.quantity ?? 1) || 1;
+
+                        // Payment method mapping: API uses "Wallet" or maybe "Bank" / "BankTransfer"
+                        const paymentRaw = r.paymentMethod ?? r.paymentMethodName ?? r.payment ?? "";
+                        const paymentMethod =
+                            paymentRaw === "Wallet" || paymentRaw === "Ví" || paymentRaw === "Vi"
+                                ? "Ví"
+                                : /bank|transfer|ngân|banktransfer/i.test(paymentRaw)
+                                    ? "Ngân hàng"
+                                    : paymentRaw || "Khác";
+
+                        // item type: prefer itemDetail.itemType else fallback to r.itemType
+                        const itemType = (itemDetail?.itemType ?? r.itemType ?? "").toString();
+
+                        // Compute income
+                        const income = totalAmount - feeValue;
+
+                        // Product code format: CMS_<ITEMTYPE>_<ORDERID>
+                        const productCode = `CMS_${(itemType || "ITEM").toUpperCase()}_${orderId ?? ""}`;
+
+                        // Image url fallback
+                        const imageUrl =
+                            // try old shapes
+                            r.imageUrl ??
+                            r.image?.imageUrl ??
+                            (itemDetail?.itemImage && itemDetail.itemImage.length > 0
+                                ? itemDetail.itemImage[0].imageUrl
+                                : null);
+
+                        // Buyer object might live in r.buyer or in nested fields in old API
+                        const buyer =
+                            r.buyer ??
+                            r.customer ??
+                            (r.buyerFullName || r.buyerName
+                                ? {
+                                    fullName: r.buyerFullName ?? r.buyerName,
+                                    phone: r.buyerPhone ?? r.buyerTel,
+                                    address: r.buyerAddress ?? r.address,
+                                }
+                                : null);
+
+                        // Keep old fields if present (soldAt, listedPrice, actualPrice)
+                        const soldAt = r.soldAt ?? r.orderDate ?? r.order_date ?? null;
+                        const listedPrice = Number(r.listedPrice ?? r.listed_price ?? itemDetail?.price ?? 0);
+                        const actualPrice = Number(r.actualPrice ?? totalAmount);
+
+                        return {
+                            // normalized fields
+                            ...r,
+                            orderItemId,
+                            orderId,
+                            itemId,
+                            itemDetail,
+                            totalAmount,
+                            feeValue,
+                            quantity,
+                            paymentMethod,
+                            itemType,
+                            income,
+                            productCode,
+                            imageUrl,
+                            buyer,
+                            soldAt,
+                            listedPrice,
+                            actualPrice,
+                        };
+                    })
+                );
+
+                // set to state
+                setSales(merged);
+            } catch (err) {
+                console.error("❌ Lỗi khi tải lịch sử bán:", err);
+                message.error("Không thể tải lịch sử bán.");
+                setSales([]);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchSales();
+    }, [sellerId, token, baseURL]);
+
+    // Derived totals (EV / Battery) from merged sales
     const totalRevenueEV = sales
         .filter(
             (s) =>
-                s.itemType === "Ev" &&
+                (s.itemType === "Ev" || s.itemDetail?.itemType === "Ev") &&
                 ["Sold", "Completed", "Shipped"].includes(s.status)
         )
-        .reduce((sum, s) => sum + (s.actualPrice || 0), 0);
+        .reduce((sum, s) => sum + (s.actualPrice || s.totalAmount || 0), 0);
 
     const totalRevenueBattery = sales
         .filter(
             (s) =>
-                s.itemType === "Battery" &&
+                (s.itemType === "Battery" || s.itemDetail?.itemType === "Battery") &&
                 ["Sold", "Completed", "Shipped"].includes(s.status)
         )
-        .reduce((sum, s) => sum + (s.actualPrice || 0), 0);
+        .reduce((sum, s) => sum + (s.actualPrice || s.totalAmount || 0), 0);
 
     const totalSoldEV = sales.filter(
         (s) =>
-            s.itemType === "Ev" &&
+            (s.itemType === "Ev" || s.itemDetail?.itemType === "Ev") &&
             ["Sold", "Completed", "Shipped"].includes(s.status)
     ).length;
 
     const totalSoldBattery = sales.filter(
         (s) =>
-            s.itemType === "Battery" &&
+            (s.itemType === "Battery" || s.itemDetail?.itemType === "Battery") &&
             ["Sold", "Completed", "Shipped"].includes(s.status)
     ).length;
 
     const filteredSales = sales.filter((s) => {
         const matchStatus = filter === "all" || s.status === filter;
-        const matchType = filterType === "all" || s.itemType === filterType;
+        const matchType = filterType === "all" || (s.itemType || s.itemDetail?.itemType) === filterType;
         return matchStatus && matchType;
     });
-
-
-
 
     // Loading skeleton
     if (loading) {
@@ -163,8 +273,6 @@ export default function HistorySold() {
     return (
         <div className="min-h-screen bg-gray-50 p-6">
             <div className="max-w-7xl mx-auto">
-
-
                 {/* Stats */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
                     <div className="bg-white rounded-lg shadow-sm p-6 flex justify-between items-center">
@@ -212,8 +320,8 @@ export default function HistorySold() {
                     </div>
                 </div>
 
-                {/* Bộ lọc */}
-                <div className="flex gap-3 flex-wrap">
+                {/* Filters */}
+                <div className="flex gap-3 flex-wrap mb-4">
                     {[
                         { label: "Tất cả", value: "all" },
                         { label: "Đang bán", value: "Active" },
@@ -239,8 +347,24 @@ export default function HistorySold() {
                     ))}
                 </div>
 
+                {/* Type filter (Ev / Battery) */}
+                <div className="flex gap-3 flex-wrap mb-6">
+                    {[
+                        { label: "Tất cả loại", value: "all" },
+                        { label: "Xe điện", value: "Ev" },
+                        { label: "Pin", value: "Battery" },
+                    ].map((btn) => (
+                        <button
+                            key={btn.value}
+                            onClick={() => setFilterType(btn.value)}
+                            className={`px-3 py-2 rounded-lg border text-sm font-medium ${filterType === btn.value ? "bg-indigo-50 border-indigo-300 text-indigo-700" : "bg-white border-slate-200 hover:bg-slate-50"}`}
+                        >
+                            {btn.label}
+                        </button>
+                    ))}
+                </div>
 
-                {/* Danh sách */}
+                {/* List */}
                 {filteredSales.length === 0 ? (
                     <div className="bg-white rounded-lg shadow-sm p-12 text-center">
                         <Package className="w-16 h-16 text-gray-300 mx-auto mb-4" />
@@ -249,22 +373,29 @@ export default function HistorySold() {
                 ) : (
                     filteredSales.map((sale, index) => (
                         <div
-                            key={`${sale.itemId}-${index}`}
+                            key={`${sale.itemId ?? sale.orderItemId ?? index}-${index}`}
                             className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow mb-4"
                         >
                             <div className="p-6 flex flex-col gap-4">
                                 <div className="flex justify-between items-start">
                                     <div>
                                         <h3 className="font-semibold text-gray-900 text-lg mb-2">
-                                            {sale.title} {sale.brand}
+                                            {sale.itemDetail?.title ?? sale.title ?? `Item ${sale.itemId}`}
+                                            <span className="ml-2 text-sm text-gray-500">{sale.productCode}</span>
                                         </h3>
                                         <div className="flex gap-4 text-sm text-gray-500">
                                             <span className="flex items-center gap-1">
                                                 <Calendar className="w-4 h-4" />
-                                                Bán:{" "}
+                                                Đặt:{" "}
                                                 {sale.soldAt
                                                     ? new Date(sale.soldAt).toLocaleDateString("vi-VN")
-                                                    : "--"}
+                                                    : sale.orderDate
+                                                        ? new Date(sale.orderDate).toLocaleDateString("vi-VN")
+                                                        : "--"}
+                                            </span>
+                                            <span className="flex items-center gap-1">
+                                                <DollarSign className="w-4 h-4" />
+                                                {sale.paymentMethod}
                                             </span>
                                         </div>
                                     </div>
@@ -280,33 +411,33 @@ export default function HistorySold() {
                                 <div className="grid md:grid-cols-2 gap-6 mt-3">
                                     <div className="flex gap-4">
                                         <img
-                                            src={sale.imageUrl}
-                                            alt={sale.title}
+                                            src={sale.imageUrl ?? sale.itemDetail?.itemImage?.[0]?.imageUrl}
+                                            alt={sale.itemDetail?.title ?? sale.title}
                                             className="w-36 h-28 object-cover rounded-lg border"
                                         />
                                         <div className="text-sm text-gray-700">
-                                            {sale.itemType === "Ev" ? (
+                                            {sale.itemDetail?.itemType === "Ev" || sale.itemType === "Ev" ? (
                                                 <>
                                                     <p>
-                                                        <b>Màu:</b> {sale.color}
+                                                        <b>Màu:</b> {sale.itemDetail?.evDetail?.color ?? sale.color ?? "-"}
                                                     </p>
                                                     <p>
-                                                        <b>Năm:</b> {sale.year}
+                                                        <b>Năm:</b> {sale.itemDetail?.evDetail?.year ?? sale.year ?? "-"}
                                                     </p>
                                                     <p>
-                                                        <b>ODO:</b> {sale.mileage?.toLocaleString("vi-VN")} km
+                                                        <b>ODO:</b> {sale.itemDetail?.evDetail?.mileage ? sale.itemDetail.evDetail.mileage.toLocaleString("vi-VN") + " km" : (sale.mileage ? sale.mileage.toLocaleString("vi-VN") + " km" : "-")}
                                                     </p>
                                                 </>
                                             ) : (
                                                 <>
                                                     <p>
-                                                        <b>Dung lượng:</b> {sale.capacity} kWh
+                                                        <b>Dung lượng:</b> {sale.itemDetail?.batteryDetail?.capacity ?? sale.capacity ?? "-"} kWh
                                                     </p>
                                                     <p>
-                                                        <b>Điện áp:</b> {sale.voltage}V
+                                                        <b>Điện áp:</b> {sale.itemDetail?.batteryDetail?.voltage ?? sale.voltage ?? "-"} V
                                                     </p>
                                                     <p>
-                                                        <b>Chu kỳ sạc:</b> {sale.chargeCycles}
+                                                        <b>Chu kỳ sạc:</b> {sale.itemDetail?.batteryDetail?.chargeCycles ?? sale.chargeCycles ?? "-"}
                                                     </p>
                                                 </>
                                             )}
@@ -330,24 +461,41 @@ export default function HistorySold() {
                                                 </p>
                                             </div>
                                         ) : (
-                                            <p className="text-gray-400 italic">Chưa có người mua</p>
+                                            <p className="text-gray-400 italic">Chưa có thông tin người mua</p>
                                         )}
                                     </div>
                                 </div>
 
                                 <div className="border-t pt-4 flex justify-between items-center">
                                     <div>
-                                        <p className="text-sm text-gray-500">Giá bán thực tế</p>
+                                        <p className="text-sm text-gray-500">Trị giá đơn hàng</p>
                                         <p className="text-xl font-bold text-gray-600">
-                                            {formatPrice(sale.actualPrice)}
+                                            {formatPrice(sale.totalAmount)}
                                         </p>
+
+                                        <div className="mt-2 text-sm text-gray-500">
+                                            <p><b>Phí triết khấu:</b> {formatPrice(sale.feeValue)}</p>
+                                            <p><b>Số lượng:</b> {sale.quantity}</p>
+                                            <p><b>Thu nhập:</b> <span className="font-semibold text-green-700">{formatPrice(sale.income)}</span></p>
+                                        </div>
                                     </div>
-                                    <button
-                                        onClick={() => setSelectedSale(sale)}
-                                        className="flex items-center gap-2 px-4 py-2 border border-indigo-300 text-indigo-700 bg-indigo-50 rounded-lg hover:bg-indigo-100 hover:shadow-sm transition-all duration-200"
-                                    >
-                                        <Eye className="w-4 h-4" /> Xem chi tiết
-                                    </button>
+                                    <div className="flex items-center gap-3">
+                                        <button
+                                            onClick={async () => {
+                                                setSelectedSale(sale)
+                                                try {
+                                                    const addrRes = await addressApi.getAddressById(sale.buyer?.addressId);
+                                                    setAddressDetail(addrRes);
+                                                } catch (err) {
+                                                    console.error("Lỗi lấy địa chỉ:", err);
+                                                    setAddressDetail(null);
+                                                }
+                                            }}
+                                            className="flex items-center gap-2 px-4 py-2 border border-indigo-300 text-indigo-700 bg-indigo-50 rounded-lg hover:bg-indigo-100 hover:shadow-sm transition-all duration-200"
+                                        >
+                                            <Eye className="w-4 h-4" /> Xem chi tiết
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -382,46 +530,35 @@ export default function HistorySold() {
                             </div>
 
                             <div>
-                                <h3 className="font-semibold text-gray-900 mb-3">
-                                    Thông tin sản phẩm
-                                </h3>
+                                <h3 className="font-semibold text-gray-900 mb-3">Thông tin sản phẩm</h3>
                                 <div className="bg-gray-50 rounded-lg p-4">
                                     <img
-                                        src={selectedSale.imageUrl}
-                                        alt={selectedSale.title}
+                                        src={selectedSale.imageUrl ?? selectedSale.itemDetail?.itemImage?.[0]?.imageUrl}
+                                        alt={selectedSale.itemDetail?.title ?? selectedSale.title}
                                         className="w-full h-56 object-cover rounded-lg mb-4"
                                     />
+                                    <p><b>Mã sản phẩm:</b> {selectedSale.productCode}</p>
                                     <p>
                                         <b>Loại:</b>{" "}
-                                        {selectedSale.itemType === "Ev" ? "Xe điện" : "Pin"}
+                                        {selectedSale.itemDetail?.itemType === "Ev" || selectedSale.itemType === "Ev"
+                                            ? "Xe điện"
+                                            : "Pin"}
                                     </p>
-                                    {selectedSale.itemType === "Ev" ? (
+
+                                    {selectedSale.itemDetail?.itemType === "Ev" || selectedSale.itemType === "Ev" ? (
                                         <>
-                                            <p>
-                                                <b>Biển số:</b> {selectedSale.licensePlate}
-                                            </p>
-                                            <p>
-                                                <b>Năm:</b> {selectedSale.year}
-                                            </p>
-                                            <p>
-                                                <b>Màu:</b> {selectedSale.color}
-                                            </p>
-                                            <p>
-                                                <b>ODO:</b>{" "}
-                                                {selectedSale.mileage?.toLocaleString("vi-VN")} km
-                                            </p>
+                                            <p><b>Tiêu đề:</b> {selectedSale.itemDetail?.title}</p>
+                                            <p><b>Biển số:</b> {selectedSale.itemDetail?.evDetail?.licensePlate ?? selectedSale.licensePlate}</p>
+                                            <p><b>Năm:</b> {selectedSale.itemDetail?.evDetail?.year ?? selectedSale.year}</p>
+                                            <p><b>Màu:</b> {selectedSale.itemDetail?.evDetail?.color ?? selectedSale.color}</p>
+                                            <p><b>ODO:</b> {selectedSale.itemDetail?.evDetail?.mileage ? selectedSale.itemDetail.evDetail.mileage.toLocaleString("vi-VN") + " km" : (selectedSale.mileage ? selectedSale.mileage.toLocaleString("vi-VN") + " km" : "-")}</p>
                                         </>
                                     ) : (
                                         <>
-                                            <p>
-                                                <b>Dung lượng:</b> {selectedSale.capacity} kWh
-                                            </p>
-                                            <p>
-                                                <b>Điện áp:</b> {selectedSale.voltage}V
-                                            </p>
-                                            <p>
-                                                <b>Chu kỳ sạc:</b> {selectedSale.chargeCycles}
-                                            </p>
+                                            <p><b>Tiêu đề:</b> {selectedSale.itemDetail?.title}</p>
+                                            <p><b>Dung lượng:</b> {selectedSale.itemDetail?.batteryDetail?.capacity ?? selectedSale.capacity} kWh</p>
+                                            <p><b>Điện áp:</b> {selectedSale.itemDetail?.batteryDetail?.voltage ?? selectedSale.voltage} V</p>
+                                            <p><b>Chu kỳ sạc:</b> {selectedSale.itemDetail?.batteryDetail?.chargeCycles ?? selectedSale.chargeCycles}</p>
                                         </>
                                     )}
                                 </div>
@@ -429,40 +566,36 @@ export default function HistorySold() {
 
                             {selectedSale.buyer && (
                                 <div>
-                                    <h3 className="font-semibold text-gray-900 mb-3">
-                                        Thông tin người mua
-                                    </h3>
+                                    <h3 className="font-semibold text-gray-900 mb-3">Thông tin người mua</h3>
                                     <div className="bg-gray-50 rounded-lg p-4 space-y-1">
-                                        <p>
-                                            <b>Họ tên:</b> {selectedSale.buyer.fullName}
-                                        </p>
-                                        <p>
-                                            <b>SĐT:</b> {selectedSale.buyer.phone}
-                                        </p>
-                                        <p>
-                                            <b>Địa chỉ:</b> {selectedSale.buyer.address}
-                                        </p>
+                                        <p><b>Họ tên:</b> {selectedSale.buyer.fullName}</p>
+                                        <p><b>SĐT:</b> {selectedSale.buyer.phone}</p>
+
+                                        {/* địa chỉ cũ */}
+                                        <p><b>Địa chỉ (text):</b> {selectedSale.buyer.address}</p>
+
+                                        {/* địa chỉ chi tiết lấy từ API */}
+                                        {addressDetail && (
+                                            <div className="mt-2 border-t pt-2">
+                                                <p className="font-semibold text-gray-800 mb-1">Địa chỉ chi tiết:</p>
+                                                <p>- {addressDetail.fullName}</p>
+                                                <p>- {addressDetail.phoneNumber}</p>
+                                                <p>- {addressDetail.addressDetail}</p>
+                                                <p>- {addressDetail.wardName}, {addressDetail.districtName}, {addressDetail.provinceName}</p>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             )}
-
                             <div>
-                                <h3 className="font-semibold text-gray-900 mb-3">
-                                    Thông tin giao dịch
-                                </h3>
-                                <div className="bg-gray-50 rounded-lg p-4">
-                                    <p>
-                                        <b>Giá niêm yết:</b> {formatPrice(selectedSale.listedPrice)}
-                                    </p>
-                                    <p>
-                                        <b>Giá thực tế:</b> {formatPrice(selectedSale.actualPrice)}
-                                    </p>
-                                    <p>
-                                        <b>Ngày bán:</b>{" "}
-                                        {selectedSale.soldAt
-                                            ? new Date(selectedSale.soldAt).toLocaleDateString("vi-VN")
-                                            : "--"}
-                                    </p>
+                                <h3 className="font-semibold text-gray-900 mb-3">Thông tin giao dịch</h3>
+                                <div className="bg-gray-50 rounded-lg p-4 space-y-1">
+                                    <p><b>Trị giá đơn hàng:</b> {formatPrice(selectedSale.totalAmount)}</p>
+                                    <p><b>Phí triết khấu:</b> {formatPrice(selectedSale.feeValue)}</p>
+                                    <p><b>Thu nhập:</b> <span className="font-semibold">{formatPrice(selectedSale.income)}</span></p>
+                                    <p><b>Số lượng:</b> {selectedSale.quantity}</p>
+                                    <p><b>Phương thức thanh toán:</b> {selectedSale.paymentMethod}</p>
+                                    <p><b>Ngày đặt:</b> {selectedSale.soldAt ? new Date(selectedSale.soldAt).toLocaleString("vi-VN") : (selectedSale.orderDate ? new Date(selectedSale.orderDate).toLocaleString("vi-VN") : "--")}</p>
                                 </div>
                             </div>
                         </div>
@@ -476,7 +609,7 @@ export default function HistorySold() {
                                 Đóng
                             </button>
 
-                            {(selectedSale.status == "Pending" || selectedSale.status == "Processing") && (
+                            {["Pending", "Processing", "Pending_Pay", "Auction_Pending_Pay"].includes(selectedSale.status) && (
                                 <button
                                     disabled={confirming}
                                     onClick={async () => {
@@ -484,21 +617,26 @@ export default function HistorySold() {
                                         if (!confirmed) return;
                                         try {
                                             setConfirming(true);
+
+                                            // call orderApi (assume existing API)
+                                            // keep payload minimal: just status change
                                             await orderApi.putOrder(selectedSale.orderId, {
                                                 ...selectedSale,
                                                 status: "Shipped",
                                             });
-                                            message.success("✅ Đã xác nhận đơn hàng thành công!");
+
+                                            message.success("Đã xác nhận đơn hàng thành công!");
+                                            // update local state
                                             setSales((prev) =>
                                                 prev.map((s) =>
-                                                    s.orderId === selectedSale.orderId
+                                                    (s.orderId === selectedSale.orderId && s.itemId === selectedSale.itemId)
                                                         ? { ...s, status: "Shipped" }
                                                         : s
                                                 )
                                             );
                                             setSelectedSale(null);
                                         } catch (error) {
-                                            console.error("❌ Lỗi xác nhận:", error);
+                                            console.error("Lỗi xác nhận:", error);
                                             message.error("Không thể xác nhận đơn hàng.");
                                         } finally {
                                             setConfirming(false);
@@ -509,7 +647,6 @@ export default function HistorySold() {
                                     {confirming ? "Đang xử lý..." : "✅ Xác nhận đơn hàng"}
                                 </button>
                             )}
-
                         </div>
                     </div>
                 </div>

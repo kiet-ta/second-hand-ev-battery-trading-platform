@@ -402,7 +402,7 @@ namespace Infrastructure.Repositories
                             join oi in _context.OrderItems on pd.OrderId equals oi.OrderId
                             join o in _context.Orders on oi.OrderId equals o.OrderId
                             join item in _context.Items on pd.ItemId equals item.ItemId
-                            where payment.UserId == userId && payment.Status == PaymentStatus.Completed.ToString() && o.Status == OrderStatus.Completed.ToString()
+                            where payment.UserId == userId && payment.Status == PaymentStatus.Completed.ToString() && oi.Status == OrderItemStatus.Completed.ToString()
                             // Left Join EV_Detail
                             join ev in _context.EVDetails on item.ItemId equals ev.ItemId into evJoin
                             from ev in evJoin.DefaultIfEmpty()
@@ -494,7 +494,7 @@ namespace Infrastructure.Repositories
                                     where
                                         i.UpdatedBy == sellerId &&
                                         //o.Status == "completed" //&& 
-                                        o.Status == OrderStatus.Completed.ToString()
+                                        oi.Status == OrderItemStatus.Completed.ToString()
                                     select pd.PaymentDetailId;
 
             var totalProductLinesSold = await productLinesQuery.CountAsync();

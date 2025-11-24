@@ -11,6 +11,9 @@ namespace Application.DTOs
         public int BuyerId { get; set; }
         public int AddressId { get; set; }
         public List<int> OrderItemIds { get; set; } = new();
+
+        public decimal ShippingPrice { get; set; }
+
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
     }

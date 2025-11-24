@@ -24,11 +24,10 @@ const AddressModal = ({ addresses, selectedId, onSelect, onClose }) => {
               <div
                 key={addr.addressId}
                 onClick={() => onSelect(addr.addressId)}
-                className={`p-4 border-2 rounded-xl cursor-pointer transition-all duration-200 hover:shadow-sm ${
-                  selectedId === addr.addressId
-                    ? "border-[#C99700] bg-[#FFF8E1]"
-                    : "border-gray-200 hover:border-gray-400"
-                }`}
+                className={`p-4 border-2 rounded-xl cursor-pointer transition-all duration-200 hover:shadow-sm ${selectedId === addr.addressId
+                  ? "border-[#C99700] bg-[#FFF8E1]"
+                  : "border-gray-200 hover:border-gray-400"
+                  }`}
               >
                 <div className="flex justify-between items-start">
                   <div>
@@ -81,8 +80,7 @@ export default function CheckoutPage() {
   const [paymentMethod, setPaymentMethod] = useState("payos");
   const [wallet, setWallet] = useState(null);
 
-  const insurance = { name: "Bảo hiểm hư hỏng sản phẩm", price: 6000 };
-
+  console.log(orderData, "orderData")
   // 🔹 Fetch địa chỉ người dùng
   useEffect(() => {
     const fetchAddresses = async () => {
@@ -133,10 +131,12 @@ export default function CheckoutPage() {
   }, [selectedDeliveryAddress]);
 
   const formatVND = (p) => p.toLocaleString("vi-VN", { style: "currency", currency: "VND" });
-  const total = () => (orderData.totalAmount || 0) + insurance.price + shippingFee;
-  const finalTotalPrice = total();
+  const totalItemsPrice = orderData.itemsToPurchase.reduce(
+    (sum, item) => sum + item.price * item.quantity,
+    0
+  );
 
-  // 🔹 Xác nhận & thanh toán
+  const finalTotalPrice = totalItemsPrice + shippingFee;
   const handleConfirmAndPay = async () => {
     setIsProcessing(true);
     if (!selectedDeliveryAddress) {
@@ -147,15 +147,16 @@ export default function CheckoutPage() {
 
     try {
       const orderPayload = {
-        buyerId: localStorage.getItem("userId"),
+        buyerId: parseInt(localStorage.getItem("userId"), 10),
         addressId: selectedDeliveryAddress.addressId,
-        orderItemIds: orderData.itemsToPurchase.flatMap((i) => i.orderItemIdsToDelete),
-        createdAt: new Date().toISOString().split("T")[0],
-        updatedAt: new Date().toISOString().split("T")[0],
+        orderItemIds: orderData.orderItemIds,
+        shippingPrice: shippingFee || 0, // phí GHN
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
       };
+      console.log(orderPayload, "orderPayload")
       const orderResponse = await orderApi.postOrderNew(orderPayload);
-      if (!orderResponse?.orderId) throw new Error("Không tạo được đơn hàng.");
-
+      console.log(orderResponse, "orderResponse");      
       if (paymentMethod === "wallet") {
         if (!wallet || wallet.balance < finalTotalPrice) {
           setIsProcessing(false);
@@ -163,22 +164,24 @@ export default function CheckoutPage() {
           return;
         }
         await walletApi.withdrawWallet({
-          userId: localStorage.getItem("userId"),
+          userId: parseInt(localStorage.getItem("userId"), 10),
           amount: finalTotalPrice,
           type: "Withdraw",
-          ref: orderResponse.orderId,
+          refId: orderResponse.orderId,
           description: `Thanh toán đơn hàng ${orderResponse.orderId}`,
         });
-        setWallet((prev) => ({ ...prev, balance: prev.balance - finalTotalPrice }));
+        setWallet(prev => ({ ...prev, balance: prev.balance - finalTotalPrice }));
         navigate("/payment/success", { state: { method: "wallet", amount: finalTotalPrice } });
       } else {
         const paymentPayload = {
-          userId: orderData.buyerId,
+          userId: parseInt(localStorage.getItem("userId"), 10),
           method: "payos",
           totalAmount: finalTotalPrice,
-          details: [
-            { orderId: orderResponse.orderId, itemId: 1, amount: finalTotalPrice },
-          ],
+          details: orderData.itemsToPurchase.map(i => ({
+            orderId: orderResponse.orderId,
+            itemId: i.itemId,
+            amount: i.price * i.quantity
+          }))
         };
         const link = await paymentApi.createPaymentLink(paymentPayload);
         const { checkoutUrl } = link;
@@ -251,16 +254,6 @@ export default function CheckoutPage() {
         </div>
 
         {/* Bảo hiểm & ship */}
-        <div className="flex items-center justify-between py-4 border-t">
-          <div className="flex items-center space-x-2">
-            <input type="checkbox" checked readOnly className="accent-maincolor" />
-            <div>
-              <p className="font-medium">{insurance.name}</p>
-              <p className="text-xs text-gray-500">Bảo vệ sản phẩm khỏi rủi ro, va đập, hoặc hư hỏng trong quá trình vận chuyển.</p>
-            </div>
-          </div>
-          <p className="font-semibold">{formatVND(insurance.price)}</p>
-        </div>
 
         <div className="flex justify-between items-center py-4 border-t">
           <p>Vận chuyển nhanh (GHN)</p>
@@ -273,21 +266,19 @@ export default function CheckoutPage() {
           <div className="flex gap-4">
             <button
               onClick={() => setPaymentMethod("payos")}
-              className={`px-4 py-2 rounded-lg font-semibold border ${
-                paymentMethod === "payos"
-                  ? "bg-[#C99700] text-white border-[#C99700]"
-                  : "bg-white border-gray-300"
-              }`}
+              className={`px-4 py-2 rounded-lg font-semibold border ${paymentMethod === "payos"
+                ? "bg-[#C99700] text-white border-[#C99700]"
+                : "bg-white border-gray-300"
+                }`}
             >
               PayOS
             </button>
             <button
               onClick={() => setPaymentMethod("wallet")}
-              className={`px-4 py-2 rounded-lg font-semibold border ${
-                paymentMethod === "wallet"
-                  ? "bg-[#C99700] text-white border-[#C99700]"
-                  : "bg-white border-gray-300"
-              }`}
+              className={`px-4 py-2 rounded-lg font-semibold border ${paymentMethod === "wallet"
+                ? "bg-[#C99700] text-white border-[#C99700]"
+                : "bg-white border-gray-300"
+                }`}
             >
               Ví ({wallet ? formatVND(wallet.balance) : "Đang tải..."})
             </button>
@@ -318,7 +309,7 @@ export default function CheckoutPage() {
           addresses={addresses}
           selectedId={selectedAddressId}
           onSelect={(id) => {
-            setSelectedAddressId(id); 
+            setSelectedAddressId(id);
             setIsModalOpen(false);
           }}
           onClose={() => setIsModalOpen(false)}

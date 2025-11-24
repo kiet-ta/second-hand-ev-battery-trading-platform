@@ -1,4 +1,5 @@
 ﻿using Application.DTOs;
+using Domain.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,5 +12,7 @@ namespace Application.IRepositories.IPaymentRepositories
     {
         Task<decimal> GetRevenueAsync(int sellerId);
         Task<List<RevenueByWeekDto>> GetRevenueByWeekAsync(int sellerId);
+
+        Task<PaymentDetail> GetByOrderIdAsync(int orderId);
     }
 }

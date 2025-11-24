@@ -162,59 +162,6 @@ export default function DashboardContent() {
                         </ResponsiveContainer>
                     </div>
                 </Card>
-
-                <Card className="lg:col-span-3">
-                    <CardHeader
-                        title="Giao dịch gần đây"
-                        icon={<ClipboardList size={18} className="text-slate-700" />}
-                    />
-                    <div className="p-4 overflow-auto">
-                        <table className="min-w-full text-sm">
-                            <thead>
-                                <tr className="text-left text-slate-500 border-b">
-                                    <th className="py-2">Mã GD</th>
-                                    <th className="py-2">Sản phẩm</th>
-                                    <th className="py-2">Người mua</th>
-                                    <th className="py-2">Người bán</th>
-                                    <th className="py-2">Giá</th>
-                                    <th className="py-2">Trạng thái</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {transactions.slice(0, 5).map((t, idx) => (
-                                    <tr
-                                        key={t.paymentId || idx}
-                                        className="border-b last:border-0 hover:bg-slate-50 transition"
-                                    >
-                                        <td className="py-2 font-medium text-slate-700">
-                                            #{t.paymentId}
-                                        </td>
-                                        <td className="py-2">
-                                            {t.items?.[0]?.title || "—"}
-                                        </td>
-                                        <td className="py-2">{t.buyerName}</td>
-                                        <td className="py-2">{t.sellerName}</td>
-                                        <td className="py-2">
-                                            {currencyVND(t.totalAmount)}
-                                        </td>
-                                        <td className="py-2 capitalize text-slate-700">
-                                            {t.status === "Completed"
-                                                ? "Hoàn tất"
-                                                : t.status === "Pending"
-                                                    ? "Đang xử lý"
-                                                    : "Đã hủy"}
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                </Card>
-            </div>
-
-            {/* === PHÂN BỔ SẢN PHẨM & GIAO DỊCH GẦN NHẤT === */}
-            <div className="grid lg:grid-cols-5 gap-4">
-                {/* === Phân bổ sản phẩm === */}
                 <Card className="lg:col-span-2">
                     <CardHeader
                         title="Tỷ lệ phân bổ sản phẩm"
@@ -257,6 +204,13 @@ export default function DashboardContent() {
                         </ResponsiveContainer>
                     </div>
                 </Card>
+
+            </div>
+
+            {/* === PHÂN BỔ SẢN PHẨM & GIAO DỊCH GẦN NHẤT === */}
+            <div className="grid lg:grid-cols-5 gap-4">
+                {/* === Phân bổ sản phẩm === */}
+
 
                 {/* === Giao dịch gần đây === */}
 

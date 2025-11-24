@@ -51,4 +51,15 @@ public class WalletTransactionRepository : IWalletTransactionRepository
             .OrderByDescending(wt => wt.CreatedAt) // ensure to get hold transaction
             .FirstOrDefaultAsync();
     }
+
+    public async Task<WalletTransaction?> GetByOrderItemIdAsync(int orderId)
+    {
+        var transaction = await _context.WalletTransactions
+            .FirstOrDefaultAsync(wt => wt.RefId == orderId);
+        if (transaction == null)
+        {
+            return null;
+        }
+        return transaction;
+    }
 }

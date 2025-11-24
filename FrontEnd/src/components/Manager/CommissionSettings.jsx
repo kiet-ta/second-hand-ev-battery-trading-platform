@@ -48,7 +48,7 @@ export default function CommissionSettings() {
 
       try {
         setLoading(true);
-        const updated = { ...record, isActive: !record.isActive };
+        const updated = { ...record, isActive: record.isActive };
         const res = await fetch(`${BASE_URL}commission/${record.feeCode}/toggle`, {
           method: "PUT",
           headers: {

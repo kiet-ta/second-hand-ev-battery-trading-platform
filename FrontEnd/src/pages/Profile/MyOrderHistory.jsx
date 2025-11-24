@@ -25,43 +25,43 @@ export default function OrderPage() {
   const [reviewPayload, setReviewPayload] = useState(null);
   const buyerId = localStorage.getItem("userId");
 
-const fetchOrders = useCallback(async () => {
-  try {
+  // ✅ fetchOrders only runs on mount or when buyerId changes
+  const fetchOrders = useCallback(async () => {
     setLoading(true);
-    const res = await orderApi.getOrdersByBuyerId(buyerId);
+    try {
+      const res = await orderApi.getOrdersByBuyerId(buyerId);
 
-    const enriched = await Promise.all(
-      (res || []).map(async (order) => {
-        const items = await Promise.all(
-          (order.items || []).map(async (it) => {
-            try {
-              const detail = await itemApi.getItemDetailByID(it.itemId);
-              return { ...it, detail };
-            } catch (err) {
-              console.error("item detail fetch failed", err);
-              return { ...it, detail: null };
-            }
-          })
-        );
+      const enrichedOrders = await Promise.all(
+        (res || []).map(async (order) => {
+          const itemsWithDetails = await Promise.all(
+            (order.items || []).map(async (it) => {
+              try {
+                const detail = await itemApi.getItemDetailByID(it.itemId);
+                return { ...it, detail };
+              } catch {
+                return { ...it, detail: null };
+              }
+            })
+          );
+          const itemsTotal = itemsWithDetails.reduce(
+            (sum, it) => sum + (it.detail?.price || 0) * (it.quantity || 0),
+            0
+          );
+          const totalPrice = itemsTotal + (order.shippingPrice || 0);
 
-        // --- Calculate total price ---
-        const totalPrice = items.reduce(
-          (sum, it) => sum + (it.detail?.price || 0) * (it.quantity || 0),
-          0
-        );
+          return { ...order, items: itemsWithDetails, totalPrice };
+        })
+      );
 
-        return { ...order, items, totalPrice };
-      })
-    );
+      setOrders(enrichedOrders);
+    } catch (err) {
+      console.error(err);
+      setOrders([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [buyerId]);
 
-    setOrders(enriched);
-  } catch (err) {
-    console.error("fetchOrders error", err);
-    setOrders([]);
-  } finally {
-    setLoading(false);
-  }
-}, [buyerId]);
   useEffect(() => {
     fetchOrders();
   }, [fetchOrders]);
@@ -75,22 +75,21 @@ const fetchOrders = useCallback(async () => {
     setReviewPayload({ order, item });
   };
 
-  // filter & search
-  const filtered = orders
+  // Filter by tab & search
+  const filteredOrders = orders
     .filter((o) => (activeTab === "All" ? true : o.status === activeTab))
-    .filter((order) => {
+    .filter((o) => {
       if (!search) return true;
       const s = search.toLowerCase();
-      // search in order code, any item title or brand/model
-      if ((order.orderCode || "").toLowerCase().includes(s)) return true;
-      return order.items.some((it) => {
+      if ((o.orderId?.toString() || "").includes(s)) return true;
+      return o.items.some((it) => {
         const title = it.detail?.title || "";
         const brandModel =
           it.detail?.evDetail
             ? `${it.detail.evDetail.brand} ${it.detail.evDetail.model}`
             : it.detail?.batteryDetail
-              ? `${it.detail.batteryDetail.brand}`
-              : "";
+            ? `${it.detail.batteryDetail.brand}`
+            : "";
         return (
           title.toLowerCase().includes(s) ||
           brandModel.toLowerCase().includes(s)
@@ -101,17 +100,17 @@ const fetchOrders = useCallback(async () => {
   return (
     <div className="min-h-screen bg-[#FAF8F3] py-8 px-4">
       <div className="max-w-6xl mx-auto">
-
         {/* Tabs */}
         <div className="flex items-center gap-4 mb-4 overflow-x-auto">
           {TABS.map((t) => (
             <button
               key={t.key}
               onClick={() => setActiveTab(t.key)}
-              className={`px-4 py-2 rounded-md text-sm font-medium ${activeTab === t.key
+              className={`px-4 py-2 rounded-md text-sm font-medium ${
+                activeTab === t.key
                   ? "bg-white text-[#D97706] border border-[#D97706]"
                   : "bg-white/60 text-gray-700 hover:bg-white"
-                }`}
+              }`}
             >
               {t.label}
             </button>
@@ -130,31 +129,71 @@ const fetchOrders = useCallback(async () => {
             />
           </div>
           <button
-            onClick={() => fetchOrders()}
+            onClick={fetchOrders}
             className="px-4 py-2 bg-[#D97706] text-white rounded-md hover:bg-[#b86f06]"
           >
             Tải lại
           </button>
         </div>
 
-        {/* List */}
+        {/* Orders List */}
         {loading ? (
           <div className="w-full py-20 flex justify-center">
             <div className="animate-pulse text-gray-500">Đang tải đơn hàng...</div>
           </div>
-        ) : filtered.length === 0 ? (
+        ) : filteredOrders.length === 0 ? (
           <div className="w-full py-20 text-center text-gray-500">Không có đơn hàng</div>
         ) : (
-          <div className="flex flex-col gap-4">
-            {filtered.map((order) => (
-              <OrderCard
+          <div className="flex flex-col gap-6">
+            {filteredOrders.map((order) => (
+              <div
                 key={order.orderId}
-                order={order}
-                onViewItem={(item) => handleOpenItemModal(item.detail?.itemId)}
-                onMarkReceived={fetchOrders}
-                onOpenReview={handleOpenReview}
-                currentUserId={buyerId}
-              />
+                className="bg-white shadow-md rounded-lg p-4 border border-[#E8E4DC]"
+              >
+                <div className="flex justify-between items-center mb-4">
+                  <div>
+                    <span className="font-bold text-gray-700">
+                      Đơn hàng #{order.orderId}
+                    </span>
+                    <span className="ml-2 text-sm text-gray-500">
+                      Trạng thái: {order.status}
+                    </span>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-gray-500 text-sm">Shipping: </span>
+                    <span className="font-semibold text-[#B8860B]">
+                      {order.shippingPrice?.toLocaleString("vi-VN", {
+                        style: "currency",
+                        currency: "VND",
+                      })}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="divide-y">
+                  {order.items.map((it) => (
+                    <OrderCard
+                      key={it.orderItemId}
+                      orderItem={it}
+                      order={order}
+                      onViewItem={() => handleOpenItemModal(it.detail?.itemId)}
+                      onMarkReceived={() => {}}
+                      onOpenReview={handleOpenReview}
+                      currentUserId={buyerId}
+                    />
+                  ))}
+                </div>
+
+                <div className="flex justify-end mt-4">
+                  <span className="font-bold text-lg text-[#D4AF37]">
+                    Tổng:{" "}
+                    {order.totalPrice.toLocaleString("vi-VN", {
+                      style: "currency",
+                      currency: "VND",
+                    })}
+                  </span>
+                </div>
+              </div>
             ))}
           </div>
         )}

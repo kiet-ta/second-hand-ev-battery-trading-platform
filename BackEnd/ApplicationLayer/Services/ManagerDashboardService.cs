@@ -75,7 +75,7 @@ namespace Application.Services
             var endDate = DateTime.Now;
             var startDate = endDate.AddMonths(-monthsRange + 1).Date;
 
-            var orders = await _unitOfWork.Orders.GetOrdersWithinRangeAsync(startDate, endDate);
+            var orders = await _unitOfWork.OrderItems.GetOrdersWithinRangeAsync(startDate, endDate);
             if (orders == null)
                 throw new Exception("Failed to fetch order data.");
             var grouped = orders

@@ -48,7 +48,7 @@ VerifiedCheck.propTypes = {
 function CardComponent({
     id,
     title,
-    price = 0,
+    price,
     itemImages,
     type,
     year,
@@ -133,59 +133,23 @@ function CardComponent({
                     return;
                 }
 
-                let existingOrderItems = [];
-                try {
-                    const res = await orderItemApi.getOrderItem(userId);
-                    existingOrderItems = Array.isArray(res) ? res : [];
-                } catch (err) {
-                    // ✅ Backend may return 404 if no cart items — treat as empty cart
-                    if (err.response && err.response.status === 404) {
-                        existingOrderItems = [];
-                    } else {
-                        throw err; // rethrow unexpected errors
-                    }
-                }
+                const payload = {
+                    buyerId: userId,
+                    itemId: id,
+                    quantity: 1,
+                    price: price,
+                };
 
-                // 🔹 Check if the current item already exists
-                const existingItem = existingOrderItems.find(
-                    (oi) => oi.itemId === id
-                );
-
-                if (existingItem) {
-                    // ✅ Update existing item (PUT)
-                    const itemData = await itemApi.getItemById(id);
-                    const availableStock = itemData?.quantity ?? 0;
-                    const newQuantity = existingItem.quantity + 1;
-
-                    if (newQuantity > availableStock) {
-                        return; // Stop here — don’t update
-                    }
-                    const payload = {
-                        quantity: newQuantity,
-                        price: price,
-                    };
-
-                    await orderItemApi.putOrderItem(existingItem.orderItemId, payload);
-                } else {
-                    // 🆕 Create new item (POST)
-                    const payload = {
-                        buyerId: userId,
-                        itemId: id,
-                        quantity: 1,
-                        price,
-                    };
-                    await orderItemApi.postOrderItem(payload);
-                }
+                await orderItemApi.postOrderItem(payload);
 
             } catch (err) {
-                console.error("❌ Error adding/updating item:", err);
+                console.error("❌ Error adding item:", err);
             } finally {
                 setIsProcessing(false);
             }
         },
-        [id, price, userId, isProcessing]
-    );
-    const handleBuyNow = async (e) => {
+        [id, userId, isProcessing, navigate]
+    ); const handleBuyNow = async (e) => {
         e.preventDefault();
         e.stopPropagation();
 
@@ -201,7 +165,6 @@ function CardComponent({
                 buyerId: userId,
                 itemId: id,
                 quantity: 1,
-                price,
             };
             const createdOrderItem = await orderItemApi.postOrderItem(orderItemPayload);
             if (!createdOrderItem?.orderItemId)
@@ -222,7 +185,6 @@ function CardComponent({
                     {
                         id: createdOrderItem.orderItemId,
                         name: title || "Sản phẩm",
-                        price,
                         quantity: 1,
                         image:
                             itemImages?.[0]?.imageUrl ||
@@ -333,8 +295,8 @@ function CardComponent({
                                         <VerifiedCheck />
                                     </div>
                                 )}
-                                
-                                </div>
+
+                            </div>
                         ))}
                     </Slider>
 
