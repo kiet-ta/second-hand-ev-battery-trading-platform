@@ -133,11 +133,10 @@ namespace Application.Services
                 {
                     commissionAmount = commissionRule.FeeValue;
                 }
-
+                orderDetailDto.AddressId = order.AddressId;
                 orderDetailDto.Order = orderItem;
                 orderDetailDto.FeeValue = commissionAmount;
-                orderDetailDto.TotalAmount = orderItem.Price * orderItem.Quantity - orderDetailDto.FeeValue;
-                orderDetailDto.Status = orderItem.Status;
+                orderDetailDto.TotalAmount = orderItem.Price * orderItem.Quantity;
 
                 listOfOrderDetails.Add(orderDetailDto);
             }

@@ -2,6 +2,7 @@
 using Application.DTOs.ItemDtos;
 using Application.IRepositories;
 using Application.IServices;
+using Domain.Common.Constants;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -38,7 +39,7 @@ namespace Application.Services
                 {
                     throw new InvalidOperationException("Adding the requested quantity exceeds available stock.");
                 }
-                else 
+                else
                 {
                     existingCart.Price = request.Price;
                     existingCart.Quantity += request.Quantity;
@@ -53,7 +54,7 @@ namespace Application.Services
                 }
 
             }
-            else 
+            else
             {
                 var newOrderItem = await _unitOfWork.OrderItems.CreateOrderItemAsync(request);
                 if (newOrderItem == null)
@@ -122,6 +123,21 @@ namespace Application.Services
                 throw new InvalidOperationException("Order item already deleted.");
 
             orderItem.IsDeleted = true;
+            await _unitOfWork.OrderItems.UpdateAsync(orderItem);
+            return true;
+        }
+
+        public async Task<bool> ConfirmShippingAsync(int orderItemId)
+        {
+            if (orderItemId <= 0)
+                throw new ArgumentException("Invalid order item ID.", nameof(orderItemId));
+            var orderItem = await _unitOfWork.OrderItems.GetByIdAsync(orderItemId);
+            if (orderItem == null)
+                throw new KeyNotFoundException($"Order item with ID {orderItemId} not found.");
+            if (orderItem.IsDeleted)
+                throw new InvalidOperationException("Cannot confirm shipping for a deleted order item.");
+            orderItem.Status = OrderItemStatus.Shipped.ToString();
+            orderItem.UpdatedAt = DateTime.Now;
             await _unitOfWork.OrderItems.UpdateAsync(orderItem);
             return true;
         }

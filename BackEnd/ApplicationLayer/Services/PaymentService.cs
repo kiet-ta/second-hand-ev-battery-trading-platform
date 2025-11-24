@@ -178,7 +178,7 @@ public class PaymentService : IPaymentService
                 Message = $"Sản phẩm '{item.Title}' trong đơn hàng CMS_EV_{orderItem.OrderId} đã được xác nhận hoàn tất bởi người mua. Số tiền {netAmountForSeller} đã được chuyển vào ví của bạn sau khi trừ phí hoa hồng.",
                 TargetUserId = sellerId.ToString(),
             };
-            await _notificationService.AddNewNotification(notificationToSeller, 0 , "");
+            await _notificationService.AddNewNotification(notificationToSeller, 4 , "Seller");
             await _unitOfWork.SaveChangesAsync();
             await _notificationService.SendNotificationAsync(notificationToSeller.Title, notificationToSeller.TargetUserId);
             await _unitOfWork.CommitTransactionAsync();

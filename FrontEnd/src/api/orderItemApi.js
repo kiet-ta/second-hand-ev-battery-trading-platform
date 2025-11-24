@@ -14,6 +14,10 @@ const orderItemApi = {
     },
     putOrderItem: async (orderId, payload) => {
         await axios.put(`${baseURL}/${orderId}`,payload)
+    },
+    confirmShipping: async (orderItemId) => {
+        const response = await axios.put(baseURL + `/confirm-shipping/` + orderItemId)
+        return response.data;
     }
 };
 export default orderItemApi;
