@@ -1,331 +1,248 @@
-﻿//// File: BackEnd.Application.Tests/OrderServiceTests.cs
-//// Required Packages: Moq, Xunit
+﻿using Application.DTOs;
+using Application.DTOs.ItemDtos;
+using Application.IServices;
+using Application.Services;
+using Moq;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Xunit;
+using Domain.Entities;
+using Application.IRepositories;
 
-//using Application.DTOs;
-//using Application.DTOs.ItemDtos;
-//using Application.IRepositories;
-//using Application.Services;
-//using Domain.Entities;
-//using Moq;
-//using System; // Required for Exception
-//using System.Collections.Generic;
-//using System.Linq; // Required for .ToList()
-//using System.Threading.Tasks;
-//using Xunit;
+public class OrderItemServiceTests
+{
+    private readonly Mock<IUnitOfWork> _mockUow;
+    private readonly Mock<IOrderItemRepository> _mockRepo;
+    private readonly OrderItemService _service;
 
-//namespace BackEnd.Application.Tests
-//{
-//    public class OrderServiceTests
-//    {
-//        private readonly Mock<IOrderRepository> _orderRepoMock;
-//        private readonly Mock<IOrderItemRepository> _orderItemRepoMock;
-//        private readonly OrderService _service;
+    public OrderItemServiceTests()
+    {
+        _mockUow = new Mock<IUnitOfWork>();
+        _mockRepo = new Mock<IOrderItemRepository>();
+        _mockUow.Setup(u => u.OrderItems).Returns(_mockRepo.Object);
+        _service = new OrderItemService(_mockUow.Object);
+    }
 
-//        public OrderServiceTests()
-//        {
-//            _orderRepoMock = new Mock<IOrderRepository>();
-//            _orderItemRepoMock = new Mock<IOrderItemRepository>();
-//            _service = new OrderService(_orderRepoMock.Object, _orderItemRepoMock.Object);
-//        }
+    [Fact] public async Task CreateOrderItemAsync_ShouldThrow_WhenRequestIsNull() => await Assert.ThrowsAsync<ArgumentNullException>(() => _service.CreateOrderItemAsync(null));
+    [Fact] public async Task CreateOrderItemAsync_ShouldThrow_WhenQuantityInvalid() => await Assert.ThrowsAsync<ArgumentException>(() => _service.CreateOrderItemAsync(new CreateOrderItemRequest { Quantity = 0 }));
+    [Fact] public async Task CreateOrderItemAsync_ShouldThrow_WhenPriceNegative() => await Assert.ThrowsAsync<ArgumentException>(() => _service.CreateOrderItemAsync(new CreateOrderItemRequest { BuyerId = 1, ItemId = 1, Quantity = 1, Price = -10 }));
+    [Fact] public async Task CreateOrderItemAsync_ShouldThrow_WhenBuyerIdInvalid() => await Assert.ThrowsAsync<ArgumentException>(() => _service.CreateOrderItemAsync(new CreateOrderItemRequest { BuyerId = 0, ItemId = 1, Quantity = 1 }));
 
-//        // === 1. GET ORDER BY ID ===
+    [Fact]
+    public async Task CreateOrderItemAsync_ShouldThrow_WhenItemNotFound()
+    {
+        _mockRepo.Setup(r => r.GetCartItemsByBuyerIdAsync(1)).ReturnsAsync(new List<OrderItem> { new OrderItem { BuyerId = 1, ItemId = 10 } });
+        _mockUow.Setup(u => u.Items.GetByIdAsync(10, default)).ReturnsAsync((Item)null);
+        await Assert.ThrowsAsync<KeyNotFoundException>(() => _service.CreateOrderItemAsync(new CreateOrderItemRequest { BuyerId = 1, ItemId = 10, Quantity = 1 }));
+    }
 
-//        [Fact]
-//        public async Task GetOrderByIdAsync_ShouldReturnOrder_WhenExists()
-//        {
-//            // Arrange
-//            var order = new Order
-//            {
-//                OrderId = 1,
-//                BuyerId = 2,
-//                AddressId = 3,
-//                Status = "pending",
-//                CreatedAt = DateTime.Now
-//            };
-//            _orderRepoMock.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(order);
+    [Fact]
+    public async Task CreateOrderItemAsync_ShouldAddQuantity_WhenExistingCartFound()
+    {
+        var existing = new OrderItem { OrderItemId = 1, BuyerId = 1, ItemId = 10, Quantity = 2, Price = 100 };
+        _mockRepo.Setup(r => r.GetCartItemsByBuyerIdAsync(1)).ReturnsAsync(new List<OrderItem> { existing });
+        _mockUow.Setup(u => u.Items.GetByIdAsync(10, default)).ReturnsAsync(new Item { ItemId = 10, Quantity = 10 });
+        _mockRepo.Setup(r => r.UpdateAsync(It.IsAny<OrderItem>()))
+                 .Callback<OrderItem>(item => { existing.Quantity = item.Quantity; existing.Price = item.Price; })
+                 .Returns(Task.CompletedTask);
 
-//            // Act
-//            var result = await _service.GetOrderByIdAsync(1);
+        var req = new CreateOrderItemRequest { BuyerId = 1, ItemId = 10, Quantity = 3, Price = 150 };
+        var result = await _service.CreateOrderItemAsync(req);
+        Assert.Equal(5, existing.Quantity);
+        Assert.Equal(150, existing.Price);
+    }
 
-//            // Assert
-//            Assert.NotNull(result);
-//            Assert.Equal(order.OrderId, result.OrderId);
-//            Assert.Equal(order.BuyerId, result.BuyerId);
-//        }
+    [Fact]
+    public async Task CreateOrderItemAsync_ShouldThrow_WhenStockExceeded()
+    {
+        var existing = new OrderItem { BuyerId = 1, ItemId = 10, Quantity = 5 };
+        _mockRepo.Setup(r => r.GetCartItemsByBuyerIdAsync(1)).ReturnsAsync(new List<OrderItem> { existing });
+        _mockUow.Setup(u => u.Items.GetByIdAsync(10, default)).ReturnsAsync(new Item { ItemId = 10, Quantity = 7 });
+        var req = new CreateOrderItemRequest { BuyerId = 1, ItemId = 10, Quantity = 3 };
+        await Assert.ThrowsAsync<InvalidOperationException>(() => _service.CreateOrderItemAsync(req));
+    }
 
-//        [Fact]
-//        public async Task GetOrderByIdAsync_ShouldThrowException_WhenNotFound()
-//        {
-//            // Arrange
-//            // CẢI THIỆN: Mock the repository to return null
-//            _orderRepoMock.Setup(r => r.GetByIdAsync(It.IsAny<int>())).ReturnsAsync((Order)null);
+    [Fact]
+    public async Task CreateOrderItemAsync_ShouldHandleMultipleExistingItems()
+    {
+        var existing = new OrderItem { BuyerId = 1, ItemId = 1, Quantity = 2 };
+        _mockRepo.Setup(r => r.GetCartItemsByBuyerIdAsync(1)).ReturnsAsync(new List<OrderItem> { existing });
+        _mockUow.Setup(u => u.Items.GetByIdAsync(1, default)).ReturnsAsync(new Item { ItemId = 1, Quantity = 10 });
+        _mockRepo.Setup(r => r.UpdateAsync(It.IsAny<OrderItem>()))
+                 .Callback<OrderItem>(item => existing.Quantity = item.Quantity)
+                 .Returns(Task.CompletedTask);
+        var req = new CreateOrderItemRequest { BuyerId = 1, ItemId = 1, Quantity = 3 };
+        var result = await _service.CreateOrderItemAsync(req);
+        Assert.Equal(5, existing.Quantity);
+    }
 
-//            // Act
-//            // CẢI THIỆN: The service throws an Exception, it does not return null.
-//            Func<Task> act = () => _service.GetOrderByIdAsync(10);
+    [Fact]
+    public async Task CreateOrderItemAsync_ShouldThrow_WhenRepoThrows()
+    {
+        _mockRepo.Setup(r => r.GetCartItemsByBuyerIdAsync(1)).Throws(new Exception());
+        await Assert.ThrowsAsync<Exception>(() => _service.CreateOrderItemAsync(new CreateOrderItemRequest { BuyerId = 1, ItemId = 1, Quantity = 1 }));
+    }
 
-//            // Assert
-//            // CẢI THIỆN: Verify that the correct exception is thrown.
-//            var exception = await Assert.ThrowsAsync<Exception>(act);
-//            Assert.Equal("Order with ID 10 not found.", exception.Message);
-//        }
+    [Fact]
+    public async Task GetCartItemsByBuyerIdAsync_ShouldReturnEmpty_WhenNoItems()
+    {
+        _mockRepo.Setup(r => r.GetCartItemsByBuyerIdAsync(1)).ReturnsAsync(new List<OrderItem>());
+        var result = await _service.GetCartItemsByBuyerIdAsync(1);
+        Assert.Empty(result);
+    }
+    [Fact] public async Task GetCartItemsByBuyerIdAsync_ShouldThrow_WhenInvalidBuyerId() => await Assert.ThrowsAsync<ArgumentException>(() => _service.GetCartItemsByBuyerIdAsync(0));
+    [Fact] public async Task GetCartItemsByBuyerIdAsync_ShouldThrow_WhenBuyerIdNegative() => await Assert.ThrowsAsync<ArgumentException>(() => _service.GetCartItemsByBuyerIdAsync(-1));
+    [Fact]
+    public async Task GetCartItemsByBuyerIdAsync_ShouldReturnItems_WhenExists()
+    {
+        var list = new List<OrderItem> { new OrderItem { OrderItemId = 1, Quantity = 2, Price = 100 } };
+        _mockRepo.Setup(r => r.GetCartItemsByBuyerIdAsync(1)).ReturnsAsync(list);
+        var result = await _service.GetCartItemsByBuyerIdAsync(1);
+        Assert.Single(result);
+        Assert.Equal(2, result.First().Quantity);
+        Assert.Equal(100, result.First().Price);
+    }
 
-//        // === 2. GET ALL ORDERS ===
+    [Fact] public async Task UpdateOrderItemAsync_ShouldThrow_WhenDtoNull() => await Assert.ThrowsAsync<ArgumentNullException>(() => _service.UpdateOrderItemAsync(1, null));
+    [Fact]
+    public async Task UpdateOrderItemAsync_ShouldThrow_WhenNotFound()
+    {
+        _mockRepo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync((OrderItem)null);
+        await Assert.ThrowsAsync<KeyNotFoundException>(() => _service.UpdateOrderItemAsync(1, new UpdateOrderItemDto { Quantity = 1 }));
+    }
+    [Fact]
+    public async Task UpdateOrderItemAsync_ShouldThrow_WhenDeleted()
+    {
+        _mockRepo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(new OrderItem { IsDeleted = true });
+        await Assert.ThrowsAsync<InvalidOperationException>(() => _service.UpdateOrderItemAsync(1, new UpdateOrderItemDto { Quantity = 1 }));
+    }
+    [Fact]
+    public async Task UpdateOrderItemAsync_ShouldThrow_WhenQuantityInvalid()
+    {
+        _mockRepo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(new OrderItem { IsDeleted = false });
+        await Assert.ThrowsAsync<ArgumentException>(() => _service.UpdateOrderItemAsync(1, new UpdateOrderItemDto { Quantity = 0 }));
+    }
+    [Fact]
+    public async Task UpdateOrderItemAsync_ShouldThrow_WhenPriceNegative()
+    {
+        _mockRepo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(new OrderItem { IsDeleted = false });
+        await Assert.ThrowsAsync<ArgumentException>(() => _service.UpdateOrderItemAsync(1, new UpdateOrderItemDto { Price = -5, Quantity = 1 }));
+    }
+  
+    [Fact]
+    public async Task UpdateOrderItemAsync_ShouldReturnTrue_WhenSuccess()
+    {
+        var item = new OrderItem { IsDeleted = false, Quantity = 1 };
+        _mockRepo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(item);
+        _mockRepo.Setup(r => r.UpdateAsync(It.IsAny<OrderItem>()))
+                 .Callback<OrderItem>(i => item.Quantity = i.Quantity)
+                 .Returns(Task.CompletedTask);
 
-//        [Fact]
-//        public async Task GetAllOrdersAsync_ShouldReturnEmptyList_WhenNoOrders()
-//        {
-//            // Arrange
-//            // CẢI THIỆN: Mock the repo to return an empty list
-//            _orderRepoMock.Setup(r => r.GetAllAsync()).ReturnsAsync(new List<Order>());
+        var result = await _service.UpdateOrderItemAsync(1, new UpdateOrderItemDto { Quantity = 5 });
+        Assert.True(result);
+        Assert.Equal(5, item.Quantity);
+    }
+    [Fact]
+    public async Task UpdateOrderItemAsync_ShouldUpdateMultipleFields()
+    {
+        var item = new OrderItem { IsDeleted = false, Quantity = 1, Price = 10 };
+        _mockRepo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(item);
+        _mockRepo.Setup(r => r.UpdateAsync(It.IsAny<OrderItem>()))
+                 .Callback<OrderItem>(i => { item.Quantity = i.Quantity; item.Price = i.Price; })
+                 .Returns(Task.CompletedTask);
 
-//            // Act
-//            // CẢI THIỆN: The service throws an Exception if the list is empty
-//            Func<Task> act = () => _service.GetAllOrdersAsync();
+        var result = await _service.UpdateOrderItemAsync(1, new UpdateOrderItemDto { Quantity = 5, Price = 50 });
+        Assert.True(result);
+        Assert.Equal(5, item.Quantity);
+        Assert.Equal(50, item.Price);
+    }
 
-//            // Assert
-//            var exception = await Assert.ThrowsAsync<Exception>(act);
-//            Assert.Equal("No orders found.", exception.Message);
-//        }
+    [Fact]
+    public async Task UpdateOrderItemAsync_ShouldAllowExactStock()
+    {
+        var item = new OrderItem { IsDeleted = false, Quantity = 5 };
+        _mockRepo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(item);
+        _mockRepo.Setup(r => r.UpdateAsync(It.IsAny<OrderItem>()))
+                 .Callback<OrderItem>(i => item.Quantity = i.Quantity)
+                 .Returns(Task.CompletedTask);
 
-//        [Fact]
-//        public async Task GetAllOrdersAsync_ShouldReturnMappedList_WhenOrdersExist()
-//        {
-//            // Arrange
-//            var orders = new List<Order>
-//            {
-//                new() { OrderId = 1, BuyerId = 1, AddressId = 11, Status = "done" },
-//                new() { OrderId = 2, BuyerId = 2, AddressId = 22, Status = "pending" }
-//            };
-//            _orderRepoMock.Setup(r => r.GetAllAsync()).ReturnsAsync(orders);
+        var result = await _service.UpdateOrderItemAsync(1, new UpdateOrderItemDto { Quantity = 5 });
+        Assert.True(result);
+        Assert.Equal(5, item.Quantity);
+    }
 
-//            // Act
-//            var result = (await _service.GetAllOrdersAsync()).ToList();
+    [Fact] public async Task DeleteOrderItemAsync_ShouldThrow_WhenInvalidId() => await Assert.ThrowsAsync<ArgumentException>(() => _service.DeleteOrderItemAsync(0));
+    [Fact] public async Task DeleteOrderItemAsync_ShouldThrow_WhenIdNegative() => await Assert.ThrowsAsync<ArgumentException>(() => _service.DeleteOrderItemAsync(-1));
+    [Fact]
+    public async Task DeleteOrderItemAsync_ShouldThrow_WhenNotFound()
+    {
+        _mockRepo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync((OrderItem)null);
+        await Assert.ThrowsAsync<KeyNotFoundException>(() => _service.DeleteOrderItemAsync(1));
+    }
+    [Fact]
+    public async Task DeleteOrderItemAsync_ShouldThrow_WhenAlreadyDeleted()
+    {
+        _mockRepo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(new OrderItem { IsDeleted = true });
+        await Assert.ThrowsAsync<InvalidOperationException>(() => _service.DeleteOrderItemAsync(1));
+    }
+    [Fact]
+    public async Task DeleteOrderItemAsync_ShouldThrow_WhenAlreadyPartOfOrder()
+    {
+        _mockRepo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(new OrderItem { OrderId = 100, IsDeleted = false });
+        await Assert.ThrowsAsync<InvalidOperationException>(() => _service.DeleteOrderItemAsync(1));
+    }
+    [Fact]
+    public async Task DeleteOrderItemAsync_ShouldReturnTrue_WhenSuccess()
+    {
+        var item = new OrderItem { IsDeleted = false };
+        _mockRepo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(item);
+        _mockRepo.Setup(r => r.UpdateAsync(It.IsAny<OrderItem>()))
+                 .Callback<OrderItem>(i => item.IsDeleted = true)
+                 .Returns(Task.CompletedTask);
 
-//            // Assert
-//            Assert.NotNull(result);
-//            Assert.Equal(2, result.Count);
-//            Assert.Equal(orders[0].OrderId, result[0].OrderId);
-//            Assert.Equal(orders[1].Status, result[1].Status);
-//        }
+        var result = await _service.DeleteOrderItemAsync(1);
+        Assert.True(result);
+        Assert.True(item.IsDeleted);
+    }
 
-//        // === 3. CREATE ORDER (from OrderDto) ===
+    [Fact]
+    public async Task DeleteOrderItemAsync_ShouldThrow_WhenRepoThrows()
+    {
+        var item = new OrderItem { IsDeleted = false };
+        _mockRepo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(item);
+        _mockRepo.Setup(r => r.UpdateAsync(It.IsAny<OrderItem>())).Throws(new Exception());
+        await Assert.ThrowsAsync<Exception>(() => _service.DeleteOrderItemAsync(1));
+    }
+    [Fact]
+    public async Task CreateOrderItemAsync_ShouldUpdateQuantityAndPriceAccordingToUnitPrice()
+    {
+   
+        var item = new Item { ItemId = 10, Price = 100, Quantity = 10 };
+        _mockUow.Setup(u => u.Items.GetByIdAsync(10, default)).ReturnsAsync(item);
 
-//        [Fact]
-//        public async Task CreateOrderAsync_Dto_ShouldCallAddAsync_AndSetPendingStatus()
-//        {
-//            // Arrange
-//            var dto = new OrderDto
-//            {
-//                BuyerId = 5,
-//                AddressId = 99,
-//                CreatedAt = DateTime.Now,
-//                UpdatedAt = DateTime.Now
-//            };
 
-//            Order capturedOrder = null; // Variable to capture the entity
+        var existing = new OrderItem { OrderItemId = 1, BuyerId = 1, ItemId = 10, Quantity = 2, Price = 200 };
+        _mockRepo.Setup(r => r.GetCartItemsByBuyerIdAsync(1)).ReturnsAsync(new List<OrderItem> { existing });
 
-//            // CẢI THIỆN: Setup AddAsync to capture the order and assign an ID
-//            _orderRepoMock.Setup(r => r.AddAsync(It.IsAny<Order>()))
-//                .Callback<Order>(o =>
-//                {
-//                    o.OrderId = 123; // Simulate the DB generating an ID
-//                    capturedOrder = o;
-//                })
-//                .Returns(Task.CompletedTask);
+  
+        _mockRepo.Setup(r => r.UpdateAsync(existing)).Returns(Task.CompletedTask);
 
-//            // Act
-//            var resultId = await _service.CreateOrderAsync(dto);
+        var req = new CreateOrderItemRequest
+        {
+            BuyerId = 1,
+            ItemId = 10,
+            Quantity = 3,
+            Price = 0 
+        };
 
-//            // Assert
-//            Assert.Equal(123, resultId); // Verify the returned ID is correct
-//            Assert.NotNull(capturedOrder); // Verify the entity was captured
-//            Assert.Equal("pending", capturedOrder.Status); // Verify status was set
-//            Assert.Equal(5, capturedOrder.BuyerId);
-//            Assert.Equal(dto.CreatedAt, capturedOrder.CreatedAt);
-//        }
+        var result = await _service.CreateOrderItemAsync(req);
 
-//        [Fact]
-//        public async Task CreateOrderAsync_Dto_ShouldThrowException_WhenDtoIsNull()
-//        {
-//            // Arrange
-//            // No setup needed
+       
+        Assert.Equal(5, existing.Quantity);
 
-//            // Act
-//            Func<Task> act = () => _service.CreateOrderAsync((OrderDto)null);
+        Assert.Equal(500, existing.Price);
+    }
 
-//            // Assert
-//            var exception = await Assert.ThrowsAsync<Exception>(act);
-//            Assert.Equal("Order data cannot be null.", exception.Message);
-//        }
-
-//        // === 4. UPDATE ORDER ===
-
-//        [Fact]
-//        public async Task UpdateOrderAsync_ShouldThrowException_WhenOrderNotFound()
-//        {
-//            // Arrange
-//            // CẢI THIỆN: Mock the repo to return null
-//            _orderRepoMock.Setup(r => r.GetByIdAsync(It.IsAny<int>())).ReturnsAsync((Order)null);
-//            var dto = new OrderDto { OrderId = 999, Status = "done" };
-
-//            // Act
-//            // CẢI THIỆN: The service throws an Exception, it does not return false.
-//            Func<Task> act = () => _service.UpdateOrderAsync(dto);
-
-//            // Assert
-//            var exception = await Assert.ThrowsAsync<Exception>(act);
-//            Assert.Equal($"Order with ID {dto.OrderId} not found.", exception.Message);
-//        }
-
-//        // === 5. DELETE ORDER ===
-
-//        [Fact]
-//        public async Task DeleteOrderAsync_ShouldThrowException_WhenOrderNotFound()
-//        {
-//            // Arrange
-//            // CẢI THIỆN: Add test for "sad path"
-//            _orderRepoMock.Setup(r => r.GetByIdAsync(999)).ReturnsAsync((Order)null);
-
-//            // Act
-//            Func<Task> act = () => _service.DeleteOrderAsync(999);
-
-//            // Assert
-//            var exception = await Assert.ThrowsAsync<Exception>(act);
-//            Assert.Equal("Order with ID 999 not found.", exception.Message);
-//            _orderRepoMock.Verify(r => r.DeleteAsync(It.IsAny<int>()), Times.Never); // Ensure delete was not called
-//        }
-
-//        [Fact]
-//        public async Task DeleteOrderAsync_ShouldCallRepositoryDelete_WhenOrderExists()
-//        {
-//            // Arrange
-//            var order = new Order { OrderId = 5 };
-//            _orderRepoMock.Setup(r => r.GetByIdAsync(5)).ReturnsAsync(order);
-//            _orderRepoMock.Setup(r => r.DeleteAsync(5)).Returns(Task.CompletedTask);
-
-//            // Act
-//            var result = await _service.DeleteOrderAsync(5);
-
-//            // Assert
-//            Assert.True(result); // Service returns true on success
-//            _orderRepoMock.Verify(r => r.DeleteAsync(5), Times.Once); // Verify delete was called
-//        }
-
-//        // === 6. GET ORDERS BY USER ID ===
-
-//        [Fact]
-//        public async Task GetOrdersByUserIdAsync_ShouldReturnList_WhenOrdersExist()
-//        {
-//            // Arrange
-//            var orders = new List<OrderDto> { new() { OrderId = 1, BuyerId = 10 } };
-//            _orderRepoMock.Setup(r => r.GetOrdersByUserIdAsync(10)).ReturnsAsync(orders);
-
-//            // Act
-//            var result = await _service.GetOrdersByUserIdAsync(10);
-
-//            // Assert
-//            Assert.Single(result);
-//            Assert.Equal(10, result.First().BuyerId);
-//        }
-
-//        [Fact]
-//        public async Task GetOrdersByUserIdAsync_ShouldThrowException_WhenNoOrder()
-//        {
-//            // Arrange
-//            // CẢI THIỆN: Mock repo to return an empty list
-//            _orderRepoMock.Setup(r => r.GetOrdersByUserIdAsync(99)).ReturnsAsync(new List<OrderDto>());
-
-//            // Act
-//            // CẢI THIỆN: The service throws an Exception if the list is empty
-//            Func<Task> act = () => _service.GetOrdersByUserIdAsync(99);
-
-//            // Assert
-//            var exception = await Assert.ThrowsAsync<Exception>(act);
-//            Assert.Equal("No orders found for user ID 99.", exception.Message);
-//        }
-
-//        // === 7. CREATE ORDER (from CreateOrderRequestDto) ===
-
-//        [Fact]
-//        public async Task CreateOrder_Request_ShouldCreateOrderAndAttachItems()
-//        {
-//            // Arrange
-//            var req = new CreateOrderRequestDto
-//            {
-//                BuyerId = 1,
-//                AddressId = 2,
-//                OrderItemIds = new List<int> { 10, 20 },
-//                CreatedAt = DateTime.Now
-//            };
-
-//            var itemsToUpdate = new List<OrderItem>
-//            {
-//                new() { OrderItemId = 10, ItemId = 5, OrderId = null }, // OrderId is initially null
-//                new() { OrderItemId = 20, ItemId = 6, OrderId = null }
-//            };
-
-//            var createdOrder = new Order { OrderId = 777, BuyerId = 1, AddressId = 2, Status = "pending" };
-
-//            _orderItemRepoMock.Setup(r => r.GetItemsByIdsAsync(req.OrderItemIds)).ReturnsAsync(itemsToUpdate);
-//            _orderRepoMock.Setup(r => r.AddOrderAsync(It.IsAny<Order>())).ReturnsAsync(createdOrder);
-
-//            // Act
-//            var response = await _service.CreateOrderAsync(req);
-
-//            // Assert
-//            Assert.NotNull(response);
-//            Assert.Equal(777, response.OrderId); // Check returned Order ID
-
-//            // FIXME: type: int but response.Items.Count will error if not ToString so temp int 2 -> "2" to check
-//            Assert.Equal("2", response.Items.Count().ToString()); // Check returned items
-
-//            // Verify that the OrderItems were updated with the new OrderId
-//            Assert.All(itemsToUpdate, item => Assert.Equal(777, item.OrderId));
-
-//            // Verify the correct repositories were called
-//            _orderRepoMock.Verify(r => r.AddOrderAsync(It.Is<Order>(o => o.Status == "pending" && o.BuyerId == 1)), Times.Once);
-//            _orderItemRepoMock.Verify(r => r.UpdateRangeAsync(itemsToUpdate), Times.Once);
-//        }
-
-//        [Fact]
-//        public async Task CreateOrder_Request_ShouldThrowInvalidOperationException_WhenNoValidItems()
-//        {
-//            // Arrange
-//            var req = new CreateOrderRequestDto { BuyerId = 1, AddressId = 2, OrderItemIds = new List<int> { 99 } };
-//            // CẢI THIỆN: Mock GetItemsByIdsAsync to return an empty list
-//            _orderItemRepoMock.Setup(r => r.GetItemsByIdsAsync(It.IsAny<List<int>>()))
-//                              .ReturnsAsync(new List<OrderItem>());
-
-//            // Act
-//            Func<Task> act = () => _service.CreateOrderAsync(req);
-
-//            // Assert
-//            // CẢI THIỆN: Check for the specific exception type
-//            var exception = await Assert.ThrowsAsync<InvalidOperationException>(act);
-//            Assert.Equal("No valid order items found", exception.Message);
-//            _orderRepoMock.Verify(r => r.AddOrderAsync(It.IsAny<Order>()), Times.Never); // Ensure no order was created
-//        }
-
-//        [Fact]
-//        public async Task CreateOrder_Request_ShouldThrowException_WhenCreateOrderFails()
-//        {
-//            // Arrange
-//            var req = new CreateOrderRequestDto { BuyerId = 1, AddressId = 2, OrderItemIds = new List<int> { 1 } };
-//            _orderItemRepoMock.Setup(r => r.GetItemsByIdsAsync(It.IsAny<List<int>>()))
-//                              .ReturnsAsync(new List<OrderItem> { new() { OrderItemId = 1 } });
-
-//            // CẢI THIỆN: Mock AddOrderAsync to return null (simulating a DB failure)
-//            _orderRepoMock.Setup(r => r.AddOrderAsync(It.IsAny<Order>()))
-//                          .ReturnsAsync((Order)null);
-
-//            // Act
-//            Func<Task> act = () => _service.CreateOrderAsync(req);
-
-//            // Assert
-//            var exception = await Assert.ThrowsAsync<Exception>(act);
-//            Assert.Equal("Failed to create order.", exception.Message);
-//            _orderItemRepoMock.Verify(r => r.UpdateRangeAsync(It.IsAny<IEnumerable<OrderItem>>()), Times.Never);
-//        }
-//    }
-//}
+}

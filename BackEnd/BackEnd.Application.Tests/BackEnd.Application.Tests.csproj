@@ -24,6 +24,7 @@
     <ProjectReference Include="..\ApplicationLayer\Application.csproj">
       <Private>True</Private>
     </ProjectReference>
+    <ProjectReference Include="..\Infrastructure\Infrastructure.csproj" />
   </ItemGroup>
 
   <ItemGroup>
