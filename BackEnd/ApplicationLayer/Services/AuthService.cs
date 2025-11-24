@@ -231,6 +231,7 @@ namespace Application.Services
                 UpdatedAt = DateTime.UtcNow
             };
             await _uow.Wallets.AddAsync(wallet);
+            await _uow.SaveChangesAsync();
 
             _logger.LogInformation("New user created successfully: {UserId}", newUser.UserId);
 
