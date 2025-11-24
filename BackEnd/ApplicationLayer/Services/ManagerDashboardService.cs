@@ -72,8 +72,8 @@ namespace Application.Services
 
         public async Task<IEnumerable<OrdersByMonthDto>> GetOrdersByMonthAsync(int monthsRange)
         {
-            var endDate = DateTime.Now; // dùng local time thay vì UTC
-            var startDate = endDate.AddMonths(-monthsRange + 1).Date; // bắt đầu từ đầu tháng đó
+            var endDate = DateTime.Now;
+            var startDate = endDate.AddMonths(-monthsRange + 1).Date;
 
             var orders = await _unitOfWork.Orders.GetOrdersWithinRangeAsync(startDate, endDate);
             if (orders == null)

@@ -333,7 +333,7 @@ namespace Application.Services
             var item = await _unitOfWork.Items.GetByIdAsync(itemId);
             if (item == null)
                 throw new KeyNotFoundException($"Item with ID {itemId} not found.");
-            if (item.Moderation != "pending")
+            if (item.Moderation != "Pending")
                 throw new InvalidOperationException("Only pending items can be approved.");
 
             return await _unitOfWork.Items.SetItemTagAsync(itemId, "Approved");

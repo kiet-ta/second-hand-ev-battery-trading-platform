@@ -71,7 +71,6 @@ public class AuctionFinalizationService : IAuctionFinalizationService
                 return;
             }
 
-            // Đánh dấu bid thắng cuộc
             await _unitOfWork.Bids.UpdateBidStatusAsync(winningBid.BidId, BidStatus.Winner.ToString());
             _logger.LogInformation($"Auction {auctionId} winner: User {winningBid.UserId} with Bid {winningBid.BidId} amount {winningBid.BidAmount}");
 
@@ -79,7 +78,6 @@ public class AuctionFinalizationService : IAuctionFinalizationService
             var winningAmount = winningBid.BidAmount;
             var itemId = auction.ItemId;
 
-            // --- Xử lý người bán (Lấy seller, tính phí, chuyển tiền) ---
             var itemWithSeller = await _unitOfWork.Items.GetItemAndSellerByItemIdAsync(itemId);
             if (itemWithSeller?.Seller == null || itemWithSeller.Item == null)
             {
@@ -169,6 +167,9 @@ public class AuctionFinalizationService : IAuctionFinalizationService
                 Price = winningAmount,
                 IsDeleted = false
             };
+
+            await _unitOfWork.Items.UpdateItemQuantityAsync(itemId, itemWithSeller.Item.Quantity);
+
             await _unitOfWork.OrderItems.CreateAsync(newOrderItem); 
 
             await _unitOfWork.SaveChangesAsync(); // Save OrderItem
@@ -240,7 +241,7 @@ public class AuctionFinalizationService : IAuctionFinalizationService
 
             var winnerNoti = new CreateNotificationDto
             {
-                NotiType = NotificationType.Activities.ToString(),
+                NotiType = NotificationType.Auctions.ToString(),
                 TargetUserId = winnerId.ToString(),  
                 Title = "You have won the auction!",
                 Message = $"Congratulations! You won the auction for item {itemId}."

@@ -27,7 +27,7 @@ public class PaymentController : ControllerBase
     }
 
     [HttpPost("confirm-order/{orderId}")]
-    //[Authorize(Roles = "Buyer,Seller")] // Chỉ buyer mới được gọi
+    //[Authorize(Roles = "Buyer,Seller")]
     public async Task<IActionResult> ConfirmOrder(int orderId)
     {
         try
@@ -51,7 +51,6 @@ public class PaymentController : ControllerBase
         }
         catch (Exception ex)
         {
-            // Bắt lỗi được ném ra từ Service (ví dụ: "Đơn hàng không tồn tại")
             return BadRequest(new { message = ex.Message });
         }
     }

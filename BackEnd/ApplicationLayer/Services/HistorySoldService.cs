@@ -220,13 +220,10 @@ namespace Application.Services
 
             var result = new List<object>();
 
-            // Tách query theo loại item
             var batteryItemsQuery = itemsQuery.Where(i => i.ItemType == ItemType.Battery.ToString());
 
-            // Chỉ query nếu có tồn tại
             if (await batteryItemsQuery.AnyAsync())
             {
-                // Truyền IQueryable<Item> (đã phân trang) vào repository
                 var mappedBatteryItems = await _unitOfWork.HistorySolds.MapToBatteryItemsAsync(batteryItemsQuery);
                 if (mappedBatteryItems == null)
                     throw new Exception("Failed to map battery items");
