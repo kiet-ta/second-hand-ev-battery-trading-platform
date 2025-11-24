@@ -95,9 +95,9 @@ namespace PresentationLayer.Controllers
         }
 
         [HttpGet("with-detail/{id}")]
-        public async Task<IActionResult> GetItemWithDetails(int id)
+        public async Task<IActionResult> GetItemWithDetails(int id, int buyerId, int orderId)
         {
-            var item = await _service.GetItemWithDetailsAsync(id);
+            var item = await _service.GetItemWithDetailsAsync(id, buyerId, orderId);
             if (item == null)
                 return NotFound();
 

@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Threading.Tasks.Dataflow;
 
 namespace Infrastructure.Repositories
 {
@@ -237,10 +238,15 @@ namespace Infrastructure.Repositories
                 .ToListAsync();
         }
 
-        public async Task<ItemWithDetailDto?> GetItemWithDetailsAsync(int id)
+        public async Task<ItemWithDetailDto?> GetItemWithDetailsAsync(int itemId, int buyerId, int orderId)
         {
             var query = from i in _context.Items
-                        where i.ItemId == id && !(i.IsDeleted == true) 
+                        where i.ItemId == itemId && !(i.IsDeleted == true)
+                        join oi in _context.OrderItems
+                    on new { ItemId = i.ItemId, BuyerId = buyerId, OrderId = orderId } equals
+                       new { ItemId = oi.ItemId, BuyerId = oi.BuyerId, OrderId = oi.OrderId.Value }
+                    into oij
+                        from orderItem in oij.DefaultIfEmpty()
                         join im in _context.ItemImages
                             on i.ItemId equals im.ItemId into imj
                         from itemImage in imj.DefaultIfEmpty()
@@ -259,7 +265,7 @@ namespace Infrastructure.Repositories
                             Description = i.Description,
                             Price = i.Price,
                             Moderation = i.Moderation,
-                            Quantity = i.Quantity,
+                            Quantity = orderItem != null ? orderItem.Quantity : 0,
                             Status = i.Status,
                             CreatedAt = i.CreatedAt,
                             UpdatedAt = i.UpdatedAt,
