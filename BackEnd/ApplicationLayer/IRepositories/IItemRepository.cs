@@ -26,6 +26,8 @@ namespace Application.IRepositories
 
         Task<IEnumerable<Item>> GetLatestBatteriesAsync(int count);
 
+        Task<ItemWithDetailDto?> GetItemWithDetailsAsync(int id);
+
         Task<ItemWithDetailDto?> GetItemWithDetailsAsync(int itemId, int buyerId, int orderId);
 
         Task<IEnumerable<ItemWithDetailDto>> GetAllItemsWithDetailsAsync();

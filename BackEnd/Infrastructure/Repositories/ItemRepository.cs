@@ -237,6 +237,47 @@ namespace Infrastructure.Repositories
                 .ToListAsync();
         }
 
+        public async Task<ItemWithDetailDto?> GetItemWithDetailsAsync(int id)
+        {
+            var query = from i in _context.Items
+                        where i.ItemId == id && !(i.IsDeleted == true) 
+                        join im in _context.ItemImages
+                            on i.ItemId equals im.ItemId into imj
+                        from itemImage in imj.DefaultIfEmpty()
+                        join ev in _context.EVDetails
+                            on i.ItemId equals ev.ItemId into evj
+                        from evDetail in evj.DefaultIfEmpty()
+                        join bat in _context.BatteryDetails
+                            on i.ItemId equals bat.ItemId into batj
+                        from batDetail in batj.DefaultIfEmpty()
+                        select new ItemWithDetailDto
+                        {
+                            ItemId = i.ItemId,
+                            Title = i.Title,
+                            ItemType = i.ItemType,
+                            CategoryId = i.CategoryId,
+                            Description = i.Description,
+                            Price = i.Price,
+                            Moderation = i.Moderation,
+                            Quantity = i.Quantity,
+                            Status = i.Status,
+                            CreatedAt = i.CreatedAt,
+                            UpdatedAt = i.UpdatedAt,
+                            UpdatedBy = i.UpdatedBy,
+                            ItemImage = _context.ItemImages
+                            .Where(img => img.ItemId == i.ItemId)
+                            .Select(img => new ItemImageDto
+                            {
+                                ImageId = img.ImageId,
+                                ImageUrl = img.ImageUrl
+                            }).ToList(),
+                            EVDetail = evDetail,
+                            BatteryDetail = batDetail
+                        };
+
+            return await query.AsNoTracking().FirstOrDefaultAsync();
+        }
+
         public async Task<ItemWithDetailDto?> GetItemWithDetailsAsync(int itemId, int buyerId, int orderId)
         {
             var query = from i in _context.Items

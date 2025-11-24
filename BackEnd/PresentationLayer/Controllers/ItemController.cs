@@ -94,10 +94,20 @@ namespace PresentationLayer.Controllers
             return Ok(result);
         }
 
-        [HttpGet("with-detail/{id}")]
-        public async Task<IActionResult> GetItemWithDetails(int id, int buyerId, int orderId)
+        [HttpGet("with-detail/{itemId}")]
+        public async Task<IActionResult> GetItemWithDetails(int itemId)
         {
-            var item = await _service.GetItemWithDetailsAsync(id, buyerId, orderId);
+            var item = await _service.GetItemWithDetailsAsync(itemId);
+            if (item == null)
+                return NotFound();
+
+            return Ok(item);
+        }
+
+        [HttpGet("with-detail/{itemId}/{orderId}")]
+        public async Task<IActionResult> GetItemWithDetails(int itemId, int buyerId, int orderId)
+        {
+            var item = await _service.GetItemWithDetailsAsync(itemId, buyerId, orderId);
             if (item == null)
                 return NotFound();
 

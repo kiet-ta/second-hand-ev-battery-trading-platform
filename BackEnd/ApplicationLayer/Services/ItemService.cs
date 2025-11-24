@@ -270,6 +270,14 @@ namespace Application.Services
                 itemType, title, minPrice, maxPrice, page, pageSize, sortBy, sortDir);
         }
 
+        public async Task<ItemWithDetailDto?> GetItemWithDetailsAsync(int id)
+        {
+            var item = await _unitOfWork.Items.GetItemWithDetailsAsync(id);
+            if (item == null)
+                throw new KeyNotFoundException($"Item with ID {id} not found.");
+            return item;
+        }
+
         public async Task<ItemWithDetailDto?> GetItemWithDetailsAsync(int itemId, int buyerId, int orderId)
         {
             var item = await _unitOfWork.Items.GetItemWithDetailsAsync(itemId, buyerId, orderId);
