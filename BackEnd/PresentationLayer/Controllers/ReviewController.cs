@@ -5,6 +5,7 @@ using Application.Services;
 using Domain.Common.Constants;
 using Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace PresentationLayer.Controllers
@@ -32,9 +33,14 @@ namespace PresentationLayer.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateReview([FromBody] CreateReviewDto dto)
         {
-            var userClaims = User.FindFirst("user_id")?.Value;
-            if (string.IsNullOrEmpty(userClaims) || !int.TryParse(userClaims, out int userId))
-                return Unauthorized("User ID not found in token.");
+
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!int.TryParse(userIdClaim, out int userId))
+                return Unauthorized(new { message = "Invalid user token." });
+
+            //var userClaims = User.FindFirst("user_id")?.Value;
+            //if (string.IsNullOrEmpty(userClaims) || !int.TryParse(userClaims, out int userId))
+            //    return Unauthorized("User ID not found in token.");
 
             if (dto == null)
                 return BadRequest("Review data is required.");
@@ -73,7 +79,7 @@ namespace PresentationLayer.Controllers
                     await _kycdocumentService.WarningUserAsync(userId);
                     return Ok("Badword");
                 }
-                await _notificationService.AddNewNotification(notification, 4, UserRole.Staff.ToString());
+                await _notificationService.AddNewNotification(notification, 4, UserRole.Manager.ToString());
                 await _notificationService.SendNotificationAsync(notification.Message, userId.ToString());
             }
             var review = await _reviewService.CreateReviewAsync(dto, userId);
