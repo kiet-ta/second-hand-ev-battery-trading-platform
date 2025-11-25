@@ -19,7 +19,7 @@ public class PaymentRepository : IPaymentRepository
 
     public async Task<Payment> AddPaymentAsync(Payment payment)
     {
-        _context.Payments.Add(payment);
+        await _context.Payments.AddAsync(payment);
         return payment;
     }
 

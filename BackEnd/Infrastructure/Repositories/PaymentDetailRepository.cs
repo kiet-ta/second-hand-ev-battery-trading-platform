@@ -21,6 +21,10 @@ namespace Infrastructure.Repositories
             _context = context;
         }
 
+        public async Task AddPaymentDetailAsync(PaymentDetail obj)
+        {
+            await _context.PaymentDetails.AddAsync(obj);
+        }
         public async Task<decimal> GetRevenueAsync(int sellerId)
         {
             // Calculate the total lifetime revenue for a specific seller.

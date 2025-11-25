@@ -470,9 +470,20 @@ public class PaymentService : IPaymentService
 
     public async Task<PaymentResponseDto> CreateSellerRegistrationPaymentAsync(SellerRegistrationPaymentRequestDto request)
     {
+        var     userExists = await _unitOfWork.Users.GetByIdAsync(request.UserId);
+        string? feeAssignByRole = null;
+
+        if (userExists == null)
+            throw new ArgumentException("User does not exist");
+        
+        if (userExists.Role == UserRole.Seller.ToString())
+        {
+            feeAssignByRole = userExists.IsStore ? "FEESR002" : "FEEPR001";
+        }
+
         // "Read-only" "data"
         var rules = await _unitOfWork.CommissionFeeRules.GetAllAsync();
-        var registrationFeeRule = rules.FirstOrDefault(r => r.FeeCode == "SELLER_REG_FEE" && r.IsActive);
+        var registrationFeeRule = rules.FirstOrDefault(r => r.FeeCode == feeAssignByRole && r.IsActive);
         var user = await _unitOfWork.Users.GetByIdAsync(request.UserId);
 
         if (user.Role != UserRole.Seller.ToString()|| user.Paid == UserPaid.Registering.ToString() || user.Paid == "account-maintenance-fee")
