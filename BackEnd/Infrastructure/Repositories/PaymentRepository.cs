@@ -1,4 +1,5 @@
-﻿using Application.DTOs.PaymentDtos;
+﻿using Application.DTOs;
+using Application.DTOs.PaymentDtos;
 using Application.IRepositories.IPaymentRepositories;
 using Domain.Common.Constants;
 using Domain.Entities;
@@ -26,6 +27,124 @@ public class PaymentRepository : IPaymentRepository
     {
         _context.PaymentDetails.AddRange(details);
         await _context.SaveChangesAsync();
+    }
+
+    public async Task<IEnumerable<PaymentWithDetailsDto>> GetAllPaymentsWithDetailsMappedAsync()
+    {
+        var query = await (
+            from p in _context.Payments
+            join pd in _context.PaymentDetails on p.PaymentId equals pd.PaymentId into detailsGroup
+            select new
+            {
+                Payment = p,
+                Details = detailsGroup.ToList()
+            }
+        ).ToListAsync();
+
+        var paymentDtos = query.Select(item => new PaymentWithDetailsDto
+        {
+            PaymentId = item.Payment.PaymentId,
+            OrderCode = item.Payment.OrderCode,
+            TotalAmount = item.Payment.TotalAmount,
+            Currency = item.Payment.Currency,
+            Method = item.Payment.Method,
+            Status = item.Payment.Status,
+            PaymentType = item.Payment.PaymentType,
+            CreatedAt = item.Payment.CreatedAt,
+            PaymentDetails = item.Details.Select(pd => new PaymentDetailDto
+            {
+                PaymentDetailId = pd.PaymentDetailId,
+                OrderId = pd.OrderId,
+                ItemId = pd.ItemId,
+                Amount = pd.Amount
+            }).ToList()
+        }).ToList();
+
+        return paymentDtos;
+    }
+
+    public async Task<IEnumerable<PaymentWithDetailsDto>> GetPaymentsByUserIdMappedAsync(int userId)
+    {
+        var query = await (
+            from p in _context.Payments
+            where p.UserId == userId
+            join pd in _context.PaymentDetails on p.PaymentId equals pd.PaymentId into detailsGroup
+            select new
+            {
+                Payment = p,
+                Details = detailsGroup.ToList()
+            }
+        ).ToListAsync();
+
+        var paymentDtos = query.Select(item => new PaymentWithDetailsDto
+        {
+            PaymentId = item.Payment.PaymentId,
+            OrderCode = item.Payment.OrderCode,
+            TotalAmount = item.Payment.TotalAmount,
+            Currency = item.Payment.Currency,
+            Method = item.Payment.Method,
+            Status = item.Payment.Status,
+            PaymentType = item.Payment.PaymentType,
+            CreatedAt = item.Payment.CreatedAt,
+
+            PaymentDetails = item.Details.Select(pd => new PaymentDetailDto
+            {
+                PaymentDetailId = pd.PaymentDetailId,
+                OrderId = pd.OrderId,
+                ItemId = pd.ItemId,
+                Amount = pd.Amount
+            }).ToList()
+        }).ToList();
+
+        return paymentDtos;
+    }
+
+    public async Task<DetailedPaymentHistoryDto> GetTransactionDetailAsync(int userId, int orderId)
+    {
+        var result = await (
+            from p in _context.Payments
+            where p.UserId == userId
+
+            join o in _context.Orders on orderId equals o.OrderId
+            where o.BuyerId == userId && o.OrderId == orderId
+
+            join pd in _context.PaymentDetails on new { PaymentId = p.PaymentId, OrderId = (int?)o.OrderId } equals new { PaymentId = pd.PaymentId, OrderId = pd.OrderId }
+
+            join oi in _context.OrderItems on new { OrderId = (int?)o.OrderId, ItemId = pd.ItemId } equals new { OrderId = oi.OrderId, ItemId = (int?)oi.ItemId }
+
+            select new { Payment = p, Order = o, Detail = pd, Item = oi }
+        ).ToListAsync();
+
+        if (result == null || !result.Any())
+        {
+            return null;
+        }
+
+        var firstItem = result.First();
+
+        var dto = new DetailedPaymentHistoryDto
+        {
+            PaymentId = firstItem.Payment.PaymentId,
+            OrderId = firstItem.Order.OrderId,
+            OrderCode = firstItem.Payment.OrderCode,
+            TotalAmount = firstItem.Payment.TotalAmount,
+            Currency = firstItem.Payment.Currency,
+            Method = firstItem.Payment.Method,
+            Status = firstItem.Payment.Status,
+            OrderStatus = firstItem.Item.Status,
+            CreatedAt = firstItem.Payment.CreatedAt,
+
+            ItemDetails = result.Select(r => new ItemTransactionDetailDto
+            {
+                OrderId = r.Order.OrderId,
+                ItemId = r.Detail.ItemId,
+                PaymentAmount = r.Detail.Amount,
+                Quantity = r.Item.Quantity,
+                ItemPrice = r.Item.Price
+            }).ToList()
+        };
+
+        return dto;
     }
 
     public async Task UpdatePaymentStatusAsync(int paymentId, string status)
