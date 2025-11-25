@@ -136,7 +136,6 @@ public class AuctionFinalizationService : IAuctionFinalizationService
             {
                 BuyerId = winnerId,
                 AddressId = winnerAddress.AddressId, 
-                Status = OrderStatus.Pending.ToString(), 
                 CreatedAt = DateTime.Now,
                 UpdatedAt = DateTime.Now
             };
@@ -144,17 +143,19 @@ public class AuctionFinalizationService : IAuctionFinalizationService
             await _unitOfWork.SaveChangesAsync(); // Save to get OrderId
             _logger.LogInformation("Created Order {OrderId} for winner User {WinnerId}", newOrder.OrderId, winnerId);
 
-            var paymentTransaction = new WalletTransaction
+            var walletTransaction = new WalletTransaction
             {
                 WalletId = winnerWallet.WalletId,
                 Amount = -winningAmount, 
                 Type = WalletTransactionType.Payment.ToString(),
                 CreatedAt = DateTime.Now,
                 RefId = newOrder.OrderId,
+                RefId = newOrder.OrderId,
                 AuctionId = auctionId,
                 OrderId = newOrder.OrderId
             };
-            await _unitOfWork.WalletTransactions.CreateTransactionAsync(paymentTransaction);
+            await _unitOfWork.WalletTransactions.CreateTransactionAsync(walletTransaction);
+
             _logger.LogInformation($"Decreased held balance by {winningAmount} for winner User {winnerId} and created 'payment' transaction.");
 
             // create OrderItem
@@ -165,6 +166,7 @@ public class AuctionFinalizationService : IAuctionFinalizationService
                 ItemId = itemId,
                 Quantity = itemWithSeller.Item.Quantity,
                 Price = winningAmount,
+                Status = OrderItemStatus.Pending.ToString(),
                 IsDeleted = false
             };
 

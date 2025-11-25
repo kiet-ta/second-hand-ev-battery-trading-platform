@@ -60,60 +60,32 @@ namespace Infrastructure.Repositories
         }
 
         //Feature: Seller Dashboard
-        public async Task<int> CountBySellerAsync(int sellerId)
-        {
-            return await _context.Orders
-                .CountAsync(o => _context.PaymentDetails
-                    .Any(p => p.OrderId == o.OrderId &&
-                              _context.Items.Any(i => i.ItemId == p.ItemId && i.UpdatedBy == sellerId)));
-        }
 
-        public async Task<int> CountByStatusAsync(int sellerId, string status)
-        {
-            return await _context.Orders
-                .CountAsync(o => o.Status == status &&
-                    _context.PaymentDetails
-                        .Any(p => p.OrderId == o.OrderId &&
-                            _context.Items.Any(i => i.ItemId == p.ItemId && i.UpdatedBy == sellerId)));
-        }
+
 
         public async Task<List<OrdersByWeekDto>> GetOrdersByWeekAsync(int sellerId)
         {
-            // --- 1. Query Data from Database (LINQ to Entities) ---
-            // This query joins Orders, PaymentDetails, and Items to find all 'Completed' orders
-            // associated with the specific seller (identified by i.UpdatedBy == sellerId).
             var ordersQuery = from o in _context.Orders
-                                  // Join Orders with PaymentDetails (assuming OrderDetails is linked via PaymentDetails)
+                              join oi in _context.OrderItems on o.OrderId equals oi.OrderId
                               join pd in _context.PaymentDetails on o.OrderId equals pd.OrderId
-                              // Join PaymentDetails with Items to find the Seller
                               join i in _context.Items on pd.ItemId equals i.ItemId
                               where i.UpdatedBy == sellerId // Filter: Order must involve an Item updated/owned by the seller
-                                    && o.Status == OrderStatus.Completed.ToString() // Filter: Only include completed orders
+                                    && oi.Status == OrderItemStatus.Completed.ToString() // Filter: Only include completed orders
                                     && o.CreatedAt != null // Filter: Ensure the creation date is not null
                               select new { o.OrderId, o.CreatedAt };
-
-            // Execute the query, fetch the data into the client's memory (List<T>), 
-            // and ensure each OrderId is distinct (since one order might have multiple PaymentDetails/Items).
             var orders = await ordersQuery.Distinct().ToListAsync();
-
-            // --- 2. Client-Side Grouping (LINQ to Objects) ---
-            // Perform grouping on the client side to accurately calculate the WeekNumber 
-            // based on specific Calendar rules (ISO 8601).
             var result = orders
                 .GroupBy(o =>
                 {
                     var dt = o.CreatedAt;
 
-                    // Get the current culture's calendar
                     var cal = System.Globalization.DateTimeFormatInfo.CurrentInfo.Calendar;
 
-                    // Calculate the Week Number using ISO 8601 rules (FirstFourDayWeek, Week starts on Monday)
                     var week = cal.GetWeekOfYear(
                         dt,
                         System.Globalization.CalendarWeekRule.FirstFourDayWeek,
                         DayOfWeek.Monday);
 
-                    // Group by Year and the calculated Week Number
                     return new { dt.Year, WeekNumber = week };
                 })
                 .Select(g => new OrdersByWeekDto
@@ -122,7 +94,6 @@ namespace Infrastructure.Repositories
                     WeekNumber = g.Key.WeekNumber,
                     Total = g.Count() // Count the number of unique orders in the group (week)
                 })
-                // Final ordering for presentation purposes
                 .OrderBy(x => x.Year)
                 .ThenBy(x => x.WeekNumber)
                 .ToList();
@@ -139,9 +110,9 @@ namespace Infrastructure.Repositories
                     OrderId = o.OrderId,
                     BuyerId = o.BuyerId,
                     AddressId = o.AddressId,
-                    Status = o.Status,
                     CreatedAt = o.CreatedAt,
                     UpdatedAt = o.UpdatedAt,
+                    ShippingPrice = o.ShippingPrice,
                     Items = _context.OrderItems
                         .Where(oi => oi.OrderId == o.OrderId && !(oi.IsDeleted == true))
                         .Select(oi => new OrderItemDto
@@ -150,7 +121,8 @@ namespace Infrastructure.Repositories
                             OrderId = oi.OrderId,
                             ItemId = oi.ItemId,
                             Quantity = oi.Quantity,
-                            Price = oi.Price
+                            Price = oi.Price,
+                            Status = oi.Status
                         })
                         .ToList()
                 })
@@ -172,13 +144,6 @@ namespace Infrastructure.Repositories
                 .SumAsync(o => (decimal?)o.Balance) ?? 0;
         }
 
-        public async Task<IEnumerable<Order>> GetOrdersWithinRangeAsync(DateTime startDate, DateTime endDate)
-        {
-            return await _context.Orders
-                .AsNoTracking()
-                .Where(o => o.Status == OrderStatus.Completed.ToString() && o.CreatedAt >= startDate && o.CreatedAt <= endDate)
-                .ToListAsync();
-        }
         public async Task<Order> GetOrderWithItemsAsync(int orderId)
         {
             var order = await _context.Orders

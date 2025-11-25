@@ -1,6 +1,7 @@
 ﻿using Application.DTOs;
 using Application.IRepositories.IPaymentRepositories;
 using Domain.Common.Constants;
+using Domain.Entities;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -79,6 +80,15 @@ namespace Infrastructure.Repositories
                 .ToList();
 
             return revenueByWeek;
+        }
+
+        public async Task<PaymentDetail?> GetByOrderIdAsync(int orderId)
+        {
+            var transaction = await _context.PaymentDetails
+                .FirstOrDefaultAsync(pd => pd.OrderId == orderId);
+            if(transaction == null)
+                return null;
+            return transaction;
         }
     }
 }

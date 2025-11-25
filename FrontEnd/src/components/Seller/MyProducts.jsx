@@ -65,10 +65,25 @@ export default function MyProducts() {
     if (!sellerId) return;
     setLoading(true);
     try {
+      const user = await userApi.getUserByID(sellerId)
+      let listingFee;
+      let moderationFee;
+      if (user.isStore) {
+        listingFee = await commissionApi.getCommissionByFeeCode("FEESL")
+        moderationFee = await commissionApi.getCommissionByFeeCode("FEESM")
+      }
+      else {
+        listingFee = await commissionApi.getCommissionByFeeCode("FEEPL")
+        moderationFee = await commissionApi.getCommissionByFeeCode("FEEPM")
+      }
+      setFeeCommission(listingFee.feeValue)
+      setModerationCommission(moderationFee.feeValue)
       const res = await fetch(`${baseURL}sellers/${sellerId}/item`);
       const data = await res.json();
+      if (data.message != 'Seller has no active items.')
       setProducts(data);
       setFiltered(data);
+      console.log(data,"MY PRODUCTS")
     } catch (err) {
       toast.error(" Lỗi tải sản phẩm!");
     } finally {
@@ -90,6 +105,7 @@ export default function MyProducts() {
       );
     if (statusFilter !== "all") data = data.filter((p) => p.status === statusFilter);
     setFiltered(data);
+    console.log(data)
   }, [searchTerm, statusFilter, products]);
 
   useEffect(() => {
@@ -208,7 +224,16 @@ export default function MyProducts() {
             ? `Phí đăng bán sản phẩm ${selectedItem.title}`
             : `Phí kiểm duyệt sản phẩm ${selectedItem.title}`,
       });
-
+      await walletApi.revenueWallet({
+        userId: 4,
+        amount: amount,
+        type: "Revenue",
+        ref: selectedItem.itemId,
+        description:
+          payType === "listing"
+            ? `Phí đăng bán sản phẩm ${selectedItem.title}`
+            : `Phí kiểm duyệt sản phẩm ${selectedItem.title}`,
+      });
       const updatePayload = {
         ...selectedItem,
         updatedAt: new Date().toISOString(),
@@ -308,10 +333,6 @@ export default function MyProducts() {
   };
 
 
-
-
-
-
   if (loading)
     return (
       <div className="flex justify-center items-center h-[70vh] text-gray-500 text-lg">
@@ -349,6 +370,12 @@ export default function MyProducts() {
       </div>
 
       {/* PRODUCT LIST */}
+      {filtered.message === 'Seller has no active items.' ? (
+        <div className="flex justify-center items-center h-[40vh] text-gray-500">
+          Không có sản phẩm nào phù hợp.
+        </div>
+      ) : (
+
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {filtered.map((item) => (
           <div key={item.itemId} className="bg-white shadow-md rounded-xl overflow-hidden">
@@ -402,7 +429,7 @@ export default function MyProducts() {
           </div>
         ))}
       </div>
-
+      )}
       <Modal
         open={isEditModalOpen}
         onCancel={() => setIsEditModalOpen(false)}

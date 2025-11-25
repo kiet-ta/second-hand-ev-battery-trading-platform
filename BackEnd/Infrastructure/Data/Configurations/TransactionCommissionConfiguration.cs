@@ -10,9 +10,11 @@ public class TransactionCommissionConfiguration : IEntityTypeConfiguration<Trans
     {
         builder.ToTable("transaction_commissions");
         builder.HasKey(t => t.Id);
-        builder.Property(e => e.TransactionId)
-        .HasColumnName("transaction_id")
-        .IsRequired();
+        builder.Property(e => e.WalletTransactionId)
+        .HasColumnName("wallet_transaction_id");
+
+        builder.Property(e => e.PaymentTransactionId)
+        .HasColumnName("payment_transaction_id");
 
         builder.Property(e => e.RuleId)
                .HasColumnName("rule_id")

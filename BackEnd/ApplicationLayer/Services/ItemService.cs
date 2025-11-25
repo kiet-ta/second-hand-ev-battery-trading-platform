@@ -278,6 +278,14 @@ namespace Application.Services
             return item;
         }
 
+        public async Task<ItemWithDetailDto?> GetItemWithDetailsAsync(int itemId, int buyerId, int orderId)
+        {
+            var item = await _unitOfWork.Items.GetItemWithDetailsAsync(itemId, buyerId, orderId);
+            if (item == null)
+                throw new KeyNotFoundException($"Item with ID {itemId} not found.");
+            return item;
+        }
+
 
         public async Task<IEnumerable<ItemWithDetailDto>> GetAllItemsWithDetailsAsync()
         {

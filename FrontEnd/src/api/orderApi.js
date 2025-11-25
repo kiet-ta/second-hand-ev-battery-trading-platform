@@ -24,6 +24,7 @@ const orderApi = {
                 'Authorization': `Bearer ${token}`
             }
         })
+        console.log("🚀 ~ file: orderApi.js:26 ~ postOrderNew: ~ response:", response.data)
         return response.data;
     },
     getOrdersByBuyerId: async (buyerId) => {

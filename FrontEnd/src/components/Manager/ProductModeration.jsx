@@ -41,14 +41,13 @@ export default function ProductModeration() {
             setLoading(true);
             const data = await itemApi.getItemDetail();
             const uniqueMap = new Map();
-            data.forEach((item) => {
+            data.filter(res => res.moderation != 'Not_Submitted').forEach((item) => {
                 const key = `${item.itemId}-${item.itemType}`;
                 if (!uniqueMap.has(key)) uniqueMap.set(key, item);
             });
             setProducts(Array.from(uniqueMap.values()));
         } catch (err) {
             console.error("❌ Lỗi tải sản phẩm:", err);
-            message.error("Không thể tải danh sách sản phẩm");
         } finally {
             setLoading(false);
         }
@@ -96,51 +95,12 @@ export default function ProductModeration() {
                 batteryDetail: item.batteryDetail || null,
             };
             await itemApi.putItem(id, payload);
-            message.success(" Cập nhật trạng thái thành công!");
             await fetchProducts();
         } catch (err) {
             console.error(err);
-            message.error(" Cập nhật thất bại");
         }
     };
 
-    const exportToCSV = () => {
-        if (filteredProducts.length === 0) {
-            message.info("Không có dữ liệu để xuất.");
-            return;
-        }
-
-        const headers = [
-            "ID",
-            "Tên sản phẩm",
-            "Loại",
-            "Thương hiệu",
-            "Giá (VND)",
-            "Trạng thái",
-        ];
-        const rows = filteredProducts.map((p) => [
-            p.itemId,
-            p.title,
-            p.itemType === "Ev" ? "Xe điện" : "Pin",
-            p.evDetail?.brand || p.batteryDetail?.brand || "N/A",
-            p.price,
-            p.moderation ? p.moderation : "Pending",
-        ]);
-
-        const csvContent =
-            "data:text/csv;charset=utf-8," +
-            [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");
-
-        const link = document.createElement("a");
-        link.setAttribute("href", encodeURI(csvContent));
-        link.setAttribute(
-            "download",
-            `products_export_${new Date().toISOString().slice(0, 10)}.csv`
-        );
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-    };
 
     const columns = [
         {
@@ -257,14 +217,6 @@ export default function ProductModeration() {
                 </h2>
 
                 <Space wrap>
-                    <Input
-                        prefix={<Search size={16} className="text-slate-400" />}
-                        placeholder="Tìm theo tên hoặc thương hiệu..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        allowClear
-                        style={{ width: 240 }}
-                    />
 
                     <Select value={typeFilter} onChange={setTypeFilter} style={{ width: 140 }}>
                         <Option value="all">Tất cả loại</Option>
@@ -278,14 +230,6 @@ export default function ProductModeration() {
                         <Option value="Approved">Đã duyệt</Option>
                         <Option value="Rejected">Từ chối</Option>
                     </Select>
-
-                    <Button
-                        type="default"
-                        icon={<Download size={16} />}
-                        onClick={exportToCSV}
-                    >
-                        Xuất CSV
-                    </Button>
                 </Space>
             </div>
 

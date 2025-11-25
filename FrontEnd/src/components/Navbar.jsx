@@ -75,7 +75,7 @@ function Navbar({ data }) {
   }, [data]);
 
   // ✅ Seller click logic
-  const handleSellerClick = () => {
+  const handleSellerClick = async () => {
     const userId = localStorage.getItem("userId");
     if (!userId) {
       message.warning("Vui lòng đăng nhập để truy cập kênh người bán");
@@ -83,7 +83,9 @@ function Navbar({ data }) {
     }
 
     try {
-      const userRole = userApi.getUserByID(userId).role
+      const userId = localStorage.getItem('userId');
+
+      const userRole = await userApi.getUserByID(userId).then(user => user.role);
       if (userRole === "Buyer") navigate("/seller-registration");
       else if (userRole === "Manager") navigate("/manage");
       else navigate("/seller");

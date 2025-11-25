@@ -28,7 +28,7 @@ namespace Application.Services
             try
             {
                 var listings = await _unitOfWork.Items.CountAllBySellerAsync(sellerId);
-                var orders = await _unitOfWork.Orders.CountBySellerAsync(sellerId);
+                var orders = await _unitOfWork.OrderItems.CountBySellerAsync(sellerId);
                 var sold = await _unitOfWork.Items.GetTotalItemsSoldBySellerAsync(sellerId);
                 var revenue = await _unitOfWork.PaymentDetails.GetRevenueAsync(sellerId);
 
@@ -48,18 +48,18 @@ namespace Application.Services
 
                 var orderStats = new OrderStatisticsDto
                 {
-                    New = await _unitOfWork.Orders.CountByStatusAsync(sellerId, OrderStatus.Pending.ToString()),
-                    Processing = await _unitOfWork.Orders.CountByStatusAsync(sellerId, OrderStatus.Paid.ToString()),
-                    Completed = await _unitOfWork.Orders.CountByStatusAsync(sellerId, OrderStatus.Completed.ToString()),
-                    Shipped = await _unitOfWork.Orders.CountByStatusAsync(sellerId, OrderStatus.Shipped.ToString()),
-                    Cancelled = await _unitOfWork.Orders.CountByStatusAsync(sellerId, OrderStatus.Cancelled.ToString())
+                    New = await _unitOfWork.OrderItems.CountByStatusAsync(sellerId, OrderItemStatus.Pending.ToString()),
+                    Processing = await _unitOfWork.OrderItems.CountByStatusAsync(sellerId, OrderItemStatus.Paid.ToString()),
+                    Completed = await _unitOfWork.OrderItems.CountByStatusAsync(sellerId, OrderItemStatus.Completed.ToString()),
+                    Shipped = await _unitOfWork.OrderItems.CountByStatusAsync(sellerId, OrderItemStatus.Shipped.ToString()),
+                    Cancelled = await _unitOfWork.OrderItems.CountByStatusAsync(sellerId, OrderItemStatus.Cancelled.ToString())
                 };
 
                 var revenueByWeek = await _unitOfWork.PaymentDetails.GetRevenueByWeekAsync(sellerId);
                 if (revenueByWeek == null)
                     throw new Exception("Failed to retrieve revenue by month.");
 
-                var ordersByWeek = await _unitOfWork.Orders.GetOrdersByWeekAsync(sellerId);
+                var ordersByWeek = await _unitOfWork.OrderItems.GetOrdersByWeekAsync(sellerId);
                 if (ordersByWeek == null)
                     throw new Exception("Failed to retrieve orders by month.");
 

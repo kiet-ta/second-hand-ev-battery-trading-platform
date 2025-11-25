@@ -66,7 +66,13 @@ export default function SellerRegistrationFeePage() {
         ref: userId,
         description: "Phí đăng ký Seller"
       });
-
+      await walletApi.revenueWallet({
+        userId: 4, 
+        amount: fee,
+        type: "Revenue",
+        ref: userId,
+        description: "Phí đăng ký Seller"
+      });
       // 2. Update user to registered
       await userApi.putUser(userId, {
         ...user,
@@ -74,7 +80,7 @@ export default function SellerRegistrationFeePage() {
         updatedAt: new Date().toISOString()
       });
 
-      navigate("/seller"); // Or wherever you want
+      navigate("/seller"); 
     } catch (err) {
       console.error(err);
       setError("Thanh toán thất bại.");
@@ -111,7 +117,7 @@ export default function SellerRegistrationFeePage() {
 
         <div className="bg-gray-100 p-4 rounded-xl w-full text-left mt-4">
           <p className="text-gray-700 font-medium">Phí đăng ký:</p>
-          <p className="text-xl font-bold text-gray-900 mt-1">₫{fee}</p>
+          <p className="text-xl font-bold text-gray-900 mt-1">{fee} đ</p>
         </div>
 
         {error && <p className="text-red-500 text-sm mt-3">{error}</p>}

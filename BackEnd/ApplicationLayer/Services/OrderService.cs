@@ -35,7 +35,6 @@ namespace Application.Services
                 OrderId = order.OrderId,
                 BuyerId = order.BuyerId,
                 AddressId = order.AddressId,
-                Status = order.Status,
                 CreatedAt = order.CreatedAt
                 //Items = order.OrderItems?.Select(i => new OrderItemDto
                 //{
@@ -56,7 +55,6 @@ namespace Application.Services
                 OrderId = order.OrderId,
                 BuyerId = order.BuyerId,
                 AddressId = order.AddressId,
-                Status = order.Status,
                 CreatedAt = order.CreatedAt
             });
         }
@@ -74,7 +72,6 @@ namespace Application.Services
                 {
                     BuyerId = dto.BuyerId,
                     AddressId = dto.AddressId,
-                    Status = OrderStatus.Pending.ToString(),
                     CreatedAt = dto.CreatedAt,
                     UpdatedAt = dto.UpdatedAt,
                 };
@@ -99,7 +96,6 @@ namespace Application.Services
                             OrderId = order.OrderId,
                             ItemId = itemDto.ItemId,
                             Quantity = itemDto.Quantity,
-                            Price = itemDto.Price,
                         };
 
                         await _unitOfWork.OrderItems.CreateAsync(orderItem);
@@ -129,7 +125,6 @@ namespace Application.Services
             if (order == null)
                 throw new Exception($"Order with ID {dto.OrderId} not found.");
 
-            order.Status = dto.Status;
             order.UpdatedAt = DateTime.Now;
             await _unitOfWork.Orders.UpdateAsync(order);
             return true;
@@ -177,7 +172,7 @@ namespace Application.Services
                 {
                     BuyerId = request.BuyerId,
                     AddressId = request.AddressId,
-                    Status = OrderStatus.Pending.ToString(),
+                    ShippingPrice = request.ShippingPrice,
                     CreatedAt = request.CreatedAt,
                     UpdatedAt = request.UpdatedAt
                 };
@@ -190,6 +185,8 @@ namespace Application.Services
 
                 foreach (var item in orderItems)
                 {
+                    item.Status = OrderItemStatus.Pending.ToString();
+                    item.UpdatedAt = DateTime.Now;
                     item.OrderId = createdOrder.OrderId;
                 }
 
@@ -212,12 +209,13 @@ namespace Application.Services
                     await _unitOfWork.Notifications.AddNotificationAsync(notificationDto, 1, "Manager");
                 }
 
+                var wallet = await _unitOfWork.Wallets.GetWalletByUserIdAsync(request.BuyerId);
+                
                 var response = new OrderResponseDto
                 {
                     OrderId = createdOrder.OrderId,
                     BuyerId = createdOrder.BuyerId,
                     AddressId = createdOrder.AddressId,
-                    Status = createdOrder.Status,
                     CreatedAt = createdOrder.CreatedAt,
                     isDeleted = false,
                     Items = orderItems.Select(x => new OrderItemDto
@@ -226,7 +224,6 @@ namespace Application.Services
                         OrderId = x.OrderId,
                         ItemId = x.ItemId,
                         Quantity = x.Quantity,
-                        Price = x.Price
                     }).ToList()
                 };
 
@@ -240,36 +237,30 @@ namespace Application.Services
         }
         public async Task ConfirmOrderShippingAsync(int orderId, int sellerId)
         {
-            // TODO: Validate sellerId (ensure correct seller of this order)
-            var order = await _unitOfWork.Orders.GetByIdAsync(orderId);
-            if (order == null) throw new Exception("Order not found.");
+            var orderItems = await _unitOfWork.OrderItems.GetByIdAsync(orderId);
+            if (orderItems == null) throw new Exception("Order not found.");
 
             // Check correct flow
-            if (order.Status != OrderStatus.Paid.ToString())
+            if (orderItems.Status != OrderItemStatus.Paid.ToString())
                 throw new InvalidOperationException("Order is not in 'paid' state.");
 
-            order.Status = OrderStatus.Shipped.ToString()  ;
-            order.UpdatedAt = DateTime.Now;
-            await _unitOfWork.Orders.UpdateAsync(order);
+            orderItems.Status = OrderItemStatus.Shipped.ToString();
+            orderItems.UpdatedAt = DateTime.Now;
+            await _unitOfWork.OrderItems.UpdateAsync(orderItems);
 
-            // TODO: Send notification to Buyer "Order is being delivered"
         }
         public async Task ConfirmOrderDeliveryAsync(int orderId, int buyerId)
         {
             await _unitOfWork.BeginTransactionAsync();
             try
             {
-                var order = await _unitOfWork.Orders.GetByIdAsync(orderId);
-                if (order == null) throw new Exception("Order not found.");
-                if (order.BuyerId != buyerId) throw new Exception("Unauthorized."); // Check correct Buyer
-
+                var orderItem = (await _unitOfWork.OrderItems.GetByOrderIdAsync(orderId)).FirstOrDefault();
+                if (orderItem == null) throw new InvalidOperationException("Order item not found.");
                 // Check correct flow
-                if (order.Status != OrderStatus.Shipped.ToString())
+                if (orderItem.Status != OrderItemStatus.Shipped.ToString())
                     throw new InvalidOperationException("Order is not in 'shipped' state.");
 
                 // 1. Get information (Seller, amount)
-                var orderItem = (await _unitOfWork.OrderItems.GetByOrderIdAsync(orderId)).FirstOrDefault();
-                if (orderItem == null) throw new InvalidOperationException("Order item not found.");
 
                 decimal orderAmount = orderItem.Price; // This is the amount the buyer paid.
                 var itemWithSeller = await _unitOfWork.Items.GetItemAndSellerByItemIdAsync(orderItem.ItemId);
@@ -295,16 +286,16 @@ namespace Application.Services
                     Amount = amountToSeller,
                     Type = "payout", // là status nào
                     CreatedAt = DateTime.Now,
-                    RefId = order.OrderId
+                    RefId = orderItem.OrderId
                 };
                 await _unitOfWork.WalletTransactions.CreateTransactionAsync(payoutTransaction);
 
                 _logger.LogInformation($"Released {amountToSeller} to Seller {sellerId} for Order {orderId}.");
 
                 // 5. Update Order Status
-                order.Status = OrderStatus.Completed.ToString()   ;
-                order.UpdatedAt = DateTime.Now;
-                await _unitOfWork.Orders.UpdateAsync(order);
+                orderItem.Status = OrderItemStatus.Completed.ToString();
+                orderItem.UpdatedAt = DateTime.Now;
+                await _unitOfWork.OrderItems.UpdateAsync(orderItem);
 
                 await _unitOfWork.CommitTransactionAsync();
                 // TODO: Send notification to Seller "You have received the money"

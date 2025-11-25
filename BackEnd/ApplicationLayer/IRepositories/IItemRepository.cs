@@ -28,6 +28,8 @@ namespace Application.IRepositories
 
         Task<ItemWithDetailDto?> GetItemWithDetailsAsync(int itemId, int buyerId, int orderId);
 
+        Task<ItemWithDetailDto?> GetItemWithDetailsAsync(int itemId, int buyerId, int orderId);
+
         Task<IEnumerable<ItemWithDetailDto>> GetAllItemsWithDetailsAsync();
 
         /// <summary>
