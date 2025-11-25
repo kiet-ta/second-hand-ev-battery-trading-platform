@@ -120,10 +120,10 @@ namespace PresentationLayer.Controllers
             var items = await _service.GetAllItemsWithDetailsAsync();
             return Ok(items);
         }
-        
 
-        
-        
+
+
+
 
         [HttpGet("{itemId:int}/Seller")]
         public async Task<IActionResult> GetItemDetail(int itemId)

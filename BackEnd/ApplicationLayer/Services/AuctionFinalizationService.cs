@@ -150,7 +150,6 @@ public class AuctionFinalizationService : IAuctionFinalizationService
                 Type = WalletTransactionType.Payment.ToString(),
                 CreatedAt = DateTime.Now,
                 RefId = newOrder.OrderId,
-                RefId = newOrder.OrderId,
                 AuctionId = auctionId,
                 OrderId = newOrder.OrderId
             };

@@ -22,7 +22,7 @@ namespace Application.Services
     {
         private readonly IUnitOfWork _unitOfWork;
 
-        public ItemService( IUnitOfWork unitOfWork)
+        public ItemService(IUnitOfWork unitOfWork)
         {
             _unitOfWork = unitOfWork;
         }
@@ -270,11 +270,11 @@ namespace Application.Services
                 itemType, title, minPrice, maxPrice, page, pageSize, sortBy, sortDir);
         }
 
-        public async Task<ItemWithDetailDto?> GetItemWithDetailsAsync(int itemId, int buyerId, int orderId)
+        public async Task<ItemWithDetailDto?> GetItemWithDetailsAsync(int id)
         {
-            var item = await _unitOfWork.Items.GetItemWithDetailsAsync(itemId, buyerId, orderId);
+            var item = await _unitOfWork.Items.GetItemWithDetailsAsync(id);
             if (item == null)
-                throw new KeyNotFoundException($"Item with ID {itemId} not found.");
+                throw new KeyNotFoundException($"Item with ID {id} not found.");
             return item;
         }
 
