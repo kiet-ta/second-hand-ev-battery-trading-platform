@@ -194,7 +194,7 @@ public class PaymentService : IPaymentService
             {
                 NotiType = NotificationType.Activities.ToString(),
                 Title = $"Đơn hàng CMS_EV_{orderItem.OrderId} đã hoàn tất.",
-                Message = $"Sản phẩm '{item.Title}' trong đơn hàng CMS_EV_{orderItem.OrderId} đã được xác nhận hoàn tất bởi người mua. Số tiền {netAmountForSeller} đã được chuyển vào ví của bạn sau khi trừ phí hoa hồng.",
+                Message = $"Sản phẩm '{item.Title}' trong đơn hàng CMS_EV_{orderItem.OrderId} đã được xác nhận hoàn tất bởi người mua. Số tiền {netAmountForSeller.ToString("0")} đã được chuyển vào ví của bạn sau khi trừ phí hoa hồng.",
                 TargetUserId = sellerId.ToString(),
             };
             await _notificationService.AddNewNotification(notificationToSeller, 4 , "Seller");
@@ -233,7 +233,7 @@ public class PaymentService : IPaymentService
                 TotalAmount = request.TotalAmount,
                 Method = request.Method,
                 Status = PaymentStatus.Pending.ToString(),
-                PaymentType = "order_purchase",
+                PaymentType = "Order_Purchase",
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
             };
@@ -270,7 +270,7 @@ public class PaymentService : IPaymentService
                 };
                 await _unitOfWork.WalletTransactions.CreateTransactionAsync(walletTransaction);
 
-                await _unitOfWork.Payments.UpdatePaymentStatusAsync(payment.PaymentId, "completed");
+                await _unitOfWork.Payments.UpdatePaymentStatusAsync(payment.PaymentId, "Completed");
                 //TuCore
                 var orderIdsToUpdate = request.Details
                         .Where(d => d.OrderId.HasValue)
@@ -350,16 +350,29 @@ public class PaymentService : IPaymentService
         return info;
     }
 
-    public async Task CancelPaymentAsync(long orderCode, string reason)
+    public async Task CancelPaymentAsync(long orderCode, PaymentCancelRequestDto request)
     {
         var info = await GetPaymentInfoAsync(orderCode);
+        var paymentDetail = await _unitOfWork.PaymentDetails.GetByOrderIdAsync(request.orderId);
+        var order = await _unitOfWork.Orders.GetByIdAsync(request.orderId);
+        var orderItems = await _unitOfWork.OrderItems.GetByOrderIdAsync(request.orderId);
+        foreach (var orderItem in orderItems)
+        {
+            var item = await _unitOfWork.Items.GetByIdAsync(orderItem.ItemId);
+            item.Quantity += orderItem.Quantity;
+            _unitOfWork.Items.Update(item);
+            await _unitOfWork.Items.SaveChangesAsync();
+            await _unitOfWork.OrderItems.DeleteAsync(orderItem);
+        }
+        await _unitOfWork.PaymentDetails.RemoveOrderAsync(paymentDetail.PaymentDetailId);
+        await _unitOfWork.Payments.UpdatePaymentStatusAsync(info.PaymentId, PaymentStatus.Failed.ToString());
+        await _unitOfWork.Orders.DeleteAsync(order.OrderId);
+        await _unitOfWork.SaveChangesAsync();
+
         if (info.Method == "payos")
         {
-            await _payOS.cancelPaymentLink(orderCode, reason);
+            await _payOS.cancelPaymentLink(orderCode, request.Reason);
         }
-
-        await _unitOfWork.Payments.UpdatePaymentStatusAsync(info.PaymentId, PaymentStatus.Failed.ToString());
-        await _unitOfWork.SaveChangesAsync();
     }
 
     public async Task HandleWebhookAsync(WebhookType body)
@@ -470,9 +483,20 @@ public class PaymentService : IPaymentService
 
     public async Task<PaymentResponseDto> CreateSellerRegistrationPaymentAsync(SellerRegistrationPaymentRequestDto request)
     {
+        var     userExists = await _unitOfWork.Users.GetByIdAsync(request.UserId);
+        string? feeAssignByRole = null;
+
+        if (userExists == null)
+            throw new ArgumentException("User does not exist");
+        
+        if (userExists.Role == UserRole.Seller.ToString())
+        {
+            feeAssignByRole = userExists.IsStore ? "FEESR002" : "FEEPR001";
+        }
+
         // "Read-only" "data"
         var rules = await _unitOfWork.CommissionFeeRules.GetAllAsync();
-        var registrationFeeRule = rules.FirstOrDefault(r => r.FeeCode == "SELLER_REG_FEE" && r.IsActive);
+        var registrationFeeRule = rules.FirstOrDefault(r => r.FeeCode == feeAssignByRole && r.IsActive);
         var user = await _unitOfWork.Users.GetByIdAsync(request.UserId);
 
         if (user.Role != UserRole.Seller.ToString()|| user.Paid == UserPaid.Registering.ToString() || user.Paid == "account-maintenance-fee")

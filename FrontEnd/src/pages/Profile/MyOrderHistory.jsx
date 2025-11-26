@@ -15,12 +15,15 @@ const TABS = [
   { key: "Canceled", label: "Đã hủy" },
 ];
 
+
 export default function OrderPage() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("All");
   const [search, setSearch] = useState("");
   const [selectedItemId, setSelectedItemId] = useState(null);
+  const [selectedOrder, setSelectedOrder] = useState(null);
+  const [selectedOrderItem, setSelectedOrderItem] = useState(null);
   const [itemModalOpen, setItemModalOpen] = useState(false);
   const [reviewPayload, setReviewPayload] = useState(null);
   const buyerId = localStorage.getItem("userId");
@@ -66,8 +69,10 @@ export default function OrderPage() {
     fetchOrders();
   }, [fetchOrders]);
 
-  const handleOpenItemModal = (itemId) => {
-    setSelectedItemId(itemId);
+  const handleOpenItemModal = (order,item) => {
+    setSelectedItemId(item.detail?.itemId);
+    setSelectedOrder(order);     
+    setSelectedOrderItem(item);   
     setItemModalOpen(true);
   };
 
@@ -176,7 +181,7 @@ export default function OrderPage() {
                       key={it.orderItemId}
                       orderItem={it}
                       order={order}
-                      onViewItem={() => handleOpenItemModal(it.detail?.itemId)}
+                      onViewItem={() => handleOpenItemModal(order, it)}
                       onMarkReceived={() => {}}
                       onOpenReview={handleOpenReview}
                       currentUserId={buyerId}
@@ -203,6 +208,8 @@ export default function OrderPage() {
       {selectedItemId && (
         <ItemDetailModal
           itemId={selectedItemId}
+            orderItem={selectedOrderItem}
+            orderInfo={selectedOrder}
           open={itemModalOpen}
           onClose={() => setItemModalOpen(false)}
         />

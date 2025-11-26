@@ -11,7 +11,7 @@ public interface IPaymentService
 
     Task<PaymentInfoDto> GetPaymentInfoAsync(long orderCode);
 
-    Task CancelPaymentAsync(long orderCode, string reason);
+    Task CancelPaymentAsync(long orderCode, PaymentCancelRequestDto request);
 
     Task HandleWebhookAsync(WebhookType body);
 

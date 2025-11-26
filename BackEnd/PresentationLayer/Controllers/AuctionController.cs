@@ -14,10 +14,11 @@ namespace PresentationLayer.Controllers;
 public class AuctionController : ControllerBase
 {
     private readonly IAuctionService _auctionService;
-
-    public AuctionController(IAuctionService auctionService)
+    private readonly IUserContextService _userContextService;
+    public AuctionController(IAuctionService auctionService, IUserContextService userContextService)
     {
         _auctionService = auctionService;
+        _userContextService = userContextService;
     }
 
     [HttpGet]
@@ -88,5 +89,21 @@ public class AuctionController : ControllerBase
             return NotFound(new { message = "No auctions found for this user." });
         }
         return Ok(auction);
+    }
+    [HttpPost("{id}/buy-now")]
+    [Authorize]
+    public async Task<IActionResult> BuyNow(int id)
+    {
+        var userId = _userContextService.GetCurrentUserId();
+
+        // If Auction has expired/Seller buys by himself -> Service throws InvalidOperationException -> Middleware returns 400
+        await _auctionService.BuyNowAuctionAsync(id, int.Parse(userId.ToString()));
+
+        return Ok(new
+        {
+            Status = "success",
+            Message = "Giao dịch thành công! Bạn đã chiến thắng phiên đấu giá.",
+            AuctionId = id
+        });
     }
 }

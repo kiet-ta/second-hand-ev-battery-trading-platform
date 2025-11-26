@@ -23,6 +23,7 @@ public class AuctionConfiguration : IEntityTypeConfiguration<Auction>
         entity.Property(e => e.UpdatedAt).HasColumnName("updated_at").HasDefaultValueSql("GETDATE()");
         entity.Property(e => e.StepPrice)
               .HasColumnName("step_price");
+        entity.Property(e => e.IsBuyNow).HasColumnName("is_buy_now").HasDefaultValue(false);
         // Foreign key constraint
         entity.HasIndex(e => e.ItemId).IsUnique();
     }

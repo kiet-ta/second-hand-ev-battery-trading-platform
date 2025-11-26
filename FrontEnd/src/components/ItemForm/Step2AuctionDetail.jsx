@@ -1,5 +1,5 @@
 import React from 'react';
-import { Form, InputNumber, DatePicker, Button } from 'antd';
+import { Form, InputNumber, DatePicker, Button, Checkbox } from 'antd';
 import dayjs from 'dayjs';
 
 const { RangePicker } = DatePicker;
@@ -31,8 +31,8 @@ export default function Step2AuctionDetails({ form, onFinish, initialValues }) {
     >
       <Form.Item
         name="startingPrice"
-        label="Starting Price (VND)"
-        rules={[{ required: true, message: 'Please enter the starting price.' }]}
+        label="Giá bước đầu (VND)"
+        rules={[{ required: true, message: 'Vui lòng nhập giá bước đầu.' }]}
       >
         <InputNumber
           style={{ width: "100%" }}
@@ -44,8 +44,8 @@ export default function Step2AuctionDetails({ form, onFinish, initialValues }) {
 
       <Form.Item
         name="auctionTime"
-        label="Auction Start & End Time"
-        rules={[{ required: true, message: 'Please select the auction duration.' }]}
+        label="Thời gian đấu giá"
+        rules={[{ required: true, message: 'Vui lòng nhập thời gian đấu giá.' }]}
       >
         <RangePicker
           showTime={{ format: 'HH:mm' }}
@@ -53,10 +53,23 @@ export default function Step2AuctionDetails({ form, onFinish, initialValues }) {
           style={{ width: '100%' }}
         />
       </Form.Item>
-
-      <Form.Item>
-        <Button type="primary" htmlType="submit">Next</Button>
-      </Form.Item>
+      <Form.Item
+      name="stepPrice"
+      label="Bước giá (VND)"
+    >
+      <InputNumber
+        style={{ width: "100%" }}
+        min={0}
+        formatter={value => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+        parser={value => value.replace(/\D/g, '')}
+      />
+    </Form.Item>
+    <Form.Item
+    name="isBuyNow"
+    valuePropName="checked"
+  >
+    <Checkbox>Có mua ngay</Checkbox>
+  </Form.Item>
     </Form>
   );
 }

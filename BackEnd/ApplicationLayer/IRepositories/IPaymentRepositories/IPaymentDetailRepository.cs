@@ -12,9 +12,10 @@ namespace Application.IRepositories.IPaymentRepositories
     {
         Task<decimal> GetRevenueAsync(int sellerId);
         Task<List<RevenueByWeekDto>> GetRevenueByWeekAsync(int sellerId);
-
+        Task AddPaymentDetailAsync(PaymentDetail obj);
         Task<PaymentDetail> GetByOrderIdAsync(int orderId);
 
+        Task<PaymentDetail> RemoveOrderAsync(int paymentDetailId);
         Task CreatePaymentDetailAsync(PaymentDetail paymentDetail);
     }
 }
