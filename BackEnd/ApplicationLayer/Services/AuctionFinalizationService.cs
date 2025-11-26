@@ -198,7 +198,7 @@ public class AuctionFinalizationService : IAuctionFinalizationService
                 OrderId = newOrder.OrderId,
                 BuyerId = winnerId,
                 ItemId = itemId,
-                Quantity = itemWithSeller.Item.Quantity,
+                Quantity = 1,
                 Price = winningAmount,
                 Status = OrderItemStatus.Pending.ToString(),
                 IsDeleted = false
