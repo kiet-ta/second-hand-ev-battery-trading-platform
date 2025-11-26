@@ -98,7 +98,7 @@ namespace Application.Services
         public async Task<IEnumerable<OrderDetailDto>> GetOrdersBySellerId(int sellerId)
         {
             var listOfOrderDetails = new List<OrderDetailDto>();
-            var itemBySellerIds = await _unitOfWork.Items.GetBySellerIdAsync(sellerId);
+            var itemBySellerIds = await _unitOfWork.Items.GetAuctionItemBySellerAsync(sellerId);
             var ordersBySellerId = await _unitOfWork.OrderItems.GetOrderItemsByItemIdsAsync(itemBySellerIds.Select(i => i.ItemId));
             foreach (var orderItem in ordersBySellerId)
             {

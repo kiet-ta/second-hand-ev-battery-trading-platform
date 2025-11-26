@@ -75,8 +75,8 @@ function CardComponent({
 
     useEffect(() => {
         const loadStock = async () => {
+            const data = await itemApi.getItemById(id);
             try {
-                const data = await itemApi.getItemById(id);
                 const stockInCart = await orderItemApi.getOrderItem(userId);
                 const inCartQuantity = stockInCart
                     .filter(oi => oi.itemId === id)
@@ -85,7 +85,7 @@ function CardComponent({
                 setStock(data?.quantity ?? 0);
             } catch (e) {
                 console.error("Lỗi lấy tồn kho:", e);
-                setStock(0);
+                setStock(data.quantity);
             }
         };
         loadStock();
@@ -231,7 +231,7 @@ function CardComponent({
                     const res = await favouriteApi.postFavourite({
                         userId: Number.parseInt(userId, 10),
                         itemId: id,
-                        createdAt: new Date().toISOString(),
+                        createdAt: new Date(new Date().getTime() + 7 * 60 * 60 * 1000).toISOString(),
                     });
                     setIsFavorited(true);
                     setFavoriteId(res?.favId ?? null);

@@ -6,7 +6,6 @@ import {
     Dropdown,
     Menu,
     Spin,
-    message,
     Select,
     Space,
     Input,
@@ -21,7 +20,6 @@ import {
     MoreHorizontal,
     Settings,
 } from "lucide-react";
-import { motion } from "framer-motion";
 import itemApi from "../../api/itemApi";
 
 const { Option } = Select;
@@ -84,7 +82,7 @@ export default function ProductModeration() {
             const item = await itemApi.getItemDetailByID(id);
             const payload = {
                 ...item,
-                updatedAt: new Date().toISOString(),
+                updatedAt: new Date(new Date().getTime() + 7 * 60 * 60 * 1000).toISOString(),
                 moderation: action,
                 images:
                     item.itemImage?.map((img) => ({

@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { motion } from "framer-motion";
-import { Table, Tag, Spin, message, Input, Select, Space, Button } from "antd";
+import { Table, Tag, Spin, Input, Select, Space, Button } from "antd";
 import { ClipboardList, Search, Download } from "lucide-react";
 import { managerAPI } from "../../hooks/managerApi";
 import Card from "../../components/Manager/Card";
@@ -66,46 +65,6 @@ export default function TransactionContent() {
         setFilteredData(result);
     }, [transactions, statusFilter, searchQuery]);
 
-    const exportToCSV = () => {
-        if (filteredData.length === 0) {
-            return;
-        }
-
-        const headers = [
-            "Mã giao dịch",
-            "Sản phẩm",
-            "Người mua",
-            "Người bán",
-            "Giá trị (VND)",
-            "Trạng thái",
-            "Ngày giao dịch",
-        ];
-
-        const rows = filteredData.map((t) => [
-            t.paymentId,
-            t.items?.[0]?.title || "—",
-            t.buyerName,
-            t.sellerName,
-            t.totalAmount,
-            t.status,
-            new Date(t.createdAt).toLocaleDateString("vi-VN"),
-        ]);
-
-        const csvContent =
-            "data:text/csv;charset=utf-8," +
-            [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");
-
-        const encodedUri = encodeURI(csvContent);
-        const link = document.createElement("a");
-        link.setAttribute("href", encodedUri);
-        link.setAttribute(
-            "download",
-            `transactions_${new Date().toISOString().slice(0, 10)}.csv`
-        );
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-    };
 
     const columns = [
         {
@@ -212,14 +171,6 @@ export default function TransactionContent() {
                                 <Option value="Failed">Thất bại</Option>
                                 <Option value="Expired">Hết hạn</Option>
                             </Select>
-
-                            <Button
-                                type="default"
-                                icon={<Download size={16} />}
-                                onClick={exportToCSV}
-                            >
-                                Xuất CSV
-                            </Button>
                         </Space>
                     </div>
 

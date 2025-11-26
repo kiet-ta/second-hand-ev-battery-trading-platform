@@ -186,7 +186,7 @@ export default function ManagerLayout({ onRefresh, children }) {
 
                     <div className="text-xs text-slate-500 flex items-center gap-2 py-4">
                         <span>
-                            © {new Date().getFullYear()} Cóc Mua Xe.
+                            © {new Date(new Date().getTime() + 7 * 60 * 60 * 1000).getFullYear()} Cóc Mua Xe.
                         </span>
                     </div>
                 </main>

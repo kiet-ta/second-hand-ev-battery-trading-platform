@@ -49,7 +49,6 @@ export default function SellerRegistrationForm() {
     if (!userId) return;
 
     const fetchUser = async () => {
-      try {
         const user = await userApi.getUserByID(userId);
         if (!mounted) return;
 
@@ -61,7 +60,6 @@ export default function SellerRegistrationForm() {
           bio: user.bio || prev.bio,
           user,
         }));
-      } catch {}
     };
 
     fetchUser();
@@ -80,9 +78,6 @@ export default function SellerRegistrationForm() {
 
   const prevStep = () => setCurrentStep((s) => Math.max(0, s - 1));
   const goToStep = (s) => s <= visitedMaxStep && setCurrentStep(s);
-  const updateFormData = (partial) =>
-    setFormData((prev) => ({ ...prev, ...partial }));
-
   const updateStoreAddress = (partial) =>
     setFormData((prev) => ({
       ...prev,
@@ -124,7 +119,7 @@ export default function SellerRegistrationForm() {
         bio: formData.bio,
         kycStatus: "Pending",
         isStore: formData.accountType === "store",
-        updatedAt: new Date().toISOString(),
+        updatedAt: new Date(new Date().getTime() + 7 * 60 * 60 * 1000).toISOString(),
       };
 
       await kycApi.postKYC(userId, payload);

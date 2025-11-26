@@ -149,7 +149,7 @@ export default function ProductCreationModal({ onSuccess }) {
         updatedBy: userID,
         status: paymentState,
         moderation: "Pending",
-        updatedAt: new Date().toISOString(),
+        updatedAt: new Date(new Date().getTime() + 7 * 60 * 60 * 1000).toISOString(),
       });
 
       setWallet((prev) => ({ ...prev, balance: prev.balance - 100000 }));

@@ -5,7 +5,7 @@ const useCountdown = (endTimeStr) => {
         // Logic relies only on endTimeStr, ignoring external status
         if (!endTimeStr) return { time: "N/A", isFinished: true };
 
-        const now = new Date().getTime();
+        const now = new Date(new Date().getTime() + 7 * 60 * 60 * 1000).getTime();
         const endTime = new Date(endTimeStr).getTime();
         const distance = endTime - now;
 

@@ -263,11 +263,6 @@ public class AuctionService : IAuctionService
                 await _unitOfWork.RollbackTransactionAsync();
                 throw new InvalidOperationException("Auction is not active or has ended.");
             }
-            if (item.Price.HasValue && (auction.CurrentPrice ?? 0) >= item.Price.Value)
-            {
-                await _unitOfWork.RollbackTransactionAsync();
-                throw new InvalidOperationException("This item has been bought via Buy Now.");
-            }
             var currentPrice = auction.CurrentPrice ?? auction.StartingPrice;
             decimal requiredMinimumBid = currentPrice + auction.StepPrice;
             if (bidAmount < requiredMinimumBid)

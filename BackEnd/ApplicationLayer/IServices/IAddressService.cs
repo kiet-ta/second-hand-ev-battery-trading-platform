@@ -1,4 +1,5 @@
-﻿using Domain.Entities;
+﻿using Application.DTOs.GhnDtos;
+using Domain.Entities;
 
 namespace Application.IServices
 {
@@ -11,5 +12,7 @@ namespace Application.IServices
         Task<List<Address>> GetAllAddressesAsync();
         Task UpdateAddressAsync(Address address);
         Task<Address> GetAddressDefaultByUserId(int userId);
+
+        Task<GhnFeeResponse> CalulateShippingFee(int userId);
     }
 }

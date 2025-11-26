@@ -12,5 +12,6 @@ namespace Application.DTOs.AuthenticationDtos
         public string SecretKey { get; set; } = null!;
         public string GoogleClientId { get; set; } = null!;
         public string GoogleClientSecret { get; set; } = null!;
+
     }
 }

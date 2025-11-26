@@ -165,8 +165,8 @@ export default function CheckoutPage() {
         addressId: selectedDeliveryAddress.addressId,
         orderItemIds: orderData.orderItemIds,
         shippingPrice: shippingFee || 0,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+        createdAt: new Date(new Date().getTime() + 7 * 60 * 60 * 1000).toISOString(),
+        updatedAt: new Date(new Date().getTime() + 7 * 60 * 60 * 1000).toISOString(),
       };
 
       const orderResponse = await orderApi.postOrderNew(orderPayload);

@@ -64,6 +64,7 @@ namespace Application.IRepositories
         Task<IEnumerable<BatteryDetail>> SearchBatteryDetailAsync(BatterySearchRequestDto request);
         Task UpdateItemQuantityAsync(int itemId, int quantityToSubtract);
         Task<int> GetCurrentItemQuantityAsync(int itemId);
+        Task<List<Item>> GetAuctionItemBySellerAsync(int sellerId);
 
     }
 }

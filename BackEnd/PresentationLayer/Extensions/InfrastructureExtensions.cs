@@ -8,6 +8,7 @@ using CloudinaryDotNet;
 using IdGen;
 using Infrastructure.Data;
 using Infrastructure.Helpers;
+using Infrastructure.Repositories;
 using Infrastructure.Repositories.ChatRepositories;
 using Infrastructure.Ulties;
 using Infrastructure.Workers;
@@ -46,6 +47,10 @@ public static class InfrastructureExtensions
         var payosConfig = config.GetSection("PayOS");
         services.AddSingleton(sp => new PayOS(payosConfig["Client_ID"], payosConfig["Api_Key"], payosConfig["ChecksumKey"]));
         services.AddHostedService<PayOSWebhookInitializer>();
+
+        // GHN
+        services.Configure<GhnSettings>(config.GetSection("GHN"));
+
 
         // Redis Cache
         services.AddSingleton<IRedisCacheHelper, RedisCacheHelper>();

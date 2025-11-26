@@ -25,6 +25,7 @@ namespace Infrastructure.Repositories
                 BuyerId = orderItem.BuyerId,
                 ItemId = orderItem.ItemId,
                 Quantity = orderItem.Quantity,
+                Status = orderItem.Status,
                 Price = orderItem.Price,
                 IsDeleted = false
             };

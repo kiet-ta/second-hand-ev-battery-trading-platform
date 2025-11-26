@@ -56,7 +56,7 @@ namespace PresentationLayer.Controllers
             return Ok(addresses);
         }
 
- 
+
         [HttpGet("{id}")]
         public async Task<IActionResult> GetAddressById(int id)
         {
@@ -66,7 +66,7 @@ namespace PresentationLayer.Controllers
             return Ok(address);
         }
 
- 
+
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateAddress(int id, [FromBody] UpdateAddressDto dto)
         {
@@ -89,7 +89,7 @@ namespace PresentationLayer.Controllers
             return Ok(existing);
         }
 
- 
+
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteAddress(int id)
         {
@@ -115,6 +115,13 @@ namespace PresentationLayer.Controllers
         {
             var addresses = await _addressService.GetAllAddressesAsync();
             return Ok(addresses);
+        }
+
+        [HttpPost("calculate-fee/{userId}")]
+        public async Task<IActionResult> CalculateShippingFee(int userId)
+        {
+            var fee = await _addressService.CalulateShippingFee(userId);
+            return Ok(fee);
         }
     }
 }

@@ -86,7 +86,7 @@ const SellerPendingReview = () => {
         ...user,
         role: "Seller",
         paid: "Paid",
-        updatedAt: new Date().toISOString(),
+        updatedAt: new Date(new Date().getTime() + 7 * 60 * 60 * 1000).toISOString(),
       };
       await userApi.putUser(id, updatedUser);
 

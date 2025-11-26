@@ -33,7 +33,7 @@ export default function OrderPage() {
     setLoading(true);
     try {
       const res = await orderApi.getOrdersByBuyerId(buyerId);
-
+      console.log(res, "res")
       const enrichedOrders = await Promise.all(
         (res || []).map(async (order) => {
           const itemsWithDetails = await Promise.all(
@@ -46,10 +46,7 @@ export default function OrderPage() {
               }
             })
           );
-          const itemsTotal = itemsWithDetails.reduce(
-            (sum, it) => sum + (it.detail?.price || 0) * (it.quantity || 0),
-            0
-          );
+          const itemsTotal = order.items.reduce((acc, it) => acc + (it.price * it.quantity), 0);
           const totalPrice = itemsTotal + (order.shippingPrice || 0);
 
           return { ...order, items: itemsWithDetails, totalPrice };
@@ -69,17 +66,28 @@ export default function OrderPage() {
     fetchOrders();
   }, [fetchOrders]);
 
-  const handleOpenItemModal = (order,item) => {
+
+
+  const handleOpenItemModal = (order, item) => {
     setSelectedItemId(item.detail?.itemId);
-    setSelectedOrder(order);     
-    setSelectedOrderItem(item);   
+    setSelectedOrder(order);
+    setSelectedOrderItem(item);
     setItemModalOpen(true);
   };
 
   const handleOpenReview = (order, item) => {
     setReviewPayload({ order, item });
   };
-
+  const translateStatus = (status) => {
+    const map = {
+      Pending: "Chờ xác nhận",
+      Paid: "Đã thanh toán",
+      Shipped: "Đã giao hàng",
+      Completed: "Hoàn thành",
+      Canceled: "Đã hủy"
+    };
+    return map[status] || status;
+  };
   // Filter by tab & search
   const filteredOrders = orders
     .filter((o) => (activeTab === "All" ? true : o.status === activeTab))
@@ -93,8 +101,8 @@ export default function OrderPage() {
           it.detail?.evDetail
             ? `${it.detail.evDetail.brand} ${it.detail.evDetail.model}`
             : it.detail?.batteryDetail
-            ? `${it.detail.batteryDetail.brand}`
-            : "";
+              ? `${it.detail.batteryDetail.brand}`
+              : "";
         return (
           title.toLowerCase().includes(s) ||
           brandModel.toLowerCase().includes(s)
@@ -111,11 +119,10 @@ export default function OrderPage() {
             <button
               key={t.key}
               onClick={() => setActiveTab(t.key)}
-              className={`px-4 py-2 rounded-md text-sm font-medium ${
-                activeTab === t.key
+              className={`px-4 py-2 rounded-md text-sm font-medium ${activeTab === t.key
                   ? "bg-white text-[#D97706] border border-[#D97706]"
                   : "bg-white/60 text-gray-700 hover:bg-white"
-              }`}
+                }`}
             >
               {t.label}
             </button>
@@ -160,9 +167,6 @@ export default function OrderPage() {
                     <span className="font-bold text-gray-700">
                       Đơn hàng #{order.orderId}
                     </span>
-                    <span className="ml-2 text-sm text-gray-500">
-                      Trạng thái: {order.status}
-                    </span>
                   </div>
                   <div className="text-right">
                     <span className="text-gray-500 text-sm">Shipping: </span>
@@ -175,17 +179,38 @@ export default function OrderPage() {
                   </div>
                 </div>
 
-                <div className="divide-y">
+                <div className="space-y-4">
                   {order.items.map((it) => (
-                    <OrderCard
+                    <div
                       key={it.orderItemId}
-                      orderItem={it}
-                      order={order}
-                      onViewItem={() => handleOpenItemModal(order, it)}
-                      onMarkReceived={() => {}}
-                      onOpenReview={handleOpenReview}
-                      currentUserId={buyerId}
-                    />
+                      className="p-4 rounded-lg border border-gray-200 bg-gray-50 hover:bg-gray-100 transition"
+                    >
+                      {/* Status */}
+                      <div className="flex items-center justify-between mb-3">
+                        <span className="text-sm text-gray-500">
+                          Trạng thái:
+                          <span
+                            className={`ml-1 font-semibold ${it.status === "Completed"
+                                ? "text-green-600"
+                                : it.status === "Canceled"
+                                  ? "text-red-500"
+                                  : "text-[#D97706]"
+                              }`}
+                          >
+                            {translateStatus(it.status)}
+                          </span>
+                        </span>
+                      </div>
+
+                      <OrderCard
+                        orderItem={it}
+                        order={order}
+                        onViewItem={() => handleOpenItemModal(order, it)}
+                        onMarkReceived={() => { }}
+                        onOpenReview={handleOpenReview}
+                        currentUserId={buyerId}
+                      />
+                    </div>
                   ))}
                 </div>
 
@@ -208,8 +233,8 @@ export default function OrderPage() {
       {selectedItemId && (
         <ItemDetailModal
           itemId={selectedItemId}
-            orderItem={selectedOrderItem}
-            orderInfo={selectedOrder}
+          orderItem={selectedOrderItem}
+          orderInfo={selectedOrder}
           open={itemModalOpen}
           onClose={() => setItemModalOpen(false)}
         />

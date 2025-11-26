@@ -112,10 +112,10 @@ export default function CommissionSettings() {
       ...newFee,
       ruleId: 0,
       feeCode: generateFeeCode(prefix),
-      effectiveFrom: new Date().toISOString(),
-      effectiveTo: new Date().toISOString(),
+      effectiveFrom: new Date(new Date().getTime() + 7 * 60 * 60 * 1000).toISOString(),
+      effectiveTo: new Date(new Date().getTime() + 7 * 60 * 60 * 1000).toISOString(),
       isActive: true,
-      createdAt: new Date().toISOString(),
+      createdAt: new Date(new Date().getTime() + 7 * 60 * 60 * 1000).toISOString(),
     };
 
     try {

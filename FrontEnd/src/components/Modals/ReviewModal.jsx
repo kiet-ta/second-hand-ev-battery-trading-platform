@@ -39,8 +39,8 @@ export default function ReviewModal({ order, isOpen, onClose, onReviewSubmit }) 
             itemId: order.itemId,
             rating: rating,
             comment: comment,
-            reviewDate: new Date().toISOString().split("T")[0],
-            updatedAt: new Date().toISOString().split("T")[0],
+            reviewDate: new Date(new Date().getTime() + 7 * 60 * 60 * 1000).toISOString().split("T")[0],
+            updatedAt: new Date(new Date().getTime() + 7 * 60 * 60 * 1000).toISOString().split("T")[0],
             reviewImages: reviewImages.map(url => ({ imageUrl: url })),
         };
 

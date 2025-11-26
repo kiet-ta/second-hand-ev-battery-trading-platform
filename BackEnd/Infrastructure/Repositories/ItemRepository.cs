@@ -576,6 +576,14 @@ namespace Infrastructure.Repositories
                 .ToListAsync();
         }
 
+        public async Task<List<Item>> GetAuctionItemBySellerAsync(int sellerId)
+        {
+            return await _context.Items
+                .Where(i => i.UpdatedBy == sellerId
+                                          && !i.IsDeleted
+                                          && (i.Status == ItemStatus.Auction_Active.ToString() || i.Status == ItemStatus.Sold.ToString() || i.Status == ItemStatus.Active.ToString()))
+                .ToListAsync();
+        }
         public async Task<int> GetTotalProductsAsync(int sellerId)
         {
             return await _context.Items

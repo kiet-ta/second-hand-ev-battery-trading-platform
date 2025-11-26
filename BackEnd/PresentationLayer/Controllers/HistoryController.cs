@@ -59,7 +59,7 @@ namespace PresentationLayer.Controllers
         public async Task<IActionResult> GetAllHistorySold([FromQuery] int sellerId)
         {
            
-                var seller = await _historySoldService.GetOrdersBySellerId(sellerId);
+            var seller = await _historySoldService.GetOrdersBySellerId(sellerId);
             return Ok(seller);
         }
     }

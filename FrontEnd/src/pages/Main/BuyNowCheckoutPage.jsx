@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import paymentApi from "../../api/paymentApi";
 import orderApi from "../../api/orderApi";
-import addressApi from "../../hooks/services/addressApi";
 import { ghnApi } from "../../hooks/services/ghnApi";
 import walletApi from "../../api/walletApi";
 import auctionApi from "../../api/auctionApi"; // <-- new import
@@ -118,8 +117,8 @@ export default function BuyNowCheckoutPage() {
         addressId: selectedAddress.addressId,
         orderItemIds: orderItemIds,
         shippingPrice: shippingFee || 0,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+        createdAt: new Date(new Date().getTime() + 7 * 60 * 60 * 1000).toISOString(),
+        updatedAt: new Date(new Date().getTime() + 7 * 60 * 60 * 1000).toISOString(),
       };
       const orderResponse = await orderApi.postOrderNew(orderPayload);
 
@@ -142,7 +141,6 @@ export default function BuyNowCheckoutPage() {
         setWallet(prev => ({ ...prev, balance: prev.balance - finalTotal }));
         navigate("/payment/success", { state: { method: "wallet", amount: finalTotal } });
 
-        // ✅ If auction Buy Now, end it
         if (checkoutData.auctionId) {
           await auctionApi.buyNow(checkoutData.auctionId);
         }

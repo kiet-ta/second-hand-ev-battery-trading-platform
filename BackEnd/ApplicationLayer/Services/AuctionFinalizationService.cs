@@ -132,9 +132,17 @@ public class AuctionFinalizationService : IAuctionFinalizationService
                 }
                 winnerAddress = anyAddress;
             }
+            var shippingFee = await _unitOfWork.Address.CalulateShippingFee(winnerId);
+            if (shippingFee == null)
+                {
+                await _unitOfWork.RollbackTransactionAsync();
+                throw new InvalidOperationException($"Failed to calculate shipping fee for winner {winnerId}.");
+            }
+
 
             var newOrder = new Order
             {
+                ShippingPrice = shippingFee.Data.Total,
                 BuyerId = winnerId,
                 AddressId = winnerAddress.AddressId, 
                 CreatedAt = DateTime.Now,

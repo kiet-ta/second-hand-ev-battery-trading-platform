@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef, memo } from 'react';
+import React, { useState, useEffect, useCallback, memo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import auctionApi from '../../api/auctionApi';
 import itemApi from '../../api/itemApi';
@@ -27,7 +27,7 @@ const ArrowRight = ({ className }) => (
 
 // --- HELPERS ---
 const formatCountdown = (status, startTimeStr, endTimeStr) => {
-  const now = new Date().getTime();
+  const now = new Date(new Date().getTime() + 7 * 60 * 60 * 1000).getTime();
   const startTime = new Date(startTimeStr).getTime();
   const endTime = new Date(endTimeStr).getTime();
 

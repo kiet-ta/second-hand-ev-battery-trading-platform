@@ -158,21 +158,18 @@ function CartPage() {
         if (!item) return;
         if (newQuantity > item.stock) newQuantity = item.stock;
         const orderItemId = item.orderItemIdsToDelete[0];
-        try {
             await orderItemApi.putOrderItem(orderItemId, {
                 quantity: newQuantity,
                 price: item.price
             });
 
             fetchCartAndAddressData();
-        } catch { }
     };
 
     const handleRemove = async (itemId) => {
         const item = cartItems.find((i) => i.id === itemId);
         if (!item) return;
 
-        try {
             await Promise.all(
                 item.orderItemIdsToDelete.map((id) =>
                     orderItemApi.deleteOrderItem(id)
@@ -181,7 +178,6 @@ function CartPage() {
 
             setSelectedItemIds((prev) => prev.filter((id) => id !== itemId));
             fetchCartAndAddressData();
-        } catch { }
     };
 
     const handleDeleteSelected = async () => {
@@ -233,8 +229,8 @@ function CartPage() {
             addressId: selectedAddress?.addressId || 0,
             orderItemIds,
             shippingPrice: 0, // can update later in CheckoutPage after GHN calculation
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
+            createdAt: new Date(new Date().getTime() + 7 * 60 * 60 * 1000).toISOString(),
+            updatedAt: new Date(new Date().getTime() + 7 * 60 * 60 * 1000).toISOString(),
             itemsToPurchase // keep for display in CheckoutPage
         };
     }, [selectedItemIds, cartItems, addresses, selectedAddressId]);

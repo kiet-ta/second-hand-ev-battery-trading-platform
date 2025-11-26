@@ -6,7 +6,6 @@ import walletApi from "../../api/walletApi";
 import itemApi from "../../api/itemApi";
 import commissionApi from "../../api/commissionApi";
 import userApi from "../../api/userApi";
-import evData from "../../assets/datas/evData";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -20,8 +19,6 @@ export default function MyProducts() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [form] = Form.useForm();
-  const brand = Form.useWatch("brand", form);
-  const model = Form.useWatch("model", form);
   const [isPayModalOpen, setIsPayModalOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
   const [wallet, setWallet] = useState(null);
@@ -37,9 +34,6 @@ export default function MyProducts() {
   const sellerId = localStorage.getItem("userId");
   const baseURL = import.meta.env.VITE_API_BASE_URL;
 
-  const bodyStyles = ["Sedan", "Hatchback", "SUV", "Crossover", "Coupe", "Convertible", "Pickup", "Van / Minivan", "Wagon", "Other"];
-  const colors = ["White", "Black", "Silver", "Gray", "Blue", "Red", "Green", "Yellow", "Orange", "Brown", "Beige", "Gold", "Purple", "Other"];
-  const batteryBrands = ["Panasonic", "Samsung SDI", "LG Chem", "CATL", "BYD", "Tesla", "Hitachi", "Toshiba", "A123 Systems", "SK Innovation", "Other"];
 
   const fetchProducts = async () => {
     if (!sellerId) return;
@@ -200,7 +194,7 @@ export default function MyProducts() {
           : `Phí kiểm duyệt sản phẩm ${selectedItem.title}`,
       });
 
-      const updatePayload = { ...selectedItem, updatedAt: new Date().toISOString(), updatedBy: sellerId };
+      const updatePayload = { ...selectedItem, updatedAt: new Date(new Date().getTime() + 7 * 60 * 60 * 1000).toISOString(), updatedBy: sellerId };
       if (payType === "listing") {
         updatePayload.status = updatePayload.status === "Auction_Pending_Pay" ? "Auction_Active" : "Active";
       }
@@ -264,7 +258,7 @@ export default function MyProducts() {
         categoryId,
         status: editingItem.status || "Active",
         moderation: "Not_Submitted",
-        updatedAt: new Date().toISOString(),
+        updatedAt: new Date(new Date().getTime() + 7 * 60 * 60 * 1000).toISOString(),
         updatedBy: localStorage.getItem("userId"),
       };
 

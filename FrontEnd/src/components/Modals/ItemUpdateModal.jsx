@@ -5,7 +5,6 @@ const { Option } = Select;
 
 const bodyStyles = ["Sedan", "Hatchback", "SUV", "Crossover", "Coupe", "Convertible", "Pickup", "Van / Minivan", "Wagon", "Other"];
 const colors = ["White", "Black", "Silver", "Gray", "Blue", "Red", "Green", "Yellow", "Orange", "Brown", "Beige", "Gold", "Purple", "Other"];
-const batteryBrands = ["Panasonic", "Samsung SDI", "LG Chem", "CATL", "BYD", "Tesla", "Hitachi", "Toshiba", "A123 Systems", "SK Innovation", "Other"];
 
 const UpdateItemModal = ({ visible, onCancel, onSubmit, type, data }) => {
   const [form] = Form.useForm();
@@ -19,8 +18,6 @@ const UpdateItemModal = ({ visible, onCancel, onSubmit, type, data }) => {
     onSubmit(values);
   };
 
-  // Fields sellers cannot update
-  const disabledFields = ["brand", "model", "version", "categoryId", "licenseUrl"];
 
   return (
     <Modal
@@ -66,7 +63,7 @@ const UpdateItemModal = ({ visible, onCancel, onSubmit, type, data }) => {
             <Form.Item label="Year" name="year">
               <Select placeholder="Chọn năm">
                 {Array.from(
-                  { length: new Date().getFullYear() - 2008 + 1 },
+                  { length: new Date(new Date().getTime() + 7 * 60 * 60 * 1000).getFullYear() - 2008 + 1 },
                   (_, i) => 2008 + i
                 )
                   .reverse()

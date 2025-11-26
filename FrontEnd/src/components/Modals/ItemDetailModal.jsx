@@ -5,7 +5,7 @@ import itemApi from "../../api/itemApi";
 export default function ItemDetailModal({ itemId, orderItem, orderInfo, open, onClose }) {
   const [item, setItem] = useState(null);
   const [loading, setLoading] = useState(true);
-
+  console.log("OrderItem in Modal:", orderItem);
   useEffect(() => {
     const fetchItemDetail = async () => {
       if (!itemId) return;
@@ -58,7 +58,7 @@ export default function ItemDetailModal({ itemId, orderItem, orderInfo, open, on
 
               <Descriptions bordered column={2} size="small">
                 <Descriptions.Item label="Giá gốc">
-                  {orderItem.detail?.price?.toLocaleString("vi-VN")} ₫
+                  {orderItem.price?.toLocaleString("vi-VN")} ₫
                 </Descriptions.Item>
 
                 <Descriptions.Item label="Số lượng">
@@ -66,7 +66,7 @@ export default function ItemDetailModal({ itemId, orderItem, orderInfo, open, on
                 </Descriptions.Item>
 
                 <Descriptions.Item label="Thành tiền">
-                  {(orderItem.detail?.price * orderItem.quantity).toLocaleString("vi-VN")} ₫
+                  {(orderItem.price * orderItem.quantity).toLocaleString("vi-VN")} ₫
                 </Descriptions.Item>
 
                 <Descriptions.Item label="Phí vận chuyển">
@@ -101,14 +101,6 @@ export default function ItemDetailModal({ itemId, orderItem, orderInfo, open, on
               ) : (
                 <Tag color="green">Pin</Tag>
               )}
-            </Descriptions.Item>
-            <Descriptions.Item label="Giá">
-              <span className="font-semibold text-blue-600">
-                {item.price?.toLocaleString("vi-VN")} ₫
-              </span>
-            </Descriptions.Item>
-            <Descriptions.Item label="Ngày tạo">
-              {new Date(item.createdAt).toLocaleDateString()}
             </Descriptions.Item>
             <Descriptions.Item label="Mô tả" span={2}>
               {item.description || "Không có mô tả."}

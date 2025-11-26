@@ -5,7 +5,7 @@ import notificationApi from "../../api/notificationApi";
 
 // Helper to format relative time
 const formatTimeAgo = (isoDate) => {
-  const now = new Date();
+  const now = new Date(new Date().getTime() + 7 * 60 * 60 * 1000);
   const past = new Date(isoDate);
   const diffInMinutes = Math.floor((now - past) / (1000 * 60));
 
