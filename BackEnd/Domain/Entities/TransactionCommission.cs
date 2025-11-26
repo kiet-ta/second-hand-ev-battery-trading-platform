@@ -3,7 +3,9 @@
 public class TransactionCommission
 {
     public int Id { get; set; }
-    public int TransactionId { get; set; }
+    public int? WalletTransactionId { get; set; }
+
+    public int? PaymentTransactionId { get; set; }
     public int RuleId { get; set; }
     public decimal AppliedValue { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.Now;

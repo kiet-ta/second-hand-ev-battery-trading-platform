@@ -72,10 +72,10 @@ namespace Application.Services
 
         public async Task<IEnumerable<OrdersByMonthDto>> GetOrdersByMonthAsync(int monthsRange)
         {
-            var endDate = DateTime.Now; // dùng local time thay vì UTC
-            var startDate = endDate.AddMonths(-monthsRange + 1).Date; // bắt đầu từ đầu tháng đó
+            var endDate = DateTime.Now;
+            var startDate = endDate.AddMonths(-monthsRange + 1).Date;
 
-            var orders = await _unitOfWork.Orders.GetOrdersWithinRangeAsync(startDate, endDate);
+            var orders = await _unitOfWork.OrderItems.GetOrdersWithinRangeAsync(startDate, endDate);
             if (orders == null)
                 throw new Exception("Failed to fetch order data.");
             var grouped = orders
@@ -196,8 +196,10 @@ namespace Application.Services
                 throw new Exception("Associated user not found for KYC document.");
             if (user != null)
             {
+                user.Role = UserRole.Seller.ToString();
                 user.KycStatus = KycStatus.Rejected.ToString();
                 await _unitOfWork.Users.UpdateAsync(user);
+                await _unitOfWork.Users.SaveChangesAsync();
             }
         }
     }

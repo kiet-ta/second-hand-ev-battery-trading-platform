@@ -70,6 +70,7 @@ namespace Application.Services
                 Condition = e.Condition,
                 Voltage = e.Voltage,
                 ChargeCycles = e.ChargeCycles,
+                UpdatedAt = e.UpdatedAt,
                 Title = item?.Title,
                 Price = item?.Price,
                 Status = item?.Status
@@ -90,6 +91,8 @@ namespace Application.Services
                 Quantity = dto.Quantity,
                 Status = dto.Status,
                 UpdatedBy = dto.UpdatedBy,
+                Moderation = dto.Moderation,
+
                 //CreatedAt = DateTime.Now,
                 //UpdatedAt = DateTime.Now
             };

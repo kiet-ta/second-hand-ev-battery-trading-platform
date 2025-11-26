@@ -27,9 +27,20 @@ namespace Infrastructure.Data.Configurations
             entity.Property(e => e.Price)
                 .HasColumnType("decimal(18, 2)")
                 .HasColumnName("price");
+            entity.Property(e => e.Status)
+                .HasMaxLength(20)
+                .HasColumnName("status");
+
             entity.Property(e => e.Quantity)
                 .HasDefaultValue(1)
                 .HasColumnName("quantity");
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("getdate()")
+                .HasColumnName("created_at");
+            entity.Property(e => e.UpdatedAt)
+                .HasDefaultValueSql("getdate()")
+                .HasColumnName("updated_at");
+
 
             //entity.HasOne(d => d.Buyer).WithMany(p => p.OrderItems)
             //    .HasForeignKey(d => d.BuyerId)
@@ -41,7 +52,7 @@ namespace Infrastructure.Data.Configurations
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__order_ite__item___5FB337D6");
 
-            entity.HasOne<Order>().WithMany()
+            entity.HasOne<Order>().WithMany(o => o.OrderItems)
                 .HasForeignKey(d => d.OrderId)
                 .HasConstraintName("FK__order_ite__is_de__5EBF139D");
         }

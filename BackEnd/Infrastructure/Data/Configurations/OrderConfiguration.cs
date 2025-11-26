@@ -23,9 +23,10 @@ namespace Infrastructure.Data.Configurations
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("getdate()")
                 .HasColumnName("created_at");
-            entity.Property(e => e.Status)
-                .HasMaxLength(20)
-                .HasColumnName("status");
+            entity.Property(e => e.ShippingPrice)
+                .HasColumnType("decimal(18, 2)")
+                .HasColumnName("shipping_price");
+
             entity.Property(e => e.UpdatedAt)
                 .HasDefaultValueSql("getdate()")
                 .HasColumnName("updated_at");

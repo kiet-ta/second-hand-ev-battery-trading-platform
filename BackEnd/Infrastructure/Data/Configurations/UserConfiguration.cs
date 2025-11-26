@@ -40,6 +40,9 @@ namespace Infrastructure.Data.Configurations
             entity.Property(e => e.IsDeleted)
                 .HasDefaultValue(false)
                 .HasColumnName("is_deleted");
+            entity.Property(e => e.IsStore)
+                .HasDefaultValue(false)
+                .HasColumnName("is_store");   
             entity.Property(e => e.KycStatus)
                 .HasMaxLength(20)
                 .HasDefaultValue("not_submitted")

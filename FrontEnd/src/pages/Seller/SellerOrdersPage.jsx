@@ -1,6 +1,3 @@
-import MyProduct from "../../components/ItemForm/AddProductForm";
-import MyProducts from "../../components/Seller/MyProducts";
+import MyProduct from "../../components/Seller/MyProducts";
 export default function SellerOrdersPage() {
-    return <MyProduct />,
-        <MyProducts />;
-}
+    return <MyProduct />}

@@ -1,4 +1,5 @@
-﻿using Application.DTOs.PaymentDtos;
+﻿using Application.DTOs;
+using Application.DTOs.PaymentDtos;
 using Application.IServices;
 using Application.Services;
 using CloudinaryDotNet.Core;
@@ -26,8 +27,44 @@ public class PaymentController : ControllerBase
         _validator = validator;
     }
 
+    [HttpGet]
+    [Route("with-details")]
+    [ProducesResponseType(typeof(IEnumerable<PaymentWithDetailsDto>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetPaymentsWithDetails()
+    {
+        var payments = await _paymentService.GetPaymentsDataAsync();
+
+        return Ok(payments);
+    }
+
+    [HttpGet]
+    [Route("history/user/{userId}")]
+    [ProducesResponseType(typeof(IEnumerable<PaymentWithDetailsDto>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetPaymentHistoryByUserId(int userId)
+    {
+        var payments = await _paymentService.GetPaymentHistoryByUserIdAsync(userId);
+
+        return Ok(payments);
+    }
+
+    [HttpGet]
+    [Route("detail/user/{userId}/order/{orderId}")]
+    [ProducesResponseType(typeof(DetailedPaymentHistoryDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetTransactionDetail(int userId, int orderId)
+    {
+        var detail = await _paymentService.GetTransactionDetailByOrder(userId, orderId);
+
+        if (detail == null)
+        {
+            return NotFound($"Không tìm thấy giao dịch cho User ID {userId} và Order ID {orderId}.");
+        }
+
+        return Ok(detail);
+    }
+
     [HttpPost("confirm-order/{orderId}")]
-    //[Authorize(Roles = "Buyer,Seller")] // Chỉ buyer mới được gọi
+    //[Authorize(Roles = "Buyer,Seller")]
     public async Task<IActionResult> ConfirmOrder(int orderId)
     {
         try
@@ -51,7 +88,6 @@ public class PaymentController : ControllerBase
         }
         catch (Exception ex)
         {
-            // Bắt lỗi được ném ra từ Service (ví dụ: "Đơn hàng không tồn tại")
             return BadRequest(new { message = ex.Message });
         }
     }
@@ -114,7 +150,7 @@ public class PaymentController : ControllerBase
     [HttpPost("cancel/{orderCode:long}")]
     public async Task<IActionResult> CancelPayment(long orderCode, [FromBody] PaymentCancelRequestDto cancel)
     {
-        await _paymentService.CancelPaymentAsync(orderCode, cancel.Reason);
+        await _paymentService.CancelPaymentAsync(orderCode, cancel);
         return Ok();
     }
 
@@ -144,4 +180,6 @@ public class PaymentController : ControllerBase
         var response = await _paymentService.CreateDepositPaymentLinkAsync(userId, request.Amount);
         return Ok(response);
     }
+
+
 }

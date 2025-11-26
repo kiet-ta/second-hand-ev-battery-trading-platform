@@ -16,7 +16,6 @@ export default function ComplaintPage() {
     { reason: "Lỗi hiển thị", level: "Low" },
     { reason: "Lỗi reset mật khẩu", level: "Medium" },
     { reason: "Lỗi đăng ký", level: "High" },
-    { reason: "Khác", level: "Medium" },
   ];
 
   const [form, setForm] = useState({
@@ -164,15 +163,7 @@ export default function ComplaintPage() {
                 label: r.reason,
               }))}
             />
-            {form.reason === "Khác" && (
-              <input
-                type="text"
-                placeholder="Nhập lý do khác..."
-                value={customReason}
-                onChange={(e) => setCustomReason(e.target.value)}
-                className="mt-3 w-full border rounded-lg p-3 bg-[#FCFCFA] focus:ring-2 focus:ring-[#D4A017]"
-              />
-            )}
+            
             {errors.reason && (
               <p className="text-red-500 text-sm mt-1">{errors.reason}</p>
             )}

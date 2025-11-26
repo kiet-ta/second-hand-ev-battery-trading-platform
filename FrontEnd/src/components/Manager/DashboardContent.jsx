@@ -94,10 +94,8 @@ export default function DashboardContent() {
             <div className="grid sm:grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
                 <StatTile
                     icon={<DollarSign size={18} className="text-slate-800" />}
-                    label="Doanh thu (tháng)"
-                    value={currencyVND(metrics.revenueThisMonth)}
-                    hint={`Tổng năm: ${currencyVND(revenueTotal)}`}
-                    trend={metrics?.growth ?? 0}
+                    label="Doanh thu"
+                    value={currencyVND(revenueTotal)}
                 />
                 <StatTile
                     icon={<Users size={18} className="text-slate-800" />}
@@ -111,67 +109,11 @@ export default function DashboardContent() {
                     value={metrics.activeListings.toLocaleString("vi-VN")}
                     hint="Xe điện & Pin"
                 />
-                <StatTile
-                    icon={<TrendingUp size={18} className="text-slate-800" />}
-                    label="Tăng trưởng theo tháng"
-                    value={`${metrics.growth}%`}
-                    hint="So với tháng trước"
-                    trend={metrics?.growth ?? 0}
-                />
             </div>
 
             {/* === BIỂU ĐỒ DOANH THU / ĐƠN HÀNG === */}
             <div className="grid lg:grid-cols-5 gap-4">
 
-                {/* === Doanh thu theo tháng === */}
-                {/* === Doanh thu theo tháng === */}
-                <Card className="lg:col-span-3">
-                    <CardHeader
-                        title="Doanh thu theo tháng"
-                        icon={<FileChartColumn size={18} className="text-slate-700" />}
-                    />
-                    <div className="p-4 h-72">
-                        <ResponsiveContainer width="100%" height="100%">
-                            <LineChart
-                                data={revenueByMonth.map((item) => ({
-                                    ...item,
-                                    month: monthMap[item.month] || item.month,
-                                }))}
-                            >
-                                <CartesianGrid strokeDasharray="3 3" />
-                                <XAxis
-                                    dataKey="month"
-                                    tick={{ fontSize: 12 }}
-                                />
-                                <YAxis
-                                    tickFormatter={(value) =>
-                                        value.toLocaleString("vi-VN")
-                                    }
-                                    tick={{ fontSize: 12 }}
-                                />
-                                <Tooltip
-                                    formatter={(value) => [`${currencyVND(value)}`, "Doanh thu"]}
-                                    labelFormatter={(label) => `Tháng ${label.replace("T", "")}`}
-                                    contentStyle={{
-                                        backgroundColor: "#fff",
-                                        borderRadius: "8px",
-                                        border: "1px solid #ddd",
-                                        fontSize: "13px",
-                                    }}
-                                    itemStyle={{ color: "#4F46E5", fontWeight: 500 }}
-                                />
-                                <Line
-                                    type="monotone"
-                                    dataKey="total"
-                                    stroke="#4F46E5"
-                                    strokeWidth={2}
-                                    dot={{ r: 4 }}
-                                    activeDot={{ r: 6 }}
-                                />
-                            </LineChart>
-                        </ResponsiveContainer>
-                    </div>
-                </Card>
 
 
                 {/* === Số đơn hàng theo tháng === */}
@@ -220,11 +162,6 @@ export default function DashboardContent() {
                         </ResponsiveContainer>
                     </div>
                 </Card>
-            </div>
-
-            {/* === PHÂN BỔ SẢN PHẨM & GIAO DỊCH GẦN NHẤT === */}
-            <div className="grid lg:grid-cols-5 gap-4">
-                {/* === Phân bổ sản phẩm === */}
                 <Card className="lg:col-span-2">
                     <CardHeader
                         title="Tỷ lệ phân bổ sản phẩm"
@@ -268,54 +205,15 @@ export default function DashboardContent() {
                     </div>
                 </Card>
 
+            </div>
+
+            {/* === PHÂN BỔ SẢN PHẨM & GIAO DỊCH GẦN NHẤT === */}
+            <div className="grid lg:grid-cols-5 gap-4">
+                {/* === Phân bổ sản phẩm === */}
+
+
                 {/* === Giao dịch gần đây === */}
-                <Card className="lg:col-span-3">
-                    <CardHeader
-                        title="Giao dịch gần đây"
-                        icon={<ClipboardList size={18} className="text-slate-700" />}
-                    />
-                    <div className="p-4 overflow-auto">
-                        <table className="min-w-full text-sm">
-                            <thead>
-                                <tr className="text-left text-slate-500 border-b">
-                                    <th className="py-2">Mã GD</th>
-                                    <th className="py-2">Sản phẩm</th>
-                                    <th className="py-2">Người mua</th>
-                                    <th className="py-2">Người bán</th>
-                                    <th className="py-2">Giá</th>
-                                    <th className="py-2">Trạng thái</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {transactions.slice(0, 5).map((t, idx) => (
-                                    <tr
-                                        key={t.paymentId || idx}
-                                        className="border-b last:border-0 hover:bg-slate-50 transition"
-                                    >
-                                        <td className="py-2 font-medium text-slate-700">
-                                            #{t.paymentId}
-                                        </td>
-                                        <td className="py-2">
-                                            {t.items?.[0]?.title || "—"}
-                                        </td>
-                                        <td className="py-2">{t.buyerName}</td>
-                                        <td className="py-2">{t.sellerName}</td>
-                                        <td className="py-2">
-                                            {currencyVND(t.totalAmount)}
-                                        </td>
-                                        <td className="py-2 capitalize text-slate-700">
-                                            {t.status === "Completed"
-                                                ? "Hoàn tất"
-                                                : t.status === "Pending"
-                                                    ? "Đang xử lý"
-                                                    : "Đã hủy"}
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                </Card>
+
             </div>
         </motion.div>
     );

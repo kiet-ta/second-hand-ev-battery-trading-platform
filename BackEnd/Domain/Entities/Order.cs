@@ -11,10 +11,12 @@ public class Order
 
     public int AddressId { get; set; }
 
-    public string? Status { get; set; }
+    public decimal ShippingPrice { get; set; }
+
 
     public DateTime CreatedAt { get; set; }
 
     public DateTime UpdatedAt { get; set; }
 
+    public ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
 }

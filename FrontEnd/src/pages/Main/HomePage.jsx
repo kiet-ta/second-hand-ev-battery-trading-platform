@@ -59,7 +59,7 @@ function HomePage() {
 
 
 
-    const isItemVerified = (item) => item.moderation === 'approved_tag';
+    const isItemVerified = (item) => item.moderation === 'Approved';
 
 
 
@@ -141,8 +141,8 @@ function HomePage() {
                             imageUrl="https://excelbattery.com/wp-content/uploads/2023/11/final-banner1.jpg"
                             title="Khai Phá Năng Lượng Tương Lai"
                             description="Khám phá các linh kiện xe điện hiếm và hiệu suất cao. Mỗi sản phẩm đều được tuyển chọn dành cho người sành sỏi."
-                            link="/evs-and-batteries"
                             ctaText="Khám Phá Bộ Sưu Tập"
+                            link="/news/1"
                         />
                     )}
 
@@ -218,50 +218,50 @@ function HomePage() {
                         itemType="Battery"
                     />
 
-<div className="mt-24">
-  <SectionHeader
-    title="Tin Tức Mới Nhất"
-    icon={Newspaper}
-    description="Khám phá xu hướng mới, công nghệ và những câu chuyện truyền cảm hứng về xe điện."
-  />
+                    <div className="mt-24">
+                        <SectionHeader
+                            title="Tin Tức Mới Nhất"
+                            icon={Newspaper}
+                            description="Khám phá xu hướng mới, công nghệ và những câu chuyện truyền cảm hứng về xe điện."
+                        />
 
-  {loadingNews ? (
-    <div className="flex justify-center py-12">
-      <Spin size="large" />
-    </div>
-  ) : (
-    <div className="space-y-6">
-      {latestNews.map((post) => (
-        <Link
-          key={post.newsId}
-          to={`/news/${post.newsId}`}
-          state={post}
-          className="flex flex-col md:flex-row items-center gap-6 p-5 bg-white border-2 border-[#C4B5A0]/40 rounded-2xl shadow-md hover:shadow-2xl transition-all duration-300 hover:-translate-y-1"
-        >
-          <img
-            src={post.thumbnailUrl}
-            alt={post.title}
-            className="w-full md:w-64 h-48 object-cover rounded-xl"
-          />
-          <div className="flex-1">
-            <h3 className="text-2xl font-roboto font-bold text-[#2C2C2C] mb-2">
-              {post.title}
-            </h3>
-            <p className="text-gray-600 mb-3 line-clamp-3">{post.summary}</p>
-            <div className="flex items-center gap-3 text-sm text-gray-500">
-              <span className="bg-[#F8F5E9] text-[#B8860B] px-3 py-1 rounded-full font-semibold">
-                {post.category}
-              </span>
-              <span>
-                {new Date(post.publishDate).toLocaleDateString("vi-VN")}
-              </span>
-            </div>
-          </div>
-        </Link>
-      ))}
-    </div>
-  )}
-</div>
+                        {loadingNews ? (
+                            <div className="flex justify-center py-12">
+                                <Spin size="large" />
+                            </div>
+                        ) : (
+                            <div className="space-y-6">
+                                {latestNews.map((post) => (
+                                    <Link
+                                        key={post.newsId}
+                                        to={`/news/${post.newsId}`}
+                                        state={post}
+                                        className="flex flex-col md:flex-row items-center gap-6 p-5 bg-white border-2 border-[#C4B5A0]/40 rounded-2xl shadow-md hover:shadow-2xl transition-all duration-300 hover:-translate-y-1"
+                                    >
+                                        <img
+                                            src={post.thumbnailUrl}
+                                            alt={post.title}
+                                            className="w-full md:w-64 h-48 object-cover rounded-xl"
+                                        />
+                                        <div className="flex-1">
+                                            <h3 className="text-2xl font-roboto font-bold text-[#2C2C2C] mb-2">
+                                                {post.title}
+                                            </h3>
+                                            <p className="text-gray-600 mb-3 line-clamp-3">{post.summary}</p>
+                                            <div className="flex items-center gap-3 text-sm text-gray-500">
+                                                <span className="bg-[#F8F5E9] text-[#B8860B] px-3 py-1 rounded-full font-semibold">
+                                                    {post.category}
+                                                </span>
+                                                <span>
+                                                    {new Date(post.publishDate).toLocaleDateString("vi-VN")}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </Link>
+                                ))}
+                            </div>
+                        )}
+                    </div>
                 </div>
                 <div className="h-20"></div>
 

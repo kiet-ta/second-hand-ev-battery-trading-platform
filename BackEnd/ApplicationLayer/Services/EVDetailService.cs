@@ -37,6 +37,7 @@ namespace Application.Services
                 Description = dto.Description,
                 Price = dto.Price,
                 Quantity = dto.Quantity,
+                Moderation = dto.Moderation,
                 Status = dto.Status,
                 UpdatedBy = dto.UpdatedBy,
                 CreatedAt = DateTime.Now,

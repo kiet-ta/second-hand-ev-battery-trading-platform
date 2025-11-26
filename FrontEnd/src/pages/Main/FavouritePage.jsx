@@ -95,7 +95,7 @@ function FavouritePage() {
                                 type={fav.itemType}
                                 year={fav.itemDetail?.year}
                                 mileage={fav.itemDetail?.mileage}
-                                isVerified={fav.moderation === 'approved_tag'}
+                                isVerified={fav.moderation === 'Approved'}
                                 onRemoveSuccess={() => handleRemoveFavorite(fav.favId)}
                             />
                         ))}

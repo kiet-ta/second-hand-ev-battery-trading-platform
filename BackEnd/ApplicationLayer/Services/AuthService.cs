@@ -107,6 +107,7 @@ namespace Application.Services
                     UpdatedAt = DateTime.UtcNow
                 };
                 await _uow.Wallets.AddAsync(wallet);
+                await _uow.SaveChangesAsync();
                 return GenerateToken(user);
             }
             catch (Exception ex)
@@ -123,7 +124,10 @@ namespace Application.Services
 
             if (!BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash))
                 throw new InvalidOperationException("Invalid password");
-
+            //if (user.AccountStatus == UserStatus.Ban.ToString())
+            //{
+            //    throw new InvalidOperationException($"Account is not active. Status: {user.AccountStatus}");
+            //}
             return GenerateToken(user);
         }
 
@@ -139,7 +143,6 @@ namespace Application.Services
             GoogleJsonWebSignature.Payload payload;
             try
             {
-                // Validate Google ID token với nhiều audience options
                 var settings = new GoogleJsonWebSignature.ValidationSettings
                 {
                     Audience = new[] { _appSettings.GoogleClientId }
@@ -182,9 +185,18 @@ namespace Application.Services
 
             if (existing != null)
             {
+                //var requiredStatus = "Ban";
+
+                //if (existing.AccountStatus == requiredStatus)
+                //{
+                //    _logger.LogWarning("Login attempt for non-active account: {Email}, Status: {Status}", email, existing.AccountStatus);
+                //    throw new InvalidOperationException($"Tài khoản đã bị {existing.AccountStatus}. Vui lòng liên hệ hỗ trợ.");
+                //}
                 _logger.LogInformation("User found, generating token for: {Email}", email);
                 return GenerateToken(existing, provider: "google");
             }
+
+            
 
             // Create new user from Google account
             _logger.LogInformation("Creating new user from Google account: {Email}", email);
@@ -219,6 +231,7 @@ namespace Application.Services
                 UpdatedAt = DateTime.UtcNow
             };
             await _uow.Wallets.AddAsync(wallet);
+            await _uow.SaveChangesAsync();
 
             _logger.LogInformation("New user created successfully: {UserId}", newUser.UserId);
 
@@ -282,6 +295,7 @@ namespace Application.Services
                 FullName = user.FullName,
                 Email = user.Email,
                 Role = user.Role ?? UserRole.Buyer.ToString(),
+                AccountStatus = user.AccountStatus.ToString(),
                 Token = tokenString,
                 ExpiresAt = expires,
                 AuthProvider = provider

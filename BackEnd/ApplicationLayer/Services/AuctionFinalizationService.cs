@@ -1,4 +1,5 @@
 ﻿using Application.DTOs;
+using Application.IHelpers;
 using Application.IRepositories;
 using Application.IServices;
 using Domain.Common.Constants;
@@ -12,16 +13,16 @@ public class AuctionFinalizationService : IAuctionFinalizationService
     private readonly IUnitOfWork _unitOfWork;
     private readonly ILogger<AuctionFinalizationService> _logger;
     private readonly INotificationService _notificationService;
-    
+    private readonly IUniqueIDGenerator _uniqueIDGenerator;
 
-    private const string AuctionSellerFeeCode = "AUCTION_SELLER_FEE"; // FIXME: mock value
-    private const string AuctionNotificationType = "auction";
+    private const string AuctionNotificationType = "Activities";
 
-    public AuctionFinalizationService(IUnitOfWork unitOfWork, ILogger<AuctionFinalizationService> logger, INotificationService notificationService)
+    public AuctionFinalizationService(IUnitOfWork unitOfWork, ILogger<AuctionFinalizationService> logger, INotificationService notificationService, IUniqueIDGenerator uniqueIDGenerator)
     {
         _unitOfWork = unitOfWork;
         _logger = logger;
         _notificationService = notificationService;
+        _uniqueIDGenerator = uniqueIDGenerator;
     }
 
     public async Task FinalizeAuctionAsync(int auctionId)
@@ -71,7 +72,6 @@ public class AuctionFinalizationService : IAuctionFinalizationService
                 return;
             }
 
-            // Đánh dấu bid thắng cuộc
             await _unitOfWork.Bids.UpdateBidStatusAsync(winningBid.BidId, BidStatus.Winner.ToString());
             _logger.LogInformation($"Auction {auctionId} winner: User {winningBid.UserId} with Bid {winningBid.BidId} amount {winningBid.BidAmount}");
 
@@ -79,7 +79,6 @@ public class AuctionFinalizationService : IAuctionFinalizationService
             var winningAmount = winningBid.BidAmount;
             var itemId = auction.ItemId;
 
-            // --- Xử lý người bán (Lấy seller, tính phí, chuyển tiền) ---
             var itemWithSeller = await _unitOfWork.Items.GetItemAndSellerByItemIdAsync(itemId);
             if (itemWithSeller?.Seller == null || itemWithSeller.Item == null)
             {
@@ -138,7 +137,6 @@ public class AuctionFinalizationService : IAuctionFinalizationService
             {
                 BuyerId = winnerId,
                 AddressId = winnerAddress.AddressId, 
-                Status = OrderStatus.Pending.ToString(), 
                 CreatedAt = DateTime.Now,
                 UpdatedAt = DateTime.Now
             };
@@ -146,7 +144,7 @@ public class AuctionFinalizationService : IAuctionFinalizationService
             await _unitOfWork.SaveChangesAsync(); // Save to get OrderId
             _logger.LogInformation("Created Order {OrderId} for winner User {WinnerId}", newOrder.OrderId, winnerId);
 
-            var paymentTransaction = new WalletTransaction
+            var walletTransaction = new WalletTransaction
             {
                 WalletId = winnerWallet.WalletId,
                 Amount = -winningAmount, 
@@ -156,19 +154,58 @@ public class AuctionFinalizationService : IAuctionFinalizationService
                 AuctionId = auctionId,
                 OrderId = newOrder.OrderId
             };
-            await _unitOfWork.WalletTransactions.CreateTransactionAsync(paymentTransaction);
+            await _unitOfWork.WalletTransactions.CreateTransactionAsync(walletTransaction);
+
+            // TODO: save to payment and payment detail service
+            long orderCode = _uniqueIDGenerator.CreateUnique53BitId();
+
+            var newPayment = new Payment
+            {
+                UserId = winnerId,
+                OrderCode = orderCode, // Sử dụng giá trị vừa generate
+                TotalAmount = winningAmount,
+                Currency = "VND",
+                Method = "Wallet",
+                Status = PaymentStatus.Completed.ToString(),
+                PaymentType = PaymentType.Order_Purchase.ToString(),
+                CreatedAt = DateTime.Now,
+                UpdatedAt = DateTime.Now,
+                ExpiredAt = null
+            };
+
+            await _unitOfWork.Payments.AddPaymentAsync(newPayment);
+            await _unitOfWork.SaveChangesAsync();
+
+            _logger.LogInformation($"Created Payment record {newPayment.PaymentId} with OrderCode {orderCode} for Order {newOrder.OrderId}");
+
+            // Tạo PaymentDetail record
+            var newPaymentDetail = new PaymentDetail
+            {
+                PaymentId = newPayment.PaymentId,
+                OrderId = newOrder.OrderId,
+                ItemId = itemId,
+                Amount = winningAmount
+            };
+
+            await _unitOfWork.PaymentDetails.AddPaymentDetailAsync(newPaymentDetail);
+            await _unitOfWork.SaveChangesAsync();
+
             _logger.LogInformation($"Decreased held balance by {winningAmount} for winner User {winnerId} and created 'payment' transaction.");
 
             // create OrderItem
             var newOrderItem = new OrderItem
             {
                 OrderId = newOrder.OrderId,
-                BuyerId = winnerId, // Save buyer_id here if you need to query cart/history easier
+                BuyerId = winnerId,
                 ItemId = itemId,
                 Quantity = itemWithSeller.Item.Quantity,
                 Price = winningAmount,
+                Status = OrderItemStatus.Pending.ToString(),
                 IsDeleted = false
             };
+
+            await _unitOfWork.Items.UpdateItemQuantityAsync(itemId, itemWithSeller.Item.Quantity);
+
             await _unitOfWork.OrderItems.CreateAsync(newOrderItem); 
 
             await _unitOfWork.SaveChangesAsync(); // Save OrderItem
@@ -237,15 +274,41 @@ public class AuctionFinalizationService : IAuctionFinalizationService
             _logger.LogInformation("Successfully finalized Auction {AuctionId}", auctionId);
 
             // Send notification to winner and seller (after successful commit)
-            await SendNotificationAsync(
-                    senderId: null, receiverId: winnerId,
-                    title: $"Chúc mừng! Bạn đã thắng đấu giá #{auctionId}",
-                    message: $"Bạn đã thắng phiên đấu giá cho sản phẩm '{itemEntityToUpdate.Title}' với giá {winningAmount:N0}đ. Đơn hàng #{newOrder.OrderId} đã được tạo.");
 
-            await SendNotificationAsync(
-                senderId: null, receiverId: sellerId,
-                title: $"Sản phẩm '{itemEntityToUpdate.Title}' đã được bán qua đấu giá #{auctionId}",
-                message: $"Bạn có đơn hàng mới #{newOrder.OrderId}. Hãy chuẩn bị hàng và giao cho người mua.");
+            var winnerNoti = new CreateNotificationDto
+            {
+                NotiType = NotificationType.Auction.ToString(),
+                TargetUserId = winnerId.ToString(),  
+                Title = "You have won the auction!",
+                Message = $"Congratulations! You won the auction for item {itemId}."
+            };
+
+            _ = _notificationService.AddNewNotification(winnerNoti, 0, "");
+
+            await _notificationService.SendNotificationAsync(
+                message: winnerNoti.Message,
+                targetUserId: winnerNoti.TargetUserId
+            );
+
+
+
+            var sellerName = await _unitOfWork.Users.GetByIdAsync((int)sellerId);
+
+            var sellerNotiDto = new CreateNotificationDto
+            {
+                NotiType = NotificationType.Auction.ToString(),
+                TargetUserId = sellerId.ToString(), 
+                Title = "Your auction has ended!",
+                Message = $"{sellerName?.FullName ?? "Someone"}'s item has been won by user ID {winnerId}."
+            };
+
+            _ = _notificationService.AddNewNotification(sellerNotiDto, 0, "");
+
+            await _notificationService.SendNotificationAsync(
+                message: sellerNotiDto.Message,
+                targetUserId: sellerNotiDto.TargetUserId
+            );
+
         }
         catch (Exception ex)
         {
@@ -267,7 +330,7 @@ public class AuctionFinalizationService : IAuctionFinalizationService
                 Title = title,
                 Message = message
             };
-            await _notificationService.AddNewNotification(notificationDto, 0,"");
+            await _notificationService.AddNewNotification(notificationDto, 1,"Manager");
         }
         catch (Exception ex)
         {

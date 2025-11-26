@@ -1,10 +1,9 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { useLocation, useNavigate, Link } from "react-router-dom";
-import { InputNumber, Spin, Alert, Card } from "antd";
+import { InputNumber, Spin, Card } from "antd";
 import {
   FiShoppingCart,
   FiCreditCard,
-  FiBatteryCharging,
 } from "react-icons/fi";
 import { FaStar, FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import { GiBatteryPack } from "react-icons/gi";
@@ -14,6 +13,8 @@ import orderItemApi from "../../api/orderItemApi";
 import reviewApi from "../../api/reviewApi";
 import addressLocalApi from "../../api/addressLocalApi";
 import placeholder from "../../assets/images/placeholder.png"
+import { useParams } from "react-router-dom";
+
 // Star rating component
 const StarRating = ({ rating }) => (
   <div className="flex items-center">
@@ -46,17 +47,18 @@ const VerifiedCheck = () => (
 function BatteryDetails() {
   const location = useLocation();
   const navigate = useNavigate();
-  const itemId = location.state;
+  const { id } = useParams();
 
   const [item, setItem] = useState(null);
   const [sellerProfile, setSellerProfile] = useState(null);
   const [reviews, setReviews] = useState([]);
   const [quantity, setQuantity] = useState(1);
+  const [cartQuantity, setCartQuantity] = useState(0);
+  const [availableStock, setAvailableStock] = useState(0);
   const [loading, setLoading] = useState(true);
   const [feedback, setFeedback] = useState(null);
   const [selectedImage, setSelectedImage] = useState(0);
   const [isProcessing, setIsProcessing] = useState(false);
-
 
   // Carousel handlers
   const handlePrev = useCallback(() => {
@@ -73,7 +75,7 @@ function BatteryDetails() {
 
   // Fetch data
   useEffect(() => {
-    if (!itemId) {
+    if (!id) {
       setFeedback({ type: "error", msg: "Không tìm thấy sản phẩm." });
       setLoading(false);
       return;
@@ -82,14 +84,39 @@ function BatteryDetails() {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const itemData = await itemApi.getItemDetailByID(itemId);
-        setItem(itemData);
-        setQuantity(itemData.quantity > 0 ? 1 : 0);
 
+        // Get item detail
+        const itemData = await itemApi.getItemDetailByID(id);
+        setItem(itemData);
+
+        const userId = parseInt(localStorage.getItem("userId"), 10);
+
+        // Get current quantity in cart
+        let inCart = 0;
+        if (!isNaN(userId)) {
+          try {
+            const cartItems = await orderItemApi.getOrderItem(userId);
+            const exist = cartItems.find(ci => ci.itemId === parseInt(id));
+            inCart = exist ? exist.quantity : 0;
+          } catch (err) {
+            // 404 => cart empty
+          }
+        }
+        setCartQuantity(inCart);
+
+        // Available stock = item quantity - cart
+        const remain = itemData.quantity - inCart;
+        setAvailableStock(remain > 0 ? remain : 0);
+
+        // Default quantity
+        setQuantity(remain > 0 ? 1 : 0);
+
+        // Seller profile
         const userData = await userApi.getUserByID(itemData.updatedBy);
         setSellerProfile(userData);
 
-        const reviewResponse = await reviewApi.getReviewByItemID(itemId);
+        // Reviews
+        const reviewResponse = await reviewApi.getReviewByItemID(id);
         const rawReviews = reviewResponse.exists || [];
 
         const enriched = await Promise.all(
@@ -110,7 +137,9 @@ function BatteryDetails() {
             }
           })
         );
+
         setReviews(enriched);
+
       } catch (err) {
         console.error(err);
       } finally {
@@ -118,17 +147,17 @@ function BatteryDetails() {
       }
     };
     fetchData();
-  }, [itemId]);
+  }, [id]);
 
   // Helper
   const formatPrice = (price) =>
     price?.toLocaleString("vi-VN", { style: "currency", currency: "VND" }) ||
     "N/A";
 
+  // Add to cart (always POST, no PUT)
   const handleAddToCart = useCallback(async () => {
     const buyerId = parseInt(localStorage.getItem("userId"), 10);
     if (isNaN(buyerId)) {
-      setFeedback({ type: "error", msg: "Vui lòng đăng nhập để tiếp tục." });
       navigate("/login");
       return;
     }
@@ -138,75 +167,44 @@ function BatteryDetails() {
       return;
     }
 
+    if (quantity > availableStock) {
+      setFeedback({
+        type: "error",
+        msg: `Chỉ còn ${availableStock} sản phẩm trong kho.`,
+      });
+      return;
+    }
+
     setIsProcessing(true);
 
     try {
-      // 🔹 Try to get current order items (handle 404 as empty)
-      let existingOrderItems = [];
-      try {
-        const res = await orderItemApi.getOrderItem(buyerId);
-        existingOrderItems = Array.isArray(res) ? res : [];
-      } catch (err) {
-        if (err.response && err.response.status === 404) {
-          existingOrderItems = [];
-        } else throw err;
-      }
+      await orderItemApi.postOrderItem({
+        buyerId,
+        itemId: id,
+        quantity,
+        price: item.price,
+      });
 
-      // 🔹 Check if this item already exists in cart
-      const existingItem = existingOrderItems.find(
-        (oi) => oi.itemId === itemId
-      );
+      setFeedback({
+        type: "success",
+        msg: `${quantity} x ${item.title} đã được thêm vào giỏ hàng.`,
+      });
 
-      if (existingItem) {
-        // 🔹 Fetch latest item data to check stock
-        const itemData = await itemApi.getItemById(itemId);
-        const availableStock = itemData?.quantity ?? 0;
-        const newQuantity = existingItem.quantity + quantity;
-
-        if (newQuantity > availableStock) {
-          setFeedback({
-            type: "error",
-            msg: `Số lượng trong kho không đủ. Chỉ còn ${availableStock} sản phẩm.`,
-          });
-          return;
-        }
-
-        // ✅ Update (PUT)
-        const payload = {
-          quantity: newQuantity,
-          price: item.price,
-        };
-
-        await orderItemApi.putOrderItem(existingItem.orderItemId, payload);
-        setFeedback({
-          type: "success",
-          msg: `Đã cập nhật số lượng sản phẩm trong giỏ hàng (${newQuantity}).`,
-        });
-      } else {
-        // 🆕 Create (POST)
-        const payload = {
-          buyerId,
-          itemId,
-          quantity,
-          price: item.price,
-        };
-
-        await orderItemApi.postOrderItem(payload);
-        setFeedback({
-          type: "success",
-          msg: `${quantity} x ${item.title} đã được thêm vào giỏ hàng.`,
-        });
-      }
+      // Update cart quantity + available stock
+      setCartQuantity(prev => prev + quantity);
+      setAvailableStock(prev => prev - quantity);
     } catch (error) {
-      console.error("❌ Add to cart error:", error);
+      console.error("Add to cart error:", error);
       setFeedback({
         type: "error",
-        msg: "Không thể thêm vào giỏ hàng. Vui lòng thử lại.",
+        msg: "Không thể thêm vào giỏ hàng.",
       });
     } finally {
       setIsProcessing(false);
     }
-  }, [item, itemId, quantity, navigate]);
+  }, [item, quantity, availableStock]);
+
+  // Buy now
   const handleBuyNow = async (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -221,7 +219,7 @@ function BatteryDetails() {
     try {
       const orderItemPayload = {
         buyerId: userId,
-        itemId: itemId,
+        itemId: id,
         quantity: 1,
         price: item.price,
       };
@@ -243,7 +241,7 @@ function BatteryDetails() {
         totalAmount: item.price,
         orderItems: [
           {
-            id: itemId,
+            id: id,
             name: item.title || "Sản phẩm",
             price: item.price,
             quantity: 1,
@@ -257,11 +255,12 @@ function BatteryDetails() {
       };
 
       localStorage.setItem("checkoutData", JSON.stringify(checkoutData));
-
       navigate("/checkout/buy-now", { state: checkoutData });
 
     } catch (err) {
       console.error("❌ Lỗi mua ngay:", err);
+    } finally {
+      setIsProcessing(false);
     }
   };
 
@@ -377,14 +376,28 @@ function BatteryDetails() {
               </span>
             </div>
 
-            <div className="flex items-center gap-4 mt-4">
-              <span className="font-semibold text-gray-700">Số lượng:</span>
-              <InputNumber
-                min={1}
-                max={item.quantity}
-                value={quantity}
-                onChange={setQuantity}
-              />
+            <div className="flex flex-col gap-2 mt-4">
+              <div className="flex items-center gap-4">
+                <span className="font-semibold text-gray-700">Số lượng:</span>
+                <InputNumber
+                  min={1}
+                  max={availableStock}
+                  value={quantity}
+                  onChange={setQuantity}
+                  disabled={availableStock === 0}
+                />
+              </div>
+              {cartQuantity > 0 && (
+                <div className="text-sm text-blue-600 mt-1">
+                  Đang có <strong>{cartQuantity}</strong> sản phẩm này trong giỏ.
+                </div>
+              )}
+              <div className="text-sm text-gray-700">
+                Tồn kho còn lại: <strong>{availableStock}</strong>
+              </div>
+              {availableStock === 0 && (
+                <div className="font-bold text-red-500">Đã hết hàng</div>
+              )}
             </div>
 
             {feedback && (
@@ -400,15 +413,25 @@ function BatteryDetails() {
 
             <div className="flex flex-col sm:flex-row gap-3 mt-6">
               <button
-                onClick={handleAddToCart}
-                className="flex-1 bg-[#B8860B] text-white font-bold py-3 px-6 rounded-lg hover:bg-[#A47500] transition"
+                onClick={availableStock > 0 ? handleAddToCart : null}
+                disabled={availableStock === 0}
+                className={`flex-1 font-bold py-3 px-6 rounded-lg transition
+                    ${availableStock === 0
+                    ? "bg-gray-300 text-gray-600 cursor-not-allowed"
+                    : "bg-[#B8860B] text-white hover:bg-[#A47500]"
+                  }`}
               >
                 <FiShoppingCart className="inline mr-2" />
                 Thêm vào giỏ hàng
               </button>
               <button
-                onClick={handleBuyNow}
-                className="flex-1 bg-green-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-green-700 transition"
+                onClick={availableStock > 0 ? handleBuyNow : null}
+                disabled={availableStock === 0}
+                className={`flex-1 font-bold py-3 px-6 rounded-lg transition
+    ${availableStock === 0
+                    ? "bg-gray-300 text-gray-600 cursor-not-allowed"
+                    : "bg-green-600 text-white hover:bg-green-700"
+                  }`}
               >
                 <FiCreditCard className="inline mr-2" />
                 Mua ngay

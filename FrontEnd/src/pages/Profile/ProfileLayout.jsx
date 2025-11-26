@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Outlet, NavLink, useNavigate } from "react-router-dom";
 import { FaRegUser } from "react-icons/fa";
 import { LuClipboardList } from "react-icons/lu";
@@ -7,12 +7,28 @@ import NotificationDropdown from "../../components/DropDowns/NotificationDropdow
 import Logo from "../../components/Logo";
 import "../../assets/styles/ProfileLayout.css";
 import CartIcon from "../../components/DropDowns/CartIcon";
+import userApi from "../../api/userApi";
 
 
 
 export default function ProfileLayout() {
     const navigate = useNavigate();
     const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+    const [userName, setUserName] = useState("");
+
+    useEffect(() => {
+        const fetchUser = async () => {
+            const userId = localStorage.getItem("userId");
+            try {
+                const res = await userApi.getUserByID(userId);
+                setUserName(res.fullName || "Người dùng");
+            } catch (err) {
+                console.error("Failed to fetch user:", err);
+                setUserName("Người dùng");
+            }
+        };
+        fetchUser();
+    }, []);
 
     const menuItems = [
         { to: "/profile", label: "Hồ sơ cá nhân", icon: <FaRegUser /> },
@@ -74,14 +90,8 @@ export default function ProfileLayout() {
             {/* Khu vực nội dung chính */}
             <main className="main-content h-screen overflow-y-auto">
                 <header className="header">
-                    <div className="search-container">
-                        <input
-                            type="text"
-                            placeholder="Tìm kiếm mọi thứ..."
-                            className="search-input"
-                        />
-                        <button className="search-button">🔍</button>
-                    </div>
+                    <div className="flex-1"></div>
+
 
                     <div className="header-actions flex items-center gap-5">
                         {/* Thông báo */}

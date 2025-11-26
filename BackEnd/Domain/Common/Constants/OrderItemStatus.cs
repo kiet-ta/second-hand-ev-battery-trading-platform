@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Domain.Common.Constants
 {
-    public enum OrderStatus
+    public enum OrderItemStatus
     {
         Pending, Paid, Shipped, Completed, Cancelled
 

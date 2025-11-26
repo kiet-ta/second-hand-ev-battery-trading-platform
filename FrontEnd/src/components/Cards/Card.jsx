@@ -48,7 +48,7 @@ VerifiedCheck.propTypes = {
 function CardComponent({
     id,
     title,
-    price = 0,
+    price,
     itemImages,
     type,
     year,
@@ -62,6 +62,7 @@ function CardComponent({
     const [favoriteId, setFavoriteId] = useState(null);
     const [isProcessing, setIsProcessing] = useState(false);
     const [isCompared, setIsCompared] = useState(false);
+    const [stock, setStock] = useState(null);
 
     const userId = useMemo(() => localStorage.getItem("userId"), []);
     const displayImages = useMemo(
@@ -72,6 +73,23 @@ function CardComponent({
         [itemImages]
     );
 
+    useEffect(() => {
+        const loadStock = async () => {
+            try {
+                const data = await itemApi.getItemById(id);
+                const stockInCart = await orderItemApi.getOrderItem(userId);
+                const inCartQuantity = stockInCart
+                    .filter(oi => oi.itemId === id)
+                    .reduce((sum, oi) => sum + oi.quantity, 0);
+                data.quantity -= inCartQuantity;
+                setStock(data?.quantity ?? 0);
+            } catch (e) {
+                console.error("Lỗi lấy tồn kho:", e);
+                setStock(0);
+            }
+        };
+        loadStock();
+    }, [id]);
     useEffect(() => {
         const fav = userFavorites.find((f) => f.itemId === id);
         setIsFavorited(!!fav);
@@ -120,57 +138,22 @@ function CardComponent({
                     return;
                 }
 
-                let existingOrderItems = [];
-                try {
-                    const res = await orderItemApi.getOrderItem(userId);
-                    existingOrderItems = Array.isArray(res) ? res : [];
-                } catch (err) {
-                    // ✅ Backend may return 404 if no cart items — treat as empty cart
-                    if (err.response && err.response.status === 404) {
-                        existingOrderItems = [];
-                    } else {
-                        throw err; // rethrow unexpected errors
-                    }
-                }
+                const payload = {
+                    buyerId: userId,
+                    itemId: id,
+                    quantity: 1,
+                    price: price,
+                };
 
-                // 🔹 Check if the current item already exists
-                const existingItem = existingOrderItems.find(
-                    (oi) => oi.itemId === id
-                );
-
-                if (existingItem) {
-                    // ✅ Update existing item (PUT)
-                    const itemData = await itemApi.getItemById(id);
-                    const availableStock = itemData?.quantity ?? 0;
-                    const newQuantity = existingItem.quantity + 1;
-
-                    if (newQuantity > availableStock) {
-                        return; // Stop here — don’t update
-                    }
-                    const payload = {
-                        quantity: newQuantity,
-                        price: price,
-                    };
-
-                    await orderItemApi.putOrderItem(existingItem.orderItemId, payload);
-                } else {
-                    // 🆕 Create new item (POST)
-                    const payload = {
-                        buyerId: userId,
-                        itemId: id,
-                        quantity: 1,
-                        price,
-                    };
-                    await orderItemApi.postOrderItem(payload);
-                }
+                await orderItemApi.postOrderItem(payload);
 
             } catch (err) {
-                console.error("❌ Error adding/updating item:", err);
+                console.error("❌ Error adding item:", err);
             } finally {
                 setIsProcessing(false);
             }
         },
-        [id, price, userId, isProcessing]
+        [id, userId, isProcessing, navigate]
     );
     const handleBuyNow = async (e) => {
         e.preventDefault();
@@ -184,18 +167,17 @@ function CardComponent({
 
         setIsProcessing(true);
         try {
-            const orderItemPayload = {
+            const createdOrderItem = await orderItemApi.postOrderItem({
                 buyerId: userId,
                 itemId: id,
                 quantity: 1,
-                price,
-            };
-            const createdOrderItem = await orderItemApi.postOrderItem(orderItemPayload);
-            if (!createdOrderItem?.orderItemId)
-                throw new Error("Không thể tạo OrderItem.");
+                price: price,
+            });
+
+            if (!createdOrderItem?.orderItemId) throw new Error("Không thể tạo OrderItem.");
+
             const allAddresses = await addressLocalApi.getAddressByUserId(userId);
-            const defaultAddress =
-                allAddresses.find((a) => a.isDefault) || allAddresses[0];
+            const defaultAddress = allAddresses.find(a => a.isDefault) || allAddresses[0];
 
             if (!defaultAddress) {
                 navigate("/profile/address");
@@ -208,12 +190,11 @@ function CardComponent({
                 orderItems: [
                     {
                         id: createdOrderItem.orderItemId,
-                        name: title || "Sản phẩm",
-                        price,
+                        itemId: id,
+                        name: title,
                         quantity: 1,
-                        image:
-                            itemImages?.[0]?.imageUrl ||
-                            "https://placehold.co/100x100/e2e8f0/374151?text=?",
+                        image: itemImages?.[0]?.imageUrl || "https://placehold.co/100x100/e2e8f0/374151?text=?",
+                        price: price,
                     },
                 ],
                 allAddresses,
@@ -320,6 +301,7 @@ function CardComponent({
                                         <VerifiedCheck />
                                     </div>
                                 )}
+
                             </div>
                         ))}
                     </Slider>
@@ -360,7 +342,7 @@ function CardComponent({
                     <div className="flex items-center text-sm text-gray-500 mt-2 space-x-4">
                         {year && <span>{year}</span>}
                         {!!mileage && <span>{mileage.toLocaleString()} km</span>}
-                        <span className="capitalize">{type}</span>
+                        <span className="capitalize">{translateKey(type)}</span>
                     </div>
 
                     <div className="flex justify-between items-center mt-4 pt-4 border-t border-gray-100">
@@ -380,22 +362,32 @@ function CardComponent({
                     <div className="flex justify-between items-center pt-4 border-t border-gray-100">
                         {type === "Battery" ? (
                             <div className="flex justify-around items-center w-full gap-4">
+
                                 <button
-                                    onClick={handleBuyNow}
-                                    disabled={isProcessing}
-                                    className={`flex items-center px-4 py-5 rounded-xl font-semibold  bg-yellow-500 text-white hover:bg-yellow-600  shadow-md ${isProcessing ? "opacity-50 cursor-not-allowed" : ""
-                                        }`}
-                                >
-                                    Mua ngay
+                                    onClick={stock > 0 ? handleBuyNow : null}
+                                    disabled={isProcessing || stock === 0}
+                                    className={`flex items-center px-4 py-5 rounded-xl font-semibold shadow-md
+                                                ${stock === 0
+                                            ? "bg-gray-300 text-gray-600 cursor-not-allowed"
+                                            : "bg-yellow-500 text-white hover:bg-yellow-600"
+                                        }
+                                        `}>
+                                    {stock === 0 ? "Hết hàng" : "Mua ngay"}
                                 </button>
+
                                 <button
-                                    onClick={handleAddToCart}
-                                    disabled={isProcessing}
-                                    className={`flex items-center  px-4 py-5 rounded-xl font-semibold bg-green-500 text-white hover:bg-green-600 shadow-md ${isProcessing ? "opacity-50 cursor-not-allowed" : ""
-                                        }`}
+                                    onClick={stock > 0 ? handleAddToCart : null}
+                                    disabled={isProcessing || stock === 0}
+                                    className={`flex items-center px-4 py-5 rounded-xl font-semibold shadow-md
+                                                ${stock === 0
+                                            ? "bg-gray-300 text-gray-600 cursor-not-allowed"
+                                            : "bg-green-500 text-white hover:bg-green-600"
+                                        }
+                                        `}
                                 >
-                                    Thêm giỏ hàng
+                                    {stock === 0 ? "Không thể thêm" : "Thêm giỏ hàng"}
                                 </button>
+
                             </div>
                         ) : (
                             <div className="flex justify-around items-center w-full gap-4">
@@ -446,3 +438,11 @@ CardComponent.propTypes = {
 
 
 export default memo(CardComponent);
+function translateKey(key) {
+    const dict = {
+        Ev: "Xe điện",
+        Battery: "Pin xe điện",
+    };
+    return dict[key] || key;
+}
+

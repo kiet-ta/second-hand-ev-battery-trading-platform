@@ -15,15 +15,6 @@ const paymentApi = {
             throw error;
         }
     },
-    cancelPayment: async (orderCode, reason) => {
-        try {
-            const response = await axios.post(`${baseURL}/cancel/${orderCode}`, reason)
-            return response.data;
-        } catch (error) {
-            console.error("Error in createPayment API call:", error);
-            throw error;
-        }
-    },
     confirmOrder: async (orderId) => {
         try{
             const response = await axios.post(`${baseURL}/confirm-order/${orderId}`,{} ,{
@@ -34,6 +25,22 @@ const paymentApi = {
             })
             return response.data;
         } catch (error) {
+            console.error("Error in createPayment API call:", error);
+            throw error;
+        }
+    },
+    cancelPayment: async (data) => {
+        try{
+            const response = await axios.post(`${baseURL}/cancel/${data.orderCode}`, {reason: data.reason, orderId: data.orderId} ,{
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                    'Content-Type': 'application/json'
+                }
+            })
+            return response.data;   
+
+        }
+        catch (error) {
             console.error("Error in createPayment API call:", error);
             throw error;
         }

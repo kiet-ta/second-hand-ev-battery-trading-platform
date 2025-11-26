@@ -28,6 +28,8 @@ namespace Application.IRepositories
 
         Task<ItemWithDetailDto?> GetItemWithDetailsAsync(int id);
 
+        Task<ItemWithDetailDto?> GetItemWithDetailsAsync(int itemId, int buyerId, int orderId);
+
         Task<IEnumerable<ItemWithDetailDto>> GetAllItemsWithDetailsAsync();
 
         /// <summary>
@@ -60,5 +62,8 @@ namespace Application.IRepositories
         Task<PagedResultItem<ItemDto>> SearchItemsAsync(string itemType, string title, decimal? minPrice, decimal? maxPrice, int page, int pageSize, string sortBy, string sortDir);
         Task<IEnumerable<EVDetail>> SearchEvDetailAsync(EVSearchRequestDto request);
         Task<IEnumerable<BatteryDetail>> SearchBatteryDetailAsync(BatterySearchRequestDto request);
+        Task UpdateItemQuantityAsync(int itemId, int quantityToSubtract);
+        Task<int> GetCurrentItemQuantityAsync(int itemId);
+
     }
 }

@@ -68,15 +68,22 @@ public async Task<Bid?> GetUserHighestActiveBidAsync(int auctionId, int userId)
     }
     public async Task<IEnumerable<Bid>> GetAllLoserActiveOrOutbidBidsAsync(int auctionId, int winnerId)
     {
-        // Lấy bid cao nhất (đang active hoặc đã outbid) của mỗi người thua cuộc
-        var loserLatestBids = await _context.Bids
-            .Where(b => b.AuctionId == auctionId
-                        && b.UserId != winnerId
-                        && (b.Status == BidStatus.Active.ToString() || b.Status == BidStatus.OutBid.ToString())) // Chỉ lấy bid chưa released/cancelled
-            .GroupBy(b => b.UserId)
-            .Select(g => g.OrderByDescending(b => b.BidAmount).ThenBy(b => b.BidTime).First()) // Lấy bid mới nhất (cao nhất) của mỗi user thua
-            .ToListAsync();
+        var allLoserBids = await _context.Bids
+        .Where(b => b.AuctionId == auctionId
+                    && b.UserId != winnerId
+                    && (b.Status == BidStatus.Active.ToString() || b.Status == BidStatus.OutBid.ToString()))
+        .ToListAsync();
 
-        return loserLatestBids;
+        return allLoserBids;
+    }
+    public async Task<Bid?> GetUserLatestHeldBidAsync(int auctionId, int userId)
+    {
+        return await _context.Bids
+            .Where(b => b.AuctionId == auctionId
+                     && b.UserId == userId
+                     // get all Active and Outbid because both statuses mean the bid is still held
+                     && (b.Status == BidStatus.Active.ToString() || b.Status == BidStatus.OutBid.ToString()))
+            .OrderByDescending(b => b.BidAmount)
+            .FirstOrDefaultAsync();
     }
 }

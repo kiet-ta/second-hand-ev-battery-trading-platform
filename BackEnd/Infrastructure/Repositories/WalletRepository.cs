@@ -37,7 +37,6 @@ public class WalletRepository : IWalletRepository
     public async Task AddAsync(Wallet wallet)
     {
         await _context.Wallets.AddAsync(wallet);
-        await _context.SaveChangesAsync();
     }
 
     public async Task<bool> UpdateBalanceAsync(int walletId, decimal amountChange)

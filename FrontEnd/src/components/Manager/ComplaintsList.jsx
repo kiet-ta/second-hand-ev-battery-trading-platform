@@ -11,6 +11,8 @@ import {
 import { message, Spin, Modal, Select } from "antd";
 import { motion } from "framer-motion";
 
+
+
 export default function ComplaintList() {
   const [complaints, setComplaints] = useState([]);
   const [filtered, setFiltered] = useState([]);
@@ -23,14 +25,10 @@ export default function ComplaintList() {
   const [modalLoading, setModalLoading] = useState(false);
   const [selectedComplaint, setSelectedComplaint] = useState(null);
 
-  const [staffList] = useState([
-    { id: 11, name: "Nguyen Van Staff" },
-    { id: 12, name: "Tran Thi Support" },
-    { id: 13, name: "Le Van Helpdesk" },
-  ]);
 
   const token = localStorage.getItem("token");
   const baseURL = import.meta.env.VITE_API_BASE_URL;
+  
 
   //  Lấy danh sách complaint
   const fetchComplaints = async () => {
@@ -53,7 +51,6 @@ export default function ComplaintList() {
       setFiltered(sorted);
     } catch (err) {
       console.error(err);
-      message.error("❌ Lỗi tải danh sách khiếu nại.");
     } finally {
       setLoading(false);
     }
@@ -70,11 +67,11 @@ export default function ComplaintList() {
     if (statusFilter !== "all") list = list.filter((c) => c.status === statusFilter);
     if (levelFilter !== "all") list = list.filter((c) => c.severityLevel === levelFilter);
     if (search.trim()) {
-      const q = search.toLowerCase();
+      const q = search;
       list = list.filter(
         (c) =>
-          c.reason?.toLowerCase().includes(q) ||
-          c.description?.toLowerCase().includes(q)
+          c.reason?.includes(q) ||
+          c.description?.includes(q)
       );
     }
     setFiltered(list);
@@ -93,12 +90,16 @@ export default function ComplaintList() {
       setSelectedComplaint(data);
     } catch (err) {
       console.error(err);
-      message.error("❌ Lỗi tải chi tiết complaint.");
-      setModalVisible(false);
     } finally {
       setModalLoading(false);
     }
   };
+
+  const statusLabel = {
+  Pending: "đang xử lý",
+  In_Review: "đã giải quyết",
+  Resolved: "đã xử lý",
+};
 
   //  Cập nhật trạng thái
   const updateStatus = async (id, newStatus) => {
@@ -108,11 +109,9 @@ export default function ComplaintList() {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (!res.ok) throw new Error();
-      message.success(` Trạng thái chuyển sang "${newStatus}".`);
       setModalVisible(false);
       fetchComplaints();
     } catch {
-      message.error("❌ Không thể cập nhật trạng thái.");
     }
   };
 
@@ -128,26 +127,11 @@ export default function ComplaintList() {
         body: JSON.stringify({ level: newLevel }),
       });
       if (!res.ok) throw new Error();
-      message.success(`⚡ Mức độ thay đổi thành "${newLevel}".`);
       setSelectedComplaint({ ...selectedComplaint, severityLevel: newLevel });
     } catch {
-      message.error("Không thể thay đổi mức độ.");
     }
   };
 
-  //  Giao staff xử lý
-  const assignToStaff = async (id, staffId) => {
-    try {
-      const res = await fetch(`${baseURL}complaints/assignee/${staffId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!res.ok) throw new Error();
-      message.success("👤 Đã giao khiếu nại cho nhân viên xử lý.");
-      setModalVisible(false);
-    } catch {
-      message.error("Không thể giao nhân viên.");
-    }
-  };
 
 
   const translateStatus = (status) => {
@@ -341,7 +325,11 @@ export default function ComplaintList() {
                   selectedComplaint.status
                 )}`}
               >
-                {selectedComplaint.status}
+                {selectedComplaint.status === "Pending"
+                  ? "Đang chờ xử lý"
+                  : selectedComplaint.status === "In_Review"
+                  ? "Đang xem xét"
+                  : "Đã giải quyết"}
               </span>
             </p>
 
@@ -366,18 +354,6 @@ export default function ComplaintList() {
                   <CheckCircle size={16} /> Đã xử lý
                 </button>
               )}
-              <Select
-                placeholder="Giao cho staff..."
-                style={{ width: 180 }}
-                onChange={(staffId) =>
-                  assignToStaff(selectedComplaint.complaintId, staffId)
-                }
-                options={staffList.map((s) => ({
-                  value: s.id,
-                  label: s.name,
-                }))}
-                suffixIcon={<UserCheck size={16} />}
-              />
             </div>
           </div>
         ) : (

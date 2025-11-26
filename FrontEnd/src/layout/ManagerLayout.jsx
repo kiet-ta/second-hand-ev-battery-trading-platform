@@ -48,13 +48,12 @@ const menu = [
     { key: "users", label: "Quản lý người dùng", icon: <UserCog size={18} />, path: "users" },
     { key: "products", label: "Duyệt sản phẩm", icon: <PackageSearch size={18} />, path: "products" },
     { key: "complaints", label: "Khiếu nại người dùng", icon: <ShieldAlert size={18} />, path: "complaints" },
-    { key: "transactions", label: "Giám sát giao dịch", icon: <ClipboardList size={18} />, path: "transactions" },
     { key: "notifications", label: "Thông báo", icon: <Bell size={18} />, path: "notifications" },
     { key: "News", label: "Tạo tin tức", icon: <ClipboardList size={18} />, path: "News" },
 ];
 
 // --- MAIN LAYOUT ---
-export default function ManagerLayout({ onRefresh, onAddStaff, children }) {
+export default function ManagerLayout({ onRefresh, children }) {
     const navigate = useNavigate();
     const location = useLocation();
     const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
@@ -96,7 +95,7 @@ export default function ManagerLayout({ onRefresh, onAddStaff, children }) {
                         </div>
                         <div>
                             <p className="text-sm text-slate-500 leading-tight">
-                                Cóc Mua Xe - Nền tảng giao dịch Xe điện & Pin
+                                Cóc Mua Xe - Nền tảng giao dịch Xe điện & Pin Cũ
                             </p>
                             <h1 className="text-lg font-semibold text-slate-800 -mt-0.5">
                                 Quản lý
@@ -154,14 +153,7 @@ export default function ManagerLayout({ onRefresh, onAddStaff, children }) {
                             icon={<Settings size={18} className="text-slate-700" />}
                         />
                         <div className="p-4 grid grid-cols-1 gap-2">
-                            {/* Thêm tài khoản nhân viên */}
-                            <button
-                                onClick={onAddStaff}
-                                className="flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-200 text-sm text-slate-700 hover:bg-slate-50 text-left"
-                            >
-                                <UserPlus2 size={16} className="text-indigo-600" />
-                                Thêm tài khoản nhân viên
-                            </button>
+
 
                             {/* Duyệt người bán */}
                             <button

@@ -46,217 +46,219 @@ namespace Infrastructure.Repositories
                 .AsQueryable();
         }
 
-        public async Task<List<Item>> GetProcessingItemsAsync(int sellerId)
-        {
-            var items = await _context.Items
-                .Where(item =>
-                    item.UpdatedBy == sellerId &&
-                    !(item.IsDeleted == true) &&
-                    _context.OrderItems
-                        .Join(_context.Orders, oi => oi.OrderId, o => o.OrderId, (oi, o) => new { oi, o })
-                        .Any(joined =>
-                            joined.oi.ItemId == item.ItemId &&
-                            (joined.o.Status == OrderStatus.Paid.ToString() || joined.o.Status == OrderStatus.Shipped.ToString()))
-                )
-                .ToListAsync();
 
-            foreach (var item in items)
-            {
-                item.Status = "processing";
-            }
+        //public async Task<List<Item>> GetProcessingItemsAsync(int sellerId)
+        //{
+        //    var items = await _context.Items
+        //        .Where(item =>
+        //            item.UpdatedBy == sellerId &&
+        //            !(item.IsDeleted == true) &&
+        //            _context.OrderItems
+        //                .Join(_context.Orders, oi => oi.OrderId, o => o.OrderId, (oi, o) => new { oi, o })
+        //                .Any(joined =>
+        //                    joined.oi.ItemId == item.ItemId &&
+        //                    (joined.o.Status == OrderStatus.Paid.ToString() || joined.o.Status == OrderStatus.Shipped.ToString()))
+        //        )
+        //        .ToListAsync();
 
-            return items;
-        }
+        //    foreach (var item in items)
+        //    {
+        //        item.Status = "Processing";
+        //    }
 
-        public async Task<List<Item>> GetPendingPaymentItemsAsync(int sellerId)
-        {
-            var items = await _context.Items
-                .Where(item =>
-                    item.UpdatedBy == sellerId &&
-                    !(item.IsDeleted == true) &&
-                    _context.PaymentDetails
-                        .Join(_context.Payments, pd => pd.PaymentId, p => p.PaymentId, (pd, p) => new { pd, p })
-                        .Any(joined =>
-                            joined.pd.ItemId == item.ItemId &&
-                            joined.p.Status == PaymentStatus.Pending.ToString())
-                )
-                .ToListAsync();
+        //    return items;
+        //}
 
-            foreach (var item in items)
-            {
-                item.Status = "pending_approval";
-            }
+        //public async Task<List<Item>> GetPendingPaymentItemsAsync(int sellerId)
+        //{
+        //    var items = await _context.Items
+        //        .Where(item =>
+        //            item.UpdatedBy == sellerId &&
+        //            !(item.IsDeleted == true) &&
+        //            _context.PaymentDetails
+        //                .Join(_context.Payments, pd => pd.PaymentId, p => p.PaymentId, (pd, p) => new { pd, p })
+        //                .Any(joined =>
+        //                    joined.pd.ItemId == item.ItemId &&
+        //                    joined.p.Status == PaymentStatus.Pending.ToString())
+        //        )
+        //        .ToListAsync();
 
-            return items;
-        }
+        //    foreach (var item in items)
+        //    {
+        //        item.Status = "Pending_Approval";
+        //    }
 
-        public async Task<List<Item>> GetCanceledItemsAsync(int sellerId)
-        {
-            var items = await _context.Items
-                .Where(item =>
-                    item.UpdatedBy == sellerId &&
-                    !(item.IsDeleted == true) &&
-                    (
-                        _context.PaymentDetails
-                            .Join(_context.Payments,
-                                  pd => pd.PaymentId,
-                                  p => p.PaymentId,
-                                  (pd, p) => new { pd, p })
-                            .Any(joined =>
-                                joined.pd.ItemId == item.ItemId &&
-                                (joined.p.Status == PaymentStatus.Failed
-                                .ToString() ||
-                                 joined.p.Status == PaymentStatus.Refunded
-                                .ToString() ||
-                                 joined.p.Status == PaymentStatus.Expired
-                                .ToString()))
-                        ||
-                        _context.OrderItems
-                            .Join(_context.Orders,
-                                  oi => oi.OrderId,
-                                  o => o.OrderId,
-                                  (oi, o) => new { oi, o })
-                            .Any(joined =>
-                                joined.oi.ItemId == item.ItemId &&
-                                joined.o.Status == OrderStatus.Cancelled.ToString())
-                    )
-                )
-                .ToListAsync();
+        //    return items;
+        //}
 
-            foreach (var item in items)
-            {
-                item.Status = "canceled";
-            }
+        //public async Task<List<Item>> GetCanceledItemsAsync(int sellerId)
+        //{
+        //    var items = await _context.Items
+        //        .Where(item =>
+        //            item.UpdatedBy == sellerId &&
+        //            !(item.IsDeleted == true) &&
+        //            (
+        //                _context.PaymentDetails
+        //                    .Join(_context.Payments,
+        //                          pd => pd.PaymentId,
+        //                          p => p.PaymentId,
+        //                          (pd, p) => new { pd, p })
+        //                    .Any(joined =>
+        //                        joined.pd.ItemId == item.ItemId &&
+        //                        (joined.p.Status == PaymentStatus.Failed
+        //                        .ToString() ||
+        //                         joined.p.Status == PaymentStatus.Refunded
+        //                        .ToString() ||
+        //                         joined.p.Status == PaymentStatus.Expired
+        //                        .ToString()))
+        //                ||
+        //                _context.OrderItems
+        //                    .Join(_context.Orders,
+        //                          oi => oi.OrderId,
+        //                          o => o.OrderId,
+        //                          (oi, o) => new { oi, o })
+        //                    .Any(joined =>
+        //                        joined.oi.ItemId == item.ItemId &&
+        //                        joined.o.Status == OrderStatus.Cancelled.ToString())
+        //            )
+        //        )
+        //        .ToListAsync();
 
-            return items;
-        }
+        //    foreach (var item in items)
+        //    {
+        //        item.Status = "Canceled";
+        //    }
 
-        public async Task<List<Item>> GetSoldItemsAsync(int sellerId)
-        {
-            var items = await _context.Items
-                .Where(item =>
-                    item.UpdatedBy == sellerId &&
-                    !(item.IsDeleted == true) &&
-                    _context.PaymentDetails
-                        .Join(_context.Payments, pd => pd.PaymentId, p => p.PaymentId, (pd, p) => new { pd, p })
-                        .Any(joined =>
-                            joined.pd.ItemId == item.ItemId &&
-                            joined.p.Status == PaymentStatus.Completed.ToString())
-                )
-                .ToListAsync();
+        //    return items;
+        //}
 
-            foreach (var item in items)
-            {
-                item.Status = "sold";
-            }
+        //public async Task<List<Item>> GetSoldItemsAsync(int sellerId)
+        //{
+        //    var items = await _context.Items
+        //        .Where(item =>
+        //            item.UpdatedBy == sellerId &&
+        //            !(item.IsDeleted == true) &&
+        //            _context.PaymentDetails
+        //                .Join(_context.Payments, pd => pd.PaymentId, p => p.PaymentId, (pd, p) => new { pd, p })
+        //                .Any(joined =>
+        //                    joined.pd.ItemId == item.ItemId &&
+        //                    joined.p.Status == PaymentStatus.Completed.ToString())
+        //        )
+        //        .ToListAsync();
 
-            return items;
-        }
+        //    foreach (var item in items)
+        //    {
+        //        item.Status = "Sold";
+        //    }
 
-#pragma warning disable CS8601
+        //    return items;
+        //}
 
-        public async Task<List<BatteryItemDto>> MapToBatteryItemsAsync(List<Item> batteryItems)
-        {
-            var itemIds = batteryItems.Select(i => i.ItemId).ToList();
 
-            var query = from item in _context.Items
-                        where itemIds.Contains(item.ItemId)
-                        join battery in _context.BatteryDetails on item.ItemId equals battery.ItemId
-                        join img in _context.ItemImages on item.ItemId equals img.ItemId into images
-                        from img in images.DefaultIfEmpty()
-                        join oi in _context.OrderItems on item.ItemId equals oi.ItemId into orderItems
-                        from oi in orderItems.DefaultIfEmpty()
-                        join o in _context.Orders on oi.OrderId equals o.OrderId into orders
-                        from o in orders.DefaultIfEmpty()
-                        join u in _context.Users on o.BuyerId equals u.UserId into buyers
-                        from u in buyers.DefaultIfEmpty()
-                        join a in _context.Addresses on o.AddressId equals a.AddressId into addresses
-                        from a in addresses.DefaultIfEmpty()
-                        join pd in _context.PaymentDetails on item.ItemId equals pd.ItemId into payments
-                        from pd in payments.DefaultIfEmpty()
-                        join p in _context.Payments on pd.PaymentId equals p.PaymentId into paymentList
-                        from p in paymentList.DefaultIfEmpty()
-                        select new BatteryItemDto
-                        {
-                            ItemId = item.ItemId,
-                            ItemType = item.ItemType,
-                            Brand = battery.Brand,
-                            Capacity = battery.Capacity,
-                            Condition = battery.Condition,
-                            Voltage = battery.Voltage,
-                            ChargeCycles = battery.ChargeCycles,
-                            ListedPrice = item.Price,
-                            ActualPrice = pd != null ? pd.Amount : (decimal?)null,
-                            PaymentMethod = p != null ? p.Method : null,
+        //public async Task<List<BatteryItemDto>> MapToBatteryItemsAsync(List<Item> batteryItems)
+        //{
+        //    var itemIds = batteryItems.Select(i => i.ItemId).ToList();
 
-                            CreatedAt = item.CreatedAt,
-                            SoldAt = item.UpdatedAt,
-                            ImageUrl = img != null ? img.ImageUrl : null,
-                            Buyer = u != null ? new BuyerDto
-                            {
-                                BuyerId = u.UserId,
-                                FullName = u.FullName,
-                                Phone = u.Phone,
-                                Address = a != null ? $"{a.Street}, {a.Ward}, {a.District}, {a.Province}" : null
-                            } : null,
-                            OrderId = o != null ? o.OrderId : (int?)null
-                        };
+        //    var query = from item in _context.Items
+        //                where itemIds.Contains(item.ItemId)
+        //                join battery in _context.BatteryDetails on item.ItemId equals battery.ItemId
+        //                join img in _context.ItemImages on item.ItemId equals img.ItemId into images
+        //                from img in images.DefaultIfEmpty()
+        //                join oi in _context.OrderItems on item.ItemId equals oi.ItemId into orderItems
+        //                from oi in orderItems
+        //                join o in _context.Orders on oi.OrderId equals o.OrderId into orders
+        //                from o in orders
+        //                join u in _context.Users on o.BuyerId equals u.UserId into buyers
+        //                from u in buyers.DefaultIfEmpty()
+        //                join a in _context.Addresses on o.AddressId equals a.AddressId into addresses
+        //                from a in addresses.DefaultIfEmpty()
+        //                join pd in _context.PaymentDetails on item.ItemId equals pd.ItemId into payments
+        //                from pd in payments.DefaultIfEmpty()
+        //                join p in _context.Payments on pd.PaymentId equals p.PaymentId into paymentList
+        //                from p in paymentList.DefaultIfEmpty()
+        //                select new BatteryItemDto
+        //                {
+        //                    ItemId = item.ItemId,
+        //                    ItemType = item.ItemType,
+        //                    Brand = battery.Brand,
+        //                    Capacity = battery.Capacity,
+        //                    Condition = battery.Condition,
+        //                    Voltage = battery.Voltage,
+        //                    ChargeCycles = battery.ChargeCycles,
+        //                    ListedPrice = item.Price,
+        //                    ActualPrice = oi != null ? item.Price * oi.Quantity : item.Price,
+        //                    PaymentMethod = p != null ? p.Method : null,
 
-            return await query.ToListAsync();
-        }
-        public async Task<List<BatteryItemDto>> MapToBatteryItemsAsync(IQueryable<Item> batteryItemsQuery)
-        {
-            // KHÔNG dùng itemIds và List<Item> nữa
-            var query = from item in batteryItemsQuery // Dùng IQueryable được truyền vào
-                        join battery in _context.BatteryDetails on item.ItemId equals battery.ItemId
-                        //join img in _context.ItemImages on item.ItemId equals img.ItemId into images
-                        //from img in images.DefaultIfEmpty()
-                        join oi in _context.OrderItems on item.ItemId equals oi.ItemId into orderItems
-                        from oi in orderItems.DefaultIfEmpty()
-                        join o in _context.Orders on oi.OrderId equals o.OrderId into orders
-                        from o in orders.DefaultIfEmpty()
-                        join u in _context.Users on o.BuyerId equals u.UserId into buyers
-                        from u in buyers.DefaultIfEmpty()
-                        join a in _context.Addresses on o.AddressId equals a.AddressId into addresses
-                        from a in addresses.DefaultIfEmpty()
-                        join pd in _context.PaymentDetails on item.ItemId equals pd.ItemId into payments
-                        from pd in payments.DefaultIfEmpty()
-                        join p in _context.Payments on pd.PaymentId equals p.PaymentId into paymentList
-                        from p in paymentList.DefaultIfEmpty()
+        //                    CreatedAt = o != null ? o.CreatedAt : item.CreatedAt,
+        //                    SoldAt = o != null ? o.UpdatedAt : item.UpdatedAt,
+        //                    ImageUrl = img != null ? img.ImageUrl : null,
+        //                    Buyer = u != null ? new BuyerDto
+        //                    {
+        //                        BuyerId = u.UserId,
+        //                        FullName = u.FullName,
+        //                        Phone = u.Phone,
+        //                        Address = a != null ? $"{a.Street}, {a.Ward}, {a.District}, {a.Province}" : null
+        //                    } : null,
+        //                    OrderId = o != null ? o.OrderId : (int?)null,
+        //                    Status = o.Status
+        //                };
+           
 
-                            // Tính toán trạng thái ngay trong query
+        //    return await query.ToListAsync();
+        //}
+        //public async Task<List<BatteryItemDto>> MapToBatteryItemsAsync(IQueryable<Item> batteryItemsQuery)
+        //{
+        //    // KHÔNG dùng itemIds và List<Item> nữa
+        //    var query = from item in batteryItemsQuery // Dùng IQueryable được truyền vào
+        //                join battery in _context.BatteryDetails on item.ItemId equals battery.ItemId
+        //                //join img in _context.ItemImages on item.ItemId equals img.ItemId into images
+        //                //from img in images.DefaultIfEmpty()
+        //                join oi in _context.OrderItems on item.ItemId equals oi.ItemId into orderItems
+        //                from oi in orderItems.DefaultIfEmpty()
+        //                join o in _context.Orders on oi.OrderId equals o.OrderId into orders
+        //                from o in orders.DefaultIfEmpty()
+        //                join u in _context.Users on o.BuyerId equals u.UserId into buyers
+        //                from u in buyers.DefaultIfEmpty()
+        //                join a in _context.Addresses on o.AddressId equals a.AddressId into addresses
+        //                from a in addresses.DefaultIfEmpty()
+        //                join pd in _context.PaymentDetails on item.ItemId equals pd.ItemId into payments
+        //                from pd in payments.DefaultIfEmpty()
+        //                join p in _context.Payments on pd.PaymentId equals p.PaymentId into paymentList
+        //                from p in paymentList.DefaultIfEmpty()
 
-                        select new BatteryItemDto
-                        {
-                            ItemId = item.ItemId,
-                            ItemType = item.ItemType,
-                            Brand = battery.Brand,
-                            Capacity = battery.Capacity,
-                            Condition = battery.Condition,
-                            Voltage = battery.Voltage,
-                            ChargeCycles = battery.ChargeCycles,
-                            ListedPrice = item.Price,
-                            ActualPrice = pd != null ? pd.Amount : (decimal?)null,
-                            PaymentMethod = p != null ? p.Method : null,
-                            CreatedAt = item.CreatedAt,
-                            SoldAt = item.UpdatedAt,
-                            ImageUrl = (from img_ in _context.ItemImages
-                                        where img_.ItemId == item.ItemId
-                                        select img_.ImageUrl).FirstOrDefault(),
-                            Buyer = u != null ? new BuyerDto
-                            {
-                                BuyerId = u.UserId,
-                                FullName = u.FullName,
-                                Phone = u.Phone,
-                                Address = a != null ? $"{a.Street}, {a.Ward}, {a.District}, {a.Province}" : null
-                            } : null,
-                            OrderId = o != null ? o.OrderId : (int?)null,
-                            Status = o.Status != null ? o.Status : null
-                            // Gán trạng thái đã tính toán
-                        };
+        //                    // Tính toán trạng thái ngay trong query
 
-            return await query.ToListAsync();
-        }
+        //                select new BatteryItemDto
+        //                {
+        //                    ItemId = item.ItemId,
+        //                    ItemType = item.ItemType,
+        //                    Brand = battery.Brand,
+        //                    Capacity = battery.Capacity,
+        //                    Condition = battery.Condition,
+        //                    Voltage = battery.Voltage,
+        //                    ChargeCycles = battery.ChargeCycles,
+        //                    ListedPrice = item.Price,
+        //                    ActualPrice = oi != null ? item.Price * oi.Quantity : item.Price,
+        //                    PaymentMethod = p != null ? p.Method : null,
+        //                    CreatedAt = o != null ? o.CreatedAt : item.CreatedAt,
+        //                    SoldAt = o != null ? o.UpdatedAt : item.UpdatedAt,
+        //                    ImageUrl = (from img_ in _context.ItemImages
+        //                                where img_.ItemId == item.ItemId
+        //                                select img_.ImageUrl).FirstOrDefault(),
+        //                    Buyer = u != null ? new BuyerDto
+        //                    {
+        //                        BuyerId = u.UserId,
+        //                        FullName = u.FullName,
+        //                        Phone = u.Phone,
+        //                        Address = a != null ? $"{a.Street}, {a.Ward}, {a.District}, {a.Province}" : null
+        //                    } : null,
+        //                    OrderId = o != null ? o.OrderId : (int?)null,
+        //                    Status = o.Status 
+        //                    // Gán trạng thái đã tính toán
+        //                };
+
+        //    return await query.ToListAsync();
+        //}
 
         public async Task<List<EVItemDto>> MapToEVItemsAsync(List<Item> evItems)
         {
@@ -268,7 +270,7 @@ namespace Infrastructure.Repositories
                         join img in _context.ItemImages on item.ItemId equals img.ItemId into images
                         from img in images.DefaultIfEmpty()
                         join oi in _context.OrderItems on item.ItemId equals oi.ItemId into orderItems
-                        from oi in orderItems.DefaultIfEmpty()
+                        from oi in orderItems
                         join o in _context.Orders on oi.OrderId equals o.OrderId into orders
                         from o in orders.DefaultIfEmpty()
                         join u in _context.Users on o.BuyerId equals u.UserId into buyers
@@ -289,11 +291,11 @@ namespace Infrastructure.Repositories
                             Color = ev.Color,
                             Year = ev.Year,
                             ListedPrice = item.Price,
-                            ActualPrice = pd != null ? pd.Amount : (decimal?)null,
+                            ActualPrice = oi != null ? item.Price * oi.Quantity : item.Price,
                             PaymentMethod = p != null ? p.Method : null,
 
-                            CreatedAt = item.CreatedAt,
-                            SoldAt = item.UpdatedAt,
+                            CreatedAt = o != null ? o.CreatedAt : item.CreatedAt,
+                            SoldAt = o != null ? o.UpdatedAt : item.UpdatedAt,
                             ImageUrl = img != null ? img.ImageUrl : null,
                             Buyer = u != null ? new BuyerDto
                             {
@@ -308,57 +310,57 @@ namespace Infrastructure.Repositories
             return await query.ToListAsync();
         }
 
-        public async Task<List<EVItemDto>> MapToEVItemsAsync(IQueryable<Item> evItemsQuery)
-        {
-            var query = from item in evItemsQuery
-                        join ev in _context.EVDetails on item.ItemId equals ev.ItemId
-                        //join img in _context.ItemImages on item.ItemId equals img.ItemId into images
-                        //from img in images.DefaultIfEmpty()
-                        join oi in _context.OrderItems on item.ItemId equals oi.ItemId into orderItems
-                        from oi in orderItems.DefaultIfEmpty()
-                        join o in _context.Orders on oi.OrderId equals o.OrderId into orders
-                        from o in orders.DefaultIfEmpty()
-                        join u in _context.Users on o.BuyerId equals u.UserId into buyers
-                        from u in buyers.DefaultIfEmpty()
-                        join a in _context.Addresses on o.AddressId equals a.AddressId into addresses
-                        from a in addresses.DefaultIfEmpty()
-                        join pd in _context.PaymentDetails on item.ItemId equals pd.ItemId into payments
-                        from pd in payments.DefaultIfEmpty()
-                        join p in _context.Payments on pd.PaymentId equals p.PaymentId into paymentList
-                        from p in paymentList.DefaultIfEmpty()
+        //public async Task<List<EVItemDto>> MapToEVItemsAsync(IQueryable<Item> evItemsQuery)
+        //{
+        //    var query = from item in evItemsQuery
+        //                join ev in _context.EVDetails on item.ItemId equals ev.ItemId
+        //                //join img in _context.ItemImages on item.ItemId equals img.ItemId into images
+        //                //from img in images.DefaultIfEmpty()
+        //                join oi in _context.OrderItems on item.ItemId equals oi.ItemId into orderItems
+        //                from oi in orderItems
+        //                join o in _context.Orders on oi.OrderId equals o.OrderId into orders
+        //                from o in orders.DefaultIfEmpty()
+        //                join u in _context.Users on o.BuyerId equals u.UserId into buyers
+        //                from u in buyers.DefaultIfEmpty()
+        //                join a in _context.Addresses on o.AddressId equals a.AddressId into addresses
+        //                from a in addresses.DefaultIfEmpty()
+        //                join pd in _context.PaymentDetails on item.ItemId equals pd.ItemId into payments
+        //                from pd in payments.DefaultIfEmpty()
+        //                join p in _context.Payments on pd.PaymentId equals p.PaymentId into paymentList
+        //                from p in paymentList.DefaultIfEmpty()
 
 
-                        select new EVItemDto
-                        {
-                            ItemId = item.ItemId,
-                            ItemType = item.ItemType,
-                            Title = item.Title,
-                            LicensePlate = ev.LicensePlate,
-                            Mileage = ev.Mileage,
-                            Color = ev.Color,
-                            Year = ev.Year,
-                            ListedPrice = item.Price,
-                            ActualPrice = pd != null ? pd.Amount : (decimal?)null,
-                            PaymentMethod = p != null ? p.Method : null,
+        //                select new EVItemDto
+        //                {
+        //                    ItemId = item.ItemId,
+        //                    ItemType = item.ItemType,
+        //                    Title = item.Title,
+        //                    LicensePlate = ev.LicensePlate,
+        //                    Mileage = ev.Mileage,
+        //                    Color = ev.Color,
+        //                    Year = ev.Year,
+        //                    ListedPrice = item.Price,
+        //                    ActualPrice = oi != null ? item.Price * oi.Quantity : item.Price,
+        //                    PaymentMethod = p != null ? p.Method : null,
 
-                            CreatedAt = item.CreatedAt,
-                            SoldAt = item.UpdatedAt,
-                            ImageUrl = (from img_ in _context.ItemImages
-                                        where img_.ItemId == item.ItemId
-                                        select img_.ImageUrl).FirstOrDefault(),
-                            Buyer = u != null ? new BuyerDto
-                            {
-                                BuyerId = u.UserId,
-                                FullName = u.FullName,
-                                Phone = u.Phone,
-                                Address = a != null ? $"{a.Street}, {a.Ward}, {a.District}, {a.Province}" : null
-                            } : null,
-                            OrderId = o != null ? o.OrderId : (int?)null,
+        //                    CreatedAt = o != null ? o.CreatedAt : item.CreatedAt,
+        //                    SoldAt = o != null ? o.UpdatedAt : item.UpdatedAt,
+        //                    ImageUrl = (from img_ in _context.ItemImages
+        //                                where img_.ItemId == item.ItemId
+        //                                select img_.ImageUrl).FirstOrDefault(),
+        //                    Buyer = u != null ? new BuyerDto
+        //                    {
+        //                        BuyerId = u.UserId,
+        //                        FullName = u.FullName,
+        //                        Phone = u.Phone,
+        //                        Address = a != null ? $"{a.Street}, {a.Ward}, {a.District}, {a.Province}" : null
+        //                    } : null,
+        //                    OrderId = o != null ? o.OrderId : (int?)null,
 
-                            Status = o.Status != null ? o.Status : null
-                        };
+        //                    Status = o.Status != null ? o.Status : null
+        //                };
 
-            return await query.ToListAsync();
-        }
+        //    return await query.ToListAsync();
+        //}
     }
 }
