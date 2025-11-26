@@ -8,6 +8,9 @@ public interface IPaymentRepository
 {
     Task<Payment> AddPaymentAsync(Payment payment);
 
+    Task<Payment> CreatePaymentAsync(Payment payment);
+
+
     Task AddPaymentDetailsAsync(List<PaymentDetail> details);
 
     Task UpdatePaymentStatusAsync(int paymentId, string status);

@@ -16,5 +16,6 @@ namespace Application.IRepositories.IPaymentRepositories
         Task<PaymentDetail> GetByOrderIdAsync(int orderId);
 
         Task<PaymentDetail> RemoveOrderAsync(int paymentDetailId);
+        Task CreatePaymentDetailAsync(PaymentDetail paymentDetail);
     }
 }

@@ -102,6 +102,10 @@ namespace Infrastructure.Repositories
             _context.Update(paymentDetail);
             await _context.SaveChangesAsync();
             return paymentDetail;
+        public async Task CreatePaymentDetailAsync(PaymentDetail paymentDetail)
+        {
+            await _context.PaymentDetails.AddAsync(paymentDetail);
+            // await _context.SaveChangesAsync();
         }
     }
 }
