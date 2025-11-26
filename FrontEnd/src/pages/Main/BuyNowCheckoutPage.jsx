@@ -5,6 +5,7 @@ import orderApi from "../../api/orderApi";
 import addressApi from "../../hooks/services/addressApi";
 import { ghnApi } from "../../hooks/services/ghnApi";
 import walletApi from "../../api/walletApi";
+import auctionApi from "../../api/auctionApi"; // <-- new import
 import { FiMapPin, FiX } from "react-icons/fi";
 
 const AddressModal = ({ addresses, selectedId, onSelect, onClose }) => (
@@ -54,10 +55,11 @@ export default function BuyNowCheckoutPage() {
   const location = useLocation();
   const navigate = useNavigate();
   const saved = localStorage.getItem("checkoutData");
-  const orderData = location.state || (saved ? JSON.parse(saved) : null);
+  const checkoutData = location.state || (saved ? JSON.parse(saved) : null);
+
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [addresses, setAddresses] = useState(orderData?.allAddresses || []);
-  const [selectedAddressId, setSelectedAddressId] = useState(orderData?.selectedAddressId);
+  const [addresses, setAddresses] = useState(checkoutData?.allAddresses || []);
+  const [selectedAddressId, setSelectedAddressId] = useState(checkoutData?.selectedAddressId);
   const [shippingFee, setShippingFee] = useState(0);
   const [loadingFee, setLoadingFee] = useState(false);
   const [wallet, setWallet] = useState(null);
@@ -67,10 +69,11 @@ export default function BuyNowCheckoutPage() {
   const pollingRef = useRef(null);
 
   const selectedAddress = addresses.find(a => a.addressId === selectedAddressId);
+  const totalItemsPrice = checkoutData?.orderItems?.reduce((sum, item) => sum + item.price * item.quantity, 0) || 0;
+  const finalTotal = totalItemsPrice + shippingFee;
 
   const formatVND = n => n.toLocaleString("vi-VN", { style: "currency", currency: "VND" });
-  const totalItemsPrice = orderData?.orderItems?.reduce((sum, item) => sum + item.price * item.quantity, 0) || 0;
-  const finalTotal = totalItemsPrice + shippingFee;
+  const orderItemIds = checkoutData?.orderItems.map(i => i.id) || [];
 
   // Fetch wallet
   useEffect(() => {
@@ -97,38 +100,37 @@ export default function BuyNowCheckoutPage() {
     };
     loadShippingFee();
   }, [selectedAddress]);
-  const orderItemIds = orderData.orderItems.map(i => i.id);
 
-  // Confirm & Pay
   const handleConfirmAndPay = async () => {
     if (!selectedAddress) {
       setStatusMessage("Vui lòng chọn địa chỉ giao hàng.");
       return;
     }
+
     let payWindow = null;
-    if (paymentMethod === "payos") {
-      payWindow = window.open("", "_blank");
-    }
+    if (paymentMethod === "payos") payWindow = window.open("", "_blank");
 
     setIsProcessing(true);
     try {
+      // 1️⃣ Create Order
       const orderPayload = {
         buyerId: parseInt(localStorage.getItem("userId"), 10),
         addressId: selectedAddress.addressId,
         orderItemIds: orderItemIds,
-        shippingPrice: shippingFee || 0, // phí GHN
+        shippingPrice: shippingFee || 0,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
-      console.log(orderPayload, "orderPayload")
       const orderResponse = await orderApi.postOrderNew(orderPayload);
-      console.log(orderResponse, "orderResponse");
+
+      // 2️⃣ Wallet Payment
       if (paymentMethod === "wallet") {
         if (!wallet || wallet.balance < finalTotal) {
           setIsProcessing(false);
           setStatusMessage("Số dư ví không đủ.");
           return;
         }
+
         await walletApi.withdrawWallet({
           userId: parseInt(localStorage.getItem("userId"), 10),
           amount: finalTotal,
@@ -136,52 +138,66 @@ export default function BuyNowCheckoutPage() {
           refId: orderResponse.orderId,
           description: `Thanh toán đơn hàng ${orderResponse.orderId}`,
         });
+
         setWallet(prev => ({ ...prev, balance: prev.balance - finalTotal }));
         navigate("/payment/success", { state: { method: "wallet", amount: finalTotal } });
+
+        // ✅ If auction Buy Now, end it
+        if (checkoutData.auctionId) {
+          await auctionApi.buyNow(checkoutData.auctionId);
+        }
+
       } else {
+        // 3️⃣ PayOS Payment
         const paymentPayload = {
           userId: parseInt(localStorage.getItem("userId"), 10),
           method: "payos",
           totalAmount: finalTotal,
-          details: orderData.orderItems.map(i => ({
+          details: checkoutData.orderItems.map(i => ({
             orderId: orderResponse.orderId,
             itemId: i.itemId,
             amount: finalTotal,
-          }))
+          })),
         };
-        const link = await paymentApi.createPaymentLink(paymentPayload);
 
+        const link = await paymentApi.createPaymentLink(paymentPayload);
         if (!link?.checkoutUrl) {
           payWindow.close();
           throw new Error("Không tạo được link thanh toán.");
         }
 
-        // Now redirect the reserved popup
         payWindow.location.href = link.checkoutUrl;
 
         // Polling for window close
-        pollingRef.current = setInterval(() => {
+        pollingRef.current = setInterval(async () => {
           if (payWindow && payWindow.closed) {
             clearInterval(pollingRef.current);
-            navigate("/payment/fail", {
-              state: {
-                reason: "Cửa sổ thanh toán đã đóng.",
-                method: "payos",
-                orderId: orderResponse.orderId,
-                orderCode: link.orderCode,
-              },
-            });
+            // Check payment status
+            try {
+              const paidOrder = await orderApi.getOrderById(orderResponse.orderId);
+              if (paidOrder?.status === "Paid") {
+                navigate("/payment/success", { state: { method: "payos", amount: finalTotal } });
+                if (checkoutData.auctionId) await auctionApi.buyNow(checkoutData.auctionId);
+              } else {
+                navigate("/payment/fail", { state: { reason: "Thanh toán không thành công.", orderId: orderResponse.orderId } });
+              }
+            } catch {
+              navigate("/payment/fail", { state: { reason: "Không kiểm tra được trạng thái thanh toán.", orderId: orderResponse.orderId } });
+            }
           }
         }, 2000);
       }
+
     } catch (err) {
+      console.error(err);
       setStatusMessage("Không thể hoàn tất thanh toán.");
     } finally {
       setIsProcessing(false);
     }
   };
 
-  if (!orderData?.orderItems?.length) return <div className="p-6 text-center">Không có dữ liệu.</div>;
+  if (!checkoutData?.orderItems?.length)
+    return <div className="p-6 text-center">Không có dữ liệu.</div>;
 
   return (
     <div className="p-6 bg-gray-100 min-h-screen">
@@ -197,14 +213,13 @@ export default function BuyNowCheckoutPage() {
               </div>
               <button onClick={() => setIsModalOpen(true)} className="text-blue-500 hover:underline font-semibold ml-4">Thay đổi</button>
             </div>
-          ) : (
-            <p className="text-red-500">Không có địa chỉ giao hàng nào được chọn.</p>
-          )}
+          ) : <p className="text-red-500">Không có địa chỉ giao hàng nào được chọn.</p>}
         </div>
 
+        {/* Sản phẩm */}
         <h2 className="text-lg font-semibold mb-4">Sản phẩm đặt mua</h2>
         <div className="divide-y">
-          {orderData.orderItems.map(i => (
+          {checkoutData.orderItems.map(i => (
             <div key={i.id} className="flex items-center justify-between py-4">
               <div className="flex items-center space-x-4">
                 <img src={i.image} className="w-16 h-16 rounded object-cover" alt={i.name} />
@@ -228,7 +243,7 @@ export default function BuyNowCheckoutPage() {
           <p className="font-semibold">{loadingFee ? "Đang tính..." : formatVND(shippingFee)}</p>
         </div>
 
-        {/* Thanh toán */}
+        {/* Phương thức thanh toán */}
         <div className="flex justify-between items-center py-4 border-t">
           <p>Phương thức thanh toán</p>
           <div className="flex gap-4">
@@ -241,7 +256,7 @@ export default function BuyNowCheckoutPage() {
 
         {/* Tổng cộng */}
         <div className="flex justify-between items-center border-t pt-6">
-          <p className="text-lg font-semibold">Tổng cộng ({orderData.orderItems.length} sản phẩm):</p>
+          <p className="text-lg font-semibold">Tổng cộng ({checkoutData.orderItems.length} sản phẩm):</p>
           <p className="text-2xl font-bold text-[#D4AF37]">{formatVND(finalTotal)}</p>
         </div>
 
