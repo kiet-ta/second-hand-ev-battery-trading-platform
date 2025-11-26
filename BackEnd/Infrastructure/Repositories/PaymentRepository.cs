@@ -23,6 +23,13 @@ public class PaymentRepository : IPaymentRepository
         return payment;
     }
 
+    public async Task<Payment> CreatePaymentAsync(Payment payment)
+    {
+        var e = (await _context.Payments.AddAsync(payment)).Entity;
+        // await _context.SaveChangesAsync(); 
+        return e;
+    }
+
     public async Task AddPaymentDetailsAsync(List<PaymentDetail> details)
     {
         _context.PaymentDetails.AddRange(details);
