@@ -43,7 +43,7 @@ public class OrderItemServiceTests
     {
         var existing = new OrderItem { OrderItemId = 1, BuyerId = 1, ItemId = 10, Quantity = 2, Price = 100 };
         _mockRepo.Setup(r => r.GetCartItemsByBuyerIdAsync(1)).ReturnsAsync(new List<OrderItem> { existing });
-        _mockUow.Setup(u => u.Items.GetByIdAsync(10, default)).ReturnsAsync(new Item { ItemId = 10, Quantity = 10 });
+        _mockUow.Setup(u => u.Items.GetByIdAsync(10, default)).ReturnsAsync(new Item { ItemId = 10, Quantity = 10, Price = 30 });
         _mockRepo.Setup(r => r.UpdateAsync(It.IsAny<OrderItem>()))
                  .Callback<OrderItem>(item => { existing.Quantity = item.Quantity; existing.Price = item.Price; })
                  .Returns(Task.CompletedTask);
@@ -69,7 +69,7 @@ public class OrderItemServiceTests
     {
         var existing = new OrderItem { BuyerId = 1, ItemId = 1, Quantity = 2 };
         _mockRepo.Setup(r => r.GetCartItemsByBuyerIdAsync(1)).ReturnsAsync(new List<OrderItem> { existing });
-        _mockUow.Setup(u => u.Items.GetByIdAsync(1, default)).ReturnsAsync(new Item { ItemId = 1, Quantity = 10 });
+        _mockUow.Setup(u => u.Items.GetByIdAsync(1, default)).ReturnsAsync(new Item { ItemId = 1, Quantity = 10, Price = 30 });
         _mockRepo.Setup(r => r.UpdateAsync(It.IsAny<OrderItem>()))
                  .Callback<OrderItem>(item => existing.Quantity = item.Quantity)
                  .Returns(Task.CompletedTask);
@@ -234,7 +234,7 @@ public class OrderItemServiceTests
             BuyerId = 1,
             ItemId = 10,
             Quantity = 3,
-            Price = 0 
+            Price = 0
         };
 
         var result = await _service.CreateOrderItemAsync(req);

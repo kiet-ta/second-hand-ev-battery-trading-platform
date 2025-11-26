@@ -62,19 +62,64 @@ public class WalletService : IWalletService
             throw new KeyNotFoundException("User wallet not found");
         }
 
-        var success = await _unitOfWork.Wallets.UpdateBalanceAsync(wallet.WalletId, amount);
+        await _unitOfWork.BeginTransactionAsync();
+        try
+        {
+
+            //Update wallet balance
+            var success = await _unitOfWork.Wallets.UpdateBalanceAsync(wallet.WalletId, amount);
         if (!success) return false;
 
-        var transaction = new WalletTransaction
+        //record Payment
+        var paymentOrderCode = long.Parse(DateTime.Now.ToString("yyyyMMddHHmmss") + userId.ToString());
+
+        var payment = new Payment
+        {
+            UserId = userId,
+            OrderCode = paymentOrderCode,
+            TotalAmount = amount,
+            Method = "Wallet",
+            Status = "Completed",
+            PaymentType = "Deposit",
+            CreatedAt = DateTime.Now
+        };
+
+        var newPayment = await _unitOfWork.Payments.CreatePaymentAsync(payment);
+        if (newPayment == null) return false;
+
+        //record PaymentDetail
+        var paymentDetail = new PaymentDetail
+        {
+            PaymentId = newPayment.PaymentId,
+            Amount = amount,
+            // Đối với giao dịch nạp tiền, OrderId và ItemId thường là NULL
+            OrderId = null,
+            ItemId = null
+        };
+
+        await _unitOfWork.PaymentDetails.CreatePaymentDetailAsync(paymentDetail);
+
+        //record WalletTransaction
+        var wallettransaction = new WalletTransaction
         {
             WalletId = wallet.WalletId,
             Amount = amount,
             Type = WalletTransactionType.Deposit.ToString(),
-            CreatedAt = DateTime.Now
+            CreatedAt = DateTime.Now,
+            // WalletTransaction.refId = paymentId
+            RefId = newPayment.PaymentId
         };
-        await _unitOfWork.WalletTransactions.CreateTransactionAsync(transaction);
+        await _unitOfWork.WalletTransactions.CreateTransactionAsync(wallettransaction);
+            //await _unitOfWork.SaveChangesAsync();
+            await _unitOfWork.CommitTransactionAsync();
+            return true;
+        }
+        catch (Exception)
+        {
+            await _unitOfWork.RollbackTransactionAsync();
+            throw;
+        }
 
-        return true;
     }
 
     public async Task<WalletTransactionDto> WithdrawAsync(WithdrawRequestDto request)
@@ -86,7 +131,7 @@ public class WalletService : IWalletService
 
         if (request.Type != WalletTransactionType.Withdraw.ToString() && request.Type != WalletTransactionType.Payment.ToString())
         {
-            throw new ArgumentException("Invalid transaction type. Must be 'withdraw' or 'payment'.");
+            throw new ArgumentException("Invalid transaction type. Must be 'Withdraw' or 'Payment'.");
         }
 
         var wallet = await _unitOfWork.Wallets.GetWalletByUserIdAsync(request.UserId);
@@ -100,33 +145,72 @@ public class WalletService : IWalletService
             throw new InvalidOperationException("Insufficient wallet balance.");
         }
 
-        // distract money in wallet
-        var success = await _unitOfWork.Wallets.UpdateBalanceAsync(wallet.WalletId, -request.Amount);
-        if (!success)
+        await _unitOfWork.BeginTransactionAsync();
+        try
         {
-            throw new Exception("Failed to update wallet balance.");
+            var success = await _unitOfWork.Wallets.UpdateBalanceAsync(wallet.WalletId, -request.Amount);
+            if (!success)
+            {
+                throw new Exception("Failed to update wallet balance.");
+            }
+            var paymentOrderCode = long.Parse(DateTime.Now.ToString("yyyyMMddHHmmss") + request.UserId.ToString());
+
+            var payment = new Payment
+            {
+                UserId = request.UserId,
+                OrderCode = paymentOrderCode,
+                TotalAmount = request.Amount,
+                Method = "Wallet",
+                Status = "Completed",
+                PaymentType = request.Type == WalletTransactionType.Withdraw.ToString() ?
+                              "Withdrawal" : "Order_Purchase",
+                CreatedAt = DateTime.Now
+            };
+
+            var newPayment = await _unitOfWork.Payments.CreatePaymentAsync(payment);
+            if (newPayment == null) throw new Exception("Failed to create payment record.");
+
+            var paymentDetail = new PaymentDetail
+            {
+                PaymentId = newPayment.PaymentId,
+                Amount = request.Amount,
+                // Nếu là Withdrawal: OrderId/ItemId = null.
+                // Nếu là Payment: OrderId có thể là RefId nếu RefId là OrderId.
+                OrderId = request.Type == WalletTransactionType.Payment.ToString() ? request.RefId : null,
+                ItemId = null
+            };
+
+            await _unitOfWork.PaymentDetails.CreatePaymentDetailAsync(paymentDetail);
+
+            var wallettransaction = new WalletTransaction
+            {
+                WalletId = wallet.WalletId,
+                Amount = -request.Amount,
+                Type = request.Type,
+                RefId = newPayment.PaymentId,
+                CreatedAt = DateTime.Now
+            };
+
+            var transactionId = await _unitOfWork.WalletTransactions.CreateTransactionAsync(wallettransaction);
+            wallettransaction.TransactionId = transactionId;
+
+            //await _context.SaveChangesAsync();
+            await _unitOfWork.CommitTransactionAsync();
+
+            return new WalletTransactionDto
+            {
+                TransactionId = wallettransaction.TransactionId,
+                Amount = wallettransaction.Amount,
+                Type = wallettransaction.Type,
+                ReferenceId = wallettransaction.RefId,
+                CreatedAt = wallettransaction.CreatedAt
+            };
         }
-
-        var transaction = new WalletTransaction
+        catch (Exception)
         {
-            WalletId = wallet.WalletId,
-            Amount = -request.Amount, // set negative amount to show subtraction
-            Type = request.Type, // withdraw or payment
-            RefId = request.RefId,
-            CreatedAt = DateTime.Now
-        };
-
-        var transactionId = await _unitOfWork.WalletTransactions.CreateTransactionAsync(transaction);
-        transaction.TransactionId = transactionId;
-
-        return new WalletTransactionDto
-        {
-            TransactionId = transaction.TransactionId,
-            Amount = transaction.Amount,
-            Type = transaction.Type,
-            ReferenceId = transaction.RefId,
-            CreatedAt = transaction.CreatedAt
-        };
+            await _unitOfWork.RollbackTransactionAsync();
+            throw;
+        }
     }
 
     public async Task<WalletTransactionDto> RevenueAsync(WithdrawRequestDto request)

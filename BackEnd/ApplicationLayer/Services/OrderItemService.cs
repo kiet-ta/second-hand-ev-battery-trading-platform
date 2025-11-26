@@ -41,11 +41,11 @@ namespace Application.Services
 
                 if (existingCart.Quantity + request.Quantity > item.Quantity)
                     throw new InvalidOperationException("Adding the requested quantity exceeds available stock.");
-                }
+                
                 else
                 {
-                    existingCart.Price = request.Price;
                     existingCart.Quantity += request.Quantity;
+                    existingCart.Price = (decimal)(existingCart.Quantity * item.Price);
                     await _unitOfWork.OrderItems.UpdateAsync(existingCart);
                     return new OrderItemDto
                     {
@@ -55,17 +55,6 @@ namespace Application.Services
                         Price = existingCart.Price
                     };
                 }
-
-                existingCart.Price = request.Price;
-                existingCart.Quantity += request.Quantity;
-                await _unitOfWork.OrderItems.UpdateAsync(existingCart);
-                return new OrderItemDto
-                {
-                    OrderItemId = existingCart.OrderItemId,
-                    ItemId = existingCart.ItemId,
-                    Quantity = existingCart.Quantity,
-                    Price = existingCart.Price
-                };
             }
             else
             {
@@ -82,6 +71,7 @@ namespace Application.Services
                 };
             }
         }
+
 
 
 

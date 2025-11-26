@@ -14,5 +14,7 @@ namespace Application.IRepositories.IPaymentRepositories
         Task<List<RevenueByWeekDto>> GetRevenueByWeekAsync(int sellerId);
 
         Task<PaymentDetail> GetByOrderIdAsync(int orderId);
+
+        Task CreatePaymentDetailAsync(PaymentDetail paymentDetail);
     }
 }
