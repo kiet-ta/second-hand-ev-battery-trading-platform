@@ -70,6 +70,7 @@ namespace Application.Services
                 Condition = e.Condition,
                 Voltage = e.Voltage,
                 ChargeCycles = e.ChargeCycles,
+                UpdatedAt = e.UpdatedAt,
                 Title = item?.Title,
                 Price = item?.Price,
                 Status = item?.Status

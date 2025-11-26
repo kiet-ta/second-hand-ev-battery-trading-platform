@@ -121,7 +121,8 @@ namespace Infrastructure.Repositories
                             OrderId = oi.OrderId,
                             ItemId = oi.ItemId,
                             Quantity = oi.Quantity,
-                            Price = oi.Price
+                            Price = oi.Price,
+                            Status = oi.Status
                         })
                         .ToList()
                 })

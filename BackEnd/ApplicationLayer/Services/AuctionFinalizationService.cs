@@ -143,7 +143,7 @@ public class AuctionFinalizationService : IAuctionFinalizationService
             await _unitOfWork.SaveChangesAsync(); // Save to get OrderId
             _logger.LogInformation("Created Order {OrderId} for winner User {WinnerId}", newOrder.OrderId, winnerId);
 
-            var paymentTransaction = new WalletTransaction
+            var walletTransaction = new WalletTransaction
             {
                 WalletId = winnerWallet.WalletId,
                 Amount = -winningAmount, 
@@ -153,7 +153,8 @@ public class AuctionFinalizationService : IAuctionFinalizationService
                 AuctionId = auctionId,
                 OrderId = newOrder.OrderId
             };
-            await _unitOfWork.WalletTransactions.CreateTransactionAsync(paymentTransaction);
+            await _unitOfWork.WalletTransactions.CreateTransactionAsync(walletTransaction);
+
             _logger.LogInformation($"Decreased held balance by {winningAmount} for winner User {winnerId} and created 'payment' transaction.");
 
             // create OrderItem

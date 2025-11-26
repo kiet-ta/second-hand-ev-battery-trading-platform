@@ -2,6 +2,7 @@
 using Application.DTOs.PaymentDtos;
 using Application.IHelpers;
 using Application.IRepositories;
+using Application.IRepositories.IPaymentRepositories;
 using Application.IServices;
 using Domain.Common.Constants;
 using Domain.Entities;
@@ -32,6 +33,24 @@ public class PaymentService : IPaymentService
         _uniqueIDGenerator = uniqueIDGenerator;
         _unitOfWork = unitOfWork;
         _notificationService = notificationService;
+    }
+
+
+    public async Task<IEnumerable<PaymentWithDetailsDto>> GetPaymentsDataAsync()
+    {
+        return await _unitOfWork.Payments.GetAllPaymentsWithDetailsMappedAsync();
+    }
+
+    public async Task<IEnumerable<PaymentWithDetailsDto>> GetPaymentHistoryByUserIdAsync(int userId)
+    {
+        return await _unitOfWork.Payments.GetPaymentsByUserIdMappedAsync(userId);
+    }
+
+    public async Task<DetailedPaymentHistoryDto> GetTransactionDetailByOrder(int userId, int orderId)
+    {
+        var transactionDetail = await _unitOfWork.Payments.GetTransactionDetailAsync(userId, orderId);
+
+        return transactionDetail;
     }
 
     private async Task UpdateItemInventoryForOrderAsync(int orderId)
@@ -178,7 +197,7 @@ public class PaymentService : IPaymentService
                 Message = $"Sản phẩm '{item.Title}' trong đơn hàng CMS_EV_{orderItem.OrderId} đã được xác nhận hoàn tất bởi người mua. Số tiền {netAmountForSeller} đã được chuyển vào ví của bạn sau khi trừ phí hoa hồng.",
                 TargetUserId = sellerId.ToString(),
             };
-            await _notificationService.AddNewNotification(notificationToSeller, 0 , "");
+            await _notificationService.AddNewNotification(notificationToSeller, 4 , "Seller");
             await _unitOfWork.SaveChangesAsync();
             await _notificationService.SendNotificationAsync(notificationToSeller.Title, notificationToSeller.TargetUserId);
             await _unitOfWork.CommitTransactionAsync();
@@ -368,7 +387,7 @@ public class PaymentService : IPaymentService
             if (isSimplePayment)
             {
                 var rules = await _unitOfWork.CommissionFeeRules.GetAllAsync();
-                var registrationFeeRule = rules.FirstOrDefault(r => r.FeeCode == "SELLER_REG_FEE" && r.IsActive);
+                var registrationFeeRule = rules.FirstOrDefault(r => r.FeeCode == "FEEPR" && r.IsActive);
 
                 if (registrationFeeRule != null && info.TotalAmount == registrationFeeRule.FeeValue)
                 {

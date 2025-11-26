@@ -19,7 +19,7 @@ export default function OrderCard({ orderItem, order, onViewItem, onMarkReceived
 
   useEffect(() => {
     const fetchReviewStatus = async () => {
-      if (order.status === "Completed" && orderItem?.itemId && currentUserId) {
+      if (orderItem.status === "Completed" && orderItem?.itemId && currentUserId) {
         try {
           const res = await reviewApi.getReviewByItemID(orderItem.itemId);
           const userReviews = res?.filter(r => r.reviewerId == currentUserId);
@@ -30,27 +30,31 @@ export default function OrderCard({ orderItem, order, onViewItem, onMarkReceived
       }
     };
     fetchReviewStatus();
-  }, [order.status, orderItem.itemId, currentUserId]);
+  }, [orderItem.status, orderItem.itemId, currentUserId]);
+  const [isConfirmed, setIsConfirmed] = useState(false);
 
   const handleConfirmReceived = async () => {
     try {
       setLoading(true);
-      await paymentApi.confirmOrder(order.orderId);
+      setIsConfirmed(true); // temporary self-update
+      await paymentApi.confirmOrder(orderItem.orderItemId);
       onMarkReceived && onMarkReceived();
       toast.success("Bạn đã xác nhận nhận hàng!");
     } catch {
+      setIsConfirmed(false); // revert if API fails
       toast.error("Cập nhật trạng thái thất bại.");
     } finally {
       setLoading(false);
     }
   };
 
+
   const detail = orderItem.detail || {};
 
   return (
     <div className="flex gap-4 p-4">
       <div className="flex-shrink-0 w-28 h-28 rounded-md overflow-hidden bg-gray-50 border">
-        <img src={detail?.itemImage?.[0]?.imageUrl || "https://placehold.co/280x280"} alt={detail?.title || "product"} className="w-full h-full object-cover"/>
+        <img src={detail?.itemImage?.[0]?.imageUrl || "https://placehold.co/280x280"} alt={detail?.title || "product"} className="w-full h-full object-cover" />
       </div>
 
       <div className="flex-1">
@@ -59,8 +63,8 @@ export default function OrderCard({ orderItem, order, onViewItem, onMarkReceived
           {detail?.evDetail
             ? `${detail.evDetail.brand} • ${detail.evDetail.model} • ${detail.evDetail.year}`
             : detail?.batteryDetail
-            ? `${detail.batteryDetail.brand} • ${detail.batteryDetail.capacity} kWh`
-            : ""}
+              ? `${detail.batteryDetail.brand} • ${detail.batteryDetail.capacity} kWh`
+              : ""}
         </div>
         <div className="mt-2 text-sm text-gray-500">
           Số lượng: {orderItem.quantity} | Đơn giá: {orderItem.price?.toLocaleString("vi-VN")}₫ | Thành tiền: {(orderItem.quantity * orderItem.price).toLocaleString("vi-VN")}₫
@@ -68,26 +72,35 @@ export default function OrderCard({ orderItem, order, onViewItem, onMarkReceived
       </div>
 
       <div className="w-44 flex flex-col justify-between items-end">
-        {order.status === "Shipped" && (
-          <button onClick={handleConfirmReceived} disabled={loading} className="mb-2 px-4 py-2 rounded-md bg-green-600 text-white text-sm hover:bg-green-700">
+        {(orderItem.status === "Shipped" && !isConfirmed) && (
+          <button
+            onClick={handleConfirmReceived}
+            disabled={loading}
+            className="mb-2 px-4 py-2 rounded-md bg-green-600 text-white text-sm hover:bg-green-700"
+          >
             {loading ? "Đang..." : "Đã nhận hàng"}
           </button>
         )}
 
-        {order.status === "Completed" && !isReviewed && (
+        {(orderItem.status === "Shipped" && isConfirmed) && (
+          <button disabled className="mb-2 px-4 py-2 rounded-md bg-gray-200 text-gray-500 text-sm cursor-not-allowed">
+            Đã nhận hàng
+          </button>
+        )}
+        {orderItem.status === "Completed" && !isReviewed && (
           <button onClick={() => onOpenReview?.(order, orderItem)} className="mb-2 px-4 py-2 rounded-md bg-orange-500 text-white text-sm hover:bg-orange-600">
             Đánh giá
           </button>
         )}
 
-        {order.status === "Completed" && isReviewed && (
+        {orderItem.status === "Completed" && isReviewed && (
           <button disabled className="mb-2 px-4 py-2 rounded-md bg-gray-200 text-gray-500 text-sm cursor-not-allowed">
             Đã đánh giá
           </button>
         )}
 
         <button onClick={() => onViewItem?.(orderItem)} className="flex items-center gap-2 px-4 py-2 rounded-md border border-gray-200 text-sm hover:shadow">
-          Xem chi tiết <FiChevronRight/>
+          Xem chi tiết <FiChevronRight />
         </button>
       </div>
 

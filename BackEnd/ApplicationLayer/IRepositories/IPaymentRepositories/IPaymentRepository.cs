@@ -1,4 +1,5 @@
-﻿using Application.DTOs.PaymentDtos;
+﻿using Application.DTOs;
+using Application.DTOs.PaymentDtos;
 using Domain.Entities;
 
 namespace Application.IRepositories.IPaymentRepositories;
@@ -15,4 +16,7 @@ public interface IPaymentRepository
 
     Task<IEnumerable<(int Year, int Month, decimal Total)>> GetRevenueByMonthAsync(int monthsRange);
     Task<Payment?> GetByOrderIdAsync(int orderId);
+    Task<IEnumerable<PaymentWithDetailsDto>> GetAllPaymentsWithDetailsMappedAsync();
+    Task<IEnumerable<PaymentWithDetailsDto>> GetPaymentsByUserIdMappedAsync(int userId);
+    Task<DetailedPaymentHistoryDto> GetTransactionDetailAsync(int userId, int orderId);
 }

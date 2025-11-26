@@ -1,5 +1,6 @@
 ﻿using Application.DTOs;
 using Application.DTOs.ItemDtos;
+using IdGen;
 
 namespace Application.IServices
 {
@@ -9,5 +10,7 @@ namespace Application.IServices
         Task<IEnumerable<OrderItemDto>> GetCartItemsByBuyerIdAsync(int buyerId);
         Task<bool> UpdateOrderItemAsync(int id, UpdateOrderItemDto dto);
         Task<bool> DeleteOrderItemAsync(int id);
+
+        Task<bool> ConfirmShippingAsync(int orderId);
     }
 }

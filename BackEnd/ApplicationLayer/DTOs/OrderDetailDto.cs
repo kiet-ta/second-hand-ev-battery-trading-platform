@@ -11,11 +11,11 @@ namespace Application.DTOs
     {
         public OrderItem Order { get; set; }
 
+        public int AddressId { get; set; }
         public decimal FeeValue { get; set; }
 
         public string PaymentMethod { get; set; }
         public decimal TotalAmount { get; set; }
 
-        public string Status { get; set; }
     }
 }
