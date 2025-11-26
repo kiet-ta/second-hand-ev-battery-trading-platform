@@ -17,14 +17,17 @@ public class AuctionService : IAuctionService
     private readonly IUnitOfWork _unitOfWork;
     private readonly ILogger<AuctionService> _logger;
     private readonly INotificationService _notificationService;
+    private readonly IAuctionFinalizationService _auctionFinalizationService;
     public AuctionService(
         IUnitOfWork unitOfWork,
         INotificationService notificationService,
+        IAuctionFinalizationService auctionFinalizationService,
         ILogger<AuctionService> logger)
     {
         _unitOfWork = unitOfWork;
         _logger = logger;
         _notificationService = notificationService;
+        _auctionFinalizationService = auctionFinalizationService;
     }
 
     private DateTime now = DateTime.Now;
@@ -53,6 +56,95 @@ public class AuctionService : IAuctionService
             .OrderByDescending(b => b.BidTime)
             .ToList();
         return history;
+    }
+
+    public async Task BuyNowAuctionAsync(int auctionId, int userId)
+    {
+        // 1. Initial Validation
+        var auction = await _unitOfWork.Auctions.GetByIdAsync(auctionId);
+
+        if (auction == null)
+        {
+            throw new KeyNotFoundException($"Auction with ID {auctionId} not found.");
+        }
+
+        var item = await _unitOfWork.Items.GetByIdAsync(auction.ItemId);
+
+        if (item == null) throw new KeyNotFoundException($"Item for auction {auctionId} not found.");
+
+        // Validate Auction Status
+        if (auction.Status != AuctionStatus.Ongoing.ToString()) throw new InvalidOperationException("Auction is not currently active.");
+
+        if (item.Price == null || item.Price <= 0) throw new InvalidOperationException("This auction does not support 'Buy Now' option.");
+
+        // 2. Validate User (Seller cannot buy their own item)
+        if (item.UpdatedBy == userId)
+        {
+            _logger.LogWarning("User {UserId} attempted to 'Buy Now' their own auction {AuctionId}.", userId, auctionId);
+            throw new InvalidOperationException("You cannot buy your own auction item.");
+        }
+
+        // 3. Execution with Transaction (Critical Section)
+        await _unitOfWork.BeginTransactionAsync();
+        try
+        {
+            // Double-check locking: Retrieve status again within transaction to prevent race conditions
+            // (e.g., another user clicked Buy Now milliseconds ago)
+            var currentAuction = await _unitOfWork.Auctions.GetByIdAsync(auctionId);
+            if (currentAuction.Status != AuctionStatus.Ongoing.ToString())
+            {
+                await _unitOfWork.RollbackTransactionAsync();
+                throw new InvalidOperationException("Auction has ended or changed status during processing.");
+            }
+
+            // Create the Winning Bid
+            // The 'Buy Now' action is technically placing a bid equal to the BuyNowPrice
+            var winningBid = new Bid
+            {
+                AuctionId = auctionId,
+                UserId = userId,
+                BidAmount = item.Price.Value,
+                BidTime = DateTime.Now,
+                Status = BidStatus.Active.ToString()
+            };
+
+            await _unitOfWork.Bids.PlaceBidAsync(winningBid);
+  
+            // Update Auction Logic
+            // We verify if the CurrentPrice is already higher than BuyNowPrice (Edge case: manual bidding exceeded buy now price)
+            if (auction.CurrentPrice >= item.Price.Value)
+            {
+                await _unitOfWork.RollbackTransactionAsync();
+                throw new InvalidOperationException("Current bid price is already higher than or equal to Buy Now price.");
+            }
+
+            auction.CurrentPrice = item.Price.Value;
+            auction.TotalBids += 1;
+
+            // Set auction end time to now to mark it as ended
+            // subtract 1 second to ensure auction is considered ended
+            auction.EndTime = DateTime.Now.AddSeconds(-1);
+
+            // NOTE: We do NOT set status to 'Ended' here directly.
+            // We leave it as 'Ongoing' so the FinalizationService can pick it up, 
+            // validate the state, and process the wallet transfer/order creation.
+
+            _unitOfWork.Auctions.Update(auction);
+            await _unitOfWork.SaveChangesAsync();
+
+            await _unitOfWork.CommitTransactionAsync();
+            _logger.LogInformation("User {UserId} successfully triggered Buy Now for Auction {AuctionId}. Bid created.", userId, auctionId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to process Buy Now for Auction {AuctionId} by User {UserId}", auctionId, userId);
+            await _unitOfWork.RollbackTransactionAsync();
+            throw;
+        }
+
+        // 4. Trigger Finalization
+        // This will handle: Locking funds, Creating Order, Updating Status to Ended, Notifying users.
+        await _auctionFinalizationService.FinalizeAuctionAsync(auctionId);
     }
 
     public async Task<AuctionDto?> GetAuctionByItemIdAsync(int itemId)
@@ -155,11 +247,26 @@ public class AuctionService : IAuctionService
         try
         {
             var auction = await _unitOfWork.Auctions.GetByIdAsync(auctionId);
-
-            if (auction == null || auction.Status != AuctionStatus.Ongoing.ToString()|| now < auction.StartTime || now > auction.EndTime)
+            if (auction == null)
+            {
+                await _unitOfWork.RollbackTransactionAsync();
+                throw new KeyNotFoundException($"Auction with ID {auctionId} not found.");
+            }
+            var item = await _unitOfWork.Items.GetByIdAsync(auction.ItemId);
+            if (item == null)
+            {
+                await _unitOfWork.RollbackTransactionAsync();
+                throw new KeyNotFoundException($"Item for auction {auctionId} not found.");
+            }
+            if (auction.Status != AuctionStatus.Ongoing.ToString() || now < auction.StartTime || now > auction.EndTime)
             {
                 await _unitOfWork.RollbackTransactionAsync();
                 throw new InvalidOperationException("Auction is not active or has ended.");
+            }
+            if (item.Price.HasValue && (auction.CurrentPrice ?? 0) >= item.Price.Value)
+            {
+                await _unitOfWork.RollbackTransactionAsync();
+                throw new InvalidOperationException("This item has been bought via Buy Now.");
             }
             var currentPrice = auction.CurrentPrice ?? auction.StartingPrice;
             decimal requiredMinimumBid = currentPrice + auction.StepPrice;
@@ -289,7 +396,7 @@ public class AuctionService : IAuctionService
                 var outbidMessage = $"You have been outbid on auction #{auctionId}. The new price is {bidAmount:N0}đ.";
                 var notiDto = new CreateNotificationDto
                 {
-                    NotiType =NotificationType.Auction.ToString(),
+                    NotiType = NotificationType.Auction.ToString(),
                     TargetUserId = previousHighestBid.UserId.ToString(),
                     Title = "You have been outbid!",
                     Message = outbidMessage

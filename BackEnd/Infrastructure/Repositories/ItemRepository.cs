@@ -240,7 +240,7 @@ namespace Infrastructure.Repositories
         public async Task<ItemWithDetailDto?> GetItemWithDetailsAsync(int id)
         {
             var query = from i in _context.Items
-                        where i.ItemId == id && !(i.IsDeleted == true) 
+                        where i.ItemId == id && !(i.IsDeleted == true)
                         join im in _context.ItemImages
                             on i.ItemId equals im.ItemId into imj
                         from itemImage in imj.DefaultIfEmpty()
@@ -713,15 +713,15 @@ namespace Infrastructure.Repositories
             return await query.AsNoTracking().FirstOrDefaultAsync();
         }
 
-        public async Task<ItemWithSellerResult?> GetItemAndSellerByItemIdAsync(int itemId) 
+        public async Task<ItemWithSellerResult?> GetItemAndSellerByItemIdAsync(int itemId)
         {
             var query =
-                from i in _context.Items.AsTracking() 
+                from i in _context.Items.AsTracking()
                 where i.ItemId == itemId && !i.IsDeleted
                 join u in _context.Users on i.UpdatedBy equals u.UserId
                 select new ItemWithSellerResult
                 {
-                    Seller = new UserDto 
+                    Seller = new UserDto
                     {
                         UserId = u.UserId,
                         FullName = u.FullName,
@@ -731,7 +731,7 @@ namespace Infrastructure.Repositories
                         Bio = u.Bio
                     },
 
-                    Item = i, 
+                    Item = i,
 
                     Images = _context.ItemImages
                             .Where(img => img.ItemId == i.ItemId)
@@ -758,9 +758,9 @@ namespace Infrastructure.Repositories
                                     IsRegistrationValid = ev.IsRegistrationValid,
                                     Mileage = ev.Mileage,
                                     LicenseUrl = ev.LicenseUrl,
-                                    Title = i.Title, 
-                                    Price = i.Price, 
-                                    Status = i.Status 
+                                    Title = i.Title,
+                                    Price = i.Price,
+                                    Status = i.Status
                                 }).FirstOrDefault(),
 
                     BatteryDetail = (from b in _context.BatteryDetails
@@ -775,8 +775,8 @@ namespace Infrastructure.Repositories
                                          ChargeCycles = b.ChargeCycles,
                                          UpdatedAt = b.UpdatedAt,
                                          Title = i.Title,
-                                         Price = i.Price, 
-                                         Status = i.Status 
+                                         Price = i.Price,
+                                         Status = i.Status
                                      }).FirstOrDefault()
                 };
 
@@ -874,7 +874,7 @@ namespace Infrastructure.Repositories
 
             item.Quantity -= quantityToSubtract;
 
-             await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync();
 
         }
     }

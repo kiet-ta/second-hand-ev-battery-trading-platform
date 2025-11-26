@@ -2,6 +2,7 @@
 using Application.DTOs.PaymentDtos;
 using Application.IHelpers;
 using Application.IRepositories;
+using Application.IRepositories.IPaymentRepositories;
 using Application.IServices;
 using Domain.Common.Constants;
 using Domain.Entities;
@@ -32,6 +33,24 @@ public class PaymentService : IPaymentService
         _uniqueIDGenerator = uniqueIDGenerator;
         _unitOfWork = unitOfWork;
         _notificationService = notificationService;
+    }
+
+
+    public async Task<IEnumerable<PaymentWithDetailsDto>> GetPaymentsDataAsync()
+    {
+        return await _unitOfWork.Payments.GetAllPaymentsWithDetailsMappedAsync();
+    }
+
+    public async Task<IEnumerable<PaymentWithDetailsDto>> GetPaymentHistoryByUserIdAsync(int userId)
+    {
+        return await _unitOfWork.Payments.GetPaymentsByUserIdMappedAsync(userId);
+    }
+
+    public async Task<DetailedPaymentHistoryDto> GetTransactionDetailByOrder(int userId, int orderId)
+    {
+        var transactionDetail = await _unitOfWork.Payments.GetTransactionDetailAsync(userId, orderId);
+
+        return transactionDetail;
     }
 
     private async Task UpdateItemInventoryForOrderAsync(int orderId)
@@ -381,7 +400,7 @@ public class PaymentService : IPaymentService
             if (isSimplePayment)
             {
                 var rules = await _unitOfWork.CommissionFeeRules.GetAllAsync();
-                var registrationFeeRule = rules.FirstOrDefault(r => r.FeeCode == "SELLER_REG_FEE" && r.IsActive);
+                var registrationFeeRule = rules.FirstOrDefault(r => r.FeeCode == "FEEPR" && r.IsActive);
 
                 if (registrationFeeRule != null && info.TotalAmount == registrationFeeRule.FeeValue)
                 {
@@ -464,9 +483,20 @@ public class PaymentService : IPaymentService
 
     public async Task<PaymentResponseDto> CreateSellerRegistrationPaymentAsync(SellerRegistrationPaymentRequestDto request)
     {
+        var     userExists = await _unitOfWork.Users.GetByIdAsync(request.UserId);
+        string? feeAssignByRole = null;
+
+        if (userExists == null)
+            throw new ArgumentException("User does not exist");
+        
+        if (userExists.Role == UserRole.Seller.ToString())
+        {
+            feeAssignByRole = userExists.IsStore ? "FEESR002" : "FEEPR001";
+        }
+
         // "Read-only" "data"
         var rules = await _unitOfWork.CommissionFeeRules.GetAllAsync();
-        var registrationFeeRule = rules.FirstOrDefault(r => r.FeeCode == "SELLER_REG_FEE" && r.IsActive);
+        var registrationFeeRule = rules.FirstOrDefault(r => r.FeeCode == feeAssignByRole && r.IsActive);
         var user = await _unitOfWork.Users.GetByIdAsync(request.UserId);
 
         if (user.Role != UserRole.Seller.ToString()|| user.Paid == UserPaid.Registering.ToString() || user.Paid == "account-maintenance-fee")

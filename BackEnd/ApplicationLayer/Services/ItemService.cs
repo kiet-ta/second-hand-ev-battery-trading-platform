@@ -22,7 +22,7 @@ namespace Application.Services
     {
         private readonly IUnitOfWork _unitOfWork;
 
-        public ItemService( IUnitOfWork unitOfWork)
+        public ItemService(IUnitOfWork unitOfWork)
         {
             _unitOfWork = unitOfWork;
         }

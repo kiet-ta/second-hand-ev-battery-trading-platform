@@ -1,4 +1,5 @@
 ﻿using Application.DTOs;
+using Application.IHelpers;
 using Application.IRepositories;
 using Application.IServices;
 using Domain.Common.Constants;
@@ -12,16 +13,16 @@ public class AuctionFinalizationService : IAuctionFinalizationService
     private readonly IUnitOfWork _unitOfWork;
     private readonly ILogger<AuctionFinalizationService> _logger;
     private readonly INotificationService _notificationService;
-    
+    private readonly IUniqueIDGenerator _uniqueIDGenerator;
 
-    private const string AuctionSellerFeeCode = "AUCTION_SELLER_FEE"; // FIXME: mock value
     private const string AuctionNotificationType = "Activities";
 
-    public AuctionFinalizationService(IUnitOfWork unitOfWork, ILogger<AuctionFinalizationService> logger, INotificationService notificationService)
+    public AuctionFinalizationService(IUnitOfWork unitOfWork, ILogger<AuctionFinalizationService> logger, INotificationService notificationService, IUniqueIDGenerator uniqueIDGenerator)
     {
         _unitOfWork = unitOfWork;
         _logger = logger;
         _notificationService = notificationService;
+        _uniqueIDGenerator = uniqueIDGenerator;
     }
 
     public async Task FinalizeAuctionAsync(int auctionId)
@@ -143,7 +144,7 @@ public class AuctionFinalizationService : IAuctionFinalizationService
             await _unitOfWork.SaveChangesAsync(); // Save to get OrderId
             _logger.LogInformation("Created Order {OrderId} for winner User {WinnerId}", newOrder.OrderId, winnerId);
 
-            var paymentTransaction = new WalletTransaction
+            var walletTransaction = new WalletTransaction
             {
                 WalletId = winnerWallet.WalletId,
                 Amount = -winningAmount, 
@@ -153,14 +154,49 @@ public class AuctionFinalizationService : IAuctionFinalizationService
                 AuctionId = auctionId,
                 OrderId = newOrder.OrderId
             };
-            await _unitOfWork.WalletTransactions.CreateTransactionAsync(paymentTransaction);
+            await _unitOfWork.WalletTransactions.CreateTransactionAsync(walletTransaction);
+
+            // TODO: save to payment and payment detail service
+            long orderCode = _uniqueIDGenerator.CreateUnique53BitId();
+
+            var newPayment = new Payment
+            {
+                UserId = winnerId,
+                OrderCode = orderCode, // Sử dụng giá trị vừa generate
+                TotalAmount = winningAmount,
+                Currency = "VND",
+                Method = "Wallet",
+                Status = PaymentStatus.Completed.ToString(),
+                PaymentType = PaymentType.Order_Purchase.ToString(),
+                CreatedAt = DateTime.Now,
+                UpdatedAt = DateTime.Now,
+                ExpiredAt = null
+            };
+
+            await _unitOfWork.Payments.AddPaymentAsync(newPayment);
+            await _unitOfWork.SaveChangesAsync();
+
+            _logger.LogInformation($"Created Payment record {newPayment.PaymentId} with OrderCode {orderCode} for Order {newOrder.OrderId}");
+
+            // Tạo PaymentDetail record
+            var newPaymentDetail = new PaymentDetail
+            {
+                PaymentId = newPayment.PaymentId,
+                OrderId = newOrder.OrderId,
+                ItemId = itemId,
+                Amount = winningAmount
+            };
+
+            await _unitOfWork.PaymentDetails.AddPaymentDetailAsync(newPaymentDetail);
+            await _unitOfWork.SaveChangesAsync();
+
             _logger.LogInformation($"Decreased held balance by {winningAmount} for winner User {winnerId} and created 'payment' transaction.");
 
             // create OrderItem
             var newOrderItem = new OrderItem
             {
                 OrderId = newOrder.OrderId,
-                BuyerId = winnerId, // Save buyer_id here if you need to query cart/history easier
+                BuyerId = winnerId,
                 ItemId = itemId,
                 Quantity = itemWithSeller.Item.Quantity,
                 Price = winningAmount,

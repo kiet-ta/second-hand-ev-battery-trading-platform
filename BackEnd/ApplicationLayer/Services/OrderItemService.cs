@@ -105,6 +105,7 @@ namespace Application.Services
             if (dto.Quantity <= 0)
                 throw new ArgumentException("Quantity must be greater than 0.", nameof(dto.Quantity));
             orderItem.Quantity = dto.Quantity;
+            orderItem.Price = dto.Price;
 
             await _unitOfWork.OrderItems.UpdateAsync(orderItem);
             return true;
