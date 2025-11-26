@@ -90,5 +90,14 @@ namespace Infrastructure.Repositories
                 return null;
             return transaction;
         }
+
+        public async Task<PaymentDetail> RemoveOrderAsync(int paymentDetailId)
+        {
+            var paymentDetail = await _context.PaymentDetails.FirstOrDefaultAsync(pd => pd.PaymentDetailId == paymentDetailId);
+            paymentDetail.OrderId = null;
+            _context.Update(paymentDetail);
+            await _context.SaveChangesAsync();
+            return paymentDetail;
+        }
     }
 }

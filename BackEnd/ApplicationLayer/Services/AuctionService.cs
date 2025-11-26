@@ -126,7 +126,9 @@ public class AuctionService : IAuctionService
             Status = DateTime.Now >= request.StartTime ? AuctionStatus.Ongoing.ToString() : AuctionStatus.Upcoming.ToString(),
             TotalBids = 0,
             CreatedAt = DateTime.Now,
-            UpdatedAt = DateTime.Now
+            UpdatedAt = DateTime.Now,
+            StepPrice = request.StepPrice,
+            IsBuyNow = request.IsBuyNow
         };
 
         await _unitOfWork.Auctions.CreateAsync(auction);
@@ -343,6 +345,7 @@ public class AuctionService : IAuctionService
             Type = item.ItemType ?? "unknown",
             StartingPrice = auction.StartingPrice,
             CurrentPrice = auction.CurrentPrice,
+            IsBuyNow = auction.IsBuyNow,
             TotalBids = auction.TotalBids,
             StepPrice = auction.StepPrice,
             StartTime = auction.StartTime,

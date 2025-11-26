@@ -292,10 +292,10 @@ namespace Infrastructure.Repositories
                         from itemImage in imj.DefaultIfEmpty()
                         join ev in _context.EVDetails
                             on i.ItemId equals ev.ItemId into evj
-                        from evDetail in evj.DefaultIfEmpty()
+                        from evDetail in evj
                         join bat in _context.BatteryDetails
                             on i.ItemId equals bat.ItemId into batj
-                        from batDetail in batj.DefaultIfEmpty()
+                        from batDetail in batj
                         select new ItemWithDetailDto
                         {
                             ItemId = i.ItemId,

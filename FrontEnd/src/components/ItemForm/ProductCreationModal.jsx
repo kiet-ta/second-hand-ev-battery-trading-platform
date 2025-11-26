@@ -106,6 +106,8 @@ export default function ProductCreationModal({ onSuccess }) {
           startingPrice: auctionInfo.startingPrice,
           startTime: auctionInfo.auctionTime[0],
           endTime: auctionInfo.auctionTime[1],
+          stepPrice: auctionInfo.stepPrice,
+          isBuyNow: auctionInfo.isBuyNow || false,
         });
       }
 
