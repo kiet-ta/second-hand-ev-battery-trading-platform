@@ -37,6 +37,7 @@ namespace Application.IServices
         string sortDir);
 
         Task<ItemWithDetailDto?> GetItemWithDetailsAsync(int id);
+        Task<ItemWithDetailDto?> GetItemWithDetailsAsync(int itemId, int buyerId, int orderId);
         Task<IEnumerable<ItemWithDetailDto>> GetAllItemsWithDetailsAsync();
         Task<PagedResultBought<ItemBoughtDto>> GetBoughtItemsWithDetailsAsync(int userId, PaginationParams paginationParams);
         Task<PagedResultBought<ItemBoughtDto>> GetTransactionItemsWithDetailsAsync(int userId, PaginationParams paginationParams);

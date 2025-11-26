@@ -62,7 +62,7 @@ namespace Infrastructure.Repositories
             var news = new News
             {
                 Title = dto.Title,
-                Status = NewsStatus.Pending.ToString(),
+                Status = NewsStatus.Approved.ToString(),
                 PublishDate = DateTime.UtcNow,
                 Category = dto.Category,
                 Summary = dto.Summary,

@@ -56,24 +56,11 @@ namespace PresentationLayer.Controllers
 
 
         [HttpGet]
-        public async Task<IActionResult> GetAllHistorySold([FromQuery] int sellerId, [FromQuery] PaginationParams pagination)
+        public async Task<IActionResult> GetAllHistorySold([FromQuery] int sellerId)
         {
            
-                var seller = await _historySoldService.GetAllSellerItemsAsync(sellerId, pagination);
-                if (seller == null || seller.TotalCount == 0)
-                    return NotFound(new { Message = "Seller không tồn tại hoặc chưa có item nào." });
-
-            Response.Headers.Append("X-Pagination", JsonSerializer.Serialize(new
-            {
-                seller.TotalCount,
-                seller.PageSize,
-                seller.CurrentPage,
-                seller.TotalPages
-            }));
-
+                var seller = await _historySoldService.GetOrdersBySellerId(sellerId);
             return Ok(seller);
-
-
         }
     }
 }

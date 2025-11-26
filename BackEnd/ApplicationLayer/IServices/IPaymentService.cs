@@ -1,4 +1,5 @@
-﻿using Application.DTOs.PaymentDtos;
+﻿using Application.DTOs;
+using Application.DTOs.PaymentDtos;
 using Net.payOS.Types;
 using System.Text.Json;
 
@@ -10,7 +11,7 @@ public interface IPaymentService
 
     Task<PaymentInfoDto> GetPaymentInfoAsync(long orderCode);
 
-    Task CancelPaymentAsync(long orderCode, string reason);
+    Task CancelPaymentAsync(long orderCode, PaymentCancelRequestDto request);
 
     Task HandleWebhookAsync(WebhookType body);
 
@@ -21,4 +22,10 @@ public interface IPaymentService
     Task<bool> ConfirmOrderAndSplitPaymentAsync(int orderId, int buyerId);
 
     Task ProcessSuccessfulPaymentAsync(int orderId, string transactionId, decimal amount);
+
+    Task<IEnumerable<PaymentWithDetailsDto>> GetPaymentsDataAsync();
+
+    Task<IEnumerable<PaymentWithDetailsDto>> GetPaymentHistoryByUserIdAsync(int userId);
+
+    Task<DetailedPaymentHistoryDto> GetTransactionDetailByOrder(int userId, int orderId);
 }

@@ -17,14 +17,17 @@ public class AuctionService : IAuctionService
     private readonly IUnitOfWork _unitOfWork;
     private readonly ILogger<AuctionService> _logger;
     private readonly INotificationService _notificationService;
+    private readonly IAuctionFinalizationService _auctionFinalizationService;
     public AuctionService(
         IUnitOfWork unitOfWork,
         INotificationService notificationService,
+        IAuctionFinalizationService auctionFinalizationService,
         ILogger<AuctionService> logger)
     {
         _unitOfWork = unitOfWork;
         _logger = logger;
         _notificationService = notificationService;
+        _auctionFinalizationService = auctionFinalizationService;
     }
 
     private DateTime now = DateTime.Now;
@@ -53,6 +56,95 @@ public class AuctionService : IAuctionService
             .OrderByDescending(b => b.BidTime)
             .ToList();
         return history;
+    }
+
+    public async Task BuyNowAuctionAsync(int auctionId, int userId)
+    {
+        // 1. Initial Validation
+        var auction = await _unitOfWork.Auctions.GetByIdAsync(auctionId);
+
+        if (auction == null)
+        {
+            throw new KeyNotFoundException($"Auction with ID {auctionId} not found.");
+        }
+
+        var item = await _unitOfWork.Items.GetByIdAsync(auction.ItemId);
+
+        if (item == null) throw new KeyNotFoundException($"Item for auction {auctionId} not found.");
+
+        // Validate Auction Status
+        if (auction.Status != AuctionStatus.Ongoing.ToString()) throw new InvalidOperationException("Auction is not currently active.");
+
+        if (item.Price == null || item.Price <= 0) throw new InvalidOperationException("This auction does not support 'Buy Now' option.");
+
+        // 2. Validate User (Seller cannot buy their own item)
+        if (item.UpdatedBy == userId)
+        {
+            _logger.LogWarning("User {UserId} attempted to 'Buy Now' their own auction {AuctionId}.", userId, auctionId);
+            throw new InvalidOperationException("You cannot buy your own auction item.");
+        }
+
+        // 3. Execution with Transaction (Critical Section)
+        await _unitOfWork.BeginTransactionAsync();
+        try
+        {
+            // Double-check locking: Retrieve status again within transaction to prevent race conditions
+            // (e.g., another user clicked Buy Now milliseconds ago)
+            var currentAuction = await _unitOfWork.Auctions.GetByIdAsync(auctionId);
+            if (currentAuction.Status != AuctionStatus.Ongoing.ToString())
+            {
+                await _unitOfWork.RollbackTransactionAsync();
+                throw new InvalidOperationException("Auction has ended or changed status during processing.");
+            }
+
+            // Create the Winning Bid
+            // The 'Buy Now' action is technically placing a bid equal to the BuyNowPrice
+            var winningBid = new Bid
+            {
+                AuctionId = auctionId,
+                UserId = userId,
+                BidAmount = item.Price.Value,
+                BidTime = DateTime.Now,
+                Status = BidStatus.Active.ToString()
+            };
+
+            await _unitOfWork.Bids.PlaceBidAsync(winningBid);
+  
+            // Update Auction Logic
+            // We verify if the CurrentPrice is already higher than BuyNowPrice (Edge case: manual bidding exceeded buy now price)
+            if (auction.CurrentPrice >= item.Price.Value)
+            {
+                await _unitOfWork.RollbackTransactionAsync();
+                throw new InvalidOperationException("Current bid price is already higher than or equal to Buy Now price.");
+            }
+
+            auction.CurrentPrice = item.Price.Value;
+            auction.TotalBids += 1;
+
+            // Set auction end time to now to mark it as ended
+            // subtract 1 second to ensure auction is considered ended
+            auction.EndTime = DateTime.Now.AddSeconds(-1);
+
+            // NOTE: We do NOT set status to 'Ended' here directly.
+            // We leave it as 'Ongoing' so the FinalizationService can pick it up, 
+            // validate the state, and process the wallet transfer/order creation.
+
+            _unitOfWork.Auctions.Update(auction);
+            await _unitOfWork.SaveChangesAsync();
+
+            await _unitOfWork.CommitTransactionAsync();
+            _logger.LogInformation("User {UserId} successfully triggered Buy Now for Auction {AuctionId}. Bid created.", userId, auctionId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to process Buy Now for Auction {AuctionId} by User {UserId}", auctionId, userId);
+            await _unitOfWork.RollbackTransactionAsync();
+            throw;
+        }
+
+        // 4. Trigger Finalization
+        // This will handle: Locking funds, Creating Order, Updating Status to Ended, Notifying users.
+        await _auctionFinalizationService.FinalizeAuctionAsync(auctionId);
     }
 
     public async Task<AuctionDto?> GetAuctionByItemIdAsync(int itemId)
@@ -123,10 +215,12 @@ public class AuctionService : IAuctionService
             CurrentPrice = null,
             StartTime = request.StartTime,
             EndTime = request.EndTime,
-            Status = DateTime.Now >= request.StartTime ? "ongoing" : "upcoming",
+            Status = DateTime.Now >= request.StartTime ? AuctionStatus.Ongoing.ToString() : AuctionStatus.Upcoming.ToString(),
             TotalBids = 0,
             CreatedAt = DateTime.Now,
-            UpdatedAt = DateTime.Now
+            UpdatedAt = DateTime.Now,
+            StepPrice = request.StepPrice,
+            IsBuyNow = request.IsBuyNow
         };
 
         await _unitOfWork.Auctions.CreateAsync(auction);
@@ -147,17 +241,32 @@ public class AuctionService : IAuctionService
     public async Task<BidderHistoryDto> PlaceBidAsync(int auctionId, int userId, decimal bidAmount)
     {
         User user;
-        Bid? previousHighestBid = null; 
+        Bid? previousHighestBid = null;
 
         await _unitOfWork.BeginTransactionAsync();
         try
         {
             var auction = await _unitOfWork.Auctions.GetByIdAsync(auctionId);
-
-            if (auction == null || auction.Status != "Ongoing" || now < auction.StartTime || now > auction.EndTime)
+            if (auction == null)
+            {
+                await _unitOfWork.RollbackTransactionAsync();
+                throw new KeyNotFoundException($"Auction with ID {auctionId} not found.");
+            }
+            var item = await _unitOfWork.Items.GetByIdAsync(auction.ItemId);
+            if (item == null)
+            {
+                await _unitOfWork.RollbackTransactionAsync();
+                throw new KeyNotFoundException($"Item for auction {auctionId} not found.");
+            }
+            if (auction.Status != AuctionStatus.Ongoing.ToString() || now < auction.StartTime || now > auction.EndTime)
             {
                 await _unitOfWork.RollbackTransactionAsync();
                 throw new InvalidOperationException("Auction is not active or has ended.");
+            }
+            if (item.Price.HasValue && (auction.CurrentPrice ?? 0) >= item.Price.Value)
+            {
+                await _unitOfWork.RollbackTransactionAsync();
+                throw new InvalidOperationException("This item has been bought via Buy Now.");
             }
             var currentPrice = auction.CurrentPrice ?? auction.StartingPrice;
             decimal requiredMinimumBid = currentPrice + auction.StepPrice;
@@ -181,32 +290,40 @@ public class AuctionService : IAuctionService
                 throw new InvalidOperationException($"User wallet for user ID {userId} not found.");
             }
 
-            var previousUserActiveBid = await _unitOfWork.Bids.GetUserHighestActiveBidAsync(auctionId, userId);
+            // We need to find the latest bid from this user that holds funds, 
+            // regardless of whether it's currently 'Active' or has been 'Outbid'.
+            var previousHeldBid = await _unitOfWork.Bids.GetUserLatestHeldBidAsync(auctionId, userId);
 
             decimal amountToHoldNow = 0;
             decimal previousHeldAmount = 0;
 
-            if (previousUserActiveBid != null)
+            if (previousHeldBid != null)
             {
-                if (bidAmount <= previousUserActiveBid.BidAmount)
+                // Check constraint: New bid must be higher than user's own previous bid
+                if (bidAmount <= previousHeldBid.BidAmount)
                 {
                     await _unitOfWork.RollbackTransactionAsync();
-                    throw new ArgumentException($"Your new bid must be higher than your current highest bid ({previousUserActiveBid.BidAmount:N0}).");
+                    throw new ArgumentException($"Your new bid must be higher than your current highest bid ({previousHeldBid.BidAmount:N0}).");
                 }
-                previousHeldAmount = previousUserActiveBid.BidAmount;
+
+                // Calculate the difference to hold
+                previousHeldAmount = previousHeldBid.BidAmount;
                 amountToHoldNow = bidAmount - previousHeldAmount;
             }
             else
             {
+                // First time bidding (or previous bids were released), hold full amount
                 amountToHoldNow = bidAmount;
             }
 
+            // Check available balance
             if ((wallet.Balance - wallet.HeldBalance) < amountToHoldNow)
             {
                 await _unitOfWork.RollbackTransactionAsync();
                 throw new InvalidOperationException("Insufficient available funds (considering held amounts).");
             }
 
+            // Execute hold logic on wallet
             bool updateWalletSuccess = await _unitOfWork.Wallets.UpdateBalanceAndHeldAsync(wallet.WalletId, -amountToHoldNow, amountToHoldNow);
             if (!updateWalletSuccess)
             {
@@ -216,6 +333,7 @@ public class AuctionService : IAuctionService
             }
             _logger.LogInformation("Successfully held {Amount} from Wallet {WalletId} (Held Balance: {HeldBalance})", amountToHoldNow, wallet.WalletId, wallet.HeldBalance + amountToHoldNow);
 
+            // Create new Bid entity
             var newBid = new Bid()
             {
                 AuctionId = auctionId,
@@ -227,6 +345,7 @@ public class AuctionService : IAuctionService
             int newBidId = await _unitOfWork.Bids.PlaceBidAsync(newBid);
             newBid.BidId = newBidId;
 
+            // Record Transaction
             var holdTransaction = new WalletTransaction()
             {
                 WalletId = wallet.WalletId,
@@ -239,17 +358,21 @@ public class AuctionService : IAuctionService
             await _unitOfWork.WalletTransactions.CreateTransactionAsync(holdTransaction);
             _logger.LogInformation("Created 'hold' transaction {TransactionId} for Bid {BidId} (Amount: {Amount})", holdTransaction.TransactionId, newBid.BidId, amountToHoldNow);
 
-            if (previousUserActiveBid != null)
+            // Update status of previous bid if it was Active
+            // Note: If it was already 'Outbid', we don't need to change it, but changing it to 'Outbid' again doesn't hurt.
+            if (previousHeldBid != null && previousHeldBid.Status == BidStatus.Active.ToString())
             {
-                await _unitOfWork.Bids.UpdateBidStatusAsync(previousUserActiveBid.BidId, "outbid");
-                _logger.LogInformation("Updated previous bid {PreviousBidId} for User {UserId} to 'outbid'.", previousUserActiveBid.BidId, userId);
+                await _unitOfWork.Bids.UpdateBidStatusAsync(previousHeldBid.BidId, BidStatus.OutBid.ToString());
+                _logger.LogInformation("Updated previous bid {PreviousBidId} for User {UserId} to 'outbid'.", previousHeldBid.BidId, userId);
             }
 
+            // Find the Global Highest Bid (to notify them) - Exclude the bid we just created
             previousHighestBid = await _unitOfWork.Bids.GetHighestActiveBidAsync(auctionId, excludeBidId: newBidId);
 
+            // Update the previous global winner to 'outbid'
             if (previousHighestBid != null && previousHighestBid.UserId != userId)
             {
-                await _unitOfWork.Bids.UpdateBidStatusAsync(previousHighestBid.BidId, "outbid");
+                await _unitOfWork.Bids.UpdateBidStatusAsync(previousHighestBid.BidId, BidStatus.OutBid.ToString());
                 _logger.LogInformation("User {PreviousHighestUserId}'s bid {PreviousHighestBidId} is now 'outbid'.", previousHighestBid.UserId, previousHighestBid.BidId);
             }
 
@@ -267,39 +390,42 @@ public class AuctionService : IAuctionService
             await _unitOfWork.CommitTransactionAsync();
             _logger.LogInformation("Successfully placed bid {BidId} for User {UserId} in Auction {AuctionId}. Amount: {BidAmount}. Transaction committed.", newBid.BidId, userId, auctionId, bidAmount);
 
-            // notification for user outbid
+            // Notification logic
             if (previousHighestBid != null)
             {
                 var outbidMessage = $"You have been outbid on auction #{auctionId}. The new price is {bidAmount:N0}đ.";
                 var notiDto = new CreateNotificationDto
                 {
-                    NotiType = "auction",
+                    NotiType = NotificationType.Auction.ToString(),
                     TargetUserId = previousHighestBid.UserId.ToString(),
                     Title = "You have been outbid!",
                     Message = outbidMessage
                 };
                 _ = _notificationService.AddNewNotification(notiDto, 0, "");
+
+                await _notificationService.SendNotificationAsync(
+               message: outbidMessage,
+               targetUserId: notiDto.TargetUserId);
             }
             return newBidHistory;
-            
+
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error during PlaceBidAsync for Auction {AuctionId}, User {UserId}. Rolling back transaction.", auctionId, userId);
             await _unitOfWork.RollbackTransactionAsync();
-            throw; 
+            throw;
         }
-
-
     }
+
     public async Task UpdateAuctionStatusesAsync()
     {
         var upcomingAuctions = await _unitOfWork.Auctions.GetUpcomingAuctionsAsync();
 
         foreach (var auction in upcomingAuctions)
         {
-            if (auction.StartTime < now && auction.Status == "upcoming")
-                await _unitOfWork.Auctions.UpdateStatusAsync(auction, "ongoing");
+            if (auction.StartTime < now && auction.Status == AuctionStatus.Upcoming.ToString())
+                await _unitOfWork.Auctions.UpdateStatusAsync(auction, AuctionStatus.Ongoing.ToString());
         }
 
         // Update ongoing to ended
@@ -308,7 +434,7 @@ public class AuctionService : IAuctionService
         foreach (var auction in ongoingAuctions)
         {
             if (auction.EndTime < now)
-                await _unitOfWork.Auctions.UpdateStatusAsync(auction, "ended");
+                await _unitOfWork.Auctions.UpdateStatusAsync(auction, AuctionStatus.Ended.ToString());
         }
     }
 
@@ -326,6 +452,7 @@ public class AuctionService : IAuctionService
             Type = item.ItemType ?? "unknown",
             StartingPrice = auction.StartingPrice,
             CurrentPrice = auction.CurrentPrice,
+            IsBuyNow = auction.IsBuyNow,
             TotalBids = auction.TotalBids,
             StepPrice = auction.StepPrice,
             StartTime = auction.StartTime,
@@ -373,11 +500,11 @@ public class AuctionService : IAuctionService
         string status;
 
         if (now < auction.StartTime)
-            status = "upcoming";
+            status = AuctionStatus.Upcoming.ToString();
         else if (now >= auction.StartTime && now < auction.EndTime)
-            status = "ongoing";
+            status = AuctionStatus.Ongoing.ToString();
         else
-            status = "ended";
+            status = AuctionStatus.Ended.ToString();
 
         return new AuctionStatusDto
         {

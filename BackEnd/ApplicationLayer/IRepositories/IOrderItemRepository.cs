@@ -12,6 +12,8 @@ namespace Application.IRepositories
 
         Task<List<OrderItem>> GetItemsByIdsAsync(IEnumerable<int> ids);
 
+        Task<List<OrderItem>> GetOrderItemsByItemIdsAsync(IEnumerable<int> itemId);
+
         Task UpdateRangeAsync(IEnumerable<OrderItem> orderItems);
 
         Task<OrderItem?> GetByIdAsync(int id);
@@ -21,5 +23,15 @@ namespace Application.IRepositories
         Task UpdateAsync(OrderItem entity);
 
         Task<OrderItem> CreateAsync(OrderItem orderItem);
+
+        Task<int> CountByStatusAsync(int sellerId, string status);
+
+        Task<List<OrdersByWeekDto>> GetOrdersByWeekAsync(int sellerId);
+        
+        Task<int> CountBySellerAsync(int sellerId);
+
+        Task<IEnumerable<OrderItem>> GetOrdersWithinRangeAsync(DateTime startDate, DateTime endDate);
+
+        Task<bool> DeleteAsync(OrderItem orderItem);
     }
 }

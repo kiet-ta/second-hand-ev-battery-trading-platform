@@ -56,5 +56,15 @@ namespace PresentationLayer.Controllers
 
             return Ok(new { message = "Order item deleted successfully." });
         }
+
+        [HttpPut("confirm-shipping/{orderItemId}")]
+
+        public async Task<IActionResult> ConfirmShipping(int orderItemId)
+        {
+            var result = await _orderItemService.ConfirmShippingAsync(orderItemId);
+            if (!result)
+                return NotFound(new { message = "Order item not found or cannot confirm shipping." });
+            return Ok(new { message = "Shipping confirmed successfully." });
+        }
     }
 }

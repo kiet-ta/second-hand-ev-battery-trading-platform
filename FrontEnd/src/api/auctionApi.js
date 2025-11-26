@@ -26,6 +26,16 @@ const auctionApi = {
     getBiddingHistory: async (auctionId) => {
         const response = await axios.get(`${baseURL}/${auctionId}/bidders`)
         return response.data
+    },
+    buyNow: async (auctionId) => {
+        const response = await axios.post(`${baseURL}/${auctionId}/buy-now`,[],{
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                'Content-Type': 'application/json'
+            }
+
+        })
+        return response.data
     }
 }
 export default auctionApi

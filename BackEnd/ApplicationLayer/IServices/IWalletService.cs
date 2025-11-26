@@ -12,4 +12,6 @@ public interface IWalletService
     Task<bool> DepositAsync(int userId, decimal amount);
 
     Task<WalletTransactionDto> WithdrawAsync(WithdrawRequestDto request);
+
+    Task<WalletTransactionDto> RevenueAsync(WithdrawRequestDto request);
 }

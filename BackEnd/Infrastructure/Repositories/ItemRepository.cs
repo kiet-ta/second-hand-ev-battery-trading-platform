@@ -240,7 +240,7 @@ namespace Infrastructure.Repositories
         public async Task<ItemWithDetailDto?> GetItemWithDetailsAsync(int id)
         {
             var query = from i in _context.Items
-                        where i.ItemId == id && !(i.IsDeleted == true) 
+                        where i.ItemId == id && !(i.IsDeleted == true)
                         join im in _context.ItemImages
                             on i.ItemId equals im.ItemId into imj
                         from itemImage in imj.DefaultIfEmpty()
@@ -260,6 +260,52 @@ namespace Infrastructure.Repositories
                             Price = i.Price,
                             Moderation = i.Moderation,
                             Quantity = i.Quantity,
+                            Status = i.Status,
+                            CreatedAt = i.CreatedAt,
+                            UpdatedAt = i.UpdatedAt,
+                            UpdatedBy = i.UpdatedBy,
+                            ItemImage = _context.ItemImages
+                            .Where(img => img.ItemId == i.ItemId)
+                            .Select(img => new ItemImageDto
+                            {
+                                ImageId = img.ImageId,
+                                ImageUrl = img.ImageUrl
+                            }).ToList(),
+                            EVDetail = evDetail,
+                            BatteryDetail = batDetail
+                        };
+
+            return await query.AsNoTracking().FirstOrDefaultAsync();
+        }
+
+        public async Task<ItemWithDetailDto?> GetItemWithDetailsAsync(int itemId, int buyerId, int orderId)
+        {
+            var query = from i in _context.Items
+                        where i.ItemId == itemId && !(i.IsDeleted == true)
+                        join oi in _context.OrderItems
+                    on new { ItemId = i.ItemId, BuyerId = buyerId, OrderId = orderId } equals
+                       new { ItemId = oi.ItemId, BuyerId = oi.BuyerId, OrderId = oi.OrderId.Value }
+                    into oij
+                        from orderItem in oij.DefaultIfEmpty()
+                        join im in _context.ItemImages
+                            on i.ItemId equals im.ItemId into imj
+                        from itemImage in imj.DefaultIfEmpty()
+                        join ev in _context.EVDetails
+                            on i.ItemId equals ev.ItemId into evj
+                        from evDetail in evj
+                        join bat in _context.BatteryDetails
+                            on i.ItemId equals bat.ItemId into batj
+                        from batDetail in batj
+                        select new ItemWithDetailDto
+                        {
+                            ItemId = i.ItemId,
+                            Title = i.Title,
+                            ItemType = i.ItemType,
+                            CategoryId = i.CategoryId,
+                            Description = i.Description,
+                            Price = i.Price,
+                            Moderation = i.Moderation,
+                            Quantity = orderItem != null ? orderItem.Quantity : 0,
                             Status = i.Status,
                             CreatedAt = i.CreatedAt,
                             UpdatedAt = i.UpdatedAt,
@@ -402,7 +448,7 @@ namespace Infrastructure.Repositories
                             join oi in _context.OrderItems on pd.OrderId equals oi.OrderId
                             join o in _context.Orders on oi.OrderId equals o.OrderId
                             join item in _context.Items on pd.ItemId equals item.ItemId
-                            where payment.UserId == userId && payment.Status == PaymentStatus.Completed.ToString() && o.Status == OrderStatus.Completed.ToString()
+                            where payment.UserId == userId && payment.Status == PaymentStatus.Completed.ToString() && oi.Status == OrderItemStatus.Completed.ToString()
                             // Left Join EV_Detail
                             join ev in _context.EVDetails on item.ItemId equals ev.ItemId into evJoin
                             from ev in evJoin.DefaultIfEmpty()
@@ -494,7 +540,7 @@ namespace Infrastructure.Repositories
                                     where
                                         i.UpdatedBy == sellerId &&
                                         //o.Status == "completed" //&& 
-                                        o.Status == OrderStatus.Completed.ToString()
+                                        oi.Status == OrderItemStatus.Completed.ToString()
                                     select pd.PaymentDetailId;
 
             var totalProductLinesSold = await productLinesQuery.CountAsync();
@@ -667,15 +713,15 @@ namespace Infrastructure.Repositories
             return await query.AsNoTracking().FirstOrDefaultAsync();
         }
 
-        public async Task<ItemWithSellerResult?> GetItemAndSellerByItemIdAsync(int itemId) 
+        public async Task<ItemWithSellerResult?> GetItemAndSellerByItemIdAsync(int itemId)
         {
             var query =
-                from i in _context.Items.AsTracking() 
+                from i in _context.Items.AsTracking()
                 where i.ItemId == itemId && !i.IsDeleted
                 join u in _context.Users on i.UpdatedBy equals u.UserId
                 select new ItemWithSellerResult
                 {
-                    Seller = new UserDto 
+                    Seller = new UserDto
                     {
                         UserId = u.UserId,
                         FullName = u.FullName,
@@ -685,7 +731,7 @@ namespace Infrastructure.Repositories
                         Bio = u.Bio
                     },
 
-                    Item = i, 
+                    Item = i,
 
                     Images = _context.ItemImages
                             .Where(img => img.ItemId == i.ItemId)
@@ -712,9 +758,9 @@ namespace Infrastructure.Repositories
                                     IsRegistrationValid = ev.IsRegistrationValid,
                                     Mileage = ev.Mileage,
                                     LicenseUrl = ev.LicenseUrl,
-                                    Title = i.Title, 
-                                    Price = i.Price, 
-                                    Status = i.Status 
+                                    Title = i.Title,
+                                    Price = i.Price,
+                                    Status = i.Status
                                 }).FirstOrDefault(),
 
                     BatteryDetail = (from b in _context.BatteryDetails
@@ -729,8 +775,8 @@ namespace Infrastructure.Repositories
                                          ChargeCycles = b.ChargeCycles,
                                          UpdatedAt = b.UpdatedAt,
                                          Title = i.Title,
-                                         Price = i.Price, 
-                                         Status = i.Status 
+                                         Price = i.Price,
+                                         Status = i.Status
                                      }).FirstOrDefault()
                 };
 
@@ -795,14 +841,12 @@ namespace Infrastructure.Repositories
         }
         public async Task<int> GetCurrentItemQuantityAsync(int itemId)
         {
-            // Giả sử có một lớp Entity tên là 'Item' với trường 'Quantity'
             var item = await _context.Items
-                                     .AsNoTracking() // Dùng AsNoTracking nếu bạn chỉ đọc dữ liệu
+                                     .AsNoTracking()
                                      .FirstOrDefaultAsync(i => i.ItemId == itemId);
 
             if (item == null)
             {
-                // Xử lý khi không tìm thấy Item, có thể trả về 0 hoặc ném ngoại lệ
                 throw new KeyNotFoundException($"Item with ID {itemId} not found.");
             }
 
@@ -815,7 +859,6 @@ namespace Infrastructure.Repositories
                 throw new ArgumentException("Quantity to subtract must be greater than 0.", nameof(quantityToSubtract));
             }
 
-            // 1. Tìm Item cần cập nhật
             var item = await _context.Items
                                      .FirstOrDefaultAsync(i => i.ItemId == itemId);
 
@@ -824,26 +867,15 @@ namespace Infrastructure.Repositories
                 throw new KeyNotFoundException($"Item with ID {itemId} not found.");
             }
 
-            // 2. KIỂM TRA TỒN KHO TRƯỚC KHI TRỪ (Kiểm tra lại lần cuối cùng)
             if (item.Quantity < quantityToSubtract)
             {
-                // Nếu không đủ, ném ngoại lệ để kích hoạt Rollback Transaction trong Service Layer
                 throw new InvalidOperationException($"Insufficient stock for Item ID {itemId}. Current quantity: {item.Quantity}. Required: {quantityToSubtract}.");
             }
 
-            // 3. THỰC HIỆN TRỪ KHO
             item.Quantity -= quantityToSubtract;
 
-            // 4. Lưu thay đổi
-            // **Lưu ý:** Việc này sẽ nằm trong Transaction được quản lý bởi UnitOfWork/Service Layer.
-            // Nếu SaveChanges() được gọi ở đây, nó sẽ commit ngay lập tức. Tốt nhất là chỉ gọi
-            // SaveChanges() một lần ở cuối Transaction trong Order Service.
+            await _context.SaveChangesAsync();
 
-            // Nếu bạn muốn repository tự quản lý SaveChanges:
-             await _context.SaveChangesAsync();
-
-            // Nếu bạn muốn Repository chỉ thay đổi trạng thái và Service/UnitOfWork gọi SaveChanges (Cách khuyến nghị):
-            // Không cần gọi SaveChanges ở đây, chỉ cần đảm bảo entity đã được attach và thay đổi.
         }
     }
 }

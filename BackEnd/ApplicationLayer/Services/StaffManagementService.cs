@@ -74,9 +74,7 @@ public class StaffManagementService : IStaffManagementService
             IsDeleted = false
         };
 
-        await _unitOfWork.Users.AddAsync(newUser); // không dùng ?? throw
-                                                 // nếu muốn, có thể check sau saveChanges:
-                                                 // await _unitOfWork.Users.SaveChangesAsync();
+        await _unitOfWork.Users.AddAsync(newUser); 
 
         if (request.Permissions != null && request.Permissions.Any())
         {

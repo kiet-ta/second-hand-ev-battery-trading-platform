@@ -48,7 +48,6 @@ const menu = [
     { key: "users", label: "Quản lý người dùng", icon: <UserCog size={18} />, path: "users" },
     { key: "products", label: "Duyệt sản phẩm", icon: <PackageSearch size={18} />, path: "products" },
     { key: "complaints", label: "Khiếu nại người dùng", icon: <ShieldAlert size={18} />, path: "complaints" },
-    { key: "transactions", label: "Giám sát giao dịch", icon: <ClipboardList size={18} />, path: "transactions" },
     { key: "notifications", label: "Thông báo", icon: <Bell size={18} />, path: "notifications" },
     { key: "News", label: "Tạo tin tức", icon: <ClipboardList size={18} />, path: "News" },
 ];

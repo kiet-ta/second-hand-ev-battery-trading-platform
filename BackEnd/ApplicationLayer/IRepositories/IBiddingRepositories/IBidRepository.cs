@@ -13,4 +13,5 @@ public interface IBidRepository
     Task<Bid?> GetHighestActiveBidAsync(int auctionId, int? excludeBidId = null);
     Task<bool> UpdateBidStatusAsync(int bidId, string status);
     Task<IEnumerable<Bid>> GetAllLoserActiveOrOutbidBidsAsync(int auctionId, int winnerId);
+    Task<Bid?> GetUserLatestHeldBidAsync(int auctionId, int userId);
 }

@@ -48,7 +48,7 @@ VerifiedCheck.propTypes = {
 function CardComponent({
     id,
     title,
-    price = 0,
+    price,
     itemImages,
     type,
     year,
@@ -77,6 +77,11 @@ function CardComponent({
         const loadStock = async () => {
             try {
                 const data = await itemApi.getItemById(id);
+                const stockInCart = await orderItemApi.getOrderItem(userId);
+                const inCartQuantity = stockInCart
+                    .filter(oi => oi.itemId === id)
+                    .reduce((sum, oi) => sum + oi.quantity, 0);
+                data.quantity -= inCartQuantity;
                 setStock(data?.quantity ?? 0);
             } catch (e) {
                 console.error("Lỗi lấy tồn kho:", e);
@@ -133,57 +138,22 @@ function CardComponent({
                     return;
                 }
 
-                let existingOrderItems = [];
-                try {
-                    const res = await orderItemApi.getOrderItem(userId);
-                    existingOrderItems = Array.isArray(res) ? res : [];
-                } catch (err) {
-                    // ✅ Backend may return 404 if no cart items — treat as empty cart
-                    if (err.response && err.response.status === 404) {
-                        existingOrderItems = [];
-                    } else {
-                        throw err; // rethrow unexpected errors
-                    }
-                }
+                const payload = {
+                    buyerId: userId,
+                    itemId: id,
+                    quantity: 1,
+                    price: price,
+                };
 
-                // 🔹 Check if the current item already exists
-                const existingItem = existingOrderItems.find(
-                    (oi) => oi.itemId === id
-                );
-
-                if (existingItem) {
-                    // ✅ Update existing item (PUT)
-                    const itemData = await itemApi.getItemById(id);
-                    const availableStock = itemData?.quantity ?? 0;
-                    const newQuantity = existingItem.quantity + 1;
-
-                    if (newQuantity > availableStock) {
-                        return; // Stop here — don’t update
-                    }
-                    const payload = {
-                        quantity: newQuantity,
-                        price: price,
-                    };
-
-                    await orderItemApi.putOrderItem(existingItem.orderItemId, payload);
-                } else {
-                    // 🆕 Create new item (POST)
-                    const payload = {
-                        buyerId: userId,
-                        itemId: id,
-                        quantity: 1,
-                        price,
-                    };
-                    await orderItemApi.postOrderItem(payload);
-                }
+                await orderItemApi.postOrderItem(payload);
 
             } catch (err) {
-                console.error("❌ Error adding/updating item:", err);
+                console.error("❌ Error adding item:", err);
             } finally {
                 setIsProcessing(false);
             }
         },
-        [id, price, userId, isProcessing]
+        [id, userId, isProcessing, navigate]
     );
     const handleBuyNow = async (e) => {
         e.preventDefault();
@@ -197,18 +167,17 @@ function CardComponent({
 
         setIsProcessing(true);
         try {
-            const orderItemPayload = {
+            const createdOrderItem = await orderItemApi.postOrderItem({
                 buyerId: userId,
                 itemId: id,
                 quantity: 1,
-                price,
-            };
-            const createdOrderItem = await orderItemApi.postOrderItem(orderItemPayload);
-            if (!createdOrderItem?.orderItemId)
-                throw new Error("Không thể tạo OrderItem.");
+                price: price,
+            });
+
+            if (!createdOrderItem?.orderItemId) throw new Error("Không thể tạo OrderItem.");
+
             const allAddresses = await addressLocalApi.getAddressByUserId(userId);
-            const defaultAddress =
-                allAddresses.find((a) => a.isDefault) || allAddresses[0];
+            const defaultAddress = allAddresses.find(a => a.isDefault) || allAddresses[0];
 
             if (!defaultAddress) {
                 navigate("/profile/address");
@@ -221,12 +190,11 @@ function CardComponent({
                 orderItems: [
                     {
                         id: createdOrderItem.orderItemId,
-                        name: title || "Sản phẩm",
-                        price,
+                        itemId: id,
+                        name: title,
                         quantity: 1,
-                        image:
-                            itemImages?.[0]?.imageUrl ||
-                            "https://placehold.co/100x100/e2e8f0/374151?text=?",
+                        image: itemImages?.[0]?.imageUrl || "https://placehold.co/100x100/e2e8f0/374151?text=?",
+                        price: price,
                     },
                 ],
                 allAddresses,
@@ -333,11 +301,7 @@ function CardComponent({
                                         <VerifiedCheck />
                                     </div>
                                 )}
-                                {stock === 0 && (
-                                    <div className="absolute top-2 right-2 bg-red-600 text-white text-xs font-bold px-2 py-1 rounded">
-                                        Hết hàng
-                                    </div>
-                                )}
+
                             </div>
                         ))}
                     </Slider>

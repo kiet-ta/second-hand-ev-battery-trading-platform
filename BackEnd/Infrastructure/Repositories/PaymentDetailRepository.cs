@@ -1,6 +1,7 @@
 ﻿using Application.DTOs;
 using Application.IRepositories.IPaymentRepositories;
 using Domain.Common.Constants;
+using Domain.Entities;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -20,6 +21,10 @@ namespace Infrastructure.Repositories
             _context = context;
         }
 
+        public async Task AddPaymentDetailAsync(PaymentDetail obj)
+        {
+            await _context.PaymentDetails.AddAsync(obj);
+        }
         public async Task<decimal> GetRevenueAsync(int sellerId)
         {
             // Calculate the total lifetime revenue for a specific seller.
@@ -79,6 +84,24 @@ namespace Infrastructure.Repositories
                 .ToList();
 
             return revenueByWeek;
+        }
+
+        public async Task<PaymentDetail?> GetByOrderIdAsync(int orderId)
+        {
+            var transaction = await _context.PaymentDetails
+                .FirstOrDefaultAsync(pd => pd.OrderId == orderId);
+            if(transaction == null)
+                return null;
+            return transaction;
+        }
+
+        public async Task<PaymentDetail> RemoveOrderAsync(int paymentDetailId)
+        {
+            var paymentDetail = await _context.PaymentDetails.FirstOrDefaultAsync(pd => pd.PaymentDetailId == paymentDetailId);
+            paymentDetail.OrderId = null;
+            _context.Update(paymentDetail);
+            await _context.SaveChangesAsync();
+            return paymentDetail;
         }
     }
 }

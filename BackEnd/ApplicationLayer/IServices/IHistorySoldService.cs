@@ -1,4 +1,5 @@
-﻿using Application.DTOs.ItemDtos;
+﻿using Application.DTOs;
+using Application.DTOs.ItemDtos;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,8 +10,9 @@ namespace Application.IServices
 {
     public interface IHistorySoldService
     {
-        Task<List<object>> GetAllSellerItemsAsync(int sellerId);
-        Task<PagedResultBought<object>> GetAllSellerItemsAsync(int sellerId, PaginationParams pagination);
+        //Task<List<object>> GetAllSellerItemsAsync(int sellerId);
+        //Task<PagedResultBought<object>> GetAllSellerItemsAsync(int sellerId, PaginationParams pagination);
+        Task<IEnumerable<OrderDetailDto>> GetOrdersBySellerId(int sellerId);
 
     }
 

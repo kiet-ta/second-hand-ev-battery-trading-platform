@@ -3,14 +3,50 @@ import { Result, Button } from "antd";
 import { CloseCircleFilled } from "@ant-design/icons";
 import { motion } from "framer-motion";
 import { useLocation, useNavigate } from "react-router-dom";
+import paymentApi from "../api/paymentApi";
 
 function PaymentFailPage() {
   const navigate = useNavigate();
   const location = useLocation();
-  const reason = location.state?.reason || "Hệ thống đang bảo trì hoặc thanh toán bị gián đoạn.";
+
+  const reason =
+    location.state?.reason ||
+    "Hệ thống đang bảo trì hoặc thanh toán bị gián đoạn.";
+
+  const orderId = location.state?.orderId || null;
+  const orderCode = location.state?.orderCode || null;
+  const method = location.state?.method || null;
+
   const [countdown, setCountdown] = useState(3);
 
+  // 🔥 Correct: cancel payment + delete order
+  const cancelPayOSPayment = async () => {
+    try {
+      if (!orderId || !orderCode) return;
+
+      await paymentApi.cancelPayment({
+        orderCode: orderCode,
+        reason: reason,
+        orderId: orderId,
+      });
+
+      console.log("Đã hủy thanh toán & xóa đơn hàng.");
+    } catch (error) {
+      console.error("Lỗi khi hủy thanh toán / xóa đơn:", error);
+    }
+  };
+
   useEffect(() => {
+    // Only cancel for PayOS
+    if (method === "payos") {
+      cancelPayOSPayment();
+    }
+
+    // Auto close popup if PayOS uses popup mode
+    if (window.opener && !window.opener.closed) {
+      setTimeout(() => window.close(), 2000);
+    }
+
     const timer = setInterval(() => {
       setCountdown((prev) => {
         if (prev === 1) {
@@ -22,7 +58,7 @@ function PaymentFailPage() {
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [navigate]);
+  }, []);
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-red-50 p-6 relative overflow-hidden">
@@ -39,6 +75,7 @@ function PaymentFailPage() {
         <h1 className="text-3xl font-bold text-gray-800 mb-2">
           Thanh Toán Thất Bại
         </h1>
+
         <p className="text-gray-600 mb-6">{reason}</p>
 
         <Result
@@ -67,7 +104,8 @@ function PaymentFailPage() {
         </div>
 
         <p className="text-sm text-gray-500 mt-6">
-          Tự động trở về trang chủ sau <span className="font-semibold">{countdown}</span>s...
+          Tự động trở về trang chủ sau{" "}
+          <span className="font-semibold">{countdown}</span>s...
         </p>
       </motion.div>
     </div>

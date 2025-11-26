@@ -143,7 +143,6 @@ namespace Application.Services
             GoogleJsonWebSignature.Payload payload;
             try
             {
-                // Validate Google ID token với nhiều audience options
                 var settings = new GoogleJsonWebSignature.ValidationSettings
                 {
                     Audience = new[] { _appSettings.GoogleClientId }
@@ -232,6 +231,7 @@ namespace Application.Services
                 UpdatedAt = DateTime.UtcNow
             };
             await _uow.Wallets.AddAsync(wallet);
+            await _uow.SaveChangesAsync();
 
             _logger.LogInformation("New user created successfully: {UserId}", newUser.UserId);
 
