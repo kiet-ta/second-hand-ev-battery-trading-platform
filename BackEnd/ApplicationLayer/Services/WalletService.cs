@@ -278,7 +278,6 @@ public class WalletService : IWalletService
             var sellerPaymentType = PaymentType.Seller_Registration.ToString();
             var transactionType = WalletTransactionType.Withdraw.ToString();
             var revenueType = WalletTransactionType.Revenue.ToString();
-            var managerPaymentType = PaymentType.Kyc_Revenue.ToString();
 
             var successDebit = await _unitOfWork.Wallets.UpdateBalanceAsync(sellerWallet.WalletId, -amountToTransfer);
             if (!successDebit)
@@ -336,6 +335,7 @@ public class WalletService : IWalletService
                 CreatedAt = DateTime.Now
             };
             await _unitOfWork.WalletTransactions.AddAsync(sellerTransaction);
+            await _unitOfWork.SaveChangesAsync();
 
             var managerTransaction = new WalletTransaction
             {
@@ -346,6 +346,7 @@ public class WalletService : IWalletService
                 CreatedAt = DateTime.Now
             };
             await _unitOfWork.WalletTransactions.AddAsync(managerTransaction);
+            await _unitOfWork.SaveChangesAsync();
 
             var commissionLog = new TransactionCommission
             {
@@ -421,7 +422,6 @@ public class WalletService : IWalletService
             var sellerPaymentType = PaymentType.Product_Moderation.ToString();
             var transactionType = WalletTransactionType.Withdraw.ToString();
             var revenueType = WalletTransactionType.Revenue.ToString();
-            var managerPaymentType = PaymentType.Kyc_Revenue.ToString();
 
             var successDebit = await _unitOfWork.Wallets.UpdateBalanceAsync(sellerWallet.WalletId, -amountToTransfer);
             if (!successDebit)
@@ -479,6 +479,7 @@ public class WalletService : IWalletService
                 CreatedAt = DateTime.Now
             };
             await _unitOfWork.WalletTransactions.AddAsync(sellerTransaction);
+            await _unitOfWork.SaveChangesAsync();
 
             var managerTransaction = new WalletTransaction
             {
@@ -489,6 +490,7 @@ public class WalletService : IWalletService
                 CreatedAt = DateTime.Now
             };
             await _unitOfWork.WalletTransactions.AddAsync(managerTransaction);
+            await _unitOfWork.SaveChangesAsync();
 
             var commissionLog = new TransactionCommission
             {

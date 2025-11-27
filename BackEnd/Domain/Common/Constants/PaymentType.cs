@@ -8,7 +8,7 @@ namespace Domain.Common.Constants
 {
     public enum PaymentType
     {
-        Seller_Registration, Deposit, Order_Purchase, Product_Moderation, Order_Revenue, Kyc_Revenue
+        Seller_Registration, Deposit, Order_Purchase, Product_Moderation
 
     }
 }
