@@ -25,6 +25,9 @@ namespace Infrastructure.Data.Configurations
             entity.Property(e => e.OrderId).HasColumnName("order_id");
             entity.Property(e => e.PaymentId).HasColumnName("payment_id");
             entity.Property(e => e.UserId).HasColumnName("user_id");
+            entity.Property(e => e.UserRole)
+                .HasMaxLength(20)
+                .HasColumnName("user_role");
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime")
