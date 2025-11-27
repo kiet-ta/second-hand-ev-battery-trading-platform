@@ -206,7 +206,7 @@ public class AuctionFinalizationService : IAuctionFinalizationService
                 OrderId = newOrder.OrderId,
                 BuyerId = winnerId,
                 ItemId = itemId,
-                Quantity = itemWithSeller.Item.Quantity,
+                Quantity = 1,
                 Price = winningAmount,
                 Status = OrderItemStatus.Pending.ToString(),
                 IsDeleted = false
@@ -269,7 +269,6 @@ public class AuctionFinalizationService : IAuctionFinalizationService
                 await _unitOfWork.Bids.UpdateBidStatusAsync(loserBid.BidId, "released");
                 _logger.LogInformation($"Released {amountToRelease} for loser Bid {loserBid.BidId} / User {loserBid.UserId}");
 
-                // Send refund notification
                 await SendNotificationAsync(
                         senderId: null, receiverId: loserBid.UserId,
                         title: $"Đấu giá #{auctionId} kết thúc - Hoàn tiền",

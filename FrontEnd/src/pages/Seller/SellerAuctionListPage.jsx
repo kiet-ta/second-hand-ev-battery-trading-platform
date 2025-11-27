@@ -66,7 +66,7 @@ export default function SellerAuctionListPage() {
                         <Loader2 className="w-6 h-6 animate-spin text-gray-600" />
                     </div>
                 ) : error ? (
-                    <p className="text-red-600 text-center">{error}</p>
+                    <p className="text-red-600 text-center">Không có đấu giá</p>
                 ) : auctions.length === 0 ? (
                     <p className="text-gray-500 text-center py-10">
                         Chưa có phiên đấu giá nào.

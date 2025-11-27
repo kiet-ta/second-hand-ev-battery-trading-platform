@@ -92,7 +92,7 @@ function AuctionDetailPage() {
   const fetchBidHistory = useCallback(async (auctionId) => {
     try {
       const res = await auctionApi.getBiddingHistory(auctionId);
-      const sorted = Array.isArray(res) ? res.sort((a,b) => new Date(b.bidTime)-new Date(a.bidTime)) : [];
+      const sorted = Array.isArray(res) ? res.sort((a, b) => new Date(b.bidTime) - new Date(a.bidTime)) : [];
       setBidHistory(sorted);
     } catch (err) {
       console.error("Failed to fetch bid history:", err);
@@ -159,7 +159,7 @@ function AuctionDetailPage() {
     });
 
     return () => {
-      if (newConnection) newConnection.stop().catch(() => {});
+      if (newConnection) newConnection.stop().catch(() => { });
     };
   }, []);
 
@@ -425,20 +425,23 @@ function AuctionDetailPage() {
                 <Button
                   block
                   size="large"
-                  onClick={handleBuyNow}
+                  onClick={handleBuyNow} 
                   loading={isProcessingBuyNow}
-                  disabled={isEnded}
+                  disabled={isEnded || (auction.currentPrice >= buyNowPrice)}
                   style={{
-                    background: isEnded ? undefined : "linear-gradient(90deg,#34D399,#059669)",
+                    background: !isEnded && auction.currentPrice < buyNowPrice ? "linear-gradient(90deg,#34D399,#059669)" : undefined,
                     color: "white",
                     fontWeight: 700,
                   }}
                 >
-                  {isEnded ? "Đã kết thúc" : `Mua ngay (${buyNowPrice.toLocaleString("vi-VN")} đ)`}
+                  {isEnded
+                    ? "Đã kết thúc"
+                    : auction.currentPrice >= buyNowPrice
+                      ? `Mua ngay không khả dụng`
+                      : `Mua ngay (${buyNowPrice.toLocaleString("vi-VN")} đ)`}
                 </Button>
               </div>
-            )}
-          </Card>
+            )}          </Card>
 
           {sellerProfile && (
             <Card bordered={false} className="shadow-lg p-6 rounded-lg">

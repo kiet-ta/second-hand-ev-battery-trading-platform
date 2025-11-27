@@ -65,6 +65,7 @@ namespace Application.IRepositories
         Task UpdateItemQuantityAsync(int itemId, int quantityToSubtract);
         Task<int> GetCurrentItemQuantityAsync(int itemId);
         Task<List<Item>> GetAuctionItemBySellerAsync(int sellerId);
+        Task<List<ItemWithDetailDto>> GetModerationItem();
 
     }
 }

@@ -176,7 +176,7 @@ export default function BuyNowCheckoutPage() {
               if (paidOrder?.status === "Paid") {
                 navigate("/payment/success", { state: { method: "payos", amount: finalTotal } });
                 if (checkoutData.auctionId) await auctionApi.buyNow(checkoutData.auctionId);
-              } else {
+              } else {  
                 navigate("/payment/fail", { state: { reason: "Thanh toán không thành công.", orderId: orderResponse.orderId } });
               }
             } catch {

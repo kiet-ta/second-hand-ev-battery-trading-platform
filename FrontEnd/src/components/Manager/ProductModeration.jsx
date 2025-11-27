@@ -1,4 +1,6 @@
-import React, { useEffect, useState, motion } from "react";
+import React, { useEffect, useState } from "react";
+import { motion } from "framer-motion";
+
 import {
     Table,
     Tag,
@@ -38,9 +40,9 @@ export default function ProductModeration() {
     const fetchProducts = async () => {
         try {
             setLoading(true);
-            const data = await itemApi.getItemDetail();
+            const data = await itemApi.getItemModerationDetail();
             const uniqueMap = new Map();
-            data.filter(res => res.moderation != 'Not_Submitted').forEach((item) => {
+            data.forEach((item) => {
                 const key = `${item.itemId}-${item.itemType}`;
                 if (!uniqueMap.has(key)) uniqueMap.set(key, item);
             });

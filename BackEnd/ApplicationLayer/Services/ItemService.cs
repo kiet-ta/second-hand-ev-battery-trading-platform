@@ -387,5 +387,11 @@ namespace Application.Services
                 ChargeCycles = e.ChargeCycles
             });
         }
+
+        public async Task<List<ItemWithDetailDto>> GetItemsForModerationAsync()
+        {
+            var items = await _unitOfWork.Items.GetModerationItem();
+            return items;
+        }
     }
 }

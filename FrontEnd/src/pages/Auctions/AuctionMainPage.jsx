@@ -11,7 +11,7 @@ function AuctionMainPage() {
     try {
       const response = await auctionApi.getAuction();
       console.log(response)
-      const normalized = response.data.map((item) => {
+      const normalized = response.data.filter(i => i.status != "Ended").sort(a => a.createdAt).map((item) => {
         return {
           ...item,
           category: item.type === "Ev" ? "Xe điện" : "Pin xe điện",

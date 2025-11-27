@@ -27,7 +27,7 @@ const ArrowRight = ({ className }) => (
 
 // --- HELPERS ---
 const formatCountdown = (status, startTimeStr, endTimeStr) => {
-  const now = new Date(new Date().getTime() + 7 * 60 * 60 * 1000).getTime();
+  const now = new Date().getTime();
   const startTime = new Date(startTimeStr).getTime();
   const endTime = new Date(endTimeStr).getTime();
 

@@ -885,5 +885,51 @@ namespace Infrastructure.Repositories
             await _context.SaveChangesAsync();
 
         }
+
+        public async Task<List<ItemWithDetailDto>> GetModerationItem()
+        {
+            var listOfDetails = new List<ItemWithDetailDto>();
+            var items = await _context.Items
+                .Where(i => (i.Moderation != ItemModeration.Not_Submitted.ToString()) && !(i.IsDeleted == true))
+                .ToListAsync();
+            foreach (var item in items)
+            {
+                var itemDetail = new ItemWithDetailDto();
+                var batteryDetail = await _context.BatteryDetails
+                    .FirstOrDefaultAsync(b => b.ItemId == item.ItemId);
+                var evDetail = await _context.EVDetails.FirstOrDefaultAsync(
+                    e => e.ItemId == item.ItemId);
+                if (batteryDetail != null)
+                {
+                    itemDetail.BatteryDetail = batteryDetail;
+                }
+                else if (evDetail != null)
+                {
+                    itemDetail.EVDetail = evDetail;
+                }
+                var images = await _context.ItemImages
+                    .Where(img => img.ItemId == item.ItemId)
+                    .Select(img => new ItemImageDto
+                    {
+                        ImageId = img.ImageId,
+                        ImageUrl = img.ImageUrl
+                    }).ToListAsync();
+                itemDetail.ItemImage = images;
+                itemDetail.ItemId = item.ItemId;
+                itemDetail.Title = item.Title;
+                itemDetail.ItemType = item.ItemType;
+                itemDetail.CategoryId = item.CategoryId;
+                itemDetail.Description = item.Description;
+                itemDetail.Price = item.Price;
+                itemDetail.Quantity = item.Quantity;
+                itemDetail.Moderation = item.Moderation;
+                itemDetail.Status = item.Status;
+                itemDetail.CreatedAt = item.CreatedAt;
+                itemDetail.UpdatedAt = item.UpdatedAt;
+                itemDetail.UpdatedBy = item.UpdatedBy;
+                listOfDetails.Add(itemDetail);
+            }
+            return listOfDetails;
+        }
     }
 }
