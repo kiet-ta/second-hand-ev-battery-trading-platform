@@ -129,12 +129,12 @@ export default function BuyNowCheckoutPage() {
           setStatusMessage("Số dư ví không đủ.");
           return;
         }
-
         await walletApi.withdrawWallet({
           userId: parseInt(localStorage.getItem("userId"), 10),
           amount: finalTotal,
           type: "Withdraw",
-          refId: orderResponse.orderId,
+          orderId: orderResponse.orderId,
+          itemId: checkoutData.orderItems[0].itemId,
           description: `Thanh toán đơn hàng ${orderResponse.orderId}`,
         });
 
@@ -149,7 +149,7 @@ export default function BuyNowCheckoutPage() {
         // 3️⃣ PayOS Payment
         const paymentPayload = {
           userId: parseInt(localStorage.getItem("userId"), 10),
-          method: "payos",
+          method: "PayOS",
           totalAmount: finalTotal,
           details: checkoutData.orderItems.map(i => ({
             orderId: orderResponse.orderId,

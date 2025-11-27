@@ -183,7 +183,8 @@ export default function CheckoutPage() {
           userId: parseInt(localStorage.getItem("userId"), 10),
           amount: finalTotalPrice,
           type: "Withdraw",
-          refId: orderResponse.orderId,
+          orderId: orderResponse.orderId,
+          itemId: orderData.itemsToPurchase[0].itemId,
           description: `Thanh toán đơn hàng ${orderResponse.orderId}`,
         });
 
@@ -196,7 +197,7 @@ export default function CheckoutPage() {
       // PAYOS PAYMENT ---------------------------
       const paymentPayload = {
         userId: parseInt(localStorage.getItem("userId"), 10),
-        method: "payos",
+        method: "PayOS",
         totalAmount: finalTotalPrice,
         details: orderData.itemsToPurchase.map((i) => ({
           orderId: orderResponse.orderId,
