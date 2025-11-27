@@ -77,6 +77,7 @@ function CardComponent({
         const loadStock = async () => {
             const data = await itemApi.getItemById(id);
             try {
+                const data = await itemApi.getItemById(id);
                 const stockInCart = await orderItemApi.getOrderItem(userId);
                 const inCartQuantity = stockInCart
                     .filter(oi => oi.itemId === id)

@@ -16,8 +16,8 @@ const paymentApi = {
         }
     },
     confirmOrder: async (orderId) => {
-        try{
-            const response = await axios.post(`${baseURL}/confirm-order/${orderId}`,{} ,{
+        try {
+            const response = await axios.post(`${baseURL}/confirm-order/${orderId}`, {}, {
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('token')}`,
                     'Content-Type': 'application/json'
@@ -29,6 +29,11 @@ const paymentApi = {
             throw error;
         }
     },
+
+    getHistoryByUser: (userId, token) =>
+        axios.get(`${baseURL}/history/user/${userId}`, {
+            headers: { Authorization: `Bearer ${token}` },
+        }),
     cancelPayment: async (data) => {
         try{
             const response = await axios.post(`${baseURL}/cancel/${data.orderCode}`, {reason: data.reason, orderId: data.orderId} ,{
