@@ -94,7 +94,8 @@ public class WalletService : IWalletService
             Amount = amount,
             // Đối với giao dịch nạp tiền, OrderId và ItemId thường là NULL
             OrderId = null,
-            ItemId = null
+            ItemId = null,
+            CreatedAt = DateTime.Now
         };
 
         await _unitOfWork.PaymentDetails.CreatePaymentDetailAsync(paymentDetail);
@@ -171,10 +172,12 @@ public class WalletService : IWalletService
 
             var paymentDetail = new PaymentDetail
             {
+                UserId = request.UserId,
                 PaymentId = newPayment.PaymentId,
                 Amount = request.Amount,
                 OrderId = request.Type == WalletTransactionType.Withdraw.ToString() ? request.OrderId : null,
-                ItemId = request.ItemId
+                ItemId = request.ItemId,
+                CreatedAt = DateTime.Now
             };
 
             await _unitOfWork.PaymentDetails.CreatePaymentDetailAsync(paymentDetail);

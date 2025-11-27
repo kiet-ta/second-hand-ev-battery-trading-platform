@@ -41,9 +41,18 @@ public class PaymentService : IPaymentService
         return await _unitOfWork.Payments.GetAllPaymentsWithDetailsMappedAsync();
     }
 
-    public async Task<IEnumerable<PaymentWithDetailsDto>> GetPaymentHistoryByUserIdAsync(int userId)
+    public async Task<IEnumerable<UserPaymentDetailHistoryDto>> GetUserPaymentDetailsHistoryAsync(int userId)
     {
-        return await _unitOfWork.Payments.GetPaymentsByUserIdMappedAsync(userId);
+        // Giả định _unitOfWork.Payments là PaymentRepository
+        return await _unitOfWork.PaymentDetails.GetPaymentDetailsByUserIdAsync(userId);
+    }
+
+    public async Task<IEnumerable<PaymentWithDetailsDto>> GetPaymentHistoryByRolesAsync(
+        int buyerId,
+        int? sellerId = null,
+        int? managerId = null)
+    {
+        return await _unitOfWork.Payments.GetPaymentHistoryByRolesAsync(buyerId, sellerId, managerId);
     }
 
     public async Task<DetailedPaymentHistoryDto> GetTransactionDetailByOrder(int userId, int orderId)
@@ -118,6 +127,8 @@ public class PaymentService : IPaymentService
                 throw new Exception("Bạn không phải chủ đơn hàng này.");
 
             var paymentWithOrder = await _unitOfWork.Payments.GetByOrderIdAsync(orderItem.OrderId.Value);
+            if (paymentWithOrder == null)
+                throw new Exception("Không tìm thấy thông tin thanh toán cho đơn hàng.");
 
             var item = await _unitOfWork.Items.GetByIdAsync(orderItem.ItemId);
             if (item == null)
@@ -167,19 +178,23 @@ public class PaymentService : IPaymentService
 
             var sellerPaymentDetail = new PaymentDetail
             {
+                UserId = seller.UserId,
                 PaymentId = paymentWithOrder.PaymentId,
                 OrderId = orderItem.OrderId,
                 ItemId = orderItem.ItemId,
                 Amount = netAmountForSellerTotal,
+                CreatedAt = DateTime.Now
             };
             await _unitOfWork.PaymentDetails.CreatePaymentDetailAsync(sellerPaymentDetail);
 
             var managerPaymentDetail = new PaymentDetail
             {
+                UserId = managerWallet.UserId,
                 PaymentId = paymentWithOrder.PaymentId,
                 OrderId = orderItem.OrderId,
                 ItemId = orderItem.ItemId,
                 Amount = amountForManager,
+                CreatedAt = DateTime.Now
             };
             await _unitOfWork.PaymentDetails.CreatePaymentDetailAsync(managerPaymentDetail);
 

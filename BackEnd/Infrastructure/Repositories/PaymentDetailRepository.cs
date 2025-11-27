@@ -1,4 +1,5 @@
 ﻿using Application.DTOs;
+using Application.DTOs.PaymentDtos;
 using Application.IRepositories.IPaymentRepositories;
 using Domain.Common.Constants;
 using Domain.Entities;
@@ -25,6 +26,44 @@ namespace Infrastructure.Repositories
         {
             await _context.PaymentDetails.AddAsync(obj);
         }
+
+        // Trong PaymentRepository
+public async Task<IEnumerable<UserPaymentDetailHistoryDto>> GetPaymentDetailsByUserIdAsync(int userId)
+{
+    var query = await (
+        from pd in _context.PaymentDetails // Bắt đầu từ PaymentDetails
+        where pd.UserId == userId // Lọc theo UserId trong PaymentDetails
+
+        // Join với Payments để lấy thông tin giao dịch gốc
+        join p in _context.Payments on pd.PaymentId equals p.PaymentId
+        
+        select new UserPaymentDetailHistoryDto
+        {
+            // Payment Detail Fields
+            PaymentDetailId = pd.PaymentDetailId,
+            UserId = pd.UserId,
+            PaymentId = pd.PaymentId,
+            OrderId = pd.OrderId,
+            ItemId = pd.ItemId,
+            Amount = pd.Amount,
+            CreatedAt = pd.CreatedAt, // CreatedAt của Detail
+
+            // Payment Fields
+            OrderCode = p.OrderCode,
+            TotalAmount = p.TotalAmount,
+            Currency = p.Currency,
+            Method = p.Method,
+            Status = p.Status,
+            PaymentType = p.PaymentType,
+            PaymentCreatedAt = p.CreatedAt // CreatedAt của Payment
+        }
+    )
+    .OrderByDescending(dto => dto.CreatedAt) // Sắp xếp theo thời gian tạo Detail
+    .ToListAsync();
+
+    return query;
+}
+
         public async Task<decimal> GetRevenueAsync(int sellerId)
         {
             // Calculate the total lifetime revenue for a specific seller.

@@ -20,6 +20,6 @@ public interface IPaymentRepository
     Task<IEnumerable<(int Year, int Month, decimal Total)>> GetRevenueByMonthAsync(int monthsRange);
     Task<Payment?> GetByOrderIdAsync(int orderId);
     Task<IEnumerable<PaymentWithDetailsDto>> GetAllPaymentsWithDetailsMappedAsync();
-    Task<IEnumerable<PaymentWithDetailsDto>> GetPaymentsByUserIdMappedAsync(int userId);
+    Task<IEnumerable<PaymentWithDetailsDto>> GetPaymentHistoryByRolesAsync(int buyerId, int? sellerId = null, int? managerId = null);
     Task<DetailedPaymentHistoryDto> GetTransactionDetailAsync(int userId, int orderId);
 }
