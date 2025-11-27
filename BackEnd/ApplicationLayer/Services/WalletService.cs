@@ -5,6 +5,7 @@ using Application.IRepositories.IBiddingRepositories;
 using Application.IServices;
 using Domain.Common.Constants;
 using Domain.Entities;
+using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.EntityFrameworkCore;
 
 namespace Application.Services;
@@ -56,6 +57,12 @@ public class WalletService : IWalletService
             throw new ArgumentException("Deposit amount must be greater than 0");
         }
 
+        var user = await _unitOfWork.Users.GetByIdAsync(userId);
+        if (user == null)
+        {
+            throw new KeyNotFoundException("User not found");
+        }
+
         var wallet = await _unitOfWork.Wallets.GetWalletByUserIdAsync(userId);
         if (wallet == null)
         {
@@ -80,7 +87,7 @@ public class WalletService : IWalletService
             TotalAmount = amount,
             Method = "Wallet",
             Status = "Completed",
-            PaymentType = "Deposit",
+            PaymentType = PaymentType.Deposit.ToString(),
             CreatedAt = DateTime.Now
         };
 
@@ -91,6 +98,7 @@ public class WalletService : IWalletService
         var paymentDetail = new PaymentDetail
         {
             UserId = newPayment.UserId,
+            UserRole = user.Role,
             PaymentId = newPayment.PaymentId,
             Amount = amount,
             // Đối với giao dịch nạp tiền, OrderId và ItemId thường là NULL
@@ -174,6 +182,7 @@ public class WalletService : IWalletService
             var paymentDetail = new PaymentDetail
             {
                 UserId = request.UserId,
+                UserRole = request.UserRole,
                 PaymentId = newPayment.PaymentId,
                 Amount = -request.Amount,
                 OrderId = request.Type == WalletTransactionType.Withdraw.ToString() ? request.OrderId : null,
@@ -301,6 +310,7 @@ public class WalletService : IWalletService
             var sellerPaymentDetail = new PaymentDetail
             {
                 UserId = sellerId,
+                UserRole = UserRole.Seller.ToString(),
                 PaymentId = newPayment.PaymentId,
                 Amount = -amountToTransfer,
                 CreatedAt = DateTime.Now
@@ -310,6 +320,7 @@ public class WalletService : IWalletService
             var managerPaymentDetail = new PaymentDetail
             {
                 UserId = managerWallet.UserId,
+                UserRole = UserRole.Manager.ToString(),
                 PaymentId = newPayment.PaymentId,
                 Amount = amountToTransfer,
                 CreatedAt = DateTime.Now

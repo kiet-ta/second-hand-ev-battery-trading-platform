@@ -9,6 +9,7 @@ namespace Application.DTOs.WalletDtos;
 public class WithdrawRequestDto
 {
     public int UserId { get; set; }
+    public string UserRole { get; set; }
     public decimal Amount { get; set; }
     public string Type { get; set; } // withdraw or payment
     public int? RefId { get; set; } //  OrderId or PaymentId
