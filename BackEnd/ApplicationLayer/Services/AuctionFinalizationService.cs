@@ -32,53 +32,71 @@ public class AuctionFinalizationService : IAuctionFinalizationService
 
         try
         {
+            // 1. Retrieve and Validate Auction
             var auction = await _unitOfWork.Auctions.GetByIdAsync(auctionId);
-            // Validate auction exised and status is 'ended'
             if (auction == null)
             {
                 _logger.LogWarning("Auction {AuctionId} not found during finalization.", auctionId);
-                await _unitOfWork.RollbackTransactionAsync(); // Rollback
-                return;
-            }
-
-            if (auction.Status != AuctionStatus.Ongoing.ToString())
-            {
-                _logger.LogWarning("Attempted to finalize auction {AuctionId} but its status is '{Status}', not 'ongoing'. Skipping.", auctionId, auction.Status);
                 await _unitOfWork.RollbackTransactionAsync();
                 return;
             }
-            auction.Status =  AuctionStatus.Ended.ToString();
-            auction.UpdatedAt = DateTime.Now; 
-            await _unitOfWork.Auctions.Update(auction); 
-            _logger.LogInformation("Auction {AuctionId} status updated to 'ended' within transaction.", auctionId);
 
-            // get highest bid and is active (not outbid by itself or others)
-            var winningBid = await _unitOfWork.Bids.GetHighestActiveBidAsync(auctionId);
+            // 2. Check if transaction already exists (Idempotency check)
+            var existingPaymentTx = await _unitOfWork.WalletTransactions
+                .GetTransactionByAuctionIdAndTypeAsync(auctionId, WalletTransactionType.Payment.ToString());
 
-            // No bidder
-            if (winningBid == null)
+            if (existingPaymentTx != null)
             {
-                _logger.LogInformation($"Auction {auctionId} ended with no winning bids.");
-                // Optional: Cập nhật trạng thái item về lại 'active' nếu cần
-                var itemNoBids = await _unitOfWork.Items.GetByIdAsync(auction.ItemId);
-                if (itemNoBids != null && itemNoBids.Status == "pending_auction") // Giả sử có status này
-                {
-                    itemNoBids.Status = ItemStatus.Active.ToString();
-                    _unitOfWork.Items.Update(itemNoBids);
-                    await _unitOfWork.SaveChangesAsync(); // Save changes to item status
-                    _logger.LogInformation($"Updated Item {auction.ItemId} status back to active as auction had no bids.");
-                }
-                await _unitOfWork.CommitTransactionAsync(); // Commit transaction to save, end transaction
+                _logger.LogInformation($"Auction {auctionId} already finalized (Order created). Skipping.");
+                await _unitOfWork.RollbackTransactionAsync();
                 return;
             }
 
+            // 3. Update Auction Status to 'Ended' if necessary
+            // Allow finalizing 'Ongoing' (expired) or 'Ended' (pending processing) auctions
+            if (auction.Status != AuctionStatus.Ongoing.ToString() && auction.Status != AuctionStatus.Ended.ToString())
+            {
+                await _unitOfWork.RollbackTransactionAsync();
+                return;
+            }
+
+            if (auction.Status != AuctionStatus.Ended.ToString())
+            {
+                auction.Status = AuctionStatus.Ended.ToString();
+                auction.UpdatedAt = DateTime.Now;
+                await _unitOfWork.Auctions.Update(auction);
+            }
+
+            // 4. Determine Winner
+            var winningBid = await _unitOfWork.Bids.GetHighestActiveBidAsync(auctionId);
+
+            // CASE: No Bidders
+            if (winningBid == null)
+            {
+                _logger.LogInformation($"Auction {auctionId} ended with no winning bids.");
+
+                // Optional: Revert item status to Active if needed
+                var itemNoBids = await _unitOfWork.Items.GetByIdAsync(auction.ItemId);
+                if (itemNoBids != null && itemNoBids.Status == ItemStatus.Auction_Active.ToString())
+                {
+                    itemNoBids.Status = ItemStatus.Active.ToString();
+                    _unitOfWork.Items.Update(itemNoBids);
+                    await _unitOfWork.SaveChangesAsync();
+                    _logger.LogInformation($"Updated Item {auction.ItemId} status back to active.");
+                }
+                await _unitOfWork.CommitTransactionAsync();
+                return;
+            }
+
+            // CASE: Has Winner
             await _unitOfWork.Bids.UpdateBidStatusAsync(winningBid.BidId, BidStatus.Winner.ToString());
             _logger.LogInformation($"Auction {auctionId} winner: User {winningBid.UserId} with Bid {winningBid.BidId} amount {winningBid.BidAmount}");
 
             var winnerId = winningBid.UserId;
-            var winningAmount = winningBid.BidAmount;
+            var winningAmount = winningBid.BidAmount; // This is the Item Price
             var itemId = auction.ItemId;
 
+            // 5. Get Seller Info
             var itemWithSeller = await _unitOfWork.Items.GetItemAndSellerByItemIdAsync(itemId);
             if (itemWithSeller?.Seller == null || itemWithSeller.Item == null)
             {
@@ -86,6 +104,8 @@ public class AuctionFinalizationService : IAuctionFinalizationService
                 throw new InvalidOperationException($"Could not find owner for item {itemId}.");
             }
             int sellerId = itemWithSeller.Seller.UserId;
+
+            // 6. Get Wallets
             var sellerWallet = await _unitOfWork.Wallets.GetWalletByUserIdAsync(sellerId);
             if (sellerWallet == null)
             {
@@ -93,37 +113,60 @@ public class AuctionFinalizationService : IAuctionFinalizationService
                 throw new InvalidOperationException($"Seller wallet for user ID {sellerId} not found.");
             }
 
-            // --- Handle the winner ---
             var winnerWallet = await _unitOfWork.Wallets.GetWalletByUserIdAsync(winnerId);
             if (winnerWallet == null)
             {
                 await _unitOfWork.RollbackTransactionAsync();
                 throw new InvalidOperationException($"Winner wallet {winnerId} not found.");
             }
-            // Update winner wallet: Decrease held_balance (since funds have been transferred)
-            bool updateWinnerWalletSuccess = await _unitOfWork.Wallets.UpdateBalanceAndHeldAsync(winnerWallet.WalletId, 0, -winningAmount); //  only reduce held 
-            if (!updateWinnerWalletSuccess)
+
+            // 7. Calculate Shipping Fee (Safe Execution)
+            // Wrapp in try-catch to prevent transaction rollback if GHN API fails
+            decimal shippingCost = 0;
+            try
             {
-                await _unitOfWork.RollbackTransactionAsync();
-                throw new Exception($"Failed to update winner wallet {winnerWallet.WalletId} held balance.");
+                var shippingFee = await _unitOfWork.Address.CalulateShippingFee(winnerId);
+                if (shippingFee != null && shippingFee.Data != null)
+                {
+                    shippingCost = shippingFee.Data.Total;
+                }
+            }
+            catch (Exception ex)
+            {
+                // Log error but continue with 0 shipping cost to finalize the order
+                _logger.LogError(ex, "Failed to calculate shipping fee for winner {WinnerId}. Defaulting to 0.", winnerId);
+                shippingCost = 0;
             }
 
-            // --- End of winner processing ---
+            // Calculate Total Amount to deduct
+            decimal totalPaymentAmount = winningAmount + shippingCost;
 
+            // 8. Process Winner Wallet (2-Step Logic)
 
-            // --- Updadte Item Status và create Order ---
-            var itemEntityToUpdate = itemWithSeller.Item; // get the seller's auction item
-            itemEntityToUpdate.Status = ItemStatus.Sold.ToString();
-            itemEntityToUpdate.UpdatedAt = DateTime.Now;
-            _unitOfWork.Items.Update(itemEntityToUpdate); // Update Item entity
-            _logger.LogInformation($"Updated Item {itemId} status to sold");
+            // Step A: Release the "Held" balance associated with the bid.
+            // This moves the money from 'Held' back to 'Available' logic inside the wallet.
+            // We do this so we can then subtract the full Total Amount (Price + Ship) in Step B.
+            bool releaseHoldSuccess = await _unitOfWork.Wallets.UpdateBalanceAndHeldAsync(winnerWallet.WalletId, 0, -winningAmount);
+            if (!releaseHoldSuccess)
+            {
+                await _unitOfWork.RollbackTransactionAsync();
+                throw new Exception($"Failed to release held balance for winner wallet {winnerWallet.WalletId}.");
+            }
 
-            // create Order
-            var winnerAddress = await _unitOfWork.Address.GetAddressDefaultByUserId(winnerId); // get default default
+            // Step B: Deduct the Total Amount from Balance.
+            // Check if user has enough balance for Item + Shipping.
+            bool paymentSuccess = await _unitOfWork.Wallets.UpdateBalanceAndHeldAsync(winnerWallet.WalletId, -totalPaymentAmount, 0);
+            if (!paymentSuccess)
+            {
+                await _unitOfWork.RollbackTransactionAsync();
+                throw new InvalidOperationException($"Winner {winnerId} does not have enough balance to pay for Item + Shipping ({totalPaymentAmount:N0}).");
+            }
+
+            // 9. Create Order
+            var winnerAddress = await _unitOfWork.Address.GetAddressDefaultByUserId(winnerId);
             if (winnerAddress == null)
             {
-                _logger.LogWarning("Winner {WinnerId} does not have a default address.", winnerId);
-                // 
+                // Fallback to any address
                 var anyAddress = (await _unitOfWork.Address.GetAddressesByUserIdAsync(winnerId)).FirstOrDefault();
                 if (anyAddress == null)
                 {
@@ -132,30 +175,24 @@ public class AuctionFinalizationService : IAuctionFinalizationService
                 }
                 winnerAddress = anyAddress;
             }
-            var shippingFee = await _unitOfWork.Address.CalulateShippingFee(winnerId);
-            if (shippingFee == null)
-                {
-                await _unitOfWork.RollbackTransactionAsync();
-                throw new InvalidOperationException($"Failed to calculate shipping fee for winner {winnerId}.");
-            }
-
 
             var newOrder = new Order
             {
-                ShippingPrice = shippingFee.Data.Total,
+                ShippingPrice = shippingCost,
                 BuyerId = winnerId,
-                AddressId = winnerAddress.AddressId, 
+                AddressId = winnerAddress.AddressId,
                 CreatedAt = DateTime.Now,
                 UpdatedAt = DateTime.Now
             };
             await _unitOfWork.Orders.AddAsync(newOrder);
-            await _unitOfWork.SaveChangesAsync(); // Save to get OrderId
+            await _unitOfWork.SaveChangesAsync(); // Save to generate OrderId
             _logger.LogInformation("Created Order {OrderId} for winner User {WinnerId}", newOrder.OrderId, winnerId);
 
+            // 10. Record "Payment" Transaction
             var walletTransaction = new WalletTransaction
             {
                 WalletId = winnerWallet.WalletId,
-                Amount = -winningAmount, 
+                Amount = -totalPaymentAmount,
                 Type = WalletTransactionType.Payment.ToString(),
                 CreatedAt = DateTime.Now,
                 RefId = newOrder.OrderId,
@@ -164,14 +201,13 @@ public class AuctionFinalizationService : IAuctionFinalizationService
             };
             await _unitOfWork.WalletTransactions.CreateTransactionAsync(walletTransaction);
 
-            // TODO: save to payment and payment detail service
+            // 11. Create Payment Record
             long orderCode = _uniqueIDGenerator.CreateUnique53BitId();
-
             var newPayment = new Payment
             {
                 UserId = winnerId,
                 OrderCode = orderCode,
-                TotalAmount = winningAmount,
+                TotalAmount = totalPaymentAmount, // Save total amount (Bid + Ship)
                 Currency = "VND",
                 Method = "Wallet",
                 Status = PaymentStatus.Completed.ToString(),
@@ -184,137 +220,108 @@ public class AuctionFinalizationService : IAuctionFinalizationService
             await _unitOfWork.Payments.AddPaymentAsync(newPayment);
             await _unitOfWork.SaveChangesAsync();
 
-            _logger.LogInformation($"Created Payment record {newPayment.PaymentId} with OrderCode {orderCode} for Order {newOrder.OrderId}");
-
             var newPaymentDetail = new PaymentDetail
             {
                 UserId = newPayment.UserId,
                 PaymentId = newPayment.PaymentId,
                 OrderId = newOrder.OrderId,
                 ItemId = itemId,
-                Amount = winningAmount
+                Amount = totalPaymentAmount
             };
 
             await _unitOfWork.PaymentDetails.AddPaymentDetailAsync(newPaymentDetail);
             await _unitOfWork.SaveChangesAsync();
 
-            _logger.LogInformation($"Decreased held balance by {winningAmount} for winner User {winnerId} and created 'payment' transaction.");
-
-            // create OrderItem
+            // 12. Create Order Item
             var newOrderItem = new OrderItem
             {
                 OrderId = newOrder.OrderId,
                 BuyerId = winnerId,
                 ItemId = itemId,
                 Quantity = 1,
-                Price = winningAmount,
+                Price = winningAmount, // Save item price
                 Status = OrderItemStatus.Pending.ToString(),
                 IsDeleted = false
             };
 
             await _unitOfWork.Items.UpdateItemQuantityAsync(itemId, itemWithSeller.Item.Quantity);
+            await _unitOfWork.OrderItems.CreateAsync(newOrderItem);
+            await _unitOfWork.SaveChangesAsync();
 
-            await _unitOfWork.OrderItems.CreateAsync(newOrderItem); 
-
-            await _unitOfWork.SaveChangesAsync(); // Save OrderItem
-
-            _logger.LogInformation($"Added Item {itemId} to Order {newOrder.OrderId}");
-            // --- Finish updating Item and Order ---
-
-
-            // --- Process refunds for losers ---
+            // 13. Process Refunds for Losers
             var loserBids = await _unitOfWork.Bids.GetAllLoserActiveOrOutbidBidsAsync(auctionId, winnerId);
-            // Get all active/outbid bids that are not from the winner
 
             foreach (var loserBid in loserBids)
             {
-                // Find the 'hold' transaction corresponding to this bid
+                // Find corresponding 'hold' transaction
                 var holdTransaction = await _unitOfWork.WalletTransactions.FindHoldTransactionByRefIdAsync(loserBid.BidId);
                 if (holdTransaction == null)
                 {
-                    _logger.LogWarning("Could not find corresponding 'hold' transaction for loser Bid {BidId} (User {UserId}). Skipping release.", loserBid.BidId, loserBid.UserId);
-                    await _unitOfWork.Bids.UpdateBidStatusAsync(loserBid.BidId, "released");
-                    // Mark processed to avoid repetition
+                    _logger.LogWarning("Could not find 'hold' transaction for loser Bid {BidId}. Skipping refund.", loserBid.BidId);
+                    await _unitOfWork.Bids.UpdateBidStatusAsync(loserBid.BidId, BidStatus.Released.ToString());
                     continue;
                 }
 
-                // The amount to be refunded is the amount held for that bid (taken from the transaction)
-                // Note: transaction amount is negative, so need to take absolute value
-                decimal amountToRelease = -holdTransaction.Amount;
+                decimal amountToRelease = -holdTransaction.Amount; // Convert to positive
 
-                // Update loser's wallet: Add balance, decrease held_balance
-                bool updateLoserWallet = await _unitOfWork.Wallets.UpdateBalanceAndHeldAsync(holdTransaction.WalletId, amountToRelease, -amountToRelease);
+                // Refund Logic: ONLY decrease HeldBalance. Do NOT touch Balance.
+                // (Assuming PlaceBid only increased HeldBalance and didn't touch Balance)
+                bool updateLoserWallet = await _unitOfWork.Wallets.UpdateBalanceAndHeldAsync(holdTransaction.WalletId, 0, -amountToRelease);
+
                 if (!updateLoserWallet)
                 {
-                    // Log critical errors but don't stop the whole process just because of one user error
-                    _logger.LogError("CRITICAL: Failed to release funds for loser Bid {BidId} / User {UserId} / Wallet {WalletId}. Amount: {Amount}. MANUAL INTERVENTION NEEDED.",
-                       loserBid.BidId, loserBid.UserId, holdTransaction.WalletId, amountToRelease);
-                    // Don't throw an error here, continue processing other users
-                    continue; // Ignore this user
+                    _logger.LogError("CRITICAL: Failed to release funds for loser Bid {BidId}. Wallet {WalletId}.", loserBid.BidId, holdTransaction.WalletId);
+                    continue; // Continue to next user, don't crash
                 }
 
-                // create transaction 'release'
+                // Create 'Released' Transaction
                 var releaseTransaction = new WalletTransaction
                 {
                     WalletId = holdTransaction.WalletId,
-                    Amount = amountToRelease, // Positive numbers
+                    Amount = amountToRelease,
                     Type = WalletTransactionType.Released.ToString(),
                     CreatedAt = DateTime.Now,
-                    RefId = loserBid.BidId, // Link to losing bid
+                    RefId = loserBid.BidId,
                     AuctionId = auctionId
                 };
                 await _unitOfWork.WalletTransactions.CreateTransactionAsync(releaseTransaction);
 
-                // Update 'outbid' status to 'released'
-                await _unitOfWork.Bids.UpdateBidStatusAsync(loserBid.BidId, "released");
-                _logger.LogInformation($"Released {amountToRelease} for loser Bid {loserBid.BidId} / User {loserBid.UserId}");
+                // Update Status
+                await _unitOfWork.Bids.UpdateBidStatusAsync(loserBid.BidId, BidStatus.Released.ToString());
 
+                // Notify Loser
                 await SendNotificationAsync(
                         senderId: null, receiverId: loserBid.UserId,
-                        title: $"Đấu giá #{auctionId} kết thúc - Hoàn tiền",
-                        message: $"Số tiền {amountToRelease:N0}đ đã được hoàn lại vào ví của bạn từ phiên đấu giá cho sản phẩm '{itemEntityToUpdate.Title}'.");
+                        title: $"Đấu giá #{auctionId} kết thúc",
+                        message: $"Số tiền {amountToRelease:N0}đ đã được hoàn lại (giải phóng) vào ví của bạn.");
             }
-            // --- End of loser processing ---
 
-
+            // 14. Commit Transaction
             await _unitOfWork.CommitTransactionAsync();
             _logger.LogInformation("Successfully finalized Auction {AuctionId}", auctionId);
 
-            // Send notification to winner and seller (after successful commit)
-
+            // 15. Send Final Notifications
+            // Winner Notification
             var winnerNoti = new CreateNotificationDto
             {
                 NotiType = NotificationType.Auction.ToString(),
-                TargetUserId = winnerId.ToString(),  
-                Title = "You have won the auction!",
-                Message = $"Congratulations! You won the auction for item {itemId}."
+                TargetUserId = winnerId.ToString(),
+                Title = "Chúc mừng! Bạn đã thắng đấu giá",
+                Message = $"Đơn hàng cho sản phẩm đã được tạo. Tổng thanh toán: {totalPaymentAmount:N0}đ (Đã bao gồm phí vận chuyển)."
             };
-
             _ = _notificationService.AddNewNotification(winnerNoti, 0, "");
+            await _notificationService.SendNotificationAsync(message: winnerNoti.Message, targetUserId: winnerNoti.TargetUserId);
 
-            await _notificationService.SendNotificationAsync(
-                message: winnerNoti.Message,
-                targetUserId: winnerNoti.TargetUserId
-            );
-
-
-
-            var sellerName = await _unitOfWork.Users.GetByIdAsync((int)sellerId);
-
+            // Seller Notification
             var sellerNotiDto = new CreateNotificationDto
             {
                 NotiType = NotificationType.Auction.ToString(),
-                TargetUserId = sellerId.ToString(), 
-                Title = "Your auction has ended!",
-                Message = $"{sellerName?.FullName ?? "Someone"}'s item has been won by user ID {winnerId}."
+                TargetUserId = sellerId.ToString(),
+                Title = "Phiên đấu giá đã kết thúc",
+                Message = $"Sản phẩm của bạn đã được bán cho user {winnerId} với giá {winningAmount:N0}đ."
             };
-
             _ = _notificationService.AddNewNotification(sellerNotiDto, 0, "");
-
-            await _notificationService.SendNotificationAsync(
-                message: sellerNotiDto.Message,
-                targetUserId: sellerNotiDto.TargetUserId
-            );
+            await _notificationService.SendNotificationAsync(message: sellerNotiDto.Message, targetUserId: sellerNotiDto.TargetUserId);
 
         }
         catch (Exception ex)

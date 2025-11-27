@@ -21,7 +21,6 @@ public class WalletTransactionRepository : IWalletTransactionRepository
 
     public async Task AddAsync(WalletTransaction transaction)
     {
-        // Đơn giản là gọi AddAsync của DbContext
         await _context.WalletTransactions.AddAsync(transaction);
     }
 
@@ -61,5 +60,10 @@ public class WalletTransactionRepository : IWalletTransactionRepository
             return null;
         }
         return transaction;
+    }
+    public async Task<WalletTransaction?> GetTransactionByAuctionIdAndTypeAsync(int auctionId, string type)
+    {
+        return await _context.WalletTransactions
+            .FirstOrDefaultAsync(x => x.AuctionId == auctionId && x.Type == type);
     }
 }

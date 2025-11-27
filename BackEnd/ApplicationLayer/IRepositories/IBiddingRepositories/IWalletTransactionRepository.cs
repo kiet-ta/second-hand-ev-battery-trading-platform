@@ -1,4 +1,5 @@
 ﻿using Domain.Entities;
+using Microsoft.EntityFrameworkCore;
 
 namespace Application.IRepositories.IBiddingRepositories;
 
@@ -13,4 +14,6 @@ public interface IWalletTransactionRepository
     Task<WalletTransaction?> FindHoldTransactionByRefIdAsync(int bidId);
 
     Task<WalletTransaction?> GetByOrderItemIdAsync(int orderId);
+
+    Task<WalletTransaction?> GetTransactionByAuctionIdAndTypeAsync(int auctionId, string type);
 }
