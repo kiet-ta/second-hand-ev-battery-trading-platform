@@ -60,6 +60,7 @@ public class PaymentRepository : IPaymentRepository
             CreatedAt = item.Payment.CreatedAt,
             PaymentDetails = item.Details.Select(pd => new PaymentDetailDto
             {
+                UserId = pd.UserId,
                 PaymentDetailId = pd.PaymentDetailId,
                 OrderId = pd.OrderId,
                 ItemId = pd.ItemId,
@@ -204,6 +205,7 @@ public class PaymentRepository : IPaymentRepository
                 CreatedAt = x.Payment.CreatedAt,
                 Details = x.Details.Select(d => new PaymentDetailDto
                 {
+                    UserId = d.UserId,
                     OrderId = d.OrderId,
                     ItemId = d.ItemId,
                     Amount = d.Amount

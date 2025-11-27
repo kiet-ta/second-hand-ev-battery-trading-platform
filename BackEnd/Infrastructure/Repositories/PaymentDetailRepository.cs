@@ -27,14 +27,12 @@ namespace Infrastructure.Repositories
             await _context.PaymentDetails.AddAsync(obj);
         }
 
-        // Trong PaymentRepository
 public async Task<IEnumerable<UserPaymentDetailHistoryDto>> GetPaymentDetailsByUserIdAsync(int userId)
 {
     var query = await (
-        from pd in _context.PaymentDetails // Bắt đầu từ PaymentDetails
-        where pd.UserId == userId // Lọc theo UserId trong PaymentDetails
+        from pd in _context.PaymentDetails
+        where pd.UserId == userId
 
-        // Join với Payments để lấy thông tin giao dịch gốc
         join p in _context.Payments on pd.PaymentId equals p.PaymentId
         
         select new UserPaymentDetailHistoryDto
@@ -46,7 +44,7 @@ public async Task<IEnumerable<UserPaymentDetailHistoryDto>> GetPaymentDetailsByU
             OrderId = pd.OrderId,
             ItemId = pd.ItemId,
             Amount = pd.Amount,
-            CreatedAt = pd.CreatedAt, // CreatedAt của Detail
+            CreatedAt = pd.CreatedAt,
 
             // Payment Fields
             OrderCode = p.OrderCode,
@@ -55,10 +53,10 @@ public async Task<IEnumerable<UserPaymentDetailHistoryDto>> GetPaymentDetailsByU
             Method = p.Method,
             Status = p.Status,
             PaymentType = p.PaymentType,
-            PaymentCreatedAt = p.CreatedAt // CreatedAt của Payment
+            PaymentCreatedAt = p.CreatedAt // CreatedAt of Payment
         }
     )
-    .OrderByDescending(dto => dto.CreatedAt) // Sắp xếp theo thời gian tạo Detail
+    .OrderByDescending(dto => dto.CreatedAt)
     .ToListAsync();
 
     return query;

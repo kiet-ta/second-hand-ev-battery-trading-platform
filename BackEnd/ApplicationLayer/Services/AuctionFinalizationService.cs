@@ -162,7 +162,7 @@ public class AuctionFinalizationService : IAuctionFinalizationService
             var newPayment = new Payment
             {
                 UserId = winnerId,
-                OrderCode = orderCode, // Sử dụng giá trị vừa generate
+                OrderCode = orderCode,
                 TotalAmount = winningAmount,
                 Currency = "VND",
                 Method = "Wallet",
@@ -178,9 +178,9 @@ public class AuctionFinalizationService : IAuctionFinalizationService
 
             _logger.LogInformation($"Created Payment record {newPayment.PaymentId} with OrderCode {orderCode} for Order {newOrder.OrderId}");
 
-            // Tạo PaymentDetail record
             var newPaymentDetail = new PaymentDetail
             {
+                UserId = newPayment.UserId,
                 PaymentId = newPayment.PaymentId,
                 OrderId = newOrder.OrderId,
                 ItemId = itemId,

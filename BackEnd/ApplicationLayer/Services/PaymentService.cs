@@ -296,6 +296,7 @@ public class PaymentService : IPaymentService
 
             var paymentDetails = request.Details.Select(d => new PaymentDetail
             {
+                UserId = payment.UserId,
                 PaymentId = payment.PaymentId,
                 OrderId = d.OrderId,
                 ItemId = d.ItemId,
@@ -304,7 +305,7 @@ public class PaymentService : IPaymentService
             // Add PaymentDetails not save
             await _unitOfWork.Payments.AddPaymentDetailsAsync(paymentDetails);
 
-            if (request.Method == "wallet")
+            if (request.Method == "Wallet")
             {
                 if (wallet.Balance < request.TotalAmount)
                     throw new ArgumentException("Insufficient wallet balance");
@@ -569,8 +570,8 @@ public class PaymentService : IPaymentService
                 UserId = request.UserId,
                 OrderCode = orderCode,
                 TotalAmount = feeAmount,
-                Method = "payos",
-                PaymentType = "seller_registration", // ?????
+                Method = "PayOS",
+                PaymentType = PaymentType.Seller_Registration.ToString(),
                 Status = PaymentStatus.Pending.ToString(),
                 CreatedAt = DateTime.UtcNow
             };
@@ -579,6 +580,7 @@ public class PaymentService : IPaymentService
 
             var paymentDetail = new PaymentDetail
             {
+                UserId = request.UserId,
                 PaymentId = payment.PaymentId,
                 Amount = feeAmount,
                 ItemId = null,
@@ -626,7 +628,7 @@ public class PaymentService : IPaymentService
                 UserId = userId,
                 OrderCode = depositOrderCode,
                 TotalAmount = amount,
-                Method = "payos",
+                Method = "PayOS",
                 Status = PaymentStatus.Pending.ToString(),
                 PaymentType = PaymentType.Deposit.ToString(),
                 CreatedAt = DateTime.UtcNow,
@@ -637,6 +639,7 @@ public class PaymentService : IPaymentService
 
             var depositDetail = new PaymentDetail
             {
+                UserId = paymentRecord.UserId,
                 PaymentId = paymentRecord.PaymentId,
                 OrderId = null,
                 ItemId = null,

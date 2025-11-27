@@ -90,6 +90,7 @@ public class WalletService : IWalletService
         //record PaymentDetail
         var paymentDetail = new PaymentDetail
         {
+            UserId = newPayment.UserId,
             PaymentId = newPayment.PaymentId,
             Amount = amount,
             // Đối với giao dịch nạp tiền, OrderId và ItemId thường là NULL
