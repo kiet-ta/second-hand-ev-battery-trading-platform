@@ -97,6 +97,7 @@ import NewsList from "../pages/Footers/NewsList";
 import NewsDetail from "../pages/Footers/NewsDetail";
 import SellerRegistrationFeePage from "../pages/SellerRegistrationFeePage";
 import BannedPage from "../pages/BannedPage";
+import TransactionHistory from "../pages/Profile/TransactionHistory";
 
 
 
@@ -161,6 +162,7 @@ export const router = createBrowserRouter([
       },
       { path: "purchase", element: <OrderPage /> },
       { path: "chats", element: <ChatRoomWrapper /> },
+      { path: "transaction", element: <TransactionHistory /> },
     ],
   },
 
@@ -176,6 +178,7 @@ export const router = createBrowserRouter([
           { path: "orders", element: <SellerOrdersPage /> },
           { path: "history", element: <SellerHistoryPage /> },
           { path: "chat", element: <ChatRoomWrapper /> },
+          { path: "transaction", element: <TransactionHistory /> },
         ],
       },
     ],
@@ -195,6 +198,7 @@ export const router = createBrowserRouter([
           { path: "products", element: <ProductModeration /> },
           { path: "complaints", element: <ComplaintsList /> },
           { path: "transactions", element: <TransactionsContent /> },
+          { path: "transaction", element: <TransactionHistory /> },
           { path: "notifications", element: <NotificationCreator /> },
           { path: "news", element: <NewsPage /> },
           { path: "reports", element: <ReportsContent /> },

@@ -32,5 +32,6 @@ namespace Application.IRepositories
 
         Task<IEnumerable<OrderItem>> GetOrdersWithinRangeAsync(DateTime startDate, DateTime endDate);
 
+        Task<bool> DeleteAsync(OrderItem orderItem);
     }
 }

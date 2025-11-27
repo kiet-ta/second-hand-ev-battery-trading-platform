@@ -25,6 +25,7 @@ namespace Infrastructure.Repositories
                 BuyerId = orderItem.BuyerId,
                 ItemId = orderItem.ItemId,
                 Quantity = orderItem.Quantity,
+                Status = orderItem.Status,
                 Price = orderItem.Price,
                 IsDeleted = false
             };
@@ -153,6 +154,17 @@ namespace Infrastructure.Repositories
             .OrderBy(dto => dto.Year)
             .ThenBy(dto => dto.WeekNumber).ToList();
             return result;
+        }
+
+        public async Task<bool> DeleteAsync(OrderItem orderItem)
+        {
+            if (orderItem == null)
+            {
+                return false;
+            }
+            _context.OrderItems.Remove(orderItem);
+            await _context.SaveChangesAsync();
+            return true;
         }
 
     }

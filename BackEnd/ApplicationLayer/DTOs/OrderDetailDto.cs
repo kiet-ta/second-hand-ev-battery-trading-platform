@@ -14,6 +14,8 @@ namespace Application.DTOs
         public int AddressId { get; set; }
         public decimal FeeValue { get; set; }
 
+        public decimal ShippingPrice { get; set; }
+
         public string PaymentMethod { get; set; }
         public decimal TotalAmount { get; set; }
 

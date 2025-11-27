@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { Modal, Descriptions, Image, Spin, message, Tag } from "antd";
+import { Modal, Descriptions, Image, Spin, Tag } from "antd";
 import itemApi from "../../api/itemApi";
+import userApi from "../../api/userApi";
 
-export default function ItemDetailModal({ itemId, open, onClose }) {
+export default function ItemDetailModal({ itemId, orderItem, orderInfo, open, onClose }) {
   const [item, setItem] = useState(null);
   const [loading, setLoading] = useState(true);
-
+  console.log("OrderItem in Modal:", orderItem);
   useEffect(() => {
     const fetchItemDetail = async () => {
       if (!itemId) return;
@@ -13,6 +14,8 @@ export default function ItemDetailModal({ itemId, open, onClose }) {
         setLoading(true);
         const res = await itemApi.getItemDetailByID(itemId);
         setItem(res);
+        const seller = await userApi.getUserByID(res.updatedBy);
+        setItem((prev) => ({ ...prev, sellerName: seller.fullName || "Cửa hàng EV & Pin" }));
       } catch (error) {
         console.error("Failed to fetch item detail:", error);
       } finally {
@@ -52,7 +55,43 @@ export default function ItemDetailModal({ itemId, open, onClose }) {
               ))}
             </div>
           )}
+          {orderItem && orderInfo && (
+            <>
+              <h3 className="font-semibold text-base mt-6">Thông tin thanh toán</h3>
 
+              <Descriptions bordered column={2} size="small">
+                <Descriptions.Item label="Giá gốc">
+                  {orderItem.price?.toLocaleString("vi-VN")} ₫
+                </Descriptions.Item>
+
+                <Descriptions.Item label="Số lượng">
+                  {orderItem.quantity}
+                </Descriptions.Item>
+
+                <Descriptions.Item label="Thành tiền">
+                  {(orderItem.price * orderItem.quantity).toLocaleString("vi-VN")} ₫
+                </Descriptions.Item>
+
+                <Descriptions.Item label="Phí vận chuyển">
+                  {orderInfo.shippingPrice?.toLocaleString("vi-VN")} ₫
+                </Descriptions.Item>
+
+                <Descriptions.Item label="Tên người bán">
+                  {item.sellerName || "Cửa hàng EV & Pin"}
+                </Descriptions.Item>
+
+                <Descriptions.Item label="Tổng thanh toán" span={2}>
+                  <span className="font-bold text-[#d97706] text-lg">
+                    {orderInfo.totalPrice?.toLocaleString("vi-VN")} ₫
+                  </span>
+                </Descriptions.Item>
+
+                <Descriptions.Item label="Mã đơn hàng" span={2}>
+                  #CMX_{item.itemType.toUpperCase()}_{orderInfo.orderId}
+                </Descriptions.Item>
+              </Descriptions>
+            </>
+          )}
           {/* General info */}
           <Descriptions
             bordered
@@ -69,22 +108,6 @@ export default function ItemDetailModal({ itemId, open, onClose }) {
               ) : (
                 <Tag color="green">Pin</Tag>
               )}
-            </Descriptions.Item>
-            <Descriptions.Item label="Giá">
-              <span className="font-semibold text-blue-600">
-                {item.price?.toLocaleString("vi-VN")} ₫
-              </span>
-            </Descriptions.Item>
-            <Descriptions.Item label="Số lượng">{item.quantity}</Descriptions.Item>
-            <Descriptions.Item label="Trạng thái kiểm duyệt">
-              {item.moderation === "Approved" ? (
-                <Tag color="green">Đã duyệt</Tag>
-              ) : (
-                <Tag color="red">Bị từ chối</Tag>
-              )}
-            </Descriptions.Item>
-            <Descriptions.Item label="Ngày tạo">
-              {new Date(item.createdAt).toLocaleDateString()}
             </Descriptions.Item>
             <Descriptions.Item label="Mô tả" span={2}>
               {item.description || "Không có mô tả."}

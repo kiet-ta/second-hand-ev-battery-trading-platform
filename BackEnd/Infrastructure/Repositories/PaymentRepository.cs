@@ -23,6 +23,13 @@ public class PaymentRepository : IPaymentRepository
         return payment;
     }
 
+    public async Task<Payment> CreatePaymentAsync(Payment payment)
+    {
+        var e = (await _context.Payments.AddAsync(payment)).Entity;
+         await _context.SaveChangesAsync();
+        return e;
+    }
+
     public async Task AddPaymentDetailsAsync(List<PaymentDetail> details)
     {
         _context.PaymentDetails.AddRange(details);
@@ -53,6 +60,7 @@ public class PaymentRepository : IPaymentRepository
             CreatedAt = item.Payment.CreatedAt,
             PaymentDetails = item.Details.Select(pd => new PaymentDetailDto
             {
+                UserId = pd.UserId,
                 PaymentDetailId = pd.PaymentDetailId,
                 OrderId = pd.OrderId,
                 ItemId = pd.ItemId,
@@ -63,38 +71,56 @@ public class PaymentRepository : IPaymentRepository
         return paymentDtos;
     }
 
-    public async Task<IEnumerable<PaymentWithDetailsDto>> GetPaymentsByUserIdMappedAsync(int userId)
+    public async Task<IEnumerable<PaymentWithDetailsDto>> GetPaymentHistoryByRolesAsync(
+        int buyerId,
+        int? sellerId = null,
+        int? managerId = null)
     {
         var query = await (
             from p in _context.Payments
-            where p.UserId == userId
+            where p.UserId == buyerId
+
             join pd in _context.PaymentDetails on p.PaymentId equals pd.PaymentId into detailsGroup
+
             select new
             {
                 Payment = p,
-                Details = detailsGroup.ToList()
+                Details = detailsGroup.Where(pd =>
+                    (sellerId.HasValue || managerId.HasValue)
+                    ? (sellerId.HasValue && pd.UserId == sellerId.Value) ||
+                        (managerId.HasValue && pd.UserId == managerId.Value)
+                        : (pd.UserId == buyerId)
+                )
+                .Select(pd => new PaymentDetailDto
+                {
+                    UserId = pd.UserId,
+                    PaymentDetailId = pd.PaymentDetailId,
+                    OrderId = pd.OrderId,
+                    ItemId = pd.ItemId,
+                    Amount = pd.Amount,
+                    CreatedAt = pd.CreatedAt
+                })
+                .ToList()
             }
-        ).ToListAsync();
+        )
+        .ToListAsync();
 
-        var paymentDtos = query.Select(item => new PaymentWithDetailsDto
-        {
-            PaymentId = item.Payment.PaymentId,
-            OrderCode = item.Payment.OrderCode,
-            TotalAmount = item.Payment.TotalAmount,
-            Currency = item.Payment.Currency,
-            Method = item.Payment.Method,
-            Status = item.Payment.Status,
-            PaymentType = item.Payment.PaymentType,
-            CreatedAt = item.Payment.CreatedAt,
-
-            PaymentDetails = item.Details.Select(pd => new PaymentDetailDto
+        var paymentDtos = query
+            .Where(p => p.Details.Any())
+            .Select(item => new PaymentWithDetailsDto
             {
-                PaymentDetailId = pd.PaymentDetailId,
-                OrderId = pd.OrderId,
-                ItemId = pd.ItemId,
-                Amount = pd.Amount
-            }).ToList()
-        }).ToList();
+                PaymentId = item.Payment.PaymentId,
+                UserId = item.Payment.UserId,
+                OrderCode = item.Payment.OrderCode,
+                TotalAmount = item.Payment.TotalAmount,
+                Currency = item.Payment.Currency,
+                Method = item.Payment.Method,
+                Status = item.Payment.Status,
+                PaymentType = item.Payment.PaymentType,
+                CreatedAt = item.Payment.CreatedAt,
+                PaymentDetails = item.Details
+            })
+            .ToList();
 
         return paymentDtos;
     }
@@ -179,6 +205,7 @@ public class PaymentRepository : IPaymentRepository
                 CreatedAt = x.Payment.CreatedAt,
                 Details = x.Details.Select(d => new PaymentDetailDto
                 {
+                    UserId = d.UserId,
                     OrderId = d.OrderId,
                     ItemId = d.ItemId,
                     Amount = d.Amount

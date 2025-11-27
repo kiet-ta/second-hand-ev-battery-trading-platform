@@ -14,6 +14,7 @@ const ProfileForm = () => {
   const baseURL = import.meta.env.VITE_API_BASE_URL;
   const [toastMessage, setToastMessage] = useState("");
   const [toastType, setToastType] = useState("success");
+  const [uploading, setUploading] = useState(false);
 
 
 
@@ -173,20 +174,51 @@ const ProfileForm = () => {
     <div className="profile-form-container">
       <div className="profile-photo-section">
         <div className="photo-upload">
-          <div className="avatar-wrapper">
+          <div className="avatar-wrapper" style={{ position: "relative" }}>
             <img
               src={formData.avatarProfile || placeholder}
               alt="Ảnh đại diện"
               className="profile-photo"
             />
-            <label htmlFor="avatarUpload" className="upload-overlay">
+
+            {/* 🔥 Uploading overlay */}
+            {uploading && (
+              <div
+                style={{
+                  position: "absolute",
+                  inset: 0,
+                  background: "rgba(0,0,0,0.45)",
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  borderRadius: "50%",
+                  color: "white",
+                  fontSize: "14px",
+                  backdropFilter: "blur(2px)",
+                }}
+              >
+                Đang tải...
+              </div>
+            )}
+
+            {/* Upload icon */}
+            <label
+              htmlFor="avatarUpload"
+              className={`upload-overlay ${uploading ? "disabled-upload" : ""}`}
+              style={{
+                cursor: uploading ? "not-allowed" : "pointer",
+                opacity: uploading ? 0.6 : 1,
+              }}
+            >
               <FaCamera />
             </label>
+
             <input
               id="avatarUpload"
               type="file"
               accept="image/*"
               onChange={handleAvatarChange}
+              disabled={uploading}
               style={{ display: "none" }}
             />
           </div>
@@ -196,7 +228,6 @@ const ProfileForm = () => {
           </div>
         </div>
       </div>
-
       <div className="form-section">
         <h2 className="form-title">Thay đổi thông tin người dùng</h2>
 

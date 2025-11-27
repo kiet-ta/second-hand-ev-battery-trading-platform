@@ -75,12 +75,18 @@ function CardComponent({
 
     useEffect(() => {
         const loadStock = async () => {
+            const data = await itemApi.getItemById(id);
             try {
                 const data = await itemApi.getItemById(id);
+                const stockInCart = await orderItemApi.getOrderItem(userId);
+                const inCartQuantity = stockInCart
+                    .filter(oi => oi.itemId === id)
+                    .reduce((sum, oi) => sum + oi.quantity, 0);
+                data.quantity -= inCartQuantity;
                 setStock(data?.quantity ?? 0);
             } catch (e) {
                 console.error("Lỗi lấy tồn kho:", e);
-                setStock(0);
+                setStock(data.quantity);
             }
         };
         loadStock();
@@ -149,7 +155,8 @@ function CardComponent({
             }
         },
         [id, userId, isProcessing, navigate]
-    ); const handleBuyNow = async (e) => {
+    );
+    const handleBuyNow = async (e) => {
         e.preventDefault();
         e.stopPropagation();
 
@@ -161,17 +168,17 @@ function CardComponent({
 
         setIsProcessing(true);
         try {
-            const orderItemPayload = {
+            const createdOrderItem = await orderItemApi.postOrderItem({
                 buyerId: userId,
                 itemId: id,
                 quantity: 1,
-            };
-            const createdOrderItem = await orderItemApi.postOrderItem(orderItemPayload);
-            if (!createdOrderItem?.orderItemId)
-                throw new Error("Không thể tạo OrderItem.");
+                price: price,
+            });
+
+            if (!createdOrderItem?.orderItemId) throw new Error("Không thể tạo OrderItem.");
+
             const allAddresses = await addressLocalApi.getAddressByUserId(userId);
-            const defaultAddress =
-                allAddresses.find((a) => a.isDefault) || allAddresses[0];
+            const defaultAddress = allAddresses.find(a => a.isDefault) || allAddresses[0];
 
             if (!defaultAddress) {
                 navigate("/profile/address");
@@ -184,11 +191,11 @@ function CardComponent({
                 orderItems: [
                     {
                         id: createdOrderItem.orderItemId,
-                        name: title || "Sản phẩm",
+                        itemId: id,
+                        name: title,
                         quantity: 1,
-                        image:
-                            itemImages?.[0]?.imageUrl ||
-                            "https://placehold.co/100x100/e2e8f0/374151?text=?",
+                        image: itemImages?.[0]?.imageUrl || "https://placehold.co/100x100/e2e8f0/374151?text=?",
+                        price: price,
                     },
                 ],
                 allAddresses,
@@ -225,7 +232,7 @@ function CardComponent({
                     const res = await favouriteApi.postFavourite({
                         userId: Number.parseInt(userId, 10),
                         itemId: id,
-                        createdAt: new Date().toISOString(),
+                        createdAt: new Date(new Date().getTime() + 7 * 60 * 60 * 1000).toISOString(),
                     });
                     setIsFavorited(true);
                     setFavoriteId(res?.favId ?? null);
@@ -354,45 +361,31 @@ function CardComponent({
                         </div>
                     </div>
                     <div className="flex justify-between items-center pt-4 border-t border-gray-100">
-                        {type === "Battery" ? (
-                            <div className="flex justify-around items-center w-full gap-4">
+                        <div className="flex justify-around items-center w-full gap-4">
+                            <button
+                                onClick={stock > 0 ? handleBuyNow : null}
+                                disabled={isProcessing || stock === 0}
+                                className={`flex items-center px-4 py-5 rounded-xl font-semibold shadow-md
+            ${stock === 0
+                                        ? "bg-gray-300 text-gray-600 cursor-not-allowed"
+                                        : "bg-yellow-500 text-white hover:bg-yellow-600"
+                                    }`}
+                            >
+                                {stock === 0 ? "Hết hàng" : "Mua ngay"}
+                            </button>
 
-                                <button
-                                    onClick={stock > 0 ? handleBuyNow : null}
-                                    disabled={isProcessing || stock === 0}
-                                    className={`flex items-center px-4 py-5 rounded-xl font-semibold shadow-md
-                                                ${stock === 0
-                                            ? "bg-gray-300 text-gray-600 cursor-not-allowed"
-                                            : "bg-yellow-500 text-white hover:bg-yellow-600"
-                                        }
-                                        `}>
-                                    {stock === 0 ? "Hết hàng" : "Mua ngay"}
-                                </button>
-
-                                <button
-                                    onClick={stock > 0 ? handleAddToCart : null}
-                                    disabled={isProcessing || stock === 0}
-                                    className={`flex items-center px-4 py-5 rounded-xl font-semibold shadow-md
-                                                ${stock === 0
-                                            ? "bg-gray-300 text-gray-600 cursor-not-allowed"
-                                            : "bg-green-500 text-white hover:bg-green-600"
-                                        }
-                                        `}
-                                >
-                                    {stock === 0 ? "Không thể thêm" : "Thêm giỏ hàng"}
-                                </button>
-
-                            </div>
-                        ) : (
-                            <div className="flex justify-around items-center w-full gap-4">
-                                <ChatWithSellerButton
-                                    buyerId={userId}
-                                    sellerId={updatedBy}
-                                    product={{ title, price, imageUrl: displayImages[0]?.imageUrl || "https://placehold.co/100x100/e2e8f0/374151?text=?" }}
-
-                                />
-                            </div>
-                        )}
+                            <button
+                                onClick={stock > 0 ? handleAddToCart : null}
+                                disabled={isProcessing || stock === 0}
+                                className={`flex items-center px-4 py-5 rounded-xl font-semibold shadow-md
+            ${stock === 0
+                                        ? "bg-gray-300 text-gray-600 cursor-not-allowed"
+                                        : "bg-green-500 text-white hover:bg-green-600"
+                                    }`}
+                            >
+                                {stock === 0 ? "Không thể thêm" : "Thêm giỏ hàng"}
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>

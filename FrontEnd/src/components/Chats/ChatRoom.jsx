@@ -224,7 +224,7 @@ From User: ${msg.from}
 To User: ${partnerId}
 Message ID: ${msg.id || msg.tempId}
 Message Content: ${msg.text || "Image/Item"}
-Created At: ${msg.createdAt || new Date().toISOString()}
+Created At: ${msg.createdAt || new Date(new Date().getTime() + 7 * 60 * 60 * 1000).toISOString()}
 `;
     try {
       await complaintApi.postComplaint({
@@ -355,10 +355,8 @@ Created At: ${msg.createdAt || new Date().toISOString()}
 
                 // --- parse item card ---
                 let itemData = null;
-                try {
                   const parsed = JSON.parse(msg.text);
                   if (parsed.type === "Ev") itemData = parsed;
-                } catch {}
 
                 if (itemData) {
                   return (
@@ -484,7 +482,7 @@ Created At: ${msg.createdAt || new Date().toISOString()}
                 value={messageInput}
                 onChange={(e) => setMessageInput(e.target.value)}
                 placeholder="Nhập tin nhắn..."
-                className="flex-grow p-3 border rounded-xl focus:ring-indigo-500 focus:border-indigo-500"
+                className="grow p-3 border rounded-xl focus:ring-indigo-500 focus:border-indigo-500"
               />
               <button
                 type="submit"

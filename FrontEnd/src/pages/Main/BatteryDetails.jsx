@@ -4,6 +4,11 @@ import { InputNumber, Spin, Card } from "antd";
 import {
   FiShoppingCart,
   FiCreditCard,
+  FiPhone,
+  FiUser,
+  FiMessageCircle,
+  FiMessageSquare,
+  FiHeart,
 } from "react-icons/fi";
 import { FaStar, FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import { GiBatteryPack } from "react-icons/gi";
@@ -14,6 +19,8 @@ import reviewApi from "../../api/reviewApi";
 import addressLocalApi from "../../api/addressLocalApi";
 import placeholder from "../../assets/images/placeholder.png"
 import { useParams } from "react-router-dom";
+import ChatWithSellerButton from "../../components/Buttons/ChatWithSellerButton";
+
 
 // Star rating component
 const StarRating = ({ rating }) => (
@@ -49,6 +56,8 @@ function BatteryDetails() {
   const navigate = useNavigate();
   const { id } = useParams();
 
+  const userId = parseInt(localStorage.getItem("userId"), 10);
+
   const [item, setItem] = useState(null);
   const [sellerProfile, setSellerProfile] = useState(null);
   const [reviews, setReviews] = useState([]);
@@ -59,6 +68,7 @@ function BatteryDetails() {
   const [feedback, setFeedback] = useState(null);
   const [selectedImage, setSelectedImage] = useState(0);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isPhoneVisible, setIsPhoneVisible] = useState(false);
 
   // Carousel handlers
   const handlePrev = useCallback(() => {
@@ -149,6 +159,15 @@ function BatteryDetails() {
     fetchData();
   }, [id]);
 
+  const handleShowPhone = () => {
+    if (isNaN(userId)) {
+      setFeedback({ type: "error", msg: "Vui lòng đăng nhập để xem số điện thoại." });
+      navigate("/login");
+      return;
+    }
+    setIsPhoneVisible((prev) => !prev);
+  };
+
   // Helper
   const formatPrice = (price) =>
     price?.toLocaleString("vi-VN", { style: "currency", currency: "VND" }) ||
@@ -203,6 +222,30 @@ function BatteryDetails() {
       setIsProcessing(false);
     }
   }, [item, quantity, availableStock]);
+
+
+  const handleFavorite = async () => {
+    const buyerId = localStorage.getItem("userId");
+    if (!buyerId) return navigate("/login");
+
+    try {
+      await favouriteApi.postFavourite({
+        userId: buyerId,
+        itemId: id,
+      });
+      setFeedback({ type: "success", msg: "Đã quan tâm sản phẩm!" });
+    } catch (err) {
+      setFeedback({ type: "error", msg: "Không thể quan tâm sản phẩm." });
+    }
+  };
+
+  //  NHẮN TIN VỚI NGƯỜI BÁN (đi thẳng đến trang chat)
+  const handleChat = () => {
+    const buyerId = localStorage.getItem("userId");
+    if (!buyerId) return navigate("/login");
+
+    navigate(`/chat?sellerId=${item.updatedBy}&itemId=${item.itemId}`);
+  };
 
   // Buy now
   const handleBuyNow = async (e) => {
@@ -436,27 +479,77 @@ function BatteryDetails() {
                 <FiCreditCard className="inline mr-2" />
                 Mua ngay
               </button>
+
+
+
             </div>
           </Card>
 
           {sellerProfile && (
-            <Card className="p-6 rounded-2xl shadow-md border border-[#EAE6DA] bg-white/90 flex items-center gap-4">
-              <img
-                src={sellerProfile.avatarProfile || placeholder}
-                alt={sellerProfile.fullName}
-                className="w-16 h-16 rounded-full object-cover"
-              />
-              <div className="flex-1 mb-5">
-                <p className="font-bold text-lg">{sellerProfile.fullName}</p>
-                <p className="text-sm text-green-600">Đang hoạt động</p>
+            <Card className="p-6 rounded-2xl shadow-md border border-[#EAE6DA] bg-white/90">
+              <div className="flex items-center gap-4">
+                {/* Avatar */}
+                <img
+                  src={sellerProfile.avatarProfile || placeholder}
+                  alt={sellerProfile.fullName}
+                  className="w-16 h-16 rounded-full object-cover"
+                />
+
+                {/* Info */}
+                <div className="flex-1">
+                  <p className="font-bold text-lg">{sellerProfile.fullName}</p>
+                  <p className="text-sm text-green-600">Đang hoạt động</p>
+                </div>
               </div>
-              <Link
-                to={`/seller/${item.updatedBy}`}
-                className="border border-[#B8860B] text-[#B8860B] font-semibold py-2 px-4 rounded-lg hover:bg-[#FFF7E5] transition">
-                Xem hồ sơ
-              </Link>
+
+              {/* Buttons */}
+              <div className="flex justify-between gap-3 mt-3">
+
+                {/* VIEW PROFILE */}
+                <Link
+                  to={`/seller/${item.updatedBy}`}
+                  className="flex-1 flex items-center justify-center gap-2
+      bg-white border-[2px] border-[#B8860B] text-[#B8860B]
+      font-semibold px-4 py-3 rounded-full shadow-sm
+      hover:bg-[#FFF2D1] hover:shadow-md hover:scale-[1.02]
+      transition-all duration-200"
+                >
+                  <FiUser className="text-lg" /> Hồ sơ
+                </Link>
+
+                {/* CHAT */}
+                <button
+                  disabled={loading}
+                  onClick={(e) => { handleChat("normal"); e.stopPropagation(); }}
+                  className="flex-1 flex items-center justify-center gap-2
+      bg-gradient-to-r from-[#6D28D9] to-[#4F46E5] 
+      text-white font-semibold px-4 py-3 rounded-full
+      shadow-md hover:shadow-xl hover:scale-[1.03]
+      active:scale-[0.97] transition-all duration-200"
+                >
+                  <FiMessageSquare className="text-lg" />
+                  {loading ? "Đang mở..." : "Nhắn tin"}
+                </button>
+
+                {/* FAVORITE */}
+                <button
+                  disabled={loading}
+                  onClick={(e) => { setShowConfirm(true); e.stopPropagation(); }}
+                  className="flex-1 flex items-center justify-center gap-2
+      bg-gradient-to-r from-[#F59E0B] to-[#D97706]
+      text-white font-semibold px-4 py-3 rounded-full
+      shadow-md hover:shadow-xl hover:scale-[1.03]
+      active:scale-[0.97] transition-all duration-200"
+                >
+                  <FiHeart className="text-lg" />
+                  {loading ? "Đang xử lý..." : "Quan tâm"}
+                </button>
+
+              </div>
             </Card>
           )}
+
+
 
           <Card className="p-6 rounded-2xl shadow-md border border-[#EAE6DA] bg-white/90">
             <h2 className="text-2xl font-bold text-[#B8860B] mb-4">

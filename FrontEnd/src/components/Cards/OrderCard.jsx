@@ -32,11 +32,11 @@ export default function OrderCard({ orderItem, order, onViewItem, onMarkReceived
     fetchReviewStatus();
   }, [orderItem.status, orderItem.itemId, currentUserId]);
   const [isConfirmed, setIsConfirmed] = useState(false);
-
+  console.log("OrderItem in OrderCard:", orderItem);
   const handleConfirmReceived = async () => {
     try {
       setLoading(true);
-      setIsConfirmed(true); // temporary self-update
+      setIsConfirmed(true);
       await paymentApi.confirmOrder(orderItem.orderItemId);
       onMarkReceived && onMarkReceived();
       toast.success("Bạn đã xác nhận nhận hàng!");

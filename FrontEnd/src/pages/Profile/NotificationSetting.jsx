@@ -3,7 +3,7 @@ import { Filter } from "lucide-react";
 import notificationApi from "../../api/notificationApi";
 
 const formatTimeAgo = (isoDate) => {
-  const now = new Date();
+  const now = new Date(new Date().getTime() + 7 * 60 * 60 * 1000);
   const past = new Date(isoDate);
   const diffInMinutes = Math.floor((now - past) / (1000 * 60));
   if (diffInMinutes < 60) return `${diffInMinutes <= 0 ? 1 : diffInMinutes} phút trước`;

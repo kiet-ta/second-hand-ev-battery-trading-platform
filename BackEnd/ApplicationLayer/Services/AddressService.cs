@@ -1,4 +1,5 @@
-﻿using Application.IRepositories;
+﻿using Application.DTOs.GhnDtos;
+using Application.IRepositories;
 using Application.IServices;
 using Domain.Entities;
 
@@ -77,6 +78,12 @@ namespace Application.Services
             }
 
             return address;
+        }
+
+        public async Task<GhnFeeResponse> CalulateShippingFee(int userId)
+        {
+            var response = await _unitOfWork.Address.CalulateShippingFee(userId);
+            return response;
         }
     }
 }

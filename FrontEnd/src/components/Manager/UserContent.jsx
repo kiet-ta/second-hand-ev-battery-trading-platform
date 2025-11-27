@@ -137,31 +137,6 @@ export default function UserContent() {
     [currentUserId, users, sendBanEmail]
   );
 
-  // CSV export (no popup)
-  const exportToCSV = useCallback(() => {
-    if (!filteredUsers.length) return;
-
-    const headers = ["ID", "Họ và tên", "Email", "Số điện thoại", "Vai trò", "Trạng thái"];
-    const rows = filteredUsers.map((u) => [
-      u.userId,
-      u.fullName,
-      u.email,
-      u.phone,
-      u.role,
-      u.accountStatus,
-    ]);
-
-    const csvContent =
-      "data:text/csv;charset=utf-8," +
-      [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");
-
-    const link = document.createElement("a");
-    link.href = encodeURI(csvContent);
-    link.download = `users_export_${new Date().toISOString().slice(0, 10)}.csv`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  }, [filteredUsers]);
 
   const columns = useMemo(
     () => [
@@ -306,9 +281,6 @@ export default function UserContent() {
             <Option value="Ban">Bị cấm</Option>
           </Select>
 
-          <Button type="default" icon={<Download size={16} />} onClick={exportToCSV}>
-            Xuất CSV
-          </Button>
         </Space>
       </div>
 

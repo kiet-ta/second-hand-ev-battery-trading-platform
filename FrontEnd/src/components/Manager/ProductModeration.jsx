@@ -1,4 +1,6 @@
 import React, { useEffect, useState } from "react";
+import { motion } from "framer-motion";
+
 import {
     Table,
     Tag,
@@ -6,7 +8,6 @@ import {
     Dropdown,
     Menu,
     Spin,
-    message,
     Select,
     Space,
     Input,
@@ -21,8 +22,8 @@ import {
     MoreHorizontal,
     Settings,
 } from "lucide-react";
-import { motion } from "framer-motion";
 import itemApi from "../../api/itemApi";
+import { motion } from "framer-motion";
 
 const { Option } = Select;
 
@@ -39,9 +40,9 @@ export default function ProductModeration() {
     const fetchProducts = async () => {
         try {
             setLoading(true);
-            const data = await itemApi.getItemDetail();
+            const data = await itemApi.getItemModerationDetail();
             const uniqueMap = new Map();
-            data.filter(res => res.moderation != 'Not_Submitted').forEach((item) => {
+            data.forEach((item) => {
                 const key = `${item.itemId}-${item.itemType}`;
                 if (!uniqueMap.has(key)) uniqueMap.set(key, item);
             });
@@ -84,7 +85,7 @@ export default function ProductModeration() {
             const item = await itemApi.getItemDetailByID(id);
             const payload = {
                 ...item,
-                updatedAt: new Date().toISOString(),
+                updatedAt: new Date(new Date().getTime() + 7 * 60 * 60 * 1000).toISOString(),
                 moderation: action,
                 images:
                     item.itemImage?.map((img) => ({
@@ -208,12 +209,24 @@ export default function ProductModeration() {
         },
     ];
 
+    const moderationLabelMap = {
+        Approved: "Đã duyệt",
+        Rejected: "Từ chối",
+        Pending: "Chờ duyệt",
+    };
+    const moderationColorMap = {
+        Approved: "success",
+        Rejected: "error",
+        Pending: "warning",
+    };
+
+
     return (
         <div className="bg-white p-4 rounded-xl shadow-sm">
             {/* Bộ lọc & tìm kiếm */}
             <div className="flex justify-between items-center mb-4 flex-wrap gap-3">
                 <h2 className="text-xl font-semibold text-[#4F39F6]">
-                    📦 Danh sách sản phẩm chờ duyệt
+                    Danh sách sản phẩm chờ duyệt
                 </h2>
 
                 <Space wrap>
@@ -262,7 +275,7 @@ export default function ProductModeration() {
                 width={950}
                 title={
                     <b className="text-xl text-[#4F39F6] tracking-wide">
-                        🔍 Chi tiết sản phẩm
+                        Chi tiết sản phẩm
                     </b>
                 }
             >
@@ -296,20 +309,14 @@ export default function ProductModeration() {
                                 <p>
                                     <b className="font-semibold">Trạng thái:</b>{" "}
                                     <Tag
-                                        color={
-                                            selectedItem.moderation?.includes("reject")
-                                                ? "error"
-                                                : selectedItem.moderation?.includes("approve")
-                                                    ? "success"
-                                                    : "warning"
-                                        }
+                                        color={moderationColorMap[selectedItem.moderation] || "warning"}
                                         className="ml-1 text-base px-3 py-1 rounded-md"
                                     >
-                                        {selectedItem.moderation || "Chờ duyệt"}
+                                        {moderationLabelMap[selectedItem.moderation] || "Chờ duyệt"}
                                     </Tag>
                                 </p>
 
-                                {selectedItem.itemType === "ev" ? (
+                                {selectedItem.itemType === "Ev" ? (
                                     <>
                                         <p><b className="font-semibold">Mã sản phẩm:</b> {selectedItem.evDetail?.itemId}</p>
                                         <p><b className="font-semibold">Thương hiệu:</b> {selectedItem.evDetail?.brand}</p>

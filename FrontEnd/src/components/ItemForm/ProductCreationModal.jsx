@@ -3,39 +3,38 @@ import { Modal, Steps, Spin, Form, Button } from "antd";
 import Step1ItemDetails from "./Step1ItemDetail";
 import Step2AuctionDetails from "./Step2AuctionDetail";
 import Step3ImageUploader from "./Step3ImageUploader";
-import Step4Complete from "./Step4Complete";
+import Step4FinalReview from "./Step4FinalReview";
 import itemApi from "../../api/itemApi";
 import auctionApi from "../../api/auctionApi";
 import uploadImageApi from "../../api/uploadImageApi";
-import walletApi from "../../api/walletApi";
 import evData from "../../assets/datas/evData";
-import { uploadToCloudinary } from "../../utils/uploadToCloudinary"
+import { uploadToCloudinary } from "../../utils/uploadToCloudinary";
 
 export default function ProductCreationModal({ onSuccess }) {
   const [isOpenModal, setIsOpenModal] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
-  const [draftData, setDraftData] = useState({ itemInfo: null, auctionInfo: null, images: [] });
-  const [wallet, setWallet] = useState(null);
-  const [createdItem, setCreatedItem] = useState(null);
+  const [draftData, setDraftData] = useState({
+    itemInfo: null,
+    auctionInfo: null,
+    images: [],
+  });
+  const [licenseError, setLicenseError] = useState(false);
   const [form] = Form.useForm();
+
   const userID = useMemo(() => parseInt(localStorage.getItem("userId")), []);
 
   const nextStep = useCallback(() => setCurrentStep((s) => s + 1), []);
   const prevStep = useCallback(() => setCurrentStep((s) => s - 1), []);
-  const handleFilesSelected = useCallback(
-    (files) => setDraftData((prev) => ({ ...prev, images: files })),
-    []
-  );
 
   const resetState = useCallback(() => {
     setCurrentStep(0);
     setDraftData({ itemInfo: null, auctionInfo: null, images: [] });
-    setWallet(null);
-    setCreatedItem(null);
+    setLicenseError(false);
     form.resetFields();
   }, [form]);
 
+  // -------- STEP 1 --------
   const handleStep1Finish = useCallback(
     (values) => {
       setDraftData((prev) => ({ ...prev, itemInfo: values }));
@@ -45,35 +44,53 @@ export default function ProductCreationModal({ onSuccess }) {
     [nextStep]
   );
 
+  // -------- STEP 2 --------
   const handleStep2Finish = useCallback((values) => {
     setDraftData((prev) => ({ ...prev, auctionInfo: values }));
     setCurrentStep(2);
   }, []);
 
-  const handleSubmitAll = useCallback(async () => {
+  // -------- STEP 3 --------
+  const handleFilesSelected = useCallback((files) => {
+    setDraftData((prev) => ({ ...prev, images: files }));
+  }, []);
+
+  const handleBackFromStep3 = useCallback(() => {
+    if (!draftData.itemInfo?.createAuction) setCurrentStep(0);
+    else setCurrentStep(1);
+  }, [draftData]);
+
+  // -------- FINAL SUBMIT --------
+  const handleConfirmSubmit = useCallback(async () => {
     const { itemInfo, auctionInfo, images } = draftData;
     if (!itemInfo) return;
-    console.log(itemInfo, auctionInfo)
+
     setIsLoading(true);
-    const moderationState = itemInfo.createAuction === true ? "Pending" : "Not_Submitted";
-    const statusState = itemInfo.createAuction ? "Auction_Pending_Pay" : "Pending_Pay"
+    setLicenseError(false);
+
     try {
+      const statusState = itemInfo.createAuction ? "Auction_Active" : "Active";
+
       const basePayload = {
         title: itemInfo.title,
         description: itemInfo.description || "",
         price: itemInfo.price,
         quantity: itemInfo.quantity || 1,
         status: statusState,
-        moderation: moderationState,
+        moderation: "Pending",
         updatedBy: userID,
       };
+
       let created;
+
+      // EV CATEGORY
       if (itemInfo.categoryId === 1) {
-        const licenseUrl = await uploadToCloudinary(itemInfo.licenseFile)
+        const licenseUrl = await uploadToCloudinary(itemInfo.licenseFile);
+
         created = await itemApi.postItemEV({
           ...basePayload,
           categoryId: 1,
-          licenseUrl: licenseUrl || "",
+          licenseUrl,
           brand: itemInfo.brand,
           model: itemInfo.model,
           version: itemInfo.version,
@@ -86,7 +103,10 @@ export default function ProductCreationModal({ onSuccess }) {
           isRegistrationValid: itemInfo.isRegistrationValid,
           mileage: itemInfo.mileage,
         });
-      } else {
+      }
+
+      // BATTERY CATEGORY
+      else {
         created = await itemApi.postItemBattery({
           ...basePayload,
           categoryId: 2,
@@ -98,106 +118,94 @@ export default function ProductCreationModal({ onSuccess }) {
         });
       }
 
-      setCreatedItem(created);
-
+      // CREATE AUCTION
       if (itemInfo.createAuction && auctionInfo) {
         await auctionApi.postAuction({
           itemId: created.itemId,
           startingPrice: auctionInfo.startingPrice,
           startTime: auctionInfo.auctionTime[0],
           endTime: auctionInfo.auctionTime[1],
+          stepPrice: auctionInfo.stepPrice,
+          isBuyNow: auctionInfo.isBuyNow || false,
         });
       }
 
+      // UPLOAD IMAGES
       if (images?.length > 0) {
         await uploadImageApi.uploadItemImage(created.itemId, images);
       }
 
-      const walletData = await walletApi.getWalletByUser(userID);
-      setWallet(walletData);
       if (onSuccess) onSuccess();
-      nextStep();
+      setIsOpenModal(false);
+      resetState();
     } catch (err) {
-      console.error("Lỗi khi gửi dữ liệu:", err);
-      const message = err?.response?.data?.message;
-      const status = err?.response?.status;
-      if (status === 400 && message === "Duplicate license plate or DB constraint violation.") {
-        setCurrentStep(0);
-        return;
-      }
-      } finally {
-        setIsLoading(false);
-      }
-    }, [draftData, userID, nextStep]);
+      const msg = err?.response?.data?.message || "";
 
-  const handleDeposit = useCallback(async () => {
-    if (!wallet || wallet.balance < 100000 || !createdItem) return;
-    setIsLoading(true);
-    try {
-      await walletApi.withdrawWallet({
-        userId: userID,
-        amount: 100000,
-        type: "Withdraw",
-        ref: userID,
-        description: `Phí đăng sản phẩm ${createdItem.itemId}`,
-      });
-      const paymentState = createdItem.status === `Pending` ? "Active" : "Auction_Active"
-      await itemApi.putItem(createdItem.itemId, {
-        ...createdItem,
-        updatedBy: userID,
-        status: paymentState,
-        moderation: "Pending",
-        updatedAt: new Date().toISOString(),
-      });
-
-      setWallet((prev) => ({ ...prev, balance: prev.balance - 100000 }));
-      if (onSuccess) onSuccess();
-    } catch (err) {
-      console.error("Thanh toán thất bại:", err);
+      if (msg.includes("Duplicate license plate")) {
+        setLicenseError(true);
+        setCurrentStep(0); // send user back to step 1
+      }
     } finally {
       setIsLoading(false);
     }
-  }, [wallet, userID, createdItem, onSuccess]);
+  }, [draftData, userID, onSuccess, resetState]);
 
-  const handleBackFromStep3 = useCallback(() => {
-    if (!draftData.itemInfo?.createAuction) setCurrentStep(0);
-    else setCurrentStep(1);
-  }, [draftData]);
-
-  const steps = useMemo(
-    () => [
-      { title: "Thông tin sản phẩm" },
-      { title: "Đấu giá (tùy chọn)" },
-      { title: "Tải hình ảnh" },
-      { title: "Hoàn tất" },
-    ],
-    []
-  );
-
+  // -------- UI CONTENT RENDER --------
   const renderStepContent = useCallback(() => {
     switch (currentStep) {
       case 0:
-        return <Step1ItemDetails form={form} onFinish={handleStep1Finish} evData={evData} />;
+        return (
+          <Step1ItemDetails
+            form={form}
+            evData={evData}
+            onFinish={handleStep1Finish}
+            showLicenseError={licenseError}
+          />
+        );
+
       case 1:
-        return <Step2AuctionDetails form={form} onFinish={handleStep2Finish} />;
+        return (
+          <Step2AuctionDetails
+            form={form}
+            initialValues={draftData.auctionInfo}
+            onFinish={handleStep2Finish}
+            buyNowPrice={draftData.itemInfo?.price}
+          />
+        );
+
       case 2:
-        return <Step3ImageUploader onFilesSelected={handleFilesSelected} />;
+        return (
+          <Step3ImageUploader
+            onFilesSelected={handleFilesSelected}
+            initialFiles={draftData.images}
+          />
+        );
+
       case 3:
-        return <Step4Complete walletInfo={wallet} onDeposit={handleDeposit} onReset={resetState} />;
+        return (
+          <Step4FinalReview
+            draftData={draftData}
+            licenseError={licenseError}
+            onConfirm={handleConfirmSubmit}
+            onBack={() => setCurrentStep(2)}
+          />
+        );
+
       default:
-        return <div>Không xác định được bước hiện tại.</div>;
+        return null;
     }
   }, [
     currentStep,
     form,
-    wallet,
+    draftData,
+    licenseError,
     handleStep1Finish,
     handleStep2Finish,
     handleFilesSelected,
-    handleDeposit,
-    resetState,
+    handleConfirmSubmit,
   ]);
 
+  // -------- FOOTER --------
   const renderFooter = useCallback(() => {
     if (currentStep === 3) return null;
 
@@ -205,8 +213,8 @@ export default function ProductCreationModal({ onSuccess }) {
       return (
         <div className="flex justify-between items-center">
           <Button onClick={handleBackFromStep3}>Quay lại</Button>
-          <Button type="primary" onClick={handleSubmitAll}>
-            Gửi & Tiếp
+          <Button type="primary" onClick={() => setCurrentStep(3)}>
+            Xem lại
           </Button>
         </div>
       );
@@ -220,7 +228,7 @@ export default function ProductCreationModal({ onSuccess }) {
         </Button>
       </div>
     );
-  }, [currentStep, prevStep, form, handleSubmitAll, handleBackFromStep3]);
+  }, [currentStep, form, prevStep, handleBackFromStep3]);
 
   return (
     <>
@@ -230,15 +238,23 @@ export default function ProductCreationModal({ onSuccess }) {
       >
         Thêm sản phẩm mới
       </button>
+
       <Modal
         title="Tạo sản phẩm mới"
         open={isOpenModal}
         onCancel={() => setIsOpenModal(false)}
         width={800}
         footer={renderFooter()}
+        destroyOnClose
       >
         <Spin spinning={isLoading}>
-          <Steps current={currentStep} items={steps} className="mb-8" />
+          <Steps current={currentStep} className="mb-8" items={[
+            { title: "Thông tin sản phẩm" },
+            { title: "Đấu giá (tùy chọn)" },
+            { title: "Tải hình ảnh" },
+            { title: "Xem lại" }
+          ]} />
+
           <div className="min-h-[300px]">{renderStepContent()}</div>
         </Spin>
       </Modal>

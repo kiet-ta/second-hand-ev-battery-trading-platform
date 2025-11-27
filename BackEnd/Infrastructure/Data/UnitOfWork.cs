@@ -8,6 +8,7 @@ using Infrastructure.Repositories;
 using Infrastructure.Repositories.ChatRepositories;
 using Infrastructure.Repositories.ManageStaffRepositories;
 using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.Extensions.Options;
 
 namespace Infrastructure.Data;
 
@@ -16,6 +17,7 @@ public class UnitOfWork : IUnitOfWork
     private readonly EvBatteryTradingContext _context;
     private IDbContextTransaction? _currentTransaction; //save transaction present
     private bool _disposed = false; // To manage the disposal
+    private readonly GhnSettings _ghnSettings;
 
     public IAuctionRepository Auctions { get; }
     public IBidRepository Bids { get; }
@@ -48,7 +50,7 @@ public class UnitOfWork : IUnitOfWork
     public IReportRepository Reports{ get; }
     public IReviewRepository Reviews { get; }
     public ITransactionRepository Transactions { get; }
-    public UnitOfWork(EvBatteryTradingContext context, IChatRepository chatRepository, IUserModerationRepository userModerationRepository)
+    public UnitOfWork(EvBatteryTradingContext context, IChatRepository chatRepository, IUserModerationRepository userModerationRepository, IOptionsMonitor<GhnSettings> ghnSettings)
     {
         _context = context;
 
@@ -62,7 +64,7 @@ public class UnitOfWork : IUnitOfWork
         OrderItems = new OrderItemRepository(_context);
         CommissionFeeRules = new CommissionFeeRuleRepository(_context);
         TransactionCommission = new TransactionCommissionRepository(_context);
-        Address = new AddressRepository(_context);
+        Address = new AddressRepository(_context, ghnSettings);
         Payments = new PaymentRepository(_context);
         Chats = chatRepository;
         UserModerations = userModerationRepository;

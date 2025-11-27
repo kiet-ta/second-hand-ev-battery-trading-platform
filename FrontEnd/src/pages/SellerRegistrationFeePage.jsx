@@ -77,7 +77,7 @@ export default function SellerRegistrationFeePage() {
       await userApi.putUser(userId, {
         ...user,
         paid: "Registered",
-        updatedAt: new Date().toISOString()
+        updatedAt: new Date(new Date().getTime() + 7 * 60 * 60 * 1000).toISOString()
       });
 
       navigate("/seller"); 

@@ -159,7 +159,7 @@ export default function Step1ItemDetails({ form, onFinish, evData }) {
 
           <Form.Item name="year" label="Năm sản xuất" rules={[{ required: true }]}>
             <Select placeholder="Chọn năm">
-              {Array.from({ length: new Date().getFullYear() - 2008 + 1 }, (_, i) => 2008 + i)
+              {Array.from({ length: new Date(new Date().getTime() + 7 * 60 * 60 * 1000).getFullYear() - 2008 + 1 }, (_, i) => 2008 + i)
                 .reverse()
                 .map((y) => (
                   <Option key={y} value={y}>{y}</Option>

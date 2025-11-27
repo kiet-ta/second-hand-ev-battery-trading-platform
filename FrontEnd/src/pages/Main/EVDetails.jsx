@@ -6,6 +6,11 @@ import {
   FiMapPin,
   FiCalendar,
   FiTrendingUp,
+  FiHeart,
+  FiMessageSquare,
+  FiUser,
+  FiShoppingCart,
+  FiCreditCard,
 } from "react-icons/fi";
 import { FaStar, FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import { GiGemChain } from "react-icons/gi";
@@ -15,6 +20,9 @@ import reviewApi from "../../api/reviewApi";
 import ChatWithSellerButton from "../../components/Buttons/ChatWithSellerButton";
 import placeholder from "../../assets/images/placeholder.png";
 import { useParams } from "react-router-dom";
+import orderItemApi from "../../api/orderItemApi";
+import addressLocalApi from "../../api/addressLocalApi";
+
 
 // Star Rating Component
 const StarRating = ({ rating }) => (
@@ -51,6 +59,9 @@ function EVDetails() {
   const navigate = useNavigate();
   const { id } = useParams();
   const [item, setItem] = useState(null);
+  const [quantity, setQuantity] = useState(1);
+  const [availableStock, setAvailableStock] = useState(0);
+  const [cartQuantity, setCartQuantity] = useState(0);
   const [sellerProfile, setSellerProfile] = useState(null);
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -58,8 +69,14 @@ function EVDetails() {
   const [feedback, setFeedback] = useState(null);
   const [isVerified, setIsVerified] = useState(false);
   const [selectedImage, setSelectedImage] = useState(0);
+  const [isProcessing, setIsProcessing] = useState(false);
+
+
+
 
   const userId = parseInt(localStorage.getItem("userId"), 10);
+
+
 
   // Carousel Controls
   const handlePrev = useCallback(() => {
@@ -133,6 +150,110 @@ function EVDetails() {
 
     fetchItemData();
   }, [id]);
+
+  const handleAddToCart = useCallback(async () => {
+    const buyerId = Number(localStorage.getItem("userId"));
+    if (isNaN(buyerId)) {
+      navigate("/login");
+      return;
+    }
+
+    if (!item || quantity < 1) {
+      setFeedback({ type: "error", msg: "Vui lòng chọn số lượng hợp lệ." });
+      return;
+    }
+
+    setIsProcessing(true);
+
+    try {
+      // 👉  GIỐNG HỆ PIN – chỉ khác name EV
+      const payload = {
+        buyerId: buyerId,
+        itemId: Number(id),
+        quantity: Number(quantity),
+        price: Number(item.price), // phải là SỐ !!!
+      };
+
+      console.log("📤 Payload gửi BE:", payload);  // Kiểm tra nếu lỗi
+
+      await orderItemApi.postOrderItem(payload);
+
+      setFeedback({
+        type: "success",
+        msg: `Đã thêm ${quantity} x "${item.title}" vào giỏ hàng.`,
+      });
+
+      setCartQuantity(prev => prev + quantity);
+
+    } catch (error) {
+      console.error("Add to cart error:", error);
+      setFeedback({
+        type: "error",
+        msg: "Không thể thêm giỏ hàng!",
+      });
+    } finally {
+      setIsProcessing(false);
+    }
+  }, [item, quantity]);
+
+  const handleBuyNow = async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const userId = localStorage.getItem("userId");
+    if (!userId) {
+      navigate("/login");
+      return;
+    }
+
+    setIsProcessing(true);
+    try {
+      const orderItemPayload = {
+        buyerId: userId,
+        itemId: id,
+        quantity: 1,
+        price: item.price,
+      };
+
+      const createdOrderItem = await orderItemApi.postOrderItem(orderItemPayload);
+      if (!createdOrderItem?.orderItemId)
+        throw new Error("Không thể tạo OrderItem.");
+
+      const allAddresses = await addressLocalApi.getAddressByUserId(userId);
+      const defaultAddress =
+        allAddresses.find((addr) => addr.isDefault) || allAddresses[0];
+
+      if (!defaultAddress) {
+        navigate("/profile/address");
+        return;
+      }
+      const checkoutData = {
+        source: "buyNow",
+        totalAmount: item.price,
+        orderItems: [
+          {
+            id: id,
+            name: item.title || "Sản phẩm",
+            price: item.price,
+            quantity: 1,
+            image:
+              item.itemImage?.[0]?.imageUrl ||
+              "https://placehold.co/100x100/e2e8f0/374151?text=?",
+          },
+        ],
+        allAddresses,
+        selectedAddressId: defaultAddress.addressId,
+      };
+
+      localStorage.setItem("checkoutData", JSON.stringify(checkoutData));
+      navigate("/checkout/buy-now", { state: checkoutData });
+
+    } catch (err) {
+      console.error("❌ Lỗi mua ngay:", err);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
 
   const handleShowPhone = () => {
     if (isNaN(userId)) {
@@ -304,51 +425,69 @@ function EVDetails() {
             )}
 
             {/* Chat Buttons */}
-            <div className="flex flex-col gap-3 mt-6">
-              <ChatWithSellerButton
-                buyerId={userId}
-                sellerId={item?.updatedBy}
-                product={{
-                  id: item.itemId,
-                  title: item.title,
-                  price: item.price,
-                  imageUrl: item.itemImage?.[0]?.imageUrl,
-                }}
-              />
-
+            <div className="flex flex-col sm:flex-row gap-3 mt-6">
               <button
-                onClick={handleShowPhone}
-                className="bg-green-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-green-700 transition"
+                onClick={handleAddToCart}
+                className="flex-1 font-bold py-3 px-6 rounded-lg transition bg-[#B8860B] text-white hover:bg-[#A47500]"
               >
-                <FiPhone className="inline mr-2" />
-                {isPhoneVisible
-                  ? sellerProfile?.phone || "Không có số"
-                  : "Hiện số điện thoại"}
+                <FiShoppingCart className="inline mr-2" />
+                Thêm vào giỏ hàng
               </button>
+              <button
+                onClick={handleBuyNow}
+                className={`flex-1 font-bold py-3 px-6 rounded-lg transition
+                bg-green-600 text-white hover:bg-green-700"
+                  }`}
+              >
+                <FiCreditCard className="inline mr-2" />
+                Mua ngay
+              </button>
+
+
+
             </div>
           </Card>
 
           {/* Seller Profile */}
           {sellerProfile && (
-            <Card className="p-6 rounded-2xl shadow-md border border-[#EAE6DA] bg-white/90 flex items-center gap-4">
-              <img
-                src={
-                  sellerProfile.avatarProfile ||
-                  placeholder
-                }
-                alt={sellerProfile.fullName}
-                className="w-16 h-16 rounded-full object-cover"
-              />
-              <div className="flex-1 mb-5">
-                <p className="font-bold text-lg">{sellerProfile.fullName}</p>
-                <p className="text-sm text-green-600">Đang hoạt động</p>
+            <Card className="p-6 rounded-2xl shadow-md border border-[#EAE6DA] bg-white/90">
+              <div className="flex flex-col gap-3 mt-3">
+                <img
+                  src={sellerProfile.avatarProfile || placeholder}
+                  alt={sellerProfile.fullName}
+                  className="w-16 h-16 rounded-full border-2 border-[#B8860B] shadow-lg object-cover"
+                />
+
+                <div className="flex-1 ml-1">
+                  <p className="font-bold text-lg">{sellerProfile.fullName}</p>
+                  <p className="text-sm text-green-600">Đang hoạt động</p>
+                </div>
+
+                {/* VIEW PROFILE */}
+                <Link
+                  to={`/seller/${item.updatedBy}`}
+                  className="flex items-center justify-center gap-2
+      bg-white border-[2px] border-[#B8860B] text-[#B8860B]
+      font-semibold px-4 py-3 rounded-full shadow-sm
+      hover:bg-[#FFF2D1] hover:shadow-md hover:scale-[1.02]
+      transition-all duration-200"
+                >
+                  <FiUser className="text-lg" /> Hồ sơ
+                </Link>
+
+                {/* CHAT + FAVORITE (CHỈ GỌI COMPONENT) */}
+                <ChatWithSellerButton
+                  buyerId={userId}
+                  sellerId={item?.updatedBy}
+                  product={{
+                    id: item.itemId,
+                    title: item.title,
+                    price: item.price,
+                    imageUrl: item.itemImage?.[0]?.imageUrl,
+                  }}
+                />
+
               </div>
-              <Link
-                to={`/seller/${item.updatedBy}`}
-                className="border border-[#B8860B] text-[#B8860B] font-semibold py-2 px-4 rounded-lg hover:bg-[#FFF7E5] transition"
-              >
-                Xem hồ sơ
-              </Link>
             </Card>
           )}
 

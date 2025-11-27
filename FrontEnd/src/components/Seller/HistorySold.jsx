@@ -136,7 +136,7 @@ export default function HistorySold() {
 
             const income = totalAmount - feeValue;
             const itemType = itemDetail?.itemType ?? "Item";
-            const productCode = `CMS_${itemType.toUpperCase()}_${orderId}`;
+            const productCode = `CMX_${itemType.toUpperCase()}_${orderId}`;
             const imageUrl = itemDetail?.itemImage?.[0]?.imageUrl ?? "https://via.placeholder.com/150";
 
             return {
@@ -272,6 +272,7 @@ export default function HistorySold() {
                       <p><b>Địa chỉ:</b> {sale.buyer.address}</p>
                       <p><b>Trị giá đơn hàng:</b> {formatPrice(sale.totalAmount)}</p>
                       <p><b>Phí triết khấu:</b> {formatPrice(sale.feeValue)}</p>
+                      <p><b>Phí ship</b> {formatPrice(sale.shippingPrice)}</p>
                       <p><b>Số lượng:</b> {sale.quantity}</p>
                       <p><b>Thu nhập:</b> <span className="font-semibold text-green-700">{formatPrice(sale.income)}</span></p>
                     </div>
@@ -337,6 +338,7 @@ export default function HistorySold() {
                   <p><b>Địa chỉ:</b> {selectedSale.buyer.address}</p>
                   <p><b>Trị giá đơn hàng:</b> {formatPrice(selectedSale.totalAmount)}</p>
                   <p><b>Phí triết khấu:</b> {formatPrice(selectedSale.feeValue)}</p>
+                  <p><b>Phí ship:</b> {formatPrice(selectedSale.shippingPrice)}</p>
                   <p><b>Số lượng:</b> {selectedSale.quantity}</p>
                   <p><b>Thu nhập:</b> <span className="font-semibold text-green-700">{formatPrice(selectedSale.income)}</span></p>
                   <p><b>Thanh toán:</b> {selectedSale.paymentMethod}</p>

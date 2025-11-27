@@ -2,8 +2,9 @@ import React, { useState, useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import paymentApi from "../../api/paymentApi";
 import orderApi from "../../api/orderApi";
-import walletApi from "../../api/walletApi";
 import { ghnApi } from "../../hooks/services/ghnApi";
+import walletApi from "../../api/walletApi";
+import auctionApi from "../../api/auctionApi"; // <-- new import
 import { FiMapPin, FiX } from "react-icons/fi";
 
 const AddressModal = ({ addresses, selectedId, onSelect, onClose }) => (
@@ -11,36 +12,26 @@ const AddressModal = ({ addresses, selectedId, onSelect, onClose }) => (
     <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[80vh] overflow-y-auto p-6 animate-fadeIn">
       <div className="flex justify-between items-center border-b pb-3 mb-4">
         <h3 className="text-xl font-bold text-gray-800">Chọn địa chỉ giao hàng</h3>
-        <button onClick={onClose} className="p-2 rounded-full hover:bg-gray-100">
+        <button onClick={onClose} className="p-2 rounded-full hover:bg-gray-100 transition-colors">
           <FiX size={22} className="text-gray-600 hover:text-gray-800" />
         </button>
       </div>
       <div className="space-y-3">
         {addresses.length > 0 ? (
-          addresses.map((addr) => (
+          addresses.map(addr => (
             <div
               key={addr.addressId}
               onClick={() => onSelect(addr.addressId)}
-              className={`p-4 border-2 rounded-xl cursor-pointer transition-all ${selectedId === addr.addressId
-                ? "border-[#C99700] bg-[#FFF8E1]"
-                : "border-gray-200 hover:border-gray-400"
+              className={`p-4 border-2 rounded-xl cursor-pointer transition-all duration-200 hover:shadow-sm ${selectedId === addr.addressId ? "border-[#C99700] bg-[#FFF8E1]" : "border-gray-200 hover:border-gray-400"
                 }`}
             >
-              <div className="flex justify-between items-start">
-                <div>
-                  <p className="font-semibold text-gray-800">
-                    {addr.recipientName} | {addr.phone}
-                  </p>
-                  <p className="text-gray-600 text-sm mt-1">
-                    {`${addr.street}, ${addr.ward}, ${addr.district}, ${addr.province}`}
-                  </p>
-                </div>
-                {addr.isDefault && (
-                  <span className="text-xs bg-[#EEE8AA] text-gray-800 font-semibold px-2 py-1 rounded-full">
-                    Mặc định
-                  </span>
-                )}
-              </div>
+              <p className="font-semibold text-gray-800">{addr.recipientName} | {addr.phone}</p>
+              <p className="text-gray-600 text-sm mt-1">{`${addr.street}, ${addr.ward}, ${addr.district}, ${addr.province}`}</p>
+              {addr.isDefault && (
+                <span className="text-xs bg-[#EEE8AA] text-gray-800 font-semibold px-2 py-1 rounded-full shadow-sm">
+                  Mặc định
+                </span>
+              )}
             </div>
           ))
         ) : (
@@ -50,7 +41,7 @@ const AddressModal = ({ addresses, selectedId, onSelect, onClose }) => (
       <div className="mt-6 flex justify-end">
         <button
           onClick={onClose}
-          className="px-5 py-2.5 bg-[#D4AF37] text-[#2C2C2C] font-semibold rounded-lg shadow hover:bg-[#B8860B]"
+          className="px-5 py-2.5 bg-[#D4AF37] text-[#2C2C2C] font-semibold rounded-lg shadow hover:bg-[#B8860B] transition-colors"
         >
           Đóng
         </button>
@@ -59,276 +50,225 @@ const AddressModal = ({ addresses, selectedId, onSelect, onClose }) => (
   </div>
 );
 
-function BuyNowCheckoutPage() {
+export default function BuyNowCheckoutPage() {
   const location = useLocation();
   const navigate = useNavigate();
-  const savedData = localStorage.getItem("checkoutData");
-  const orderData = location.state || (savedData ? JSON.parse(savedData) : null);
+  const saved = localStorage.getItem("checkoutData");
+  const checkoutData = location.state || (saved ? JSON.parse(saved) : null);
 
-  const [addresses, setAddresses] = useState(orderData?.allAddresses || []);
-  const [selectedAddressId, setSelectedAddressId] = useState(orderData?.selectedAddressId);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [wallet, setWallet] = useState(null);
-  const [paymentMethod, setPaymentMethod] = useState("payos");
-
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [statusMessage, setStatusMessage] = useState("");
-  const pollingIntervalRef = useRef(null);
-
-  const insurance = { name: "Bảo hiểm hư hỏng sản phẩm", price: 6000 };
+  const [addresses, setAddresses] = useState(checkoutData?.allAddresses || []);
+  const [selectedAddressId, setSelectedAddressId] = useState(checkoutData?.selectedAddressId);
   const [shippingFee, setShippingFee] = useState(0);
   const [loadingFee, setLoadingFee] = useState(false);
+  const [wallet, setWallet] = useState(null);
+  const [paymentMethod, setPaymentMethod] = useState("payos");
+  const [statusMessage, setStatusMessage] = useState("");
+  const [isProcessing, setIsProcessing] = useState(false);
+  const pollingRef = useRef(null);
 
-  const selectedDeliveryAddress = addresses.find(
-    (addr) => addr.addressId === selectedAddressId
-  );
+  const selectedAddress = addresses.find(a => a.addressId === selectedAddressId);
+  const totalItemsPrice = checkoutData?.orderItems?.reduce((sum, item) => sum + item.price * item.quantity, 0) || 0;
+  const finalTotal = totalItemsPrice + shippingFee;
 
+  const formatVND = n => n.toLocaleString("vi-VN", { style: "currency", currency: "VND" });
+  const orderItemIds = checkoutData?.orderItems.map(i => i.id) || [];
+
+  // Fetch wallet
   useEffect(() => {
-    const userId = localStorage.getItem("userId");
-    if (!userId) return;
-
-    const fetchWallet = async () => {
-      try {
-        const w = await walletApi.getWalletByUser(userId);
-        setWallet(w);
-      } catch (err) {
-        console.error("Không tải được ví:", err);
-      }
+    const loadWallet = async () => {
+      const uid = localStorage.getItem("userId");
+      const w = await walletApi.getWalletByUser(uid);
+      setWallet(w);
     };
-    fetchWallet();
+    loadWallet();
   }, []);
 
+  // GHN shipping fee
   useEffect(() => {
-    if (!selectedDeliveryAddress?.districtCode || !selectedDeliveryAddress?.wardCode) return;
-    const fetchShippingFee = async () => {
+    const loadShippingFee = async () => {
+      if (!selectedAddress?.districtCode || !selectedAddress?.wardCode) return;
       setLoadingFee(true);
-      try {
-        const fee = await ghnApi.calcFee({
-          toDistrictId: selectedDeliveryAddress.districtCode,
-          toWardCode: selectedDeliveryAddress.wardCode,
-          weight: 2000,
-        });
-        setShippingFee(fee?.error ? 0 : fee || 0);
-      } catch {
-        setShippingFee(0);
-      } finally {
-        setLoadingFee(false);
-      }
+      const feeResult = await ghnApi.calcFee({
+        toDistrictId: selectedAddress.districtCode,
+        toWardCode: selectedAddress.wardCode,
+        weight: 2000,
+      });
+      setShippingFee(feeResult?.error ? 0 : feeResult || 0);
+      setLoadingFee(false);
     };
-    fetchShippingFee();
-  }, [selectedDeliveryAddress]);
-
-  const formatVND = (p) =>
-    p.toLocaleString("vi-VN", { style: "currency", currency: "VND" });
-
-  const calculateTotal = () =>
-    (orderData.totalAmount ?? 0) + insurance.price + shippingFee;
-
-  const finalTotalPrice = calculateTotal();
-
+    loadShippingFee();
+  }, [selectedAddress]);
 
   const handleConfirmAndPay = async () => {
-    if (!selectedDeliveryAddress) {
+    if (!selectedAddress) {
       setStatusMessage("Vui lòng chọn địa chỉ giao hàng.");
       return;
     }
 
+    let payWindow = null;
+    if (paymentMethod === "payos") payWindow = window.open("", "_blank");
+
     setIsProcessing(true);
-    setStatusMessage("");
-
     try {
-      console.log(orderData)
-      const orderItemIds = orderData.orderItems.map((i) => i.id);
+      // 1️⃣ Create Order
       const orderPayload = {
-        buyerId: localStorage.getItem("userId"),
-        addressId: selectedDeliveryAddress.addressId,
-        orderItemIds,
-        createdAt: new Date().toISOString().split("T")[0],
-        updatedAt: new Date().toISOString().split("T")[0],
+        buyerId: parseInt(localStorage.getItem("userId"), 10),
+        addressId: selectedAddress.addressId,
+        orderItemIds: orderItemIds,
+        shippingPrice: shippingFee || 0,
+        createdAt: new Date(new Date().getTime() + 7 * 60 * 60 * 1000).toISOString(),
+        updatedAt: new Date(new Date().getTime() + 7 * 60 * 60 * 1000).toISOString(),
       };
-
       const orderResponse = await orderApi.postOrderNew(orderPayload);
-      if (!orderResponse?.orderId) throw new Error("Không tạo được đơn hàng.");
 
+      // 2️⃣ Wallet Payment
       if (paymentMethod === "wallet") {
-        if (!wallet || wallet.balance < finalTotalPrice) {
+        if (!wallet || wallet.balance < finalTotal) {
           setIsProcessing(false);
           setStatusMessage("Số dư ví không đủ.");
           return;
         }
-
         await walletApi.withdrawWallet({
-          userId: localStorage.getItem("userId"),
-          amount: finalTotalPrice,
+          userId: parseInt(localStorage.getItem("userId"), 10),
+          amount: finalTotal,
           type: "Withdraw",
-          ref: orderResponse.orderId,
+          orderId: orderResponse.orderId,
+          itemId: checkoutData.orderItems[0].itemId,
           description: `Thanh toán đơn hàng ${orderResponse.orderId}`,
         });
 
-        setWallet((prev) => ({ ...prev, balance: prev.balance - finalTotalPrice }));
-        navigate("/payment/success", { state: { method: "wallet", amount: finalTotalPrice } });
+        setWallet(prev => ({ ...prev, balance: prev.balance - finalTotal }));
+        navigate("/payment/success", { state: { method: "wallet", amount: finalTotal } });
+
+        if (checkoutData.auctionId) {
+          await auctionApi.buyNow(checkoutData.auctionId);
+        }
+
       } else {
+        // 3️⃣ PayOS Payment
         const paymentPayload = {
-          userId: localStorage.getItem("userId"),
-          method: "payos",
-          totalAmount: finalTotalPrice,
-          details: [{ orderId: orderResponse.orderId, amount: finalTotalPrice }],
+          userId: parseInt(localStorage.getItem("userId"), 10),
+          method: "PayOS",
+          totalAmount: finalTotal,
+          details: checkoutData.orderItems.map(i => ({
+            orderId: orderResponse.orderId,
+            itemId: i.itemId,
+            amount: finalTotal,
+          })),
         };
 
         const link = await paymentApi.createPaymentLink(paymentPayload);
-        const { checkoutUrl } = link;
-        if (!checkoutUrl) throw new Error("Không tạo được link thanh toán.");
+        if (!link?.checkoutUrl) {
+          payWindow.close();
+          throw new Error("Không tạo được link thanh toán.");
+        }
 
-        const paymentWindow = window.open(
-          checkoutUrl,
-          "Thanh toán PayOS",
-          "width=800,height=600"
-        );
+        payWindow.location.href = link.checkoutUrl;
 
-        pollingIntervalRef.current = setInterval(() => {
-          if (paymentWindow && paymentWindow.closed) {
-            clearInterval(pollingIntervalRef.current);
-            setIsProcessing(false);
-            navigate("/payment/fail", { state: { reason: "Cửa sổ thanh toán đã đóng." } });
+        // Polling for window close
+        pollingRef.current = setInterval(async () => {
+          if (payWindow && payWindow.closed) {
+            clearInterval(pollingRef.current);
+            // Check payment status
+            try {
+              const paidOrder = await orderApi.getOrderById(orderResponse.orderId);
+              if (paidOrder?.status === "Paid") {
+                navigate("/payment/success", { state: { method: "payos", amount: finalTotal } });
+                if (checkoutData.auctionId) await auctionApi.buyNow(checkoutData.auctionId);
+              } else {  
+                navigate("/payment/fail", { state: { reason: "Thanh toán không thành công.", orderId: orderResponse.orderId } });
+              }
+            } catch {
+              navigate("/payment/fail", { state: { reason: "Không kiểm tra được trạng thái thanh toán.", orderId: orderResponse.orderId } });
+            }
           }
-        }, 3000);
+        }, 2000);
       }
+
     } catch (err) {
-      console.error("Thanh toán lỗi:", err);
-      navigate("/payment/fail", { state: { reason: "Không thể hoàn tất đơn hàng." } });
+      console.error(err);
+      setStatusMessage("Không thể hoàn tất thanh toán.");
     } finally {
       setIsProcessing(false);
     }
   };
 
-  if (!orderData?.orderItems?.length)
-    return (
-      <div className="p-6 bg-gray-100 min-h-screen text-center">
-        Không tìm thấy dữ liệu thanh toán.
-      </div>
-    );
+  if (!checkoutData?.orderItems?.length)
+    return <div className="p-6 text-center">Không có dữ liệu.</div>;
 
   return (
     <div className="p-6 bg-gray-100 min-h-screen">
       <div className="max-w-4xl mx-auto bg-white shadow-md rounded-lg p-6">
+        {/* Địa chỉ */}
         <div className="mb-6 pb-4 border-b border-gray-200">
-          <h2 className="text-lg font-semibold mb-4 text-[#C99700] flex items-center gap-2">
-            <FiMapPin /> Địa chỉ giao hàng
-          </h2>
-          {selectedDeliveryAddress ? (
+          <h2 className="text-lg font-semibold mb-4 text-[#C99700] flex items-center gap-2"><FiMapPin /> Địa chỉ giao hàng</h2>
+          {selectedAddress ? (
             <div className="flex justify-between items-start">
-              <div className="space-y-1">
-                <p className="font-bold text-gray-800">
-                  {selectedDeliveryAddress.recipientName} |{" "}
-                  {selectedDeliveryAddress.phone}
-                </p>
-                <p className="text-gray-600">
-                  {`${selectedDeliveryAddress.street}, ${selectedDeliveryAddress.ward}, ${selectedDeliveryAddress.district}, ${selectedDeliveryAddress.province}`}
-                </p>
+              <div>
+                <p className="font-bold text-gray-800">{selectedAddress.recipientName} | {selectedAddress.phone}</p>
+                <p className="text-gray-600">{`${selectedAddress.street}, ${selectedAddress.ward}, ${selectedAddress.district}, ${selectedAddress.province}`}</p>
               </div>
-              <button
-                className="text-blue-500 hover:underline font-semibold ml-4"
-                onClick={() => setIsModalOpen(true)}
-              >
-                Thay đổi
-              </button>
+              <button onClick={() => setIsModalOpen(true)} className="text-blue-500 hover:underline font-semibold ml-4">Thay đổi</button>
             </div>
-          ) : (
-            <p className="text-red-500">Không có địa chỉ giao hàng nào được chọn.</p>
-          )}
+          ) : <p className="text-red-500">Không có địa chỉ giao hàng nào được chọn.</p>}
         </div>
 
+        {/* Sản phẩm */}
         <h2 className="text-lg font-semibold mb-4">Sản phẩm đặt mua</h2>
         <div className="divide-y">
-          {orderData.orderItems.map((item) => (
-            <div key={item.id} className="flex items-center justify-between py-4">
+          {checkoutData.orderItems.map(i => (
+            <div key={i.id} className="flex items-center justify-between py-4">
               <div className="flex items-center space-x-4">
-                <img
-                  src={item.image}
-                  alt={item.name}
-                  className="w-16 h-16 rounded object-cover"
-                />
+                <img src={i.image} className="w-16 h-16 rounded object-cover" alt={i.name} />
                 <div className="flex flex-col gap-1">
-                  <p className="font-medium">{item.name}</p>
-                  <p className="text-sm text-gray-500">Số lượng: {item.quantity}</p>
+                  <p className="font-medium">{i.name}</p>
+                  <p className="text-sm text-gray-500">Số lượng: {i.quantity}</p>
                 </div>
               </div>
-              <p className="font-semibold text-[#C99700]">
-                {formatVND(item.price * item.quantity)}
-              </p>
+              <div className="flex items-center space-x-12">
+                <p className="w-24 text-center">{formatVND(i.price)}</p>
+                <p className="w-16 text-center">{i.quantity}</p>
+                <p className="w-28 text-right font-semibold">{formatVND(i.price * i.quantity)}</p>
+              </div>
             </div>
           ))}
         </div>
 
-        <div className="flex justify-between items-center py-4 border-t">
-          <p>{insurance.name}</p>
-          <p className="font-semibold">{formatVND(insurance.price)}</p>
-        </div>
+        {/* Vận chuyển */}
         <div className="flex justify-between items-center py-4 border-t">
           <p>Vận chuyển nhanh (GHN)</p>
-          <p className="font-semibold">
-            {loadingFee ? "Đang tính..." : formatVND(shippingFee || 0)}
-          </p>
+          <p className="font-semibold">{loadingFee ? "Đang tính..." : formatVND(shippingFee)}</p>
         </div>
 
+        {/* Phương thức thanh toán */}
         <div className="flex justify-between items-center py-4 border-t">
           <p>Phương thức thanh toán</p>
           <div className="flex gap-4">
-            <button
-              onClick={() => setPaymentMethod("payos")}
-              className={`px-4 py-2 rounded-lg font-semibold border ${paymentMethod === "payos"
-                ? "bg-[#C99700] text-white border-[#C99700]"
-                : "bg-white border-gray-300"
-                }`}
-            >
-              PayOS
-            </button>
-            <button
-              onClick={() => setPaymentMethod("wallet")}
-              className={`px-4 py-2 rounded-lg font-semibold border ${paymentMethod === "wallet"
-                ? "bg-[#C99700] text-white border-[#C99700]"
-                : "bg-white border-gray-300"
-                }`}
-            >
-              Ví ({wallet ? formatVND(wallet.balance) : "Đang tải..."})
-            </button>
+            <button onClick={() => setPaymentMethod("payos")}
+              className={`px-4 py-2 rounded-lg font-semibold border ${paymentMethod === "payos" ? "bg-[#C99700] text-white border-[#C99700]" : "bg-white border-gray-300"}`}>PayOS</button>
+            <button onClick={() => setPaymentMethod("wallet")}
+              className={`px-4 py-2 rounded-lg font-semibold border ${paymentMethod === "wallet" ? "bg-[#C99700] text-white border-[#C99700]" : "bg-white border-gray-300"}`}>Ví ({wallet ? formatVND(wallet.balance) : "Đang tải..."})</button>
           </div>
         </div>
 
+        {/* Tổng cộng */}
         <div className="flex justify-between items-center border-t pt-6">
-          <p className="text-lg font-semibold">
-            Tổng cộng ({orderData.orderItems.length} sản phẩm):
-          </p>
-          <p className="text-2xl font-bold text-[#D4AF37]">{formatVND(finalTotalPrice)}</p>
+          <p className="text-lg font-semibold">Tổng cộng ({checkoutData.orderItems.length} sản phẩm):</p>
+          <p className="text-2xl font-bold text-[#D4AF37]">{formatVND(finalTotal)}</p>
         </div>
 
         <div className="flex flex-col items-end mt-6">
-          {statusMessage && (
-            <p className="text-red-500 mb-2 font-semibold">{statusMessage}</p>
-          )}
-          <button
-            onClick={handleConfirmAndPay}
-            disabled={isProcessing || !selectedDeliveryAddress}
-            className="px-6 py-3 bg-[#D4AF37] text-[#2C2C2C] font-semibold rounded-lg shadow hover:bg-[#B8860B] disabled:opacity-50 disabled:cursor-not-allowed"
-          >
+          {statusMessage && <p className="text-red-500 mb-2 font-semibold">{statusMessage}</p>}
+          <button onClick={handleConfirmAndPay}
+            disabled={isProcessing || !selectedAddress}
+            className="px-6 py-3 bg-[#D4AF37] text-[#2C2C2C] font-semibold rounded-lg shadow hover:bg-[#B8860B] disabled:opacity-50 disabled:cursor-not-allowed">
             {isProcessing ? "Đang xử lý..." : "Xác nhận & Thanh toán"}
           </button>
         </div>
       </div>
 
-      {isModalOpen && (
-        <AddressModal
-          addresses={addresses}
-          selectedId={selectedAddressId}
-          onSelect={(id) => {
-            setSelectedAddressId(id);
-            setIsModalOpen(false);
-          }}
-          onClose={() => setIsModalOpen(false)}
-        />
-      )}
+      {isModalOpen && <AddressModal addresses={addresses} selectedId={selectedAddressId} onSelect={setSelectedAddressId} onClose={() => setIsModalOpen(false)} />}
     </div>
   );
 }
-
-export default BuyNowCheckoutPage;

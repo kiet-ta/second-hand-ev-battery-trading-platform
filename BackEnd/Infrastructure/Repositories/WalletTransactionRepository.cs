@@ -15,7 +15,7 @@ public class WalletTransactionRepository : IWalletTransactionRepository
     public async Task<int> CreateTransactionAsync(WalletTransaction walletTransaction)
     {
         var e = (await _context.WalletTransactions.AddAsync(walletTransaction)).Entity;
-        await _context.SaveChangesAsync();
+        //await _context.SaveChangesAsync();
         return e.TransactionId;
     }
 

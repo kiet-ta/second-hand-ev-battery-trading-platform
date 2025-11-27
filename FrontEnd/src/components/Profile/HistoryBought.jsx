@@ -147,38 +147,16 @@ export default function HistoryBought() {
       currency: "VND",
     }).format(price);
 
-  const exportToCSV = () => {
-    if (orders.length === 0) {
-      return;
-    }
-
-    const headers = ["Mã đơn", "Ngày thanh toán", "Trạng thái", "Phương thức", "Tổng tiền"];
-    const rows = orders.map((o) => [
-      o.orderCode,
-      new Date(o.paymentCreatedAt).toLocaleDateString("vi-VN"),
-      getStatusText(o.status),
-      o.method,
-      o.totalAmount,
-    ]);
-    const csv =
-      "data:text/csv;charset=utf-8," +
-      [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");
-    const link = document.createElement("a");
-    link.href = encodeURI(csv);
-    link.download = `order_history_${new Date().toISOString().slice(0, 10)}.csv`;
-    link.click();
-  };
 
   const filteredOrders = orders.filter((o) => {
     const matchStatus = filter === "all" || o.status === filter;
     const matchType = filterType === "all" || o.itemType === filterType;
     const withinTime =
       timeFilter === "all" ||
-      (new Date() - new Date(o.paymentCreatedAt)) / (1000 * 60 * 60 * 24) <= Number(timeFilter);
+      (new Date(new Date().getTime() + 7 * 60 * 60 * 1000) - new Date(o.paymentCreatedAt)) / (1000 * 60 * 60 * 24) <= Number(timeFilter);
     return matchStatus && matchType && withinTime;
   });
 
-  // === Loading State ===
   if (loading) {
     return (
       <div className="p-8 max-w-5xl mx-auto space-y-3">

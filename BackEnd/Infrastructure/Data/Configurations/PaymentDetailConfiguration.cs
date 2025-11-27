@@ -24,6 +24,11 @@ namespace Infrastructure.Data.Configurations
             entity.Property(e => e.ItemId).HasColumnName("item_id");
             entity.Property(e => e.OrderId).HasColumnName("order_id");
             entity.Property(e => e.PaymentId).HasColumnName("payment_id");
+            entity.Property(e => e.UserId).HasColumnName("user_id");
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("datetime")
+                .HasColumnName("created_at");
 
             entity.HasOne<Item>().WithMany()
                 .HasForeignKey(d => d.ItemId)

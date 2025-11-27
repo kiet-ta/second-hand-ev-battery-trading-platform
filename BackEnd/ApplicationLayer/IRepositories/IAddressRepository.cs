@@ -1,4 +1,5 @@
-﻿using Domain.Entities;
+﻿using Application.DTOs.GhnDtos;
+using Domain.Entities;
 
 namespace Application.IRepositories
 {
@@ -12,5 +13,8 @@ namespace Application.IRepositories
         Task DeleteAddressAsync(Address address);
         Task<Address?> GetAddressDefaultByUserId(int userId);
         Task<Address?> GetShopAddressAsync(int userId);
+
+        Task<GhnFeeResponse> CalulateShippingFee(int userId);
     }
+
 }

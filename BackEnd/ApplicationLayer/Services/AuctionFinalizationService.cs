@@ -132,9 +132,17 @@ public class AuctionFinalizationService : IAuctionFinalizationService
                 }
                 winnerAddress = anyAddress;
             }
+            var shippingFee = await _unitOfWork.Address.CalulateShippingFee(winnerId);
+            if (shippingFee == null)
+                {
+                await _unitOfWork.RollbackTransactionAsync();
+                throw new InvalidOperationException($"Failed to calculate shipping fee for winner {winnerId}.");
+            }
+
 
             var newOrder = new Order
             {
+                ShippingPrice = shippingFee.Data.Total,
                 BuyerId = winnerId,
                 AddressId = winnerAddress.AddressId, 
                 CreatedAt = DateTime.Now,
@@ -162,7 +170,7 @@ public class AuctionFinalizationService : IAuctionFinalizationService
             var newPayment = new Payment
             {
                 UserId = winnerId,
-                OrderCode = orderCode, // Sử dụng giá trị vừa generate
+                OrderCode = orderCode,
                 TotalAmount = winningAmount,
                 Currency = "VND",
                 Method = "Wallet",
@@ -178,9 +186,9 @@ public class AuctionFinalizationService : IAuctionFinalizationService
 
             _logger.LogInformation($"Created Payment record {newPayment.PaymentId} with OrderCode {orderCode} for Order {newOrder.OrderId}");
 
-            // Tạo PaymentDetail record
             var newPaymentDetail = new PaymentDetail
             {
+                UserId = newPayment.UserId,
                 PaymentId = newPayment.PaymentId,
                 OrderId = newOrder.OrderId,
                 ItemId = itemId,
@@ -261,7 +269,6 @@ public class AuctionFinalizationService : IAuctionFinalizationService
                 await _unitOfWork.Bids.UpdateBidStatusAsync(loserBid.BidId, "released");
                 _logger.LogInformation($"Released {amountToRelease} for loser Bid {loserBid.BidId} / User {loserBid.UserId}");
 
-                // Send refund notification
                 await SendNotificationAsync(
                         senderId: null, receiverId: loserBid.UserId,
                         title: $"Đấu giá #{auctionId} kết thúc - Hoàn tiền",

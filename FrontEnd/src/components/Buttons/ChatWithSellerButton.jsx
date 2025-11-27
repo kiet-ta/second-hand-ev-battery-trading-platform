@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import chatApi from "../../api/chatApi";
 import PropTypes from "prop-types";
+import { FiHeart, FiMessageSquare } from "react-icons/fi";
 
 
 const ChatWithSellerButton = ({ buyerId, sellerId, product }) => {
@@ -56,7 +57,8 @@ const ChatWithSellerButton = ({ buyerId, sellerId, product }) => {
   return (
     <div className="flex flex-col gap-3 w-full">
       {/* Buttons */}
-      <div className="flex gap-3">
+      <div className="flex gap-3 mt-4 w-full">
+        {/* CHAT BUTTON */}
         <button
           disabled={loading}
           onClick={(e) => {
@@ -64,23 +66,35 @@ const ChatWithSellerButton = ({ buyerId, sellerId, product }) => {
             e.preventDefault();
             e.stopPropagation();
           }}
-          className="flex-1 bg-indigo-600 text-white font-semibold px-4 py-2 rounded-xl shadow hover:bg-indigo-700 transition"
+          className="flex-1 flex items-center justify-center gap-2
+      bg-gradient-to-r from-[#6D28D9] to-[#4F46E5] 
+      text-white font-semibold px-4 py-3 rounded-full
+      shadow-md hover:shadow-xl hover:scale-[1.03]
+      active:scale-[0.97] transition-all duration-200"
         >
+          <FiMessageSquare className="text-lg" />
           {loading ? "Đang mở..." : "Nhắn tin"}
         </button>
+
+        {/* FAVORITE BUTTON */}
         <button
           disabled={loading}
           onClick={(e) => {
-            setShowConfirm(true)
+            setShowConfirm(true);
             e.preventDefault();
             e.stopPropagation();
-
           }}
-          className="flex-1 bg-amber-500 text-white font-semibold px-4 py-2 rounded-xl shadow hover:bg-amber-600 transition"
+          className="flex-1 flex items-center justify-center gap-2
+      bg-gradient-to-r from-[#F59E0B] to-[#D97706]
+      text-white font-semibold px-4 py-3 rounded-full
+      shadow-md hover:shadow-xl hover:scale-[1.03]
+      active:scale-[0.97] transition-all duration-200"
         >
-          {loading ? "Đang xử lý..." : "Quan tâm sản phẩm"}
+          <FiHeart className="text-lg" />
+          {loading ? "Đang xử lý..." : "Quan tâm"}
         </button>
       </div>
+
 
       {/* Confirmation Modal */}
       {showConfirm && (

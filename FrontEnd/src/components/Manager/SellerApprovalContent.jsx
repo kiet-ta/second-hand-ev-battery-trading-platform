@@ -9,7 +9,6 @@ import {
   Modal,
 } from "antd";
 import { Check, XCircle, Search, ClipboardList } from "lucide-react";
-import { motion } from "framer-motion";
 import { managerAPI } from "../../hooks/managerApi";
 import kycApi from "../../api/kycApi";
 import Card from "../../components/Manager/Card";
@@ -116,7 +115,7 @@ export default function SellerApprovalContent() {
     try {
       await kycApi.putApprovedKYC(docId, {
         note: note || "Tài liệu hợp lệ",
-        verifiedAt: new Date().toISOString(),
+        verifiedAt: new Date(new Date().getTime() + 7 * 60 * 60 * 1000).toISOString(),
         verifiedBy: localStorage.getItem("userId")
       });
       fetchKycDocuments(selectedSeller.userId);
@@ -132,7 +131,7 @@ export default function SellerApprovalContent() {
     try {
       await kycApi.putRejectedKYC(docId, {
         note,
-        verifiedAt: new Date().toISOString(),
+        verifiedAt: new Date(new Date().getTime() + 7 * 60 * 60 * 1000).toISOString(),
         verifiedBy: localStorage.getItem("userId")
       });
       fetchKycDocuments(selectedSeller.userId);

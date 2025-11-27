@@ -292,10 +292,10 @@ namespace Infrastructure.Repositories
                         from itemImage in imj.DefaultIfEmpty()
                         join ev in _context.EVDetails
                             on i.ItemId equals ev.ItemId into evj
-                        from evDetail in evj.DefaultIfEmpty()
+                        from evDetail in evj
                         join bat in _context.BatteryDetails
                             on i.ItemId equals bat.ItemId into batj
-                        from batDetail in batj.DefaultIfEmpty()
+                        from batDetail in batj
                         select new ItemWithDetailDto
                         {
                             ItemId = i.ItemId,
@@ -576,6 +576,14 @@ namespace Infrastructure.Repositories
                 .ToListAsync();
         }
 
+        public async Task<List<Item>> GetAuctionItemBySellerAsync(int sellerId)
+        {
+            return await _context.Items
+                .Where(i => i.UpdatedBy == sellerId
+                                          && !i.IsDeleted
+                                          && (i.Status == ItemStatus.Auction_Active.ToString() || i.Status == ItemStatus.Sold.ToString() || i.Status == ItemStatus.Active.ToString()))
+                .ToListAsync();
+        }
         public async Task<int> GetTotalProductsAsync(int sellerId)
         {
             return await _context.Items
@@ -876,6 +884,52 @@ namespace Infrastructure.Repositories
 
             await _context.SaveChangesAsync();
 
+        }
+
+        public async Task<List<ItemWithDetailDto>> GetModerationItem()
+        {
+            var listOfDetails = new List<ItemWithDetailDto>();
+            var items = await _context.Items
+                .Where(i => (i.Moderation != ItemModeration.Not_Submitted.ToString()) && !(i.IsDeleted == true))
+                .ToListAsync();
+            foreach (var item in items)
+            {
+                var itemDetail = new ItemWithDetailDto();
+                var batteryDetail = await _context.BatteryDetails
+                    .FirstOrDefaultAsync(b => b.ItemId == item.ItemId);
+                var evDetail = await _context.EVDetails.FirstOrDefaultAsync(
+                    e => e.ItemId == item.ItemId);
+                if (batteryDetail != null)
+                {
+                    itemDetail.BatteryDetail = batteryDetail;
+                }
+                else if (evDetail != null)
+                {
+                    itemDetail.EVDetail = evDetail;
+                }
+                var images = await _context.ItemImages
+                    .Where(img => img.ItemId == item.ItemId)
+                    .Select(img => new ItemImageDto
+                    {
+                        ImageId = img.ImageId,
+                        ImageUrl = img.ImageUrl
+                    }).ToListAsync();
+                itemDetail.ItemImage = images;
+                itemDetail.ItemId = item.ItemId;
+                itemDetail.Title = item.Title;
+                itemDetail.ItemType = item.ItemType;
+                itemDetail.CategoryId = item.CategoryId;
+                itemDetail.Description = item.Description;
+                itemDetail.Price = item.Price;
+                itemDetail.Quantity = item.Quantity;
+                itemDetail.Moderation = item.Moderation;
+                itemDetail.Status = item.Status;
+                itemDetail.CreatedAt = item.CreatedAt;
+                itemDetail.UpdatedAt = item.UpdatedAt;
+                itemDetail.UpdatedBy = item.UpdatedBy;
+                listOfDetails.Add(itemDetail);
+            }
+            return listOfDetails;
         }
     }
 }

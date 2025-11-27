@@ -246,7 +246,7 @@ const KycManagementPage = () => {
   const handleApprove = async (docId, note) => {
     const payload = {
       note: note || 'Đã duyệt',
-      verifiedAt: new Date().toISOString(),
+      verifiedAt: new Date(new Date().getTime() + 7 * 60 * 60 * 1000).toISOString(),
       verifiedBy: localStorage.getItem('userId'),
     };
     try {
@@ -265,7 +265,7 @@ const KycManagementPage = () => {
     }
     const payload = {
       note,
-      verifiedAt: new Date().toISOString(),
+      verifiedAt: new Date(new Date().getTime() + 7 * 60 * 60 * 1000).toISOString(),
       verifiedBy: localStorage.getItem('userId'),
     };
     try {
