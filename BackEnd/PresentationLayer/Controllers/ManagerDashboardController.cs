@@ -26,14 +26,14 @@ namespace PresentationLayer.Controllers
             return Ok(result);
         }
 
-        [HttpGet("revenue-by-week")]
+        [HttpGet("revenue-by-month")]
         public async Task<IActionResult> GetRevenueByMonth([FromQuery] string range = "12m")
         {
             var result = await _dashboardService.GetRevenueByMonthAsync(range);
             return Ok(result);
         }
 
-        [HttpGet("orders-by-week")]
+        [HttpGet("orders-by-month")]
         public async Task<IActionResult> GetOrdersByMonth([FromQuery] string range = "12m")
         {
             int months = 12;
