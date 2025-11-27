@@ -15,5 +15,7 @@ public interface IWalletService
 
     Task<bool> TransferServiceFeeToManagerAsync(int sellerId);
 
+    Task<bool> ProductModerationFeeAsync(int sellerId);
+
     Task<WalletTransactionDto> RevenueAsync(WithdrawRequestDto request);
 }

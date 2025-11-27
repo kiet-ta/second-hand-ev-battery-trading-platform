@@ -40,6 +40,7 @@ public async Task<IEnumerable<UserPaymentDetailHistoryDto>> GetPaymentDetailsByU
             // Payment Detail Fields
             PaymentDetailId = pd.PaymentDetailId,
             UserId = pd.UserId,
+            UserRole = pd.UserRole,
             PaymentId = pd.PaymentId,
             OrderId = pd.OrderId,
             ItemId = pd.ItemId,

@@ -8,7 +8,6 @@ namespace Application.DTOs.PaymentDtos
 {
     public class UserPaymentDetailHistoryDto : PaymentDetailDto
     {
-        // Thông tin từ bảng Payment
         public long OrderCode { get; set; }
         public decimal TotalAmount { get; set; }
         public string Currency { get; set; }
