@@ -45,36 +45,26 @@ export default function HistorySold() {
       case "Active":
         return "Đang bán";
       case "Auction_Active":
-        return "Đang đấu giá";
+        return "Đang hoạt động";
       case "Pending":
         return "Chờ xử lý";
-      case "Pending_Pay":
-        return "Chờ thanh toán";
-      case "Auction_Pending_Pay":
-        return "Chờ thanh toán (Đấu giá)";
       case "Sold":
-        return "Đã bán";
-      case "Shipped":
-        return "Đã giao";
-      case "Completed":
-        return "Hoàn tất";
-      case "Rejected":
-        return "Bị từ chối";
+        return "Đã bán hết";
       default:
         return "Không xác định";
     }
   };
-    const handleConfirmShipping = async (orderItemId) => {
-        await orderItemApi.confirmShipping(orderItemId)
-        setMessage("Xác nhận đơn hàng thành công!");
-        const updatedSales = sales.map(sale => {
-            if (sale.orderItemId === orderItemId) {
-                return { ...sale, status: "Shipped" };
-            }
-            return sale;
-        });
-        setSales(updatedSales);
-    }
+  const handleConfirmShipping = async (orderItemId) => {
+    await orderItemApi.confirmShipping(orderItemId)
+    setMessage("Xác nhận đơn hàng thành công!");
+    const updatedSales = sales.map(sale => {
+      if (sale.orderItemId === orderItemId) {
+        return { ...sale, status: "Shipped" };
+      }
+      return sale;
+    });
+    setSales(updatedSales);
+  }
   useEffect(() => {
     const fetchSales = async () => {
       setLoading(true);
@@ -280,16 +270,16 @@ export default function HistorySold() {
                 </div>
 
                 <div className="border-t pt-4 flex justify-end gap-4">
-                    <div>{message && <p className="text-green-600 mb-2">{message}</p>}</div>
+                  <div>{message && <p className="text-green-600 mb-2">{message}</p>}</div>
                   <button onClick={() => setSelectedSale(sale)}
                     className="flex items-center gap-2 px-4 py-2 border border-indigo-300 text-indigo-700 bg-indigo-50 rounded-lg hover:bg-indigo-100 hover:shadow-sm transition-all duration-200">
                     <Eye className="w-4 h-4" /> Xem chi tiết
                   </button>
                   {sale.status === "Pending" && (
                     <button onClick={() => handleConfirmShipping(sale.orderItemId)}
-                    className="flex items-center gap-2 px-4 py-2 border border-green-300 text-green-700 bg-green-50 rounded-lg hover:bg-green-100 hover:shadow-sm transition-all duration-200">
-                    <Eye className="w-4 h-4" /> Xác nhận đơn hàng
-                  </button>
+                      className="flex items-center gap-2 px-4 py-2 border border-green-300 text-green-700 bg-green-50 rounded-lg hover:bg-green-100 hover:shadow-sm transition-all duration-200">
+                      <Eye className="w-4 h-4" /> Xác nhận đơn hàng
+                    </button>
 
                   )}
 
@@ -338,7 +328,7 @@ export default function HistorySold() {
                   <p><b>Địa chỉ:</b> {selectedSale.buyer.address}</p>
                   <p><b>Trị giá đơn hàng:</b> {formatPrice(selectedSale.totalAmount)}</p>
                   <p><b>Phí triết khấu:</b> {formatPrice(selectedSale.feeValue)}</p>
-                  <p><b>Phí ship:</b> {formatPrice(selectedSale.shippingPrice)}</p>
+                  <p><b>Phí giao hàng:</b> {formatPrice(selectedSale.shippingPrice)}</p>
                   <p><b>Số lượng:</b> {selectedSale.quantity}</p>
                   <p><b>Thu nhập:</b> <span className="font-semibold text-green-700">{formatPrice(selectedSale.income)}</span></p>
                   <p><b>Thanh toán:</b> {selectedSale.paymentMethod}</p>

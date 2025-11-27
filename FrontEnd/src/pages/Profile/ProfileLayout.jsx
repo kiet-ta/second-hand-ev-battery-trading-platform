@@ -8,7 +8,6 @@ import Logo from "../../components/Logo";
 import "../../assets/styles/ProfileLayout.css";
 import CartIcon from "../../components/DropDowns/CartIcon";
 import userApi from "../../api/userApi";
-import TransactionHistory from "./TransactionHistory";
 
 
 
