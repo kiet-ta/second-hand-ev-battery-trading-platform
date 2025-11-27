@@ -22,7 +22,7 @@ function CardCart({
     images?.[0]?.imageUrl || 'https://placehold.co/100x100/e2e8f0/374151?text=?';
   const totalPrice = formatVND(price * quantity);
   const unitPrice = formatVND(price);
-  const detailPageUrl = itemType === 'ev' ? `/ev/${id}` : `/battery/${id}`;
+  const detailPageUrl = itemType === 'Ev' ? `/ev/${id}` : `/battery/${id}`;
 
   const increaseQuantity = (e) => {
     e.stopPropagation();

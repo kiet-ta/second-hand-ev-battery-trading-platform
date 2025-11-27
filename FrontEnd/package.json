@@ -20,6 +20,7 @@
     "@microsoft/signalr": "^9.0.6",
     "@tailwindcss/vite": "^4.1.13",
     "antd": "^5.20.1",
+    "await": "^0.2.6",
     "axios": "^1.12.2",
     "dayjs": "^1.11.19",
     "esbuild": "^0.25.9",
