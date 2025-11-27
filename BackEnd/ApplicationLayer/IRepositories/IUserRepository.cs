@@ -16,6 +16,8 @@ namespace Application.IRepositories
 
         Task UpdateAsync(User user);
 
+        Task<bool> UpdateUserPaidStatusAsync(int userId, string status);
+
         Task DeleteAsync(int id);
 
         Task<List<(string Role, int Count)>> GetUsersByRoleAsync();

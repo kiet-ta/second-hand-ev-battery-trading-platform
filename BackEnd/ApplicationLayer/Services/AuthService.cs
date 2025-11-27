@@ -62,10 +62,11 @@ namespace Application.Services
         {
             var now = DateTime.Now;
             string timestamp = now.ToString("yyyyMMddHHmmss");
-            int random = new Random().Next(100, 999);
-            string combined = timestamp + random.ToString();
-            int hash = combined.GetHashCode();
-            return Math.Abs(hash);
+            int randomValue = new Random().Next(100, 999);
+            string combined = timestamp + randomValue.ToString();
+            int hash = Math.Abs(combined.GetHashCode());
+            int shortId = hash % 10000;
+            return shortId;
         }
 
         public async Task<AuthResponseDto> RegisterAsync(RegisterDto dto)

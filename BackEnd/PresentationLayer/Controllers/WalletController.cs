@@ -63,6 +63,22 @@ public class WalletController : ControllerBase
         return Ok(new { message = $"{request.Type} successful.", transaction = transactionResult });
     }
 
+    [HttpPost("withdraw/seller-registration/{userId}")]
+    public async Task<IActionResult> TransferServiceFee(int userId)
+    {
+        if (userId <= 0)
+        {
+            return BadRequest(new { message = "Seller ID không hợp lệ." });
+        }
+        await _walletService.TransferServiceFeeToManagerAsync(userId);
+
+        return Ok(new
+        {
+            message = $"Đã thu phí và chuyển khoản thành công từ Seller ID: {userId}.",
+            status = true
+        });
+    }
+
     [HttpPost("revenue")]
 
     public async Task<IActionResult> RecordRevenue([FromBody] WithdrawRequestDto request)
