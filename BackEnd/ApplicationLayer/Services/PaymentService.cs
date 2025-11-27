@@ -101,57 +101,93 @@ public class PaymentService : IPaymentService
     // Once the order is completed, the money will be divided between the MANAGER and the SELLER.
     public async Task<bool> ConfirmOrderAndSplitPaymentAsync(int orderItemId, int buyerId)
     {
+        await _unitOfWork.BeginTransactionAsync();
+
         try
         {
             var orderItem = await _unitOfWork.OrderItems.GetByIdAsync(orderItemId);
 
             if (orderItem == null)
                 throw new Exception("Không tìm thấy sản phẩm trong đơn hàng.");
+
             var order = await _unitOfWork.Orders.GetByIdAsync(orderItem.OrderId.Value);
+
             if (order == null)
                 throw new Exception("Không tìm thấy đơn hàng.");
             if (order.BuyerId != buyerId)
                 throw new Exception("Bạn không phải chủ đơn hàng này.");
+
+            var paymentWithOrder = await _unitOfWork.Payments.GetByOrderIdAsync(orderItem.OrderId.Value);
 
             var item = await _unitOfWork.Items.GetByIdAsync(orderItem.ItemId);
             if (item == null)
                 throw new Exception("Không tìm thấy sản phẩm.");
 
             int? sellerId = item.UpdatedBy;
-            decimal totalOrderAmount = orderItem.Price * orderItem.Quantity;
+            if (!sellerId.HasValue)
+                throw new Exception("Không tìm thấy thông tin người bán (Seller ID).");
 
-            await _unitOfWork.BeginTransactionAsync();
+            decimal totalItemAmount = orderItem.Price * orderItem.Quantity;
+            
+            decimal shippingPrice = order.ShippingPrice;
+            
+            decimal totalPaymentAmount = totalItemAmount + shippingPrice;
 
+            
             var seller = await _unitOfWork.Users.GetByIdAsync(sellerId.Value);
             var sellerWallet = await _unitOfWork.Wallets.GetWalletByUserIdAsync(sellerId);
             var managerWallet = await _unitOfWork.Wallets.GetManagerWalletAsync();
 
             if (sellerWallet == null)
                 throw new Exception($"Không tìm thấy ví cho Seller (ID: {sellerId}).");
+
             string feeCode;
-            if (seller.IsStore) feeCode = "FEESF";
+            if (seller.IsStore) feeCode = "FEESF"; 
             else feeCode = "FEEPF";
-                var commissionRule = await _unitOfWork.CommissionFeeRules.GetByFeeCodeAsync(feeCode); 
+
+            var commissionRule = await _unitOfWork.CommissionFeeRules.GetByFeeCodeAsync(feeCode);
             if (commissionRule == null)
-                throw new Exception("Không tìm thấy quy tắc hoa hồng 'FEE001'.");
+                throw new Exception($"Không tìm thấy quy tắc hoa hồng cho code '{feeCode}'.");
 
             decimal commissionAmount = 0;
             if (commissionRule.FeeType == CommissionFeeType.Percentage.ToString())
             {
-                commissionAmount = totalOrderAmount * (commissionRule.FeeValue / 100);
+                commissionAmount = totalItemAmount * (commissionRule.FeeValue / 100);
             }
             else
             {
                 commissionAmount = commissionRule.FeeValue;
             }
 
-            decimal netAmountForSeller = totalOrderAmount - commissionAmount;
+            decimal netAmountForSellerItem = totalItemAmount - commissionAmount;
 
-            sellerWallet.Balance += netAmountForSeller;
+            decimal netAmountForSellerTotal = netAmountForSellerItem + shippingPrice;
+
+            decimal amountForManager = commissionAmount;
+
+            var sellerPaymentDetail = new PaymentDetail
+            {
+                PaymentId = paymentWithOrder.PaymentId,
+                OrderId = orderItem.OrderId,
+                ItemId = orderItem.ItemId,
+                Amount = netAmountForSellerTotal,
+            };
+            await _unitOfWork.PaymentDetails.CreatePaymentDetailAsync(sellerPaymentDetail);
+
+            var managerPaymentDetail = new PaymentDetail
+            {
+                PaymentId = paymentWithOrder.PaymentId,
+                OrderId = orderItem.OrderId,
+                ItemId = orderItem.ItemId,
+                Amount = amountForManager,
+            };
+            await _unitOfWork.PaymentDetails.CreatePaymentDetailAsync(managerPaymentDetail);
+
+            sellerWallet.Balance += netAmountForSellerTotal;
             sellerWallet.UpdatedAt = DateTime.Now;
             _unitOfWork.Wallets.Update(sellerWallet);
 
-            managerWallet.Balance += commissionAmount;
+            managerWallet.Balance += amountForManager;
             managerWallet.UpdatedAt = DateTime.Now;
             _unitOfWork.Wallets.Update(managerWallet);
 
@@ -162,7 +198,7 @@ public class PaymentService : IPaymentService
             var sellerTransaction = new WalletTransaction
             {
                 WalletId = sellerWallet.WalletId,
-                Amount = netAmountForSeller,
+                Amount = netAmountForSellerTotal,
                 Type = WalletTransactionType.Revenue.ToString(),
                 OrderId = orderItem.OrderId,
                 CreatedAt = DateTime.Now
@@ -172,7 +208,7 @@ public class PaymentService : IPaymentService
             var managerTransaction = new WalletTransaction
             {
                 WalletId = managerWallet.WalletId,
-                Amount = commissionAmount,
+                Amount = amountForManager,
                 Type = WalletTransactionType.Revenue.ToString(),
                 OrderId = orderItem.OrderId,
                 CreatedAt = DateTime.Now
@@ -194,12 +230,14 @@ public class PaymentService : IPaymentService
             {
                 NotiType = NotificationType.Activities.ToString(),
                 Title = $"Đơn hàng CMS_EV_{orderItem.OrderId} đã hoàn tất.",
-                Message = $"Sản phẩm '{item.Title}' trong đơn hàng CMS_EV_{orderItem.OrderId} đã được xác nhận hoàn tất bởi người mua. Số tiền {netAmountForSeller.ToString("0")} đã được chuyển vào ví của bạn sau khi trừ phí hoa hồng.",
+                Message = $"Sản phẩm '{item.Title}' trong đơn hàng CMS_EV_{orderItem.OrderId} đã được xác nhận hoàn tất bởi người mua. Số tiền {netAmountForSellerTotal.ToString("0")} đã được chuyển vào ví của bạn sau khi trừ phí hoa hồng.",
                 TargetUserId = sellerId.ToString(),
             };
-            await _notificationService.AddNewNotification(notificationToSeller, 4 , "Seller");
+            await _notificationService.AddNewNotification(notificationToSeller, 4, "Seller");
+
             await _unitOfWork.SaveChangesAsync();
             await _notificationService.SendNotificationAsync(notificationToSeller.Title, notificationToSeller.TargetUserId);
+
             await _unitOfWork.CommitTransactionAsync();
 
             return true;
@@ -207,7 +245,7 @@ public class PaymentService : IPaymentService
         catch (Exception ex)
         {
             await _unitOfWork.RollbackTransactionAsync();
-            throw; 
+            throw;
         }
     }
 
@@ -251,7 +289,7 @@ public class PaymentService : IPaymentService
             // Add PaymentDetails not save
             await _unitOfWork.Payments.AddPaymentDetailsAsync(paymentDetails);
 
-            if (request.Method == "Wallet")
+            if (request.Method == "wallet")
             {
                 if (wallet.Balance < request.TotalAmount)
                     throw new ArgumentException("Insufficient wallet balance");
@@ -294,7 +332,7 @@ public class PaymentService : IPaymentService
                     Status = PaymentStatus.Completed.ToString()
                 };
             }
-            else if (request.Method == "PayOS")
+            else if (request.Method == "payos")
             {
                 // only save Payment and PaymentDetails, not "touch" wallet
                 await _unitOfWork.CommitTransactionAsync();
@@ -341,7 +379,7 @@ public class PaymentService : IPaymentService
         if (info == null)
             throw new ArgumentException("Payment does not exist");
 
-        if (info.Method == "PayOS")
+        if (info.Method == "payos")
         {
             var payOsInfo = await _payOS.getPaymentLinkInformation(orderCode);
             info.Status = payOsInfo.status;
@@ -369,7 +407,7 @@ public class PaymentService : IPaymentService
         await _unitOfWork.Orders.DeleteAsync(order.OrderId);
         await _unitOfWork.SaveChangesAsync();
 
-        if (info.Method == "PayOS")
+        if (info.Method == "payos")
         {
             await _payOS.cancelPaymentLink(orderCode, request.Reason);
         }
@@ -516,8 +554,8 @@ public class PaymentService : IPaymentService
                 UserId = request.UserId,
                 OrderCode = orderCode,
                 TotalAmount = feeAmount,
-                Method = "PayOS",
-                PaymentType = PaymentType.Seller_Registration.ToString(), // ?????
+                Method = "payos",
+                PaymentType = "seller_registration", // ?????
                 Status = PaymentStatus.Pending.ToString(),
                 CreatedAt = DateTime.UtcNow
             };
@@ -573,7 +611,7 @@ public class PaymentService : IPaymentService
                 UserId = userId,
                 OrderCode = depositOrderCode,
                 TotalAmount = amount,
-                Method = "PayOS",
+                Method = "payos",
                 Status = PaymentStatus.Pending.ToString(),
                 PaymentType = PaymentType.Deposit.ToString(),
                 CreatedAt = DateTime.UtcNow,
