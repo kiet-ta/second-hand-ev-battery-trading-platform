@@ -29,16 +29,16 @@ namespace Application.Services
 
         public async Task<ManagerDashboardMetricsDto> GetMetricsAsync()
         {
-            var now = DateTime.Now;
+            //var now = DateTime.Now;
 
-            var revenueThisMonth = await _unitOfWork.Orders.GetRevenueThisMonthAsync(now);
+            var TotalRevenue = await _unitOfWork.WalletTransactions.GetTotalRevenueForManagerAsync();
             var totalUsers = await _unitOfWork.Users.CountAsync();
             var activeListings = await _unitOfWork.Items.CountActiveAsync();
             var growth = await _unitOfWork.Users.GetMonthlyGrowthAsync();
 
             return new ManagerDashboardMetricsDto
             {
-                RevenueThisMonth = revenueThisMonth,
+                TotalRevenue = TotalRevenue,
                 TotalUsers = totalUsers,
                 ActiveListings = activeListings,
                 Growth = growth

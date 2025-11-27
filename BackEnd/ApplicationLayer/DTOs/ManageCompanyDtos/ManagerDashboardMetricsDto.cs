@@ -8,7 +8,7 @@ namespace Application.DTOs.ManageCompanyDtos
 {
     public class ManagerDashboardMetricsDto
     {
-        public decimal RevenueThisMonth { get; set; }
+        public decimal TotalRevenue { get; set; }
         public int TotalUsers { get; set; }
         public int ActiveListings { get; set; }
         public double ComplaintRate { get; set; }
