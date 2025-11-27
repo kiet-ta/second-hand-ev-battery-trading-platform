@@ -77,6 +77,11 @@ function CardComponent({
         const loadStock = async () => {
             try {
                 const data = await itemApi.getItemById(id);
+                const stockInCart = await orderItemApi.getOrderItem(userId);
+                const inCartQuantity = stockInCart
+                    .filter(oi => oi.itemId === id)
+                    .reduce((sum, oi) => sum + oi.quantity, 0);
+                data.quantity -= inCartQuantity;
                 setStock(data?.quantity ?? 0);
             } catch (e) {
                 console.error("Lỗi lấy tồn kho:", e);
@@ -149,7 +154,8 @@ function CardComponent({
             }
         },
         [id, userId, isProcessing, navigate]
-    ); const handleBuyNow = async (e) => {
+    );
+    const handleBuyNow = async (e) => {
         e.preventDefault();
         e.stopPropagation();
 
@@ -161,17 +167,17 @@ function CardComponent({
 
         setIsProcessing(true);
         try {
-            const orderItemPayload = {
+            const createdOrderItem = await orderItemApi.postOrderItem({
                 buyerId: userId,
                 itemId: id,
                 quantity: 1,
-            };
-            const createdOrderItem = await orderItemApi.postOrderItem(orderItemPayload);
-            if (!createdOrderItem?.orderItemId)
-                throw new Error("Không thể tạo OrderItem.");
+                price: price,
+            });
+
+            if (!createdOrderItem?.orderItemId) throw new Error("Không thể tạo OrderItem.");
+
             const allAddresses = await addressLocalApi.getAddressByUserId(userId);
-            const defaultAddress =
-                allAddresses.find((a) => a.isDefault) || allAddresses[0];
+            const defaultAddress = allAddresses.find(a => a.isDefault) || allAddresses[0];
 
             if (!defaultAddress) {
                 navigate("/profile/address");
@@ -184,11 +190,11 @@ function CardComponent({
                 orderItems: [
                     {
                         id: createdOrderItem.orderItemId,
-                        name: title || "Sản phẩm",
+                        itemId: id,
+                        name: title,
                         quantity: 1,
-                        image:
-                            itemImages?.[0]?.imageUrl ||
-                            "https://placehold.co/100x100/e2e8f0/374151?text=?",
+                        image: itemImages?.[0]?.imageUrl || "https://placehold.co/100x100/e2e8f0/374151?text=?",
+                        price: price,
                     },
                 ],
                 allAddresses,

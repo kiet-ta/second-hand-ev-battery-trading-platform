@@ -150,7 +150,7 @@ public class PaymentController : ControllerBase
     [HttpPost("cancel/{orderCode:long}")]
     public async Task<IActionResult> CancelPayment(long orderCode, [FromBody] PaymentCancelRequestDto cancel)
     {
-        await _paymentService.CancelPaymentAsync(orderCode, cancel.Reason);
+        await _paymentService.CancelPaymentAsync(orderCode, cancel);
         return Ok();
     }
 
@@ -180,4 +180,6 @@ public class PaymentController : ControllerBase
         var response = await _paymentService.CreateDepositPaymentLinkAsync(userId, request.Amount);
         return Ok(response);
     }
+
+
 }

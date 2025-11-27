@@ -155,8 +155,16 @@ namespace Infrastructure.Repositories
             return result;
         }
 
-       
+        public async Task<bool> DeleteAsync(OrderItem orderItem)
+        {
+            if (orderItem == null)
+            {
+                return false;
+            }
+            _context.OrderItems.Remove(orderItem);
+            await _context.SaveChangesAsync();
+            return true;
+        }
 
-    
     }
 }

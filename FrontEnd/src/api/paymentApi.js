@@ -15,15 +15,6 @@ const paymentApi = {
             throw error;
         }
     },
-    cancelPayment: async (orderCode, reason) => {
-        try {
-            const response = await axios.post(`${baseURL}/cancel/${orderCode}`, reason)
-            return response.data;
-        } catch (error) {
-            console.error("Error in createPayment API call:", error);
-            throw error;
-        }
-    },
     confirmOrder: async (orderId) => {
         try {
             const response = await axios.post(`${baseURL}/confirm-order/${orderId}`, {}, {
@@ -38,10 +29,29 @@ const paymentApi = {
             throw error;
         }
     },
+<<<<<<< HEAD
     getHistoryByUser: (userId, token) =>
         axios.get(`${baseURL}/history/user/${userId}`, {
             headers: { Authorization: `Bearer ${token}` },
         }),
+=======
+    cancelPayment: async (data) => {
+        try{
+            const response = await axios.post(`${baseURL}/cancel/${data.orderCode}`, {reason: data.reason, orderId: data.orderId} ,{
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                    'Content-Type': 'application/json'
+                }
+            })
+            return response.data;   
+
+        }
+        catch (error) {
+            console.error("Error in createPayment API call:", error);
+            throw error;
+        }
+    }
+>>>>>>> 3098631ff9f1827cbc1cd6cbafef55dea05bf59d
 
 };
 export default paymentApi;
