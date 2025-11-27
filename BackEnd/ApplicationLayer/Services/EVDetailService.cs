@@ -28,7 +28,7 @@ namespace Application.Services
             // basic validation (add more as needed)
             if (dto == null) throw new ArgumentNullException(nameof(dto));
             if (string.IsNullOrWhiteSpace(dto.Title)) throw new ArgumentException("Title required", nameof(dto.Title));
-
+            await _unitOfWork.BeginTransactionAsync(ct);
             var item = new Item
             {
                 ItemType = ItemType.Ev.ToString(),
@@ -67,19 +67,16 @@ namespace Application.Services
                 UpdatedAt = DateTime.Now
             };
 
-            // If ItemId identity is generated on DB, you must SaveChanges() after AddAsync(item) to get item.ItemId.
-            // Approach: save once now, then add ev detail, then save again.
-            await _unitOfWork.Items.SaveChangesAsync();
-
             ev.ItemId = item.ItemId;
             await _unitOfWork.EVDetails.AddAsync(ev, ct);
             try
             {
                 await _unitOfWork.Items.SaveChangesAsync();
+                await _unitOfWork.CommitTransactionAsync(ct);
             }
             catch (DbUpdateException ex) when (IsUniqueConstraintViolation(ex))
             {
-                // handle duplicate license plate or other DB constraints
+                await _unitOfWork.RollbackTransactionAsync(ct);
                 throw new InvalidOperationException("Duplicate license plate or DB constraint violation.", ex);
             }
 

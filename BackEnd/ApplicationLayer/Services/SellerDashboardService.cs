@@ -42,8 +42,7 @@ namespace Application.Services
                     Active = await _unitOfWork.Items.CountByStatusAsync(sellerId, ItemStatus.Active
                     .ToString()),
                     Pending = await _unitOfWork.Items.CountByStatusAsync(sellerId, ItemStatus.Pending.ToString()),
-                    Inactive = await _unitOfWork.Items.CountByStatusAsync(sellerId, ItemStatus.Rejected.ToString()),
-                    Featured = 5 // feature is hardcoded for now
+                    Inactive = await _unitOfWork.Items.CountByStatusAsync(sellerId, ItemStatus.Sold.ToString()),
                 };
 
                 var orderStats = new OrderStatisticsDto
