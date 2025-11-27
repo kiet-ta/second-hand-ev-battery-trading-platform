@@ -79,6 +79,22 @@ public class WalletController : ControllerBase
         });
     }
 
+    [HttpPost("withdraw/product-moderation/{userId}")]
+    public async Task<IActionResult> ProductModerationFee(int userId)
+    {
+        if (userId <= 0)
+        {
+            return BadRequest(new { message = "Seller ID không hợp lệ." });
+        }
+        await _walletService.ProductModerationFeeAsync(userId);
+
+        return Ok(new
+        {
+            message = $"Đã thu phí và chuyển khoản thành công từ Seller ID: {userId}.",
+            status = true
+        });
+    }
+
     [HttpPost("revenue")]
 
     public async Task<IActionResult> RecordRevenue([FromBody] WithdrawRequestDto request)
