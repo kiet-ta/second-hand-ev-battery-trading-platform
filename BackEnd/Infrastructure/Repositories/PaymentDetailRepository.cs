@@ -65,9 +65,10 @@ public async Task<IEnumerable<UserPaymentDetailHistoryDto>> GetPaymentDetailsByU
         public async Task<decimal> GetRevenueAsync(int sellerId)
         {
             // Calculate the total lifetime revenue for a specific seller.
+            var wallet = await _context.Wallets.FirstOrDefaultAsync(w => w.UserId == sellerId);
             var totalRevenueQuery = await _context.WalletTransactions
                 // Filter transactions (t) by the Seller's ID (assuming WalletId matches SellerId)
-                .Where(t => t.WalletId == sellerId &&
+                .Where(t => t.WalletId == wallet.WalletId &&
                             // AND ensure the transaction type is explicitly 'Revenue'.
                             t.Type == "Revenue")
                 // Sum the 'Amount' column of all filtered transactions asynchronously.
@@ -81,9 +82,10 @@ public async Task<IEnumerable<UserPaymentDetailHistoryDto>> GetPaymentDetailsByU
         {
             // --- Data Retrieval (Database Query) ---
             // Fetch all 'Revenue' transactions for the specific seller's wallet ID.
+            var wallet = await _context.Wallets.FirstOrDefaultAsync(w => w.UserId == sellerId);
             var query = await _context.WalletTransactions
                 // Filter by Wallet ID and Transaction Type ('Revenue').
-                .Where(t => t.WalletId == sellerId && t.Type == "Revenue")
+                .Where(t => t.WalletId == wallet.WalletId && t.Type == "Revenue")
                 // Select only the amount and date to optimize data transfer.
                 .Select(t => new {
                     Amount = t.Amount,

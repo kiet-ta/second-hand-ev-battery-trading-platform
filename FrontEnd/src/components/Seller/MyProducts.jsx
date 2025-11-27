@@ -177,8 +177,8 @@ export default function MyProducts() {
       await walletApi.withdrawWallet({
         userId,
         amount,
-        type: "Withdraw",
-        ref: selectedItem.itemId,
+        type: "Product_Moderation",
+        itemId: selectedItem.itemId,
         description: payType === "listing"
           ? `Phí đăng bán sản phẩm ${selectedItem.title}`
           : `Phí kiểm duyệt sản phẩm ${selectedItem.title}`,

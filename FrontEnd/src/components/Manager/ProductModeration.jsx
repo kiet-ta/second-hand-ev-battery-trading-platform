@@ -23,7 +23,6 @@ import {
     Settings,
 } from "lucide-react";
 import itemApi from "../../api/itemApi";
-import { motion } from "framer-motion";
 
 const { Option } = Select;
 
