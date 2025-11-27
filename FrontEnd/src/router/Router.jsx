@@ -97,6 +97,7 @@ import NewsList from "../pages/Footers/NewsList";
 import NewsDetail from "../pages/Footers/NewsDetail";
 import SellerRegistrationFeePage from "../pages/SellerRegistrationFeePage";
 import BannedPage from "../pages/BannedPage";
+import TransactionHistory from "../pages/Profile/TransactionHistory";
 
 
 
@@ -161,6 +162,7 @@ export const router = createBrowserRouter([
       },
       { path: "purchase", element: <OrderPage /> },
       { path: "chats", element: <ChatRoomWrapper /> },
+      { path: "transaction", element: <TransactionHistory /> },
     ],
   },
 

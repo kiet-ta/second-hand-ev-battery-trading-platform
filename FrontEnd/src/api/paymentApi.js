@@ -25,8 +25,8 @@ const paymentApi = {
         }
     },
     confirmOrder: async (orderId) => {
-        try{
-            const response = await axios.post(`${baseURL}/confirm-order/${orderId}`,{} ,{
+        try {
+            const response = await axios.post(`${baseURL}/confirm-order/${orderId}`, {}, {
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('token')}`,
                     'Content-Type': 'application/json'
@@ -37,7 +37,11 @@ const paymentApi = {
             console.error("Error in createPayment API call:", error);
             throw error;
         }
-    }
+    },
+    getHistoryByUser: (userId, token) =>
+        axios.get(`${baseURL}/history/user/${userId}`, {
+            headers: { Authorization: `Bearer ${token}` },
+        }),
 
 };
 export default paymentApi;

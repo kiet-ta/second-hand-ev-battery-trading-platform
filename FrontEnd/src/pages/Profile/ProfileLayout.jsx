@@ -2,12 +2,13 @@ import React, { useState, useEffect } from "react";
 import { Outlet, NavLink, useNavigate } from "react-router-dom";
 import { FaRegUser } from "react-icons/fa";
 import { LuClipboardList } from "react-icons/lu";
-import { IoSettingsOutline, IoCartOutline, IoChatboxOutline, IoLogOutOutline } from "react-icons/io5";
+import { IoSettingsOutline, IoCartOutline, IoChatboxOutline, IoLogOutOutline, IoCashOutline } from "react-icons/io5";
 import NotificationDropdown from "../../components/DropDowns/NotificationDropdown";
 import Logo from "../../components/Logo";
 import "../../assets/styles/ProfileLayout.css";
 import CartIcon from "../../components/DropDowns/CartIcon";
 import userApi from "../../api/userApi";
+import TransactionHistory from "./TransactionHistory";
 
 
 
@@ -34,6 +35,7 @@ export default function ProfileLayout() {
         { to: "/profile", label: "Hồ sơ cá nhân", icon: <FaRegUser /> },
         { to: "/profile/purchase", label: "Đơn hàng của tôi", icon: <LuClipboardList /> },
         { to: "/profile/chats", label: "Trò chuyện", icon: <IoChatboxOutline /> },
+        { to: "/profile/transaction", label: "Lịch sử giao dịch", icon: <IoCashOutline /> },
     ];
 
     const handleLogoutConfirm = () => {
