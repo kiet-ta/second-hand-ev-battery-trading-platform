@@ -106,8 +106,7 @@ public class WalletService : IWalletService
             Amount = amount,
             Type = WalletTransactionType.Deposit.ToString(),
             CreatedAt = DateTime.Now,
-            // WalletTransaction.refId = paymentId
-            RefId = newPayment.PaymentId
+            PaymentId = newPayment.PaymentId
         };
         await _unitOfWork.WalletTransactions.CreateTransactionAsync(wallettransaction);
             //await _unitOfWork.SaveChangesAsync();
@@ -162,48 +161,49 @@ public class WalletService : IWalletService
                 TotalAmount = request.Amount,
                 Method = "Wallet",
                 Status = "Completed",
-                PaymentType = request.Type == WalletTransactionType.Withdraw.ToString() ?
-                              "Withdrawal" : "Order_Purchase",
+                PaymentType = PaymentType.Order_Purchase.ToString(),
                 CreatedAt = DateTime.Now
             };
 
             var newPayment = await _unitOfWork.Payments.CreatePaymentAsync(payment);
+
             if (newPayment == null) throw new Exception("Failed to create payment record.");
 
             var paymentDetail = new PaymentDetail
             {
                 PaymentId = newPayment.PaymentId,
                 Amount = request.Amount,
-                // Nếu là Withdrawal: OrderId/ItemId = null.
-                // Nếu là Payment: OrderId có thể là RefId nếu RefId là OrderId.
-                OrderId = request.Type == WalletTransactionType.Payment.ToString() ? request.RefId : null,
-                ItemId = null
+                OrderId = request.Type == WalletTransactionType.Withdraw.ToString() ? request.OrderId : null,
+                ItemId = request.ItemId
             };
 
             await _unitOfWork.PaymentDetails.CreatePaymentDetailAsync(paymentDetail);
 
-            var wallettransaction = new WalletTransaction
+            var walletTransaction = new WalletTransaction
             {
                 WalletId = wallet.WalletId,
                 Amount = -request.Amount,
                 Type = request.Type,
-                RefId = newPayment.PaymentId,
+                OrderId = request.OrderId,
+                PaymentId = newPayment.PaymentId,
                 CreatedAt = DateTime.Now
             };
 
-            var transactionId = await _unitOfWork.WalletTransactions.CreateTransactionAsync(wallettransaction);
-            wallettransaction.TransactionId = transactionId;
+            var transactionId = await _unitOfWork.WalletTransactions.CreateTransactionAsync(walletTransaction);
+            walletTransaction.TransactionId = transactionId;
 
             //await _context.SaveChangesAsync();
             await _unitOfWork.CommitTransactionAsync();
 
             return new WalletTransactionDto
             {
-                TransactionId = wallettransaction.TransactionId,
-                Amount = wallettransaction.Amount,
-                Type = wallettransaction.Type,
-                ReferenceId = wallettransaction.RefId,
-                CreatedAt = wallettransaction.CreatedAt
+                TransactionId = walletTransaction.TransactionId,
+                Amount = walletTransaction.Amount,
+                Type = walletTransaction.Type,
+                OrderId = walletTransaction.OrderId,
+                ItemId = request.ItemId,
+                PaymentId = walletTransaction.PaymentId,
+                CreatedAt = walletTransaction.CreatedAt
             };
         }
         catch (Exception)
