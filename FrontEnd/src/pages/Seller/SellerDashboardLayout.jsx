@@ -8,7 +8,7 @@ import {
     Settings,
     Clock,
 } from "lucide-react";
-import { IoLogOutOutline } from "react-icons/io5";
+import { IoCashOutline, IoLogOutOutline } from "react-icons/io5";
 import Logo from "../../components/Logo"
 
 export default function SellerDashboardLayout() {
@@ -21,6 +21,7 @@ export default function SellerDashboardLayout() {
         { id: "orders", icon: ShoppingBag, label: "Đơn hàng", path: "/seller/orders" },
         { id: "history", icon: Clock, label: "Lịch sử bán hàng", path: "/seller/history" },
         { id: "chat", icon: MessageSquare, label: "Tin nhắn", path: "/seller/chat" },
+        { id: "transaction", icon: IoCashOutline, label: "Lịch sử giao dịch", path: "/seller/transaction" }
     ];
 
     const handleLogout = () => {
@@ -51,7 +52,7 @@ export default function SellerDashboardLayout() {
                         <NavLink
                             key={id}
                             to={path}
-                            end={path === "/seller"} 
+                            end={path === "/seller"}
                             className={({ isActive }) =>
                                 `w-full flex items-center gap-3 px-4 py-3 rounded-lg mb-2 transition font-medium ${isActive
                                     ? "bg-indigo-100 !text-indigo-700 font-semibold"

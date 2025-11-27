@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
-import addressApi from "../api/useAddress"; 
+import addressApi from "../api/useAddress";
+import { Select } from "antd";
+const { Option } = Select;
 
 export default function DropdownForm() {
   const [provinces, setProvinces] = useState([]);
@@ -10,26 +12,26 @@ export default function DropdownForm() {
   const [selectedDistrict, setSelectedDistrict] = useState("");
   const [selectedWard, setSelectedWard] = useState("");
 
-  // Load provinces on mount
+  // Load provinces
   useEffect(() => {
     addressApi.getProvinces().then((data) => {
       setProvinces(data.data || []);
     });
   }, []);
 
-  // Load districts when province changes
+  // Load districts
   useEffect(() => {
     if (selectedProvince) {
       addressApi.getDistricts(selectedProvince).then((data) => {
         setDistricts(data.data || []);
-        setWards([]); // reset wards
+        setWards([]);
         setSelectedDistrict("");
         setSelectedWard("");
       });
     }
   }, [selectedProvince]);
 
-  // Load wards when district changes
+  // Load wards
   useEffect(() => {
     if (selectedDistrict) {
       addressApi.getWards(selectedDistrict).then((data) => {
@@ -43,56 +45,70 @@ export default function DropdownForm() {
     <div className="space-y-4 p-4 max-w-md mx-auto">
       {/* Province */}
       <div>
-        <label className="block mb-1">Province</label>
-        <select
+        <label className="block mb-1">Tỉnh / Thành phố *</label>
+        <Select
+          showSearch
+          placeholder="Chọn Tỉnh/Thành"
           value={selectedProvince}
-          onChange={(e) => setSelectedProvince(e.target.value)}
-          className="w-full border rounded p-2"
+          onChange={(value) => setSelectedProvince(value)}
+          filterOption={(input, option) =>
+            option.children.toLowerCase().includes(input.toLowerCase())
+          }
+          className="w-full"
         >
-          <option value="">-- Select Province --</option>
           {provinces.map((p) => (
-            <option key={p.id} value={p.id}>
+            <Option key={p.id} value={p.id}>
               {p.name}
-            </option>
+            </Option>
           ))}
-        </select>
+        </Select>
       </div>
 
-      {/* District → only show if province selected */}
+      {/* District */}
       {selectedProvince && (
         <div>
-          <label className="block mb-1">District</label>
-          <select
+          <label className="block mb-1">Quận / Huyện *</label>
+          <Select
+            showSearch
+            placeholder="Chọn Quận/Huyện"
             value={selectedDistrict}
-            onChange={(e) => setSelectedDistrict(e.target.value)}
-            className="w-full border rounded p-2"
+            onChange={(value) => setSelectedDistrict(value)}
+            disabled={!selectedProvince}
+            filterOption={(input, option) =>
+              option.children.toLowerCase().includes(input.toLowerCase())
+            }
+            className="w-full"
           >
-            <option value="">-- Select District --</option>
             {districts.map((d) => (
-              <option key={d.id} value={d.id}>
+              <Option key={d.id} value={d.id}>
                 {d.name}
-              </option>
+              </Option>
             ))}
-          </select>
+          </Select>
         </div>
       )}
 
-      {/* Ward → only show if district selected */}
+      {/* Ward */}
       {selectedDistrict && (
         <div>
-          <label className="block mb-1">Ward</label>
-          <select
+          <label className="block mb-1">Phường / Xã *</label>
+          <Select
+            showSearch
+            placeholder="Chọn Phường/Xã"
             value={selectedWard}
-            onChange={(e) => setSelectedWard(e.target.value)}
-            className="w-full border rounded p-2"
+            onChange={(value) => setSelectedWard(value)}
+            disabled={!selectedDistrict}
+            filterOption={(input, option) =>
+              option.children.toLowerCase().includes(input.toLowerCase())
+            }
+            className="w-full"
           >
-            <option value="">-- Select Ward --</option>
             {wards.map((w) => (
-              <option key={w.id} value={w.id}>
+              <Option key={w.id} value={w.id}>
                 {w.name}
-              </option>
+              </Option>
             ))}
-          </select>
+          </Select>
         </div>
       )}
     </div>

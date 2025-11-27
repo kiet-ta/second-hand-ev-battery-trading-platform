@@ -14,9 +14,10 @@ import {
     Bell,
     ShieldAlert,
     UserPlus2,
+    Banknote,
 } from "lucide-react";
 import { useNavigate, useLocation, Outlet } from "react-router-dom";
-import { IoLogOutOutline } from "react-icons/io5";
+import { IoCashOutline, IoLogOutOutline } from "react-icons/io5";
 
 // --- Card Wrapper ---
 function Card({ children, className = "" }) {
@@ -48,8 +49,12 @@ const menu = [
     { key: "users", label: "Quản lý người dùng", icon: <UserCog size={18} />, path: "users" },
     { key: "products", label: "Duyệt sản phẩm", icon: <PackageSearch size={18} />, path: "products" },
     { key: "complaints", label: "Khiếu nại người dùng", icon: <ShieldAlert size={18} />, path: "complaints" },
+    { key: "transactions", label: "Theo dõi giao dịch", icon: <Banknote size={18} />, path: "transactions" },
+    { key: "transaction", label: "Lịch sử giao dịch", icon: <IoCashOutline size={18} />, path: "transaction" },
     { key: "notifications", label: "Thông báo", icon: <Bell size={18} />, path: "notifications" },
     { key: "News", label: "Tạo tin tức", icon: <ClipboardList size={18} />, path: "News" },
+    { key: "approvals", label: "Duyệt người bán", icon: <ShieldCheck size={18} />, path: "approvals" },
+    { key: "fee", label: "Quy định hoa hồng", icon: <ClipboardList size={18} />, path: "fee" },
 ];
 
 // --- MAIN LAYOUT ---
@@ -147,34 +152,7 @@ export default function ManagerLayout({ onRefresh, children }) {
                         </div>
                     </Card>
 
-                    <Card className="mt-6">
-                        <CardHeader
-                            title="Tác vụ nhanh"
-                            icon={<Settings size={18} className="text-slate-700" />}
-                        />
-                        <div className="p-4 grid grid-cols-1 gap-2">
 
-
-                            {/* Duyệt người bán */}
-                            <button
-                                onClick={() => navigate("approvals")}
-                                className="flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-200 text-sm text-slate-700 hover:bg-slate-50 text-left"
-                            >
-                                <ShieldCheck size={16} className="text-emerald-600" />
-                                Duyệt người bán
-                            </button>
-
-                            {/* Cập nhật quy định hoa hồng */}
-                            <button
-                                onClick={() => navigate("fee")}
-                                className="flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-200 text-sm text-slate-700 hover:bg-slate-50 text-left"
-                            >
-                                <ClipboardList size={16} className="text-orange-500" />
-                                Cập nhật quy định hoa hồng
-                            </button>
-
-                        </div>
-                    </Card>
                 </aside>
 
                 {/* Nội dung chính */}

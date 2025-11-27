@@ -4,6 +4,7 @@ import { ClipboardList, Search, Download } from "lucide-react";
 import { managerAPI } from "../../hooks/managerApi";
 import Card from "../../components/Manager/Card";
 import CardHeader from "../../components/Manager/CardHeader";
+import { motion } from "framer-motion";
 
 const { Option } = Select;
 
@@ -134,6 +135,13 @@ export default function TransactionContent() {
         },
     ];
 
+    const labelMap = {
+        Pending: "Đang chờ",
+        Completed: "Thành công",
+        Failed: "Thất bại",
+        Expired: "Hết hạn",
+    };
+
     return (
         <motion.div
             key="transactions"
@@ -177,7 +185,7 @@ export default function TransactionContent() {
                     {/* Thông tin thống kê */}
                     <div className="text-sm text-slate-600 mb-3">
                         Hiển thị <b>{filteredData.length}</b> giao dịch
-                        {statusFilter !== "all" && ` (trạng thái: ${statusFilter})`}
+                        {statusFilter !== "all" && ` (Trạng thái: ${labelMap[statusFilter] || statusFilter})`}
                         {searchQuery && `, tìm kiếm: “${searchQuery}”`}
                     </div>
 

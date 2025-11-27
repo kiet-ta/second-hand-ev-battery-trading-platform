@@ -4,7 +4,7 @@ import {
     Settings, Clock, User,
 } from "lucide-react";
 import { useNavigate, useLocation, Outlet } from "react-router-dom";
-import { IoLogOutOutline } from "react-icons/io5";
+import { IoCashOutline, IoLogOutOutline } from "react-icons/io5";
 import Logo from "../components/Logo"
 
 export default function SellerDashboard() {
@@ -53,7 +53,7 @@ export default function SellerDashboard() {
         const rememberEmail = localStorage.getItem("rememberEmail");
         const rememberPassword = localStorage.getItem("rememberPassword");
 
-        localStorage.clear(); 
+        localStorage.clear();
         if (rememberEmail && rememberPassword) {
             localStorage.setItem("rememberEmail", rememberEmail);
             localStorage.setItem("rememberPassword", rememberPassword);
@@ -70,7 +70,7 @@ export default function SellerDashboard() {
         { id: "products", icon: ShoppingBag, label: "My Products", path: "products" },
         { id: "history", icon: Clock, label: "History Sold", path: "history" },
         { id: "chat", icon: MessageSquare, label: "Chat with Buyer", path: "chat" },
-        { id: "settings", icon: Settings, label: "Settings", path: "settings" },
+        { id: "transaction", icon: IoCashOutline, label: "Transaction", path: "transaction" },
     ];
 
     // Function to check if a menu item is active
