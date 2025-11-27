@@ -28,6 +28,27 @@ public class PaymentController : ControllerBase
     }
 
     [HttpGet]
+    [Route("details/user/{userId}")]
+    [ProducesResponseType(typeof(IEnumerable<UserPaymentDetailHistoryDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetUserPaymentDetailsHistory(int userId)
+    {
+        if (userId <= 0)
+        {
+            return BadRequest("Invalid User ID.");
+        }
+
+        var paymentDetails = await _paymentService.GetUserPaymentDetailsHistoryAsync(userId);
+
+        if (paymentDetails == null || !paymentDetails.Any())
+        {
+            return NotFound($"No payment details found for User ID: {userId}.");
+        }
+
+        return Ok(paymentDetails);
+    }
+
+    [HttpGet]
     [Route("with-details")]
     [ProducesResponseType(typeof(IEnumerable<PaymentWithDetailsDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetPaymentsWithDetails()
@@ -38,17 +59,28 @@ public class PaymentController : ControllerBase
     }
 
     [HttpGet]
-    [Route("history/user/{userId}")]
+    [Route("history/user/{buyerId}")]
     [ProducesResponseType(typeof(IEnumerable<PaymentWithDetailsDto>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetPaymentHistoryByUserId(int userId)
+    public async Task<IActionResult> GetPaymentHistoryByRoles(int buyerId, int? sellerId = null, int? managerId = null)
     {
-        var payments = await _paymentService.GetPaymentHistoryByUserIdAsync(userId);
+        // Kiểm tra điều kiện bắt buộc
+        if (buyerId <= 0)
+        {
+            return BadRequest("BuyerId is required and must be valid.");
+        }
+
+        var payments = await _paymentService.GetPaymentHistoryByRolesAsync(buyerId, sellerId, managerId);
+
+        if (payments == null || !payments.Any())
+        {
+            return NotFound("No payment history found matching the criteria.");
+        }
 
         return Ok(payments);
     }
 
     [HttpGet]
-    [Route("detail/user/{userId}/order/{orderId}")]
+    [Route("detail/buyer/{userId}/order/{orderId}")]
     [ProducesResponseType(typeof(DetailedPaymentHistoryDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetTransactionDetail(int userId, int orderId)

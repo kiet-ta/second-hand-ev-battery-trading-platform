@@ -7,6 +7,8 @@ namespace Application.IServices;
 
 public interface IPaymentService
 {
+
+    Task<IEnumerable<UserPaymentDetailHistoryDto>> GetUserPaymentDetailsHistoryAsync(int userId);
     Task<PaymentResponseDto> CreatePaymentAsync(PaymentRequestDto request);
 
     Task<PaymentInfoDto> GetPaymentInfoAsync(long orderCode);
@@ -25,7 +27,7 @@ public interface IPaymentService
 
     Task<IEnumerable<PaymentWithDetailsDto>> GetPaymentsDataAsync();
 
-    Task<IEnumerable<PaymentWithDetailsDto>> GetPaymentHistoryByUserIdAsync(int userId);
+    Task<IEnumerable<PaymentWithDetailsDto>> GetPaymentHistoryByRolesAsync(int buyerId, int? sellerId = null, int? managerId = null);
 
     Task<DetailedPaymentHistoryDto> GetTransactionDetailByOrder(int userId, int orderId);
 }

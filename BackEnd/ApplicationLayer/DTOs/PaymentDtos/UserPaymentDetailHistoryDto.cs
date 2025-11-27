@@ -6,18 +6,15 @@ using System.Threading.Tasks;
 
 namespace Application.DTOs.PaymentDtos
 {
-    public class PaymentWithDetailsDto
+    public class UserPaymentDetailHistoryDto : PaymentDetailDto
     {
-        public int PaymentId { get; set; }
-        public int UserId { get; set; }
+        // Thông tin từ bảng Payment
         public long OrderCode { get; set; }
         public decimal TotalAmount { get; set; }
         public string Currency { get; set; }
         public string Method { get; set; }
         public string Status { get; set; }
         public string PaymentType { get; set; }
-        public DateTime CreatedAt { get; set; }
-
-        public IEnumerable<PaymentDetailDto> PaymentDetails { get; set; }
+        public DateTime PaymentCreatedAt { get; set; }
     }
 }
