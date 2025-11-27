@@ -251,7 +251,7 @@ public class PaymentService : IPaymentService
             // Add PaymentDetails not save
             await _unitOfWork.Payments.AddPaymentDetailsAsync(paymentDetails);
 
-            if (request.Method == "wallet")
+            if (request.Method == "Wallet")
             {
                 if (wallet.Balance < request.TotalAmount)
                     throw new ArgumentException("Insufficient wallet balance");

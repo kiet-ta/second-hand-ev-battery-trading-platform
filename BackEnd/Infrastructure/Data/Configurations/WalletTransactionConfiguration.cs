@@ -24,6 +24,7 @@ public class WalletTransactionConfiguration : IEntityTypeConfiguration<WalletTra
             .HasColumnName("created_at");
         
         entity.Property(e => e.RefId).HasColumnName("ref_id");
+        entity.Property(e => e.PaymentId).HasColumnName("payment_id");
         
         entity.Property(e => e.Type)
             .HasMaxLength(20)

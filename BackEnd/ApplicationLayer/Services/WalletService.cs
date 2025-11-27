@@ -106,8 +106,7 @@ public class WalletService : IWalletService
             Amount = amount,
             Type = WalletTransactionType.Deposit.ToString(),
             CreatedAt = DateTime.Now,
-            // WalletTransaction.refId = paymentId
-            RefId = newPayment.PaymentId
+            PaymentId = newPayment.PaymentId
         };
         await _unitOfWork.WalletTransactions.CreateTransactionAsync(wallettransaction);
             //await _unitOfWork.SaveChangesAsync();
@@ -187,7 +186,8 @@ public class WalletService : IWalletService
                 WalletId = wallet.WalletId,
                 Amount = -request.Amount,
                 Type = request.Type,
-                RefId = newPayment.PaymentId,
+                RefId = request.RefId,
+                PaymentId = newPayment.PaymentId,
                 CreatedAt = DateTime.Now
             };
 
