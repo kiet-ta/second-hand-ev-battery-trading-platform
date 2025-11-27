@@ -47,5 +47,6 @@ namespace Application.IServices
         Task<bool> SetRejectedItemTagAsync(int itemId);
         Task<IEnumerable<EVDetailDto>> SearchEvDetailAsync(EVSearchRequestDto request);
         Task<IEnumerable<BatteryDetailDto>> SearchBatteryDetailAsync(BatterySearchRequestDto request);
+        Task<List<ItemWithDetailDto>> GetItemsForModerationAsync();
     }
 }

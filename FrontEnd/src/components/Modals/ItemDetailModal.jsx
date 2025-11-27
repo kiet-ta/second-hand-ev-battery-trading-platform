@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Modal, Descriptions, Image, Spin, Tag } from "antd";
 import itemApi from "../../api/itemApi";
+import userApi from "../../api/userApi";
 
 export default function ItemDetailModal({ itemId, orderItem, orderInfo, open, onClose }) {
   const [item, setItem] = useState(null);
@@ -13,6 +14,8 @@ export default function ItemDetailModal({ itemId, orderItem, orderInfo, open, on
         setLoading(true);
         const res = await itemApi.getItemDetailByID(itemId);
         setItem(res);
+        const seller = await userApi.getUserByID(res.updatedBy);
+        setItem((prev) => ({ ...prev, sellerName: seller.fullName || "Cửa hàng EV & Pin" }));
       } catch (error) {
         console.error("Failed to fetch item detail:", error);
       } finally {
@@ -73,6 +76,10 @@ export default function ItemDetailModal({ itemId, orderItem, orderInfo, open, on
                   {orderInfo.shippingPrice?.toLocaleString("vi-VN")} ₫
                 </Descriptions.Item>
 
+                <Descriptions.Item label="Tên người bán">
+                  {item.sellerName || "Cửa hàng EV & Pin"}
+                </Descriptions.Item>
+
                 <Descriptions.Item label="Tổng thanh toán" span={2}>
                   <span className="font-bold text-[#d97706] text-lg">
                     {orderInfo.totalPrice?.toLocaleString("vi-VN")} ₫
@@ -80,7 +87,7 @@ export default function ItemDetailModal({ itemId, orderItem, orderInfo, open, on
                 </Descriptions.Item>
 
                 <Descriptions.Item label="Mã đơn hàng" span={2}>
-                  #CMS_{item.itemType}_{orderInfo.orderId}
+                  #CMX_{item.itemType.toUpperCase()}_{orderInfo.orderId}
                 </Descriptions.Item>
               </Descriptions>
             </>

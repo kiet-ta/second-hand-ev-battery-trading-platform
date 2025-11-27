@@ -42,6 +42,10 @@ const itemApi = {
         const response = await axios.get(baseURL + "/detail/all");
         return response.data;
     },
+    getItemModerationDetail: async () => {
+        const response = await axios.get(baseURL + "/detail/moderation");
+        return response.data;
+    },
     postItemEV: async (data) => {
         const response = await axios.post(linkBaseURL + "ev-details", data);
         return response.data;

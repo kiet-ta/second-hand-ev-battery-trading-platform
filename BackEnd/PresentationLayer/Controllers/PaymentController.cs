@@ -64,7 +64,6 @@ public class PaymentController : ControllerBase
     }
 
     [HttpPost("confirm-order/{orderId}")]
-    //[Authorize(Roles = "Buyer,Seller")]
     public async Task<IActionResult> ConfirmOrder(int orderId)
     {
         try

@@ -82,5 +82,7 @@ namespace PresentationLayer.Controllers
             await _dashboardService.RejectAsync(id, staffId, dto.Note);
             return Ok(new { message = "Seller rejected successfully." });
         }
+
+        
     }
 }

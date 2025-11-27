@@ -121,7 +121,13 @@ namespace PresentationLayer.Controllers
             return Ok(items);
         }
 
+        [HttpGet("detail/moderation")]
 
+        public async Task<IActionResult> GetItemsForModeration()
+        {
+            var items = await _service.GetItemsForModerationAsync();
+            return Ok(items);
+        }
 
 
 

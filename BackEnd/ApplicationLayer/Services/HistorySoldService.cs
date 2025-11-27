@@ -104,15 +104,8 @@ namespace Application.Services
             {
                 var orderDetailDto = new OrderDetailDto();
                 var order = await _unitOfWork.Orders.GetByIdAsync(orderItem.OrderId.Value);
-                if (await _unitOfWork.WalletTransactions.GetByOrderItemIdAsync(orderItem.OrderId.Value) != null)
-                {
-                    orderDetailDto.PaymentMethod = "Wallet";
-
-                }
-                else if (await _unitOfWork.PaymentDetails.GetByOrderIdAsync(orderItem.OrderId.Value) != null)
-                {
-                    orderDetailDto.PaymentMethod = "Payment";
-                }
+                var payment = await _unitOfWork.Payments.GetByOrderIdAsync(orderItem.OrderId.Value);
+                orderDetailDto.PaymentMethod = payment.Method; 
                 var seller = await _unitOfWork.Users.GetByIdAsync(sellerId);
                 var sellerWallet = await _unitOfWork.Wallets.GetWalletByUserIdAsync(sellerId);
                 if (sellerWallet == null)
@@ -135,8 +128,9 @@ namespace Application.Services
                 }
                 orderDetailDto.AddressId = order.AddressId;
                 orderDetailDto.Order = orderItem;
+                orderDetailDto.ShippingPrice = order.ShippingPrice;
                 orderDetailDto.FeeValue = commissionAmount;
-                orderDetailDto.TotalAmount = orderItem.Price * orderItem.Quantity;
+                orderDetailDto.TotalAmount = orderItem.Price * orderItem.Quantity + order.ShippingPrice;
 
                 listOfOrderDetails.Add(orderDetailDto);
             }

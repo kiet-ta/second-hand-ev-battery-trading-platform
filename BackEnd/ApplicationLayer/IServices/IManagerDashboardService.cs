@@ -1,4 +1,5 @@
-﻿using Application.DTOs.ManageCompanyDtos;
+﻿using Application.DTOs.ItemDtos;
+using Application.DTOs.ManageCompanyDtos;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,5 +18,6 @@ namespace Application.IServices
         Task<List<SellerPendingApprovalDto>> GetPendingApprovalsAsync();
         Task ApproveAsync(int docId, int staffId);
         Task RejectAsync(int docId, int staffId, string? note);
+
     }
 }
