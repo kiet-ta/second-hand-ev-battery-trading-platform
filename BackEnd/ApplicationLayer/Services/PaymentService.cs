@@ -251,7 +251,7 @@ public class PaymentService : IPaymentService
             // Add PaymentDetails not save
             await _unitOfWork.Payments.AddPaymentDetailsAsync(paymentDetails);
 
-            if (request.Method == "wallet")
+            if (request.Method == "Wallet")
             {
                 if (wallet.Balance < request.TotalAmount)
                     throw new ArgumentException("Insufficient wallet balance");
@@ -294,7 +294,7 @@ public class PaymentService : IPaymentService
                     Status = PaymentStatus.Completed.ToString()
                 };
             }
-            else if (request.Method == "payos")
+            else if (request.Method == "PayOS")
             {
                 // only save Payment and PaymentDetails, not "touch" wallet
                 await _unitOfWork.CommitTransactionAsync();
@@ -341,7 +341,7 @@ public class PaymentService : IPaymentService
         if (info == null)
             throw new ArgumentException("Payment does not exist");
 
-        if (info.Method == "payos")
+        if (info.Method == "PayOS")
         {
             var payOsInfo = await _payOS.getPaymentLinkInformation(orderCode);
             info.Status = payOsInfo.status;
@@ -369,7 +369,7 @@ public class PaymentService : IPaymentService
         await _unitOfWork.Orders.DeleteAsync(order.OrderId);
         await _unitOfWork.SaveChangesAsync();
 
-        if (info.Method == "payos")
+        if (info.Method == "PayOS")
         {
             await _payOS.cancelPaymentLink(orderCode, request.Reason);
         }
@@ -516,8 +516,8 @@ public class PaymentService : IPaymentService
                 UserId = request.UserId,
                 OrderCode = orderCode,
                 TotalAmount = feeAmount,
-                Method = "payos",
-                PaymentType = "seller_registration", // ?????
+                Method = "PayOS",
+                PaymentType = PaymentType.Seller_Registration.ToString(), // ?????
                 Status = PaymentStatus.Pending.ToString(),
                 CreatedAt = DateTime.UtcNow
             };
@@ -573,7 +573,7 @@ public class PaymentService : IPaymentService
                 UserId = userId,
                 OrderCode = depositOrderCode,
                 TotalAmount = amount,
-                Method = "payos",
+                Method = "PayOS",
                 Status = PaymentStatus.Pending.ToString(),
                 PaymentType = PaymentType.Deposit.ToString(),
                 CreatedAt = DateTime.UtcNow,

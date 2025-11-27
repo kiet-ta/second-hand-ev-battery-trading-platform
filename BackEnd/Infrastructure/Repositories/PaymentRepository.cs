@@ -26,7 +26,7 @@ public class PaymentRepository : IPaymentRepository
     public async Task<Payment> CreatePaymentAsync(Payment payment)
     {
         var e = (await _context.Payments.AddAsync(payment)).Entity;
-        // await _context.SaveChangesAsync(); 
+         await _context.SaveChangesAsync();
         return e;
     }
 
