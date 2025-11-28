@@ -110,30 +110,24 @@ export default function TransactionHistory() {
             </div>
         );
 
-    const getSign = (type) => {
-<<<<<<< HEAD
-        const getSign = (record) => {
-            const { userRole, paymentType } = record;
 
-            if (paymentType === "Order_Purchase" && userRole === "Buyer") return "-";
+    const getSign = (record) => {
+        const { userRole, paymentType } = record;
 
-            if (paymentType === "Order_Purchase" && userRole === "Seller") return "+";
+        if (paymentType === "Order_Purchase" && userRole === "Buyer") return "-";
 
-            if (paymentType === "Order_Purchase" && userRole === "Manager") return "+";
+        if (paymentType === "Order_Purchase" && userRole === "Seller") return "+";
 
-            if (paymentType === "Seller-Registration") return "-";
+        if (paymentType === "Order_Purchase" && userRole === "Manager") return "+";
 
-            if (paymentType === "Deposit") return "+";
+        if (paymentType === "Seller-Registration") return "-";
 
-            return "";
-        };
+        if (paymentType === "Deposit") return "+";
 
-=======
-        if (type === "Deposit") return "+";
-        if (type === "Order_Revenue") return "+"
-        return "-";
->>>>>>> f2cca983157fce678bda8cfe31423fa1f99720b6
+        return "";
     };
+
+
 
     //  CẤU HÌNH TABLE
     const columns = [
@@ -144,7 +138,7 @@ export default function TransactionHistory() {
             dataIndex: "amount",
             key: "amount",
             render: (value, record) => {
-                const sign = getSign(record.paymentType);
+                const sign = getSign(record);
                 const color = sign === "+" ? "green" : "red";
 
                 return (
@@ -173,7 +167,13 @@ export default function TransactionHistory() {
             key: "paymentType",
             render: (value, record) => {
                 if (record.userRole === "Manager" && value === "Order_Purchase") {
-                    return <Tag color="gold">Hoa hồng</Tag>;
+                    return <Tag color="gold">Hoa hồng quản lý</Tag>;
+                }
+                if (record.userRole === "Seller" && value === "Order_Purchase") {
+                    return <Tag color="green">Bán sản phẩm</Tag>;
+                }
+                if (record.userRole === "Buyer" && value === "Order_Purchase") {
+                    return <Tag color="orange">Mua sản phẩm</Tag>;
                 }
                 return (
                     <Tag color={paymentTypeColors[value] || "default"}>
@@ -181,6 +181,7 @@ export default function TransactionHistory() {
                     </Tag>
                 );
             },
+
         },
 
 
