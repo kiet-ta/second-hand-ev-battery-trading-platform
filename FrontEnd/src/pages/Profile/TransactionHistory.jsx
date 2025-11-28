@@ -46,12 +46,12 @@ export default function TransactionHistory() {
     };
 
     const paymentMethodText = {
-        payos: "Thanh toán PayOS",
+        PayOS: "Thanh toán PayOS",
         Wallet: "Thanh toán bằng Ví",
     };
 
     const paymentMethodColors = {
-        payos: "blue",
+        PayOS: "blue",
         Wallet: "green",
     };
 
@@ -115,8 +115,22 @@ export default function TransactionHistory() {
         );
 
     const getSign = (type) => {
-        if (type === "Deposit") return "+";
-        return "-";
+        const getSign = (record) => {
+            const { userRole, paymentType } = record;
+
+            if (paymentType === "Order_Purchase" && userRole === "Buyer") return "-";
+
+            if (paymentType === "Order_Purchase" && userRole === "Seller") return "+";
+
+            if (paymentType === "Order_Purchase" && userRole === "Manager") return "+";
+
+            if (paymentType === "Seller-Registration") return "-";
+
+            if (paymentType === "Deposit") return "+";
+
+            return "";
+        };
+
     };
 
     //  CẤU HÌNH TABLE
@@ -155,12 +169,18 @@ export default function TransactionHistory() {
             title: "Loại thanh toán",
             dataIndex: "paymentType",
             key: "paymentType",
-            render: (value) => (
-                <Tag color={paymentTypeColors[value] || "default"}>
-                    {paymentTypeText[value] || value}
-                </Tag>
-            ),
+            render: (value, record) => {
+                if (record.userRole === "Manager" && value === "Order_Purchase") {
+                    return <Tag color="gold">Hoa hồng</Tag>;
+                }
+                return (
+                    <Tag color={paymentTypeColors[value] || "default"}>
+                        {paymentTypeText[value] || value}
+                    </Tag>
+                );
+            },
         },
+
 
         {
             title: "Trạng thái",
