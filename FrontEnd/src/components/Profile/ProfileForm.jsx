@@ -118,7 +118,6 @@ const ProfileForm = () => {
       if (!/^[0-9+]*$/.test(value)) return; // chỉ cho nhập số và dấu +
       if (value.length > 12) return; // ngăn nhập quá dài
     }
-
     setFormData((prev) => ({
       ...prev,
       [name]: value,
@@ -136,8 +135,6 @@ const ProfileForm = () => {
       return;
     }
 
-
-
     if (!phoneRegex.test(formData.phone)) {
       toast.error("Số điện thoại không hợp lệ! Vui lòng nhập đúng định dạng.", {
         position: "top-right",
@@ -145,7 +142,6 @@ const ProfileForm = () => {
       });
       return;
     }
-
 
     const updatedUser = {
       ...formData,

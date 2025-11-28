@@ -206,7 +206,7 @@ namespace Application.Services
                         Message = "Vui lòng kiểm tra lịch sử đơn hàng để biết thêm chi tiết."
                     };
 
-                    await _unitOfWork.Notifications.AddNotificationAsync(notificationDto, 1, "Manager");
+                    await _unitOfWork.Notifications.AddNotificationAsync(notificationDto, 4, "Manager");
                 }
 
                 var wallet = await _unitOfWork.Wallets.GetWalletByUserIdAsync(request.BuyerId);
