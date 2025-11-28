@@ -247,6 +247,7 @@ function AuctionDetailPage() {
     if (!auction) return setErrorMsg("Dữ liệu đấu giá chưa sẵn sàng.");
     if (isUpcoming) return setErrorMsg("Đấu giá chưa bắt đầu.");
     const minBid = getMinBid();
+    console.log(minBid)
     if (!bidAmount || bidAmount < minBid) {
       return setErrorMsg(`Giá đặt tối thiểu: ${minBid.toLocaleString("vi-VN")} đ`);
     }

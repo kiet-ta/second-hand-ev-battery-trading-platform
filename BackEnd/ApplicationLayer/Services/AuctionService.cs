@@ -191,17 +191,12 @@ public class AuctionService : IAuctionService
             throw new InvalidOperationException("Auction is not active or has ended.");
 
         // check price buy now
-        bool isBuyNowTrigger = false;
-        if (item.Price.HasValue)
+        bool isBuyNowTrigger = auction.IsBuyNow;
+        if (item.Price.HasValue && isBuyNowTrigger)
         {
             if (bidAmount > item.Price.Value)
             {
                 throw new ArgumentException($"Bạn không thể đặt cao hơn giá Mua Ngay ({item.Price.Value:N0}). Hãy đặt bằng giá này để chốt đơn.");
-            }
-            // If set at ceiling price -> Consider as Buy Now action
-            if (bidAmount == item.Price.Value)
-            {
-                isBuyNowTrigger = true;
             }
         }
 
@@ -209,7 +204,7 @@ public class AuctionService : IAuctionService
         try
         {
             // Double-check auction status within transaction
-            if (item.Price.HasValue && (auction.CurrentPrice ?? 0) >= item.Price.Value)
+            if (item.Price.HasValue && (auction.CurrentPrice ?? 0) >= item.Price.Value && isBuyNowTrigger)
             {
                 await _unitOfWork.RollbackTransactionAsync();
                 throw new InvalidOperationException("This item has been bought via Buy Now.");
@@ -334,8 +329,6 @@ public class AuctionService : IAuctionService
                 BidAmount = bidAmount,
                 BidTime = newBid.BidTime
             };
-
-            await _unitOfWork.CommitTransactionAsync();
             _logger.LogInformation("Successfully placed bid {BidId} for User {UserId} in Auction {AuctionId}. Amount: {BidAmount}. Transaction committed.", newBid.BidId, userId, auctionId, bidAmount);
 
             // Notification logic
