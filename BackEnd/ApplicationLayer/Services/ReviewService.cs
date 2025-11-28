@@ -50,7 +50,7 @@ namespace Application.Services
             return reviews;
         }
 
-        public async Task<List<Review>> GetReviewAsync(int itemId)
+        public async Task<List<ReviewResponseDto>> GetReviewAsync(int itemId)
         {
             if (itemId <= 0)
                 throw new ArgumentException("Item ID must be greater than 0.");

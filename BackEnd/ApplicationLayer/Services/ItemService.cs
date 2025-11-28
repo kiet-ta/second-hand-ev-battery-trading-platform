@@ -66,7 +66,7 @@ namespace Application.Services
             var result = new List<ItemDto>();
 
 
-            foreach (var item in items)
+            foreach (var item in items.Where(i => i.Status == "Active"))
             {
                 var images = await _unitOfWork.Items.GetByItemIdAsync(item.ItemId);
 

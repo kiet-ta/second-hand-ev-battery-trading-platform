@@ -180,6 +180,7 @@ export default function CheckoutPage() {
 
         await walletApi.withdrawWallet({
           userId: parseInt(localStorage.getItem("userId"), 10),
+          userRole: 'Buyer',
           amount: finalTotalPrice,
           type: "Withdraw",
           orderId: orderResponse.orderId,

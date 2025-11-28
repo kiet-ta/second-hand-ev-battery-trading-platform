@@ -205,7 +205,7 @@ public class WalletService : IWalletService
             var transactionId = await _unitOfWork.WalletTransactions.CreateTransactionAsync(walletTransaction);
             walletTransaction.TransactionId = transactionId;
 
-            //await _context.SaveChangesAsync();
+            await _unitOfWork.SaveChangesAsync();
             await _unitOfWork.CommitTransactionAsync();
 
             return new WalletTransactionDto
@@ -472,6 +472,7 @@ public class WalletService : IWalletService
 
             var sellerTransaction = new WalletTransaction
             {
+
                 WalletId = sellerWallet.WalletId,
                 Amount = -amountToTransfer,
                 Type = transactionType,
@@ -489,17 +490,22 @@ public class WalletService : IWalletService
                 CreatedAt = DateTime.Now
             };
             await _unitOfWork.WalletTransactions.AddAsync(managerTransaction);
-
+            await _unitOfWork.SaveChangesAsync();
             var commissionLog = new TransactionCommission
             {
-                WalletTransactionId = managerTransaction.WalletId,
-                PaymentTransactionId = managerPaymentDetail.PaymentId,
+                WalletTransactionId = managerTransaction.TransactionId,
+                PaymentTransactionId = managerPaymentDetail.PaymentDetailId,
                 RuleId = commissionRule.RuleId,
                 AppliedValue = amountToTransfer,
                 CreatedAt = DateTime.Now
             };
             await _unitOfWork.TransactionCommission.AddAsync(commissionLog);
 
+            await _unitOfWork.SaveChangesAsync();
+
+            var sellerInfo = await _unitOfWork.Users.GetByIdAsync(sellerId);
+            sellerInfo.Paid = UserPaid.Registered.ToString();
+            await _unitOfWork.Users.UpdateAsync(sellerInfo);
             await _unitOfWork.SaveChangesAsync();
             await _unitOfWork.CommitTransactionAsync();
 

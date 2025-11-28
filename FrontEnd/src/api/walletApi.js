@@ -29,6 +29,30 @@ const walletApi = {
             )
             return response.data;
     },
+    withdrawSellerRegistrationFee: async (userId) => {
+            const token = localStorage.getItem('token');
+            const response = await axios.post(`${baseURL}/withdraw/seller-registration/${userId}`,[],
+                {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                }
+            )
+            return response.data;   
+    },
+    withdrawProductModerationFee: async (userId) => {
+            const token = localStorage.getItem('token');
+            const response = await axios.post(`${baseURL}/withdraw/product-moderation/${userId}`,[],
+                {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                }
+            )
+            return response.data;   
+    },
     revenueWallet: async (payload) => {
             const token = localStorage.getItem('token');
             const response = await axios.post(`${baseURL}/revenue`, payload,

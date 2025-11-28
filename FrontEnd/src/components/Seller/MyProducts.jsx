@@ -167,28 +167,7 @@ export default function MyProducts() {
 
     try {
       const userId = localStorage.getItem("userId");
-      const amount = payType === "listing" ? feeCommission : moderationCommission;
-
-      await walletApi.withdrawWallet({
-        userId,
-        amount,
-        type: "Withdraw",
-        ref: selectedItem.itemId,
-        description: payType === "listing"
-          ? `Phí đăng bán sản phẩm ${selectedItem.title}`
-          : `Phí kiểm duyệt sản phẩm ${selectedItem.title}`,
-      });
-
-      await walletApi.revenueWallet({
-        userId: 4,
-        amount,
-        type: "Revenue",
-        ref: selectedItem.itemId,
-        description: payType === "listing"
-          ? `Phí đăng bán sản phẩm ${selectedItem.title}`
-          : `Phí kiểm duyệt sản phẩm ${selectedItem.title}`,
-      });
-
+      await walletApi.withdrawProductModerationFee(userId);
       const updatePayload = { ...selectedItem, updatedAt: new Date(new Date().getTime() + 7 * 60 * 60 * 1000).toISOString(), updatedBy: sellerId };
       if (payType === "listing") {
         updatePayload.status = updatePayload.status === "Auction_Pending_Pay" ? "Auction_Active" : "Active";

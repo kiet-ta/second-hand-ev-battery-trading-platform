@@ -146,7 +146,7 @@ public async Task<IEnumerable<UserPaymentDetailHistoryDto>> GetPaymentDetailsByU
         public async Task CreatePaymentDetailAsync(PaymentDetail paymentDetail)
         {
             await _context.PaymentDetails.AddAsync(paymentDetail);
-            // await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync();
         }
     }
 }
