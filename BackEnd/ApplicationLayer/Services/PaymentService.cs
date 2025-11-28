@@ -172,7 +172,7 @@ public class PaymentService : IPaymentService
 
             decimal netAmountForSellerItem = totalItemAmount - commissionAmount;
 
-            decimal netAmountForSellerTotal = netAmountForSellerItem + shippingPrice;
+            decimal netAmountForSellerTotal = netAmountForSellerItem;
 
             decimal amountForManager = commissionAmount;
 
@@ -250,7 +250,7 @@ public class PaymentService : IPaymentService
                 Message = $"Sản phẩm '{item.Title}' trong đơn hàng CMS_EV_{orderItem.OrderId} đã được xác nhận hoàn tất bởi người mua. Số tiền {netAmountForSellerTotal.ToString("0")} đã được chuyển vào ví của bạn sau khi trừ phí hoa hồng.",
                 TargetUserId = sellerId.ToString(),
             };
-            await _notificationService.AddNewNotification(notificationToSeller, 4, "Seller");
+            await _notificationService.AddNewNotification(notificationToSeller, seller.UserId, "Seller");
 
             await _unitOfWork.SaveChangesAsync();
             await _notificationService.SendNotificationAsync(notificationToSeller.Title, notificationToSeller.TargetUserId);

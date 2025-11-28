@@ -84,7 +84,7 @@ namespace Infrastructure.Repositories
         public async Task UpdateRangeAsync(IEnumerable<OrderItem> orderItems)
         {   
             _context.OrderItems.UpdateRange(orderItems);
-            await _context.SaveChangesAsync();
+            //await _context.SaveChangesAsync();
         }
 
         public async Task<OrderItem?> GetByIdAsync(int id)
