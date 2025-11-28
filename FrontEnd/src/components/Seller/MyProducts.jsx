@@ -81,13 +81,8 @@ export default function MyProducts() {
   const translateStatus = (status) => {
     switch (status) {
       case "Active": return "Đang hoạt động";
-      case "Auction_Active": return "Đang đấu giá";
-      case "Pending": return "Chờ duyệt";
-      case "Pending_Pay": return "Chờ thanh toán";
-      case "Auction_Pending_Pay": return "Chờ thanh toán";
+      case "Auction_Active": return "Đang hoạt động";
       case "Sold": return "Đã bán";
-      case "Rejected": return "Bị từ chối";
-      default: return "Không xác định";
     }
   };
 
@@ -177,8 +172,8 @@ export default function MyProducts() {
       await walletApi.withdrawWallet({
         userId,
         amount,
-        type: "Product_Moderation",
-        itemId: selectedItem.itemId,
+        type: "Withdraw",
+        ref: selectedItem.itemId,
         description: payType === "listing"
           ? `Phí đăng bán sản phẩm ${selectedItem.title}`
           : `Phí kiểm duyệt sản phẩm ${selectedItem.title}`,

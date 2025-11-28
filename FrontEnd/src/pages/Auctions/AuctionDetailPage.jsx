@@ -420,7 +420,7 @@ function AuctionDetailPage() {
               </Space.Compact>
             </div>
 
-            {auction.isBuyNow && auction.status == 'Ongoing' && buyNowPrice && (
+            {auction.isBuyNow && buyNowPrice && (
               <div className="mt-4">
                 <Button
                   block

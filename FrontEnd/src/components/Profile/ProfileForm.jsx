@@ -15,6 +15,7 @@ const ProfileForm = () => {
   const [toastMessage, setToastMessage] = useState("");
   const [toastType, setToastType] = useState("success");
   const [uploading, setUploading] = useState(false);
+  const phoneRegex = /^(0[3|5|7|8|9][0-9]{8}|(\+84)[3|5|7|8|9][0-9]{8})$/;
 
 
 
@@ -112,6 +113,12 @@ const ProfileForm = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
+
+    if (name === "phone") {
+      if (!/^[0-9+]*$/.test(value)) return; // chỉ cho nhập số và dấu +
+      if (value.length > 12) return; // ngăn nhập quá dài
+    }
+
     setFormData((prev) => ({
       ...prev,
       [name]: value,
@@ -129,6 +136,17 @@ const ProfileForm = () => {
       return;
     }
 
+
+
+    if (!phoneRegex.test(formData.phone)) {
+      toast.error("Số điện thoại không hợp lệ! Vui lòng nhập đúng định dạng.", {
+        position: "top-right",
+        autoClose: 3000,
+      });
+      return;
+    }
+
+
     const updatedUser = {
       ...formData,
       yearOfBirth: formData.yearOfBirth
@@ -136,6 +154,7 @@ const ProfileForm = () => {
         : null,
       updatedAt: new Date().toISOString(),
     };
+
 
     fetch(`${baseURL}users/${userId}`, {
       method: "PUT",
@@ -293,6 +312,8 @@ const ProfileForm = () => {
                   type="text"
                   id="phone"
                   name="phone"
+                  className={`phone-input ${!phoneRegex.test(formData.phone) ? "error-border" : ""}`}
+                  placeholder="Ví dụ: 0934567890"
                   value={showPhone ? formData.phone : maskPhone(formData.phone)}
                   onChange={handleInputChange}
                   required

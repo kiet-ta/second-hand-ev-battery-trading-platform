@@ -77,10 +77,10 @@ export default function ProductCreationModal({ onSuccess }) {
         price: itemInfo.price,
         quantity: itemInfo.quantity || 1,
         status: statusState,
-        moderation: "Not_Submitted",
+        moderation: "Pending",
         updatedBy: userID,
       };
-      
+
       let created;
 
       // EV CATEGORY
