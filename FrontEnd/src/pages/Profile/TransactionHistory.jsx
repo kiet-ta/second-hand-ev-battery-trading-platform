@@ -34,17 +34,15 @@ export default function TransactionHistory() {
     };
 
     const paymentTypeText = {
-        "Seller-Registration": "Đăng ký Seller",
+        "Seller_Registration": "Đăng ký Seller",
         Deposit: "Nạp tiền vào ví",
         Order_Purchase: "Mua sản phẩm",
-        Order_Revenue: "Bán sản phẩm",
     };
 
     const paymentTypeColors = {
-        "Seller-Registration": "purple",
+        "Seller_Registration": "purple",
         Deposit: "blue",
         Order_Purchase: "orange",
-        Order_Revenue: "orange",
     };
 
     const paymentMethodText = {
@@ -120,7 +118,9 @@ export default function TransactionHistory() {
 
         if (paymentType === "Order_Purchase" && userRole === "Manager") return "+";
 
-        if (paymentType === "Seller-Registration") return "-";
+        if (paymentType === "Seller_Registration" && userRole === "Manager") return "+";
+
+        if (paymentType === "Seller_Registration") return "-";
 
         if (paymentType === "Deposit") return "+";
 
