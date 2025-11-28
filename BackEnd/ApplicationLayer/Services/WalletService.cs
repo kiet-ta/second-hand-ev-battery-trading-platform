@@ -346,17 +346,21 @@ public class WalletService : IWalletService
                 CreatedAt = DateTime.Now
             };
             await _unitOfWork.WalletTransactions.AddAsync(managerTransaction);
-
+            await _unitOfWork.SaveChangesAsync();
             var commissionLog = new TransactionCommission
             {
-                WalletTransactionId = managerTransaction.WalletId,
-                PaymentTransactionId = managerPaymentDetail.PaymentId,
+                WalletTransactionId = managerTransaction.TransactionId,
+                PaymentTransactionId = managerPaymentDetail.PaymentDetailId,
                 RuleId = commissionRule.RuleId,
                 AppliedValue = amountToTransfer,
                 CreatedAt = DateTime.Now
             };
             await _unitOfWork.TransactionCommission.AddAsync(commissionLog);
 
+            await _unitOfWork.SaveChangesAsync();
+
+            seller.Paid = UserPaid.Registered.ToString();
+            await _unitOfWork.Users.UpdateAsync(seller);
             await _unitOfWork.SaveChangesAsync();
             await _unitOfWork.CommitTransactionAsync();
 

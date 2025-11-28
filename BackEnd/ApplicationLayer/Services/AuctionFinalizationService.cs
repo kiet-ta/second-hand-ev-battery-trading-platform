@@ -223,6 +223,7 @@ public class AuctionFinalizationService : IAuctionFinalizationService
             var newPaymentDetail = new PaymentDetail
             {
                 UserId = newPayment.UserId,
+                UserRole = "Buyer",
                 PaymentId = newPayment.PaymentId,
                 OrderId = newOrder.OrderId,
                 ItemId = itemId,

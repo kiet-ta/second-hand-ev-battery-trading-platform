@@ -148,7 +148,7 @@ export default function BuyNowCheckoutPage() {
       const orderResponse = await orderApi.postOrderNew(orderPayload);
 
       // 2️⃣ Wallet Payment
-      if (paymentMethod === "Wallet") {
+      if (paymentMethod === "wallet") {
         if (!wallet || wallet.balance < finalTotal) {
           setIsProcessing(false);
           setStatusMessage("Số dư ví không đủ.");

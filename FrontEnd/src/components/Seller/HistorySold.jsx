@@ -48,6 +48,8 @@ export default function HistorySold() {
         return "Đang hoạt động";
       case "Pending":
         return "Chờ xử lý";
+      case "Shipped":
+        return "Đã giao"
       case "Sold":
         return "Đã bán hết";
       default:
