@@ -132,7 +132,7 @@ export default function BuyNowCheckoutPage() {
     }
 
     let payWindow = null;
-    if (paymentMethod === "payos") payWindow = window.open("", "_blank");
+    if (paymentMethod === "PayOS") payWindow = window.open("", "_blank");
 
     setIsProcessing(true);
     try {
@@ -148,7 +148,7 @@ export default function BuyNowCheckoutPage() {
       const orderResponse = await orderApi.postOrderNew(orderPayload);
 
       // 2️⃣ Wallet Payment
-      if (paymentMethod === "wallet") {
+      if (paymentMethod === "Wallet") {
         if (!wallet || wallet.balance < finalTotal) {
           setIsProcessing(false);
           setStatusMessage("Số dư ví không đủ.");
