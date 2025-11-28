@@ -6,7 +6,6 @@ import { ghnApi } from "../../hooks/services/ghnApi";
 import walletApi from "../../api/walletApi";
 import auctionApi from "../../api/auctionApi"; // <-- new import
 import { FiMapPin, FiX } from "react-icons/fi";
-import orderItemApi from "../../api/orderItemApi";
 
 const AddressModal = ({ addresses, selectedId, onSelect, onClose }) => (
   <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
@@ -84,25 +83,6 @@ export default function BuyNowCheckoutPage() {
     };
     loadWallet();
   }, []);
-  useEffect(() => {
-    const orderItemIds = checkoutData?.orderItems?.map(i => i.id) || [];
-
-    const handleUnload = () => {
-      if (orderItemIds.length > 0) {
-        orderItemApi.deleteOrderItemCleanup(orderItemIds);
-      }
-    };
-
-    window.addEventListener("beforeunload", handleUnload);
-    window.addEventListener("visibilitychange", () => {
-      if (document.visibilityState === "hidden") handleUnload();
-    });
-
-    return () => {
-      handleUnload();
-      window.removeEventListener("beforeunload", handleUnload);
-    };
-  }, [checkoutData]);
 
   // GHN shipping fee
   useEffect(() => {
@@ -119,11 +99,6 @@ export default function BuyNowCheckoutPage() {
     };
     loadShippingFee();
   }, [selectedAddress]);
-  const handleUnload = () => {
-    if (cleanupDisabled.current) return;
-    orderItemApi.deleteOrderItemCleanup(orderItemIds);
-  };
-
 
   const handleConfirmAndPay = async () => {
     if (!selectedAddress) {
@@ -145,8 +120,6 @@ export default function BuyNowCheckoutPage() {
         createdAt: new Date(new Date().getTime() + 7 * 60 * 60 * 1000).toISOString(),
         updatedAt: new Date(new Date().getTime() + 7 * 60 * 60 * 1000).toISOString(),
       };
-      const orderResponse = await orderApi.postOrderNew(orderPayload);
-
       // 2️⃣ Wallet Payment
       if (paymentMethod === "wallet") {
         if (!wallet || wallet.balance < finalTotal) {
@@ -154,9 +127,10 @@ export default function BuyNowCheckoutPage() {
           setStatusMessage("Số dư ví không đủ.");
           return;
         }
+        const orderResponse = await orderApi.postOrderNew(orderPayload);
         await walletApi.withdrawWallet({
           userId: parseInt(localStorage.getItem("userId"), 10),
-          userRole: 'Buyer',
+          userRole: "Buyer",
           amount: finalTotal,
           type: "Withdraw",
           orderId: orderResponse.orderId,
@@ -172,12 +146,15 @@ export default function BuyNowCheckoutPage() {
         }
 
       } else {
-        // 3️ PayOS Payment
+              const orderResponse = await orderApi.postOrderNew(orderPayload);
+
         const paymentPayload = {
           userId: parseInt(localStorage.getItem("userId"), 10),
           method: "PayOS",
           totalAmount: finalTotal,
           details: checkoutData.orderItems.map(i => ({
+            userId: localStorage.getItem("userId"),
+            userRole: 'Buyer',
             orderId: orderResponse.orderId,
             itemId: i.itemId,
             amount: finalTotal,
@@ -200,12 +177,10 @@ export default function BuyNowCheckoutPage() {
             try {
               const paidOrder = await orderApi.getOrderById(orderResponse.orderId);
               if (paidOrder?.status === "Paid") {
-                window.removeEventListener("beforeunload", handleUnload);
-                document.hidden = false;
                 navigate("/payment/success", { state: { method: "payos", amount: finalTotal } });
                 if (checkoutData.auctionId) await auctionApi.buyNow(checkoutData.auctionId);
-              } else {
-                navigate("/payment/fail", { state: { reason: "Thanh toán không thành công.", orderId: orderResponse.orderId } });
+              } else {  
+                navigate("/payment/fail", { state: { reason: "Thanh toán không thành công.", orderCode:link.orderCode,orderId: orderResponse.orderId , method:"payos"} });
               }
             } catch {
               navigate("/payment/fail", { state: { reason: "Không kiểm tra được trạng thái thanh toán.", orderId: orderResponse.orderId } });

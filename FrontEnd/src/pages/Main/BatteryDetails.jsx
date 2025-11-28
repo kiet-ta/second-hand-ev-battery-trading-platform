@@ -239,13 +239,6 @@ function BatteryDetails() {
     }
   };
 
-  //  NHẮN TIN VỚI NGƯỜI BÁN (đi thẳng đến trang chat)
-  const handleChat = () => {
-    const buyerId = localStorage.getItem("userId");
-    if (!buyerId) return navigate("/login");
-
-    navigate(`/chat?sellerId=${item.updatedBy}&itemId=${item.itemId}`);
-  };
 
   // Buy now
   const handleBuyNow = async (e) => {
@@ -487,28 +480,22 @@ function BatteryDetails() {
 
           {sellerProfile && (
             <Card className="p-6 rounded-2xl shadow-md border border-[#EAE6DA] bg-white/90">
-              <div className="flex items-center gap-4">
-                {/* Avatar */}
+              <div className="flex flex-col gap-3 mt-3">
                 <img
                   src={sellerProfile.avatarProfile || placeholder}
                   alt={sellerProfile.fullName}
-                  className="w-16 h-16 rounded-full object-cover"
+                  className="w-16 h-16 rounded-full border-2 border-[#B8860B] shadow-lg object-cover"
                 />
 
-                {/* Info */}
-                <div className="flex-1">
+                <div className="flex-1 ml-1">
                   <p className="font-bold text-lg">{sellerProfile.fullName}</p>
                   <p className="text-sm text-green-600">Đang hoạt động</p>
                 </div>
-              </div>
-
-              {/* Buttons */}
-              <div className="flex justify-between gap-3 mt-3">
 
                 {/* VIEW PROFILE */}
                 <Link
                   to={`/seller/${item.updatedBy}`}
-                  className="flex-1 flex items-center justify-center gap-2
+                  className="flex items-center justify-center gap-2
       bg-white border-[2px] border-[#B8860B] text-[#B8860B]
       font-semibold px-4 py-3 rounded-full shadow-sm
       hover:bg-[#FFF2D1] hover:shadow-md hover:scale-[1.02]
@@ -517,39 +504,21 @@ function BatteryDetails() {
                   <FiUser className="text-lg" /> Hồ sơ
                 </Link>
 
-                {/* CHAT */}
-                <button
-                  disabled={loading}
-                  onClick={(e) => { handleChat("normal"); e.stopPropagation(); }}
-                  className="flex-1 flex items-center justify-center gap-2
-      bg-gradient-to-r from-[#6D28D9] to-[#4F46E5] 
-      text-white font-semibold px-4 py-3 rounded-full
-      shadow-md hover:shadow-xl hover:scale-[1.03]
-      active:scale-[0.97] transition-all duration-200"
-                >
-                  <FiMessageSquare className="text-lg" />
-                  {loading ? "Đang mở..." : "Nhắn tin"}
-                </button>
-
-                {/* FAVORITE */}
-                <button
-                  disabled={loading}
-                  onClick={(e) => { setShowConfirm(true); e.stopPropagation(); }}
-                  className="flex-1 flex items-center justify-center gap-2
-      bg-gradient-to-r from-[#F59E0B] to-[#D97706]
-      text-white font-semibold px-4 py-3 rounded-full
-      shadow-md hover:shadow-xl hover:scale-[1.03]
-      active:scale-[0.97] transition-all duration-200"
-                >
-                  <FiHeart className="text-lg" />
-                  {loading ? "Đang xử lý..." : "Quan tâm"}
-                </button>
+                {/* CHAT + FAVORITE (CHỈ GỌI COMPONENT) */}
+                <ChatWithSellerButton
+                  buyerId={userId}
+                  sellerId={item?.updatedBy}
+                  product={{
+                    id: item.itemId,
+                    title: item.title,
+                    price: item.price,
+                    imageUrl: item.itemImage?.[0]?.imageUrl,
+                  }}
+                />
 
               </div>
             </Card>
           )}
-
-
 
           <Card className="p-6 rounded-2xl shadow-md border border-[#EAE6DA] bg-white/90">
             <h2 className="text-2xl font-bold text-[#B8860B] mb-4">

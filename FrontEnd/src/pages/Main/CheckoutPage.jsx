@@ -153,7 +153,7 @@ export default function CheckoutPage() {
 
     // 🔥 Open popup early (fix popup blocked issue)
     let payWindow = null;
-    if (paymentMethod === "PayOS") {
+    if (paymentMethod === "payos") {
       payWindow = window.open("", "_blank");
     }
 
@@ -179,7 +179,7 @@ export default function CheckoutPage() {
         }
 
         await walletApi.withdrawWallet({
-          userId: parseInt(localStorage.getItem("userId"), 10),
+          userId: localStorage.getItem("userId"),
           userRole: 'Buyer',
           amount: finalTotalPrice,
           type: "Withdraw",
@@ -200,6 +200,8 @@ export default function CheckoutPage() {
         method: "PayOS",
         totalAmount: finalTotalPrice,
         details: orderData.itemsToPurchase.map((i) => ({
+          userId: localStorage.getItem("userId"),
+          userRole: 'Buyer',
           orderId: orderResponse.orderId,
           itemId: i.itemId,
           amount: finalTotalPrice,

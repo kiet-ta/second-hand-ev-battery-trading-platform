@@ -146,9 +146,8 @@ export function ChatRoom({ currentUserId, initialRoomId }) {
           senderId: loggedInUserId,
           senderRole: "Manager",
           title: "💬 Tin nhắn mới",
-          message: `Bạn có tin nhắn: "${message.slice(0, 50)}${
-            message.length > 50 ? "..." : ""
-          }"`,
+          message: `Bạn có tin nhắn: "${message.slice(0, 50)}${message.length > 50 ? "..." : ""
+            }"`,
           targetUserId: receiverId.toString(),
         });
       } catch (err) {
@@ -286,11 +285,10 @@ Created At: ${msg.createdAt || new Date(new Date().getTime() + 7 * 60 * 60 * 100
         <div className="p-4 border-b">
           <p className="text-lg font-bold">Your Chats ({rooms.length})</p>
           <span
-            className={`px-2 py-1 text-xs rounded-full ${
-              isConnected
+            className={`px-2 py-1 text-xs rounded-full ${isConnected
                 ? "bg-green-100 text-green-800"
                 : "bg-red-100 text-red-800"
-            }`}
+              }`}
           >
             {isConnected ? "Online" : "Reconnecting"}
           </span>
@@ -309,11 +307,10 @@ Created At: ${msg.createdAt || new Date(new Date().getTime() + 7 * 60 * 60 * 100
               <div
                 key={room.cid}
                 onClick={() => handleRoomSelect(room.cid)}
-                className={`flex items-center p-3 space-x-3 rounded-xl cursor-pointer transition ${
-                  currentRoom?.cid === room.cid
+                className={`flex items-center p-3 space-x-3 rounded-xl cursor-pointer transition ${currentRoom?.cid === room.cid
                     ? "bg-indigo-100"
                     : "hover:bg-gray-100"
-                }`}
+                  }`}
               >
                 <img
                   src={profile.avatarProfile || placeholder}
@@ -355,9 +352,17 @@ Created At: ${msg.createdAt || new Date(new Date().getTime() + 7 * 60 * 60 * 100
 
                 // --- parse item card ---
                 let itemData = null;
-                  const parsed = JSON.parse(msg.text);
-                  if (parsed.type === "Ev") itemData = parsed;
 
+                if (typeof msg.text === "string") {
+                  try {
+                    const parsed = JSON.parse(msg.text);
+                    if (parsed?.type === "Ev") {
+                      itemData = parsed;
+                    }
+                  } catch (err) {
+                    // Not a JSON → ignore silently
+                  }
+                }
                 if (itemData) {
                   return (
                     <div
@@ -404,11 +409,10 @@ Created At: ${msg.createdAt || new Date(new Date().getTime() + 7 * 60 * 60 * 100
                     className={`flex ${isMyMessage ? "justify-end" : "justify-start"} mb-2`}
                   >
                     <div
-                      className={`max-w-[75%] px-4 py-2 rounded-xl text-sm relative group ${
-                        isMyMessage
+                      className={`max-w-[75%] px-4 py-2 rounded-xl text-sm relative group ${isMyMessage
                           ? "bg-indigo-600 text-white rounded-br-none"
                           : "bg-white border border-gray-300 rounded-bl-none"
-                      }`}
+                        }`}
                       title="Hover to report"
                     >
                       {isImage ? (
@@ -438,9 +442,8 @@ Created At: ${msg.createdAt || new Date(new Date().getTime() + 7 * 60 * 60 * 100
                       {/* Timestamp */}
                       {!isLoading && (
                         <div
-                          className={`text-xs mt-1 ${
-                            isMyMessage ? "text-right text-gray-300" : "text-left text-gray-500"
-                          }`}
+                          className={`text-xs mt-1 ${isMyMessage ? "text-right text-gray-300" : "text-left text-gray-500"
+                            }`}
                         >
                           {formatTime(msg.createdAt)}
                         </div>
