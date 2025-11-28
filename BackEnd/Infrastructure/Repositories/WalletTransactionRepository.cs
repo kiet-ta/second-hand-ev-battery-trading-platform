@@ -15,13 +15,31 @@ public class WalletTransactionRepository : IWalletTransactionRepository
     public async Task<int> CreateTransactionAsync(WalletTransaction walletTransaction)
     {
         var e = (await _context.WalletTransactions.AddAsync(walletTransaction)).Entity;
-        //await _context.SaveChangesAsync();
+        await _context.SaveChangesAsync();
         return e.TransactionId;
     }
 
     public async Task AddAsync(WalletTransaction transaction)
     {
         await _context.WalletTransactions.AddAsync(transaction);
+    }
+
+    public async Task<decimal> GetTotalRevenueForManagerAsync()
+    {
+        int TARGET_USER_ID = 4;
+        string REVENUE_TYPE = WalletTransactionType.Revenue.ToString();
+
+        var totalAmount = await _context.WalletTransactions
+            .Join(
+                _context.Wallets,
+                wt => wt.WalletId,
+                w => w.WalletId,
+                (wt, w) => new { Transaction = wt, Wallet = w }
+            )
+            .Where(joined => joined.Wallet.UserId == TARGET_USER_ID && joined.Transaction.Type == REVENUE_TYPE)
+            .SumAsync(joined => (decimal?)joined.Transaction.Amount)
+            .ConfigureAwait(false);
+        return totalAmount ?? 0m;
     }
 
     public async Task<IEnumerable<WalletTransaction>> GetTransactionsByWalletIdAsync(int walletId) =>

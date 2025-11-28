@@ -7,7 +7,7 @@ public interface IWalletTransactionRepository
 {
     Task<int> CreateTransactionAsync(WalletTransaction walletTransaction);
     Task AddAsync(WalletTransaction transaction);
-
+    Task<decimal> GetTotalRevenueForManagerAsync();
     Task<IEnumerable<WalletTransaction>> GetTransactionsByWalletIdAsync(int walletId);
 
     Task<bool> HasTransactionOfTypeWithRefIdAsync(string transactionType, int? refId);

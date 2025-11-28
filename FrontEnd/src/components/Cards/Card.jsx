@@ -168,6 +168,14 @@ function CardComponent({
 
         setIsProcessing(true);
         try {
+            
+            const allAddresses = await addressLocalApi.getAddressByUserId(userId);
+            const defaultAddress = allAddresses.find(a => a.isDefault) || allAddresses[0];
+
+            if (!defaultAddress) {
+                navigate("/profile/address");
+                return;
+            }
             const createdOrderItem = await orderItemApi.postOrderItem({
                 buyerId: userId,
                 itemId: id,
@@ -177,13 +185,6 @@ function CardComponent({
 
             if (!createdOrderItem?.orderItemId) throw new Error("Không thể tạo OrderItem.");
 
-            const allAddresses = await addressLocalApi.getAddressByUserId(userId);
-            const defaultAddress = allAddresses.find(a => a.isDefault) || allAddresses[0];
-
-            if (!defaultAddress) {
-                navigate("/profile/address");
-                return;
-            }
 
             const checkoutData = {
                 source: "buyNow",

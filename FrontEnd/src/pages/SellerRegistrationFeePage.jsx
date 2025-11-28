@@ -59,27 +59,7 @@ export default function SellerRegistrationFeePage() {
       }
 
       // 1. Withdraw registration fee
-      await walletApi.withdrawWallet({
-        userId,
-        amount: fee,
-        type: "Withdraw",
-        ref: userId,
-        description: "Phí đăng ký Seller"
-      });
-      await walletApi.revenueWallet({
-        userId: 4, 
-        amount: fee,
-        type: "Revenue",
-        ref: userId,
-        description: "Phí đăng ký Seller"
-      });
-      // 2. Update user to registered
-      await userApi.putUser(userId, {
-        ...user,
-        paid: "Registered",
-        updatedAt: new Date(new Date().getTime() + 7 * 60 * 60 * 1000).toISOString()
-      });
-
+      await walletApi.withdrawSellerRegistrationFee(userId);
       navigate("/seller"); 
     } catch (err) {
       console.error(err);

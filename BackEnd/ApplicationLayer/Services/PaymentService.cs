@@ -179,6 +179,7 @@ public class PaymentService : IPaymentService
             var sellerPaymentDetail = new PaymentDetail
             {
                 UserId = seller.UserId,
+                UserRole = UserRole.Seller.ToString(),
                 PaymentId = paymentWithOrder.PaymentId,
                 OrderId = orderItem.OrderId,
                 ItemId = orderItem.ItemId,
@@ -190,6 +191,7 @@ public class PaymentService : IPaymentService
             var managerPaymentDetail = new PaymentDetail
             {
                 UserId = managerWallet.UserId,
+                UserRole = UserRole.Manager.ToString(),
                 PaymentId = paymentWithOrder.PaymentId,
                 OrderId = orderItem.OrderId,
                 ItemId = orderItem.ItemId,
@@ -273,6 +275,10 @@ public class PaymentService : IPaymentService
         await _unitOfWork.BeginTransactionAsync();
         try
         {
+            var userExists = await _unitOfWork.Users.GetByIdAsync(request.UserId);
+            if (userExists == null)
+                throw new ArgumentException("User does not exist");
+
             var wallet = await _unitOfWork.Wallets.GetWalletByUserIdAsync(request.UserId);
             if (wallet == null)
                 throw new ArgumentException("User or wallet does not exist");
@@ -297,6 +303,7 @@ public class PaymentService : IPaymentService
             var paymentDetails = request.Details.Select(d => new PaymentDetail
             {
                 UserId = payment.UserId,
+                UserRole = userExists.Role,
                 PaymentId = payment.PaymentId,
                 OrderId = d.OrderId,
                 ItemId = d.ItemId,
@@ -348,7 +355,7 @@ public class PaymentService : IPaymentService
                     Status = PaymentStatus.Completed.ToString()
                 };
             }
-            else if (request.Method == "payos")
+            else if (request.Method == "PayOS")
             {
                 // only save Payment and PaymentDetails, not "touch" wallet
                 await _unitOfWork.CommitTransactionAsync();
@@ -395,7 +402,7 @@ public class PaymentService : IPaymentService
         if (info == null)
             throw new ArgumentException("Payment does not exist");
 
-        if (info.Method == "payos")
+        if (info.Method == "PayOS")
         {
             var payOsInfo = await _payOS.getPaymentLinkInformation(orderCode);
             info.Status = payOsInfo.status;
@@ -423,7 +430,7 @@ public class PaymentService : IPaymentService
         await _unitOfWork.Orders.DeleteAsync(order.OrderId);
         await _unitOfWork.SaveChangesAsync();
 
-        if (info.Method == "payos")
+        if (info.Method == "PayOS")
         {
             await _payOS.cancelPaymentLink(orderCode, request.Reason);
         }
@@ -581,6 +588,7 @@ public class PaymentService : IPaymentService
             var paymentDetail = new PaymentDetail
             {
                 UserId = request.UserId,
+                UserRole = user.Role,
                 PaymentId = payment.PaymentId,
                 Amount = feeAmount,
                 ItemId = null,
@@ -619,6 +627,10 @@ public class PaymentService : IPaymentService
     {
         long depositOrderCode = _uniqueIDGenerator.CreateUnique53BitId();
 
+        var userExists = await _unitOfWork.Users.GetByIdAsync(userId);
+        if (userExists == null)
+            throw new ArgumentException("User does not exist");
+
         await _unitOfWork.BeginTransactionAsync();
         Payment paymentRecord;
         try
@@ -640,6 +652,7 @@ public class PaymentService : IPaymentService
             var depositDetail = new PaymentDetail
             {
                 UserId = paymentRecord.UserId,
+                UserRole = userExists.Role,
                 PaymentId = paymentRecord.PaymentId,
                 OrderId = null,
                 ItemId = null,

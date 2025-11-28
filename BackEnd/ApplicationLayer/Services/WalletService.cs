@@ -5,6 +5,7 @@ using Application.IRepositories.IBiddingRepositories;
 using Application.IServices;
 using Domain.Common.Constants;
 using Domain.Entities;
+using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.EntityFrameworkCore;
 
 namespace Application.Services;
@@ -56,6 +57,12 @@ public class WalletService : IWalletService
             throw new ArgumentException("Deposit amount must be greater than 0");
         }
 
+        var user = await _unitOfWork.Users.GetByIdAsync(userId);
+        if (user == null)
+        {
+            throw new KeyNotFoundException("User not found");
+        }
+
         var wallet = await _unitOfWork.Wallets.GetWalletByUserIdAsync(userId);
         if (wallet == null)
         {
@@ -80,7 +87,7 @@ public class WalletService : IWalletService
             TotalAmount = amount,
             Method = "Wallet",
             Status = "Completed",
-            PaymentType = "Deposit",
+            PaymentType = PaymentType.Deposit.ToString(),
             CreatedAt = DateTime.Now
         };
 
@@ -91,6 +98,7 @@ public class WalletService : IWalletService
         var paymentDetail = new PaymentDetail
         {
             UserId = newPayment.UserId,
+            UserRole = user.Role,
             PaymentId = newPayment.PaymentId,
             Amount = amount,
             // Đối với giao dịch nạp tiền, OrderId và ItemId thường là NULL
@@ -160,7 +168,7 @@ public class WalletService : IWalletService
             {
                 UserId = request.UserId,
                 OrderCode = paymentOrderCode,
-                TotalAmount = request.Amount,
+                TotalAmount = -request.Amount,
                 Method = "Wallet",
                 Status = "Completed",
                 PaymentType = PaymentType.Order_Purchase.ToString(),
@@ -174,8 +182,9 @@ public class WalletService : IWalletService
             var paymentDetail = new PaymentDetail
             {
                 UserId = request.UserId,
+                UserRole = request.UserRole,
                 PaymentId = newPayment.PaymentId,
-                Amount = request.Amount,
+                Amount = -request.Amount,
                 OrderId = request.Type == WalletTransactionType.Withdraw.ToString() ? request.OrderId : null,
                 ItemId = request.ItemId,
                 CreatedAt = DateTime.Now
@@ -196,19 +205,311 @@ public class WalletService : IWalletService
             var transactionId = await _unitOfWork.WalletTransactions.CreateTransactionAsync(walletTransaction);
             walletTransaction.TransactionId = transactionId;
 
-            //await _context.SaveChangesAsync();
+            await _unitOfWork.SaveChangesAsync();
             await _unitOfWork.CommitTransactionAsync();
 
             return new WalletTransactionDto
             {
                 TransactionId = walletTransaction.TransactionId,
-                Amount = walletTransaction.Amount,
+                Amount = -walletTransaction.Amount,
                 Type = walletTransaction.Type,
                 OrderId = walletTransaction.OrderId,
                 ItemId = request.ItemId,
                 PaymentId = walletTransaction.PaymentId,
                 CreatedAt = walletTransaction.CreatedAt
             };
+        }
+        catch (Exception)
+        {
+            await _unitOfWork.RollbackTransactionAsync();
+            throw;
+        }
+    }
+
+    public async Task<bool> TransferServiceFeeToManagerAsync(int sellerId)
+    {
+
+        var seller = await _unitOfWork.Users.GetByIdAsync(sellerId);
+        if (seller == null)
+            throw new KeyNotFoundException($"Không tìm thấy người bán (Seller ID: {sellerId}).");
+
+        if (seller.Role != UserRole.Seller.ToString())
+            throw new KeyNotFoundException($"Bạn không phải là Seller (Role của bạn là: {seller.Role}).");
+
+        var sellerWallet = await _unitOfWork.Wallets.GetWalletByUserIdAsync(sellerId);
+        if (sellerWallet == null)
+            throw new Exception($"Không tìm thấy ví cho Seller (ID: {sellerId}).");
+
+        var managerWallet = await _unitOfWork.Wallets.GetManagerWalletAsync();
+        if (managerWallet == null)
+            throw new Exception("Không tìm thấy ví Quản lý.");
+
+
+        string feeCode;
+        if (seller.IsStore) feeCode = "FEESR";
+        else feeCode = "FEEPR";
+
+        var commissionRule = await _unitOfWork.CommissionFeeRules.GetByFeeCodeAsync(feeCode);
+        if (commissionRule == null || !commissionRule.IsActive)
+            throw new Exception($"Không tìm thấy hoặc quy tắc phí '{feeCode}' không hoạt động.");
+
+        decimal amountToTransfer = 0;
+        if (commissionRule.FeeType == CommissionFeeType.Fixed.ToString())
+        {
+            amountToTransfer = commissionRule.FeeValue;
+        }
+        else
+        {
+            throw new InvalidOperationException($"Rule type '{commissionRule.FeeType}' not supported for fixed service fee.");
+        }
+
+        if (amountToTransfer <= 0)
+            throw new ArgumentException("Số tiền phí đã tính phải lớn hơn 0.");
+
+        if (sellerWallet.Balance < amountToTransfer)
+        {
+            throw new InvalidOperationException("Số dư ví không đủ để trừ phí.");
+        }
+
+        await _unitOfWork.BeginTransactionAsync();
+
+        try
+        {
+            var sellerPaymentType = PaymentType.Seller_Registration.ToString();
+            var transactionType = WalletTransactionType.Withdraw.ToString();
+            var revenueType = WalletTransactionType.Revenue.ToString();
+            var managerPaymentType = PaymentType.Kyc_Revenue.ToString();
+
+            var successDebit = await _unitOfWork.Wallets.UpdateBalanceAsync(sellerWallet.WalletId, -amountToTransfer);
+            if (!successDebit)
+            {
+                throw new Exception("Failed to update Seller wallet balance.");
+            }
+
+            var successCredit = await _unitOfWork.Wallets.UpdateBalanceAsync(managerWallet.WalletId, amountToTransfer);
+            if (!successCredit)
+            {
+                throw new Exception("Failed to update Manager wallet balance.");
+            }
+
+            var paymentOrderCode = long.Parse(DateTime.Now.ToString("yyyyMMddHHmmss") + sellerId.ToString());
+
+            var payment = new Payment
+            {
+                UserId = sellerId,
+                OrderCode = paymentOrderCode,
+                TotalAmount = -amountToTransfer,
+                Method = "Wallet",
+                Status = "Completed",
+                PaymentType = sellerPaymentType,
+                CreatedAt = DateTime.Now
+            };
+            var newPayment = await _unitOfWork.Payments.CreatePaymentAsync(payment);
+            if (newPayment == null) throw new Exception("Failed to create payment record.");
+
+            var sellerPaymentDetail = new PaymentDetail
+            {
+                UserId = sellerId,
+                UserRole = UserRole.Seller.ToString(),
+                PaymentId = newPayment.PaymentId,
+                Amount = -amountToTransfer,
+                CreatedAt = DateTime.Now
+            };
+            await _unitOfWork.PaymentDetails.CreatePaymentDetailAsync(sellerPaymentDetail);
+
+            var managerPaymentDetail = new PaymentDetail
+            {
+                UserId = managerWallet.UserId,
+                UserRole = UserRole.Manager.ToString(),
+                PaymentId = newPayment.PaymentId,
+                Amount = amountToTransfer,
+                CreatedAt = DateTime.Now
+            };
+            await _unitOfWork.PaymentDetails.CreatePaymentDetailAsync(managerPaymentDetail);
+
+            var sellerTransaction = new WalletTransaction
+            {
+                WalletId = sellerWallet.WalletId,
+                Amount = -amountToTransfer,
+                Type = transactionType,
+                PaymentId = newPayment.PaymentId,
+                CreatedAt = DateTime.Now
+            };
+            await _unitOfWork.WalletTransactions.AddAsync(sellerTransaction);
+
+            var managerTransaction = new WalletTransaction
+            {
+                WalletId = managerWallet.WalletId,
+                Amount = amountToTransfer,
+                Type = revenueType,
+                PaymentId = newPayment.PaymentId,
+                CreatedAt = DateTime.Now
+            };
+            await _unitOfWork.WalletTransactions.AddAsync(managerTransaction);
+
+            var commissionLog = new TransactionCommission
+            {
+                WalletTransactionId = managerTransaction.WalletId,
+                PaymentTransactionId = managerPaymentDetail.PaymentId,
+                RuleId = commissionRule.RuleId,
+                AppliedValue = amountToTransfer,
+                CreatedAt = DateTime.Now
+            };
+            await _unitOfWork.TransactionCommission.AddAsync(commissionLog);
+
+            await _unitOfWork.SaveChangesAsync();
+            await _unitOfWork.CommitTransactionAsync();
+
+            return true;
+        }
+        catch (Exception)
+        {
+            await _unitOfWork.RollbackTransactionAsync();
+            throw;
+        }
+    }
+
+    public async Task<bool> ProductModerationFeeAsync(int sellerId)
+    {
+
+        var seller = await _unitOfWork.Users.GetByIdAsync(sellerId);
+        if (seller == null)
+            throw new KeyNotFoundException($"Không tìm thấy người bán (Seller ID: {sellerId}).");
+
+        if (seller.Role != UserRole.Seller.ToString())
+            throw new KeyNotFoundException($"Bạn không phải là Seller (Role của bạn là: {seller.Role}).");
+
+        var sellerWallet = await _unitOfWork.Wallets.GetWalletByUserIdAsync(sellerId);
+        if (sellerWallet == null)
+            throw new Exception($"Không tìm thấy ví cho Seller (ID: {sellerId}).");
+
+        var managerWallet = await _unitOfWork.Wallets.GetManagerWalletAsync();
+        if (managerWallet == null)
+            throw new Exception("Không tìm thấy ví Quản lý.");
+
+
+        string feeCode;
+        if (seller.IsStore) feeCode = "FEESM";
+        else feeCode = "FEEPM";
+
+        var commissionRule = await _unitOfWork.CommissionFeeRules.GetByFeeCodeAsync(feeCode);
+        if (commissionRule == null || !commissionRule.IsActive)
+            throw new Exception($"Không tìm thấy hoặc quy tắc phí '{feeCode}' không hoạt động.");
+
+        decimal amountToTransfer = 0;
+        if (commissionRule.FeeType == CommissionFeeType.Fixed.ToString())
+        {
+            amountToTransfer = commissionRule.FeeValue;
+        }
+        else
+        {
+            throw new InvalidOperationException($"Rule type '{commissionRule.FeeType}' not supported for fixed service fee.");
+        }
+
+        if (amountToTransfer <= 0)
+            throw new ArgumentException("Số tiền phí đã tính phải lớn hơn 0.");
+
+        if (sellerWallet.Balance < amountToTransfer)
+        {
+            throw new InvalidOperationException("Số dư ví không đủ để trừ phí.");
+        }
+
+        await _unitOfWork.BeginTransactionAsync();
+
+        try
+        {
+            var sellerPaymentType = PaymentType.Product_Moderation.ToString();
+            var transactionType = WalletTransactionType.Withdraw.ToString();
+            var revenueType = WalletTransactionType.Revenue.ToString();
+            var managerPaymentType = PaymentType.Kyc_Revenue.ToString();
+
+            var successDebit = await _unitOfWork.Wallets.UpdateBalanceAsync(sellerWallet.WalletId, -amountToTransfer);
+            if (!successDebit)
+            {
+                throw new Exception("Failed to update Seller wallet balance.");
+            }
+
+            var successCredit = await _unitOfWork.Wallets.UpdateBalanceAsync(managerWallet.WalletId, amountToTransfer);
+            if (!successCredit)
+            {
+                throw new Exception("Failed to update Manager wallet balance.");
+            }
+
+            var paymentOrderCode = long.Parse(DateTime.Now.ToString("yyyyMMddHHmmss") + sellerId.ToString());
+
+            var payment = new Payment
+            {
+                UserId = sellerId,
+                OrderCode = paymentOrderCode,
+                TotalAmount = -amountToTransfer,
+                Method = "Wallet",
+                Status = "Completed",
+                PaymentType = sellerPaymentType,
+                CreatedAt = DateTime.Now
+            };
+            var newPayment = await _unitOfWork.Payments.CreatePaymentAsync(payment);
+            if (newPayment == null) throw new Exception("Failed to create payment record.");
+
+            var sellerPaymentDetail = new PaymentDetail
+            {
+                UserId = sellerId,
+                UserRole = UserRole.Seller.ToString(),
+                PaymentId = newPayment.PaymentId,
+                Amount = -amountToTransfer,
+                CreatedAt = DateTime.Now
+            };
+            await _unitOfWork.PaymentDetails.CreatePaymentDetailAsync(sellerPaymentDetail);
+
+            var managerPaymentDetail = new PaymentDetail
+            {
+                UserId = managerWallet.UserId,
+                UserRole = UserRole.Manager.ToString(),
+                PaymentId = newPayment.PaymentId,
+                Amount = amountToTransfer,
+                CreatedAt = DateTime.Now
+            };
+            await _unitOfWork.PaymentDetails.CreatePaymentDetailAsync(managerPaymentDetail);
+
+            var sellerTransaction = new WalletTransaction
+            {
+
+                WalletId = sellerWallet.WalletId,
+                Amount = -amountToTransfer,
+                Type = transactionType,
+                PaymentId = newPayment.PaymentId,
+                CreatedAt = DateTime.Now
+            };
+            await _unitOfWork.WalletTransactions.AddAsync(sellerTransaction);
+
+            var managerTransaction = new WalletTransaction
+            {
+                WalletId = managerWallet.WalletId,
+                Amount = amountToTransfer,
+                Type = revenueType,
+                PaymentId = newPayment.PaymentId,
+                CreatedAt = DateTime.Now
+            };
+            await _unitOfWork.WalletTransactions.AddAsync(managerTransaction);
+            await _unitOfWork.SaveChangesAsync();
+            var commissionLog = new TransactionCommission
+            {
+                WalletTransactionId = managerTransaction.TransactionId,
+                PaymentTransactionId = managerPaymentDetail.PaymentDetailId,
+                RuleId = commissionRule.RuleId,
+                AppliedValue = amountToTransfer,
+                CreatedAt = DateTime.Now
+            };
+            await _unitOfWork.TransactionCommission.AddAsync(commissionLog);
+
+            await _unitOfWork.SaveChangesAsync();
+
+            var sellerInfo = await _unitOfWork.Users.GetByIdAsync(sellerId);
+            sellerInfo.Paid = UserPaid.Registered.ToString();
+            await _unitOfWork.Users.UpdateAsync(sellerInfo);
+            await _unitOfWork.SaveChangesAsync();
+            await _unitOfWork.CommitTransactionAsync();
+
+            return true;
         }
         catch (Exception)
         {

@@ -81,13 +81,8 @@ export default function MyProducts() {
   const translateStatus = (status) => {
     switch (status) {
       case "Active": return "Đang hoạt động";
-      case "Auction_Active": return "Đang đấu giá";
-      case "Pending": return "Chờ duyệt";
-      case "Pending_Pay": return "Chờ thanh toán";
-      case "Auction_Pending_Pay": return "Chờ thanh toán";
+      case "Auction_Active": return "Đang hoạt động";
       case "Sold": return "Đã bán";
-      case "Rejected": return "Bị từ chối";
-      default: return "Không xác định";
     }
   };
 
@@ -172,28 +167,7 @@ export default function MyProducts() {
 
     try {
       const userId = localStorage.getItem("userId");
-      const amount = payType === "listing" ? feeCommission : moderationCommission;
-
-      await walletApi.withdrawWallet({
-        userId,
-        amount,
-        type: "Withdraw",
-        ref: selectedItem.itemId,
-        description: payType === "listing"
-          ? `Phí đăng bán sản phẩm ${selectedItem.title}`
-          : `Phí kiểm duyệt sản phẩm ${selectedItem.title}`,
-      });
-
-      await walletApi.revenueWallet({
-        userId: 4,
-        amount,
-        type: "Revenue",
-        ref: selectedItem.itemId,
-        description: payType === "listing"
-          ? `Phí đăng bán sản phẩm ${selectedItem.title}`
-          : `Phí kiểm duyệt sản phẩm ${selectedItem.title}`,
-      });
-
+      await walletApi.withdrawProductModerationFee(userId);
       const updatePayload = { ...selectedItem, updatedAt: new Date(new Date().getTime() + 7 * 60 * 60 * 1000).toISOString(), updatedBy: sellerId };
       if (payType === "listing") {
         updatePayload.status = updatePayload.status === "Auction_Pending_Pay" ? "Auction_Active" : "Active";

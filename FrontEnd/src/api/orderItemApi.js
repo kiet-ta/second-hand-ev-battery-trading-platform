@@ -18,6 +18,10 @@ const orderItemApi = {
     confirmShipping: async (orderItemId) => {
         const response = await axios.put(baseURL + `/confirm-shipping/` + orderItemId)
         return response.data;
+    },
+    deleteOrderItemCleanup: async (orderItemIds) => {
+        const response = baseURL + `/${orderItemIds}`
+        return navigator.sendBeacon(response,[])
     }
 };
 export default orderItemApi;

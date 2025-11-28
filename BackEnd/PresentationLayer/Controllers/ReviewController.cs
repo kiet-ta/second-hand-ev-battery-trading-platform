@@ -58,6 +58,8 @@ namespace PresentationLayer.Controllers
                         Title = "Inappropriate Comment",
                         Message = "Warning: You have used inappropriate language in your review.",
                     };
+                    await _notificationService.AddNewNotification(notification, 4, UserRole.Staff.ToString());
+                    await _notificationService.SendNotificationAsync(notification.Message, userId.ToString());
                     return Ok("you had badword in review, dont do it again");
                 }
                 else 
@@ -70,11 +72,11 @@ namespace PresentationLayer.Controllers
                         Message = "You have been banned from comment due to repeated inappropriate language.",
                       
                     };
+                    await _notificationService.AddNewNotification(notification, 4, UserRole.Staff.ToString());
+                    await _notificationService.SendNotificationAsync(notification.Message, userId.ToString());
                     await _kycdocumentService.WarningUserAsync(userId);
                     return Ok("Badword");
                 }
-                await _notificationService.AddNewNotification(notification, 4, UserRole.Staff.ToString());
-                await _notificationService.SendNotificationAsync(notification.Message, userId.ToString());
             }
             var review = await _reviewService.CreateReviewAsync(dto, userId);
 

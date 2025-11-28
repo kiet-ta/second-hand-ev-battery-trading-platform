@@ -64,6 +64,22 @@ public class UserRepository : IUserRepository
         return Task.CompletedTask;
     }
 
+    public async Task<bool> UpdateUserPaidStatusAsync(int userId, string status)
+    {
+        var user = await _context.Users
+            .FirstOrDefaultAsync(u => u.UserId == userId);
+
+        if (user == null)
+        {
+            return false;
+        }
+
+        user.Paid = status;
+        user.UpdatedAt = DateTime.Now;
+        _context.Users.Update(user);
+        return true;
+    }
+
     public async Task UpdateAvatarAsync(int userId, string avatarUrl)
     {
         var user = await GetByIdAsync(userId);

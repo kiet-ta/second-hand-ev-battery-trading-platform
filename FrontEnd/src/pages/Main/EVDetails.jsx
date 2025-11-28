@@ -152,8 +152,8 @@ function EVDetails() {
   }, [id]);
 
   const handleAddToCart = useCallback(async () => {
-    const buyerId = Number(localStorage.getItem("userId"));
-    if (isNaN(buyerId)) {
+    const buyerId = localStorage.getItem("userId");
+    if (!buyerId) {
       navigate("/login");
       return;
     }
@@ -232,7 +232,7 @@ function EVDetails() {
         totalAmount: item.price,
         orderItems: [
           {
-            id: id,
+            id: createdOrderItem.orderItemId,
             name: item.title || "Sản phẩm",
             price: item.price,
             quantity: 1,
@@ -496,6 +496,7 @@ function EVDetails() {
             <h2 className="text-2xl font-bold text-[#B8860B] mb-4">
               Đánh giá ({reviews.length})
             </h2>
+
             <div className="flex flex-col gap-6 max-h-96 overflow-y-auto">
               {reviews.length > 0 ? (
                 reviews.map((r, i) => (
@@ -503,15 +504,36 @@ function EVDetails() {
                     key={r.reviewId || i}
                     className="flex gap-4 border-b pb-4"
                   >
+                    {/* Reviewer Image */}
                     <img
                       src={r.picture}
                       alt={r.name}
-                      className="w-12 h-12 rounded-full object-cover"
+                      className="w-12 h-12 rounded-full object-cover border shadow-sm"
                     />
-                    <div>
-                      <p className="font-bold">{r.name}</p>
+
+                    <div className="flex flex-col flex-1">
+                      {/* Name + Rating */}
+                      <p className="font-bold text-gray-800">{r.name}</p>
                       <StarRating rating={r.rating} />
-                      <p className="text-gray-700 mt-1">{r.comment}</p>
+
+                      {/* Comment */}
+                      <p className="text-gray-700 mt-1 whitespace-pre-wrap">
+                        {r.comment}
+                      </p>
+
+                      {/* Review Images */}
+                      {r.reviewImages && r.reviewImages.length > 0 && (
+                        <div className="flex mt-3 gap-3 flex-wrap">
+                          {r.reviewImages.map((img, idx) => (
+                            <img
+                              key={idx}
+                              src={img.imageUrl}
+                              onClick={() => window.open(img.imageUrl, "_blank")}
+                              className="w-20 h-20 rounded-lg object-cover border cursor-pointer hover:opacity-80 transition"
+                            />
+                          ))}
+                        </div>
+                      )}
                     </div>
                   </div>
                 ))
@@ -520,8 +542,7 @@ function EVDetails() {
                   Chưa có đánh giá cho sản phẩm này.
                 </p>
               )}
-            </div>
-          </Card>
+            </div>          </Card>
         </div>
       </div>
     </div>
