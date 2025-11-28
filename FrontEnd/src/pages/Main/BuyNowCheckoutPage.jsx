@@ -156,11 +156,7 @@ export default function BuyNowCheckoutPage() {
         }
         await walletApi.withdrawWallet({
           userId: parseInt(localStorage.getItem("userId"), 10),
-<<<<<<< HEAD
-          userRole: String(localStorage.getItem("role")),
-=======
           userRole: 'Buyer',
->>>>>>> f2cca983157fce678bda8cfe31423fa1f99720b6
           amount: finalTotal,
           type: "Withdraw",
           orderId: orderResponse.orderId,

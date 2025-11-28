@@ -118,10 +118,6 @@ const ProfileForm = () => {
       if (!/^[0-9+]*$/.test(value)) return; // chỉ cho nhập số và dấu +
       if (value.length > 12) return; // ngăn nhập quá dài
     }
-<<<<<<< HEAD
-=======
-
->>>>>>> f2cca983157fce678bda8cfe31423fa1f99720b6
     setFormData((prev) => ({
       ...prev,
       [name]: value,
@@ -139,11 +135,6 @@ const ProfileForm = () => {
       return;
     }
 
-<<<<<<< HEAD
-=======
-
-
->>>>>>> f2cca983157fce678bda8cfe31423fa1f99720b6
     if (!phoneRegex.test(formData.phone)) {
       toast.error("Số điện thoại không hợp lệ! Vui lòng nhập đúng định dạng.", {
         position: "top-right",
@@ -152,10 +143,6 @@ const ProfileForm = () => {
       return;
     }
 
-<<<<<<< HEAD
-=======
-
->>>>>>> f2cca983157fce678bda8cfe31423fa1f99720b6
     const updatedUser = {
       ...formData,
       yearOfBirth: formData.yearOfBirth
