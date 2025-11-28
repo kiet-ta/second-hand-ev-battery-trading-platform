@@ -141,8 +141,7 @@ namespace Application.Services
             if (orderItem.OrderId != null)
                 throw new InvalidOperationException("Cannot delete an order item that is already part of an order.");
 
-            orderItem.IsDeleted = true;
-            await _unitOfWork.OrderItems.UpdateAsync(orderItem);
+            await _unitOfWork.OrderItems.DeleteAsync(orderItem);
             return true;
         }
 

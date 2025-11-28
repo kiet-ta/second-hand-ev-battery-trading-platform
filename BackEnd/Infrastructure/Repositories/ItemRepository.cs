@@ -535,13 +535,11 @@ namespace Infrastructure.Repositories
             var productLinesQuery = from i in _context.Items
                                     join oi in _context.OrderItems on i.ItemId equals oi.ItemId
                                     join o in _context.Orders on oi.OrderId equals o.OrderId
-                                    join pd in _context.PaymentDetails on o.OrderId equals pd.OrderId
-                                    join p in _context.Payments on pd.PaymentId equals p.PaymentId
                                     where
                                         i.UpdatedBy == sellerId &&
                                         //o.Status == "completed" //&& 
                                         oi.Status == OrderItemStatus.Completed.ToString()
-                                    select pd.PaymentDetailId;
+                                    select oi.OrderItemId;
 
             var totalProductLinesSold = await productLinesQuery.CountAsync();
 
@@ -881,7 +879,9 @@ namespace Infrastructure.Repositories
             }
 
             item.Quantity -= quantityToSubtract;
-
+            if (item.Quantity == 0)
+                item.Status = ItemStatus.Sold.ToString();
+            _context.Items.Update(item);
             await _context.SaveChangesAsync();
 
         }

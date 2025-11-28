@@ -91,10 +91,34 @@ namespace Infrastructure.Repositories
                 ReviewImages = imageDtos
             };
         }
-        public async Task<List<Review>> GetReviewAsync(int itemId)
+        public async Task<List<ReviewResponseDto>> GetReviewAsync(int itemId)
         {
-            return await _context.Reviews
-                .Where(r => r.ItemId == itemId).ToListAsync();
+            var listOfReviewDtos = new List<ReviewResponseDto>();
+            var reviews = await _context.Reviews.Where(r => r.ItemId == itemId).ToListAsync();
+            foreach (var review in reviews)
+            {
+                var reviewImages = await _context.ReviewImages
+                    .Where(ri => ri.ReviewId == review.ReviewId)
+                    .ToListAsync();
+                var reviewImageDtos = reviewImages.Select(ri => new ReviewImageResponseDto
+                {
+                    ReviewId = ri.ReviewId,
+                    ImageUrl = ri.ImageUrl ?? ""
+                }).ToList();
+                var reviewDto = new ReviewResponseDto
+                {
+                    ReviewerId = review.ReviewerId,
+                    TargetUserId = review.TargetUserId,
+                    ItemId = review.ItemId,
+                    Rating = review.Rating,
+                    Comment = review.Comment ?? "",
+                    ReviewDate = review.CreatedAt ?? DateTime.Now,
+                    UpdateAt = review.UpdatedAt ?? review.CreatedAt ?? DateTime.Now,
+                    ReviewImages = reviewImageDtos
+                };
+                listOfReviewDtos.Add(reviewDto);
+            }
+            return listOfReviewDtos;
         }
 
         public async Task<List<ReviewResponseDto>> GetReviewsByTargetUserIdAsync(int targetUserId)

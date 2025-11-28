@@ -11,11 +11,15 @@ const ChatWithSellerButton = ({ buyerId, sellerId, product }) => {
   const [loading, setLoading] = useState(false);
 
   const handleChat = async (type) => {
+    if(!buyerId) {
+      navigate("/login")
+      return
+    }
     if (buyerId === sellerId) {
       alert("Bạn không thể nhắn tin cho chính mình!");
       return;
     }
-
+    
     setLoading(true);
     try {
       const room = await chatApi.createChatRoom(buyerId, sellerId);

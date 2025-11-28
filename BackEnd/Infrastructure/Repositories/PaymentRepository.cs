@@ -222,7 +222,7 @@ public class PaymentRepository : IPaymentRepository
 
         // Hardcoded ID of the manager whose revenue we want to filter.
         int managerIdToFilter = 4;
-
+        var wallet = await _context.Wallets.FirstOrDefaultAsync(w => w.UserId == managerIdToFilter);
         // Execute the LINQ query to aggregate revenue data from the database.
         var query = await _context.WalletTransactions
             .Where(t =>
@@ -230,7 +230,7 @@ public class PaymentRepository : IPaymentRepository
                 t.Type == "Revenue" &&
 
                 // 2. Filter: Only include transactions associated with the specific manager's wallet.
-                t.WalletId == managerIdToFilter &&
+                t.WalletId == wallet.WalletId &&
 
                 // 3. Filter: Only include transactions within the defined time range.
                 t.CreatedAt >= startDate)

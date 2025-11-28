@@ -120,8 +120,8 @@ export default function OrderPage() {
               key={t.key}
               onClick={() => setActiveTab(t.key)}
               className={`px-4 py-2 rounded-md text-sm font-medium ${activeTab === t.key
-                  ? "bg-white text-[#D97706] border border-[#D97706]"
-                  : "bg-white/60 text-gray-700 hover:bg-white"
+                ? "bg-white text-[#D97706] border border-[#D97706]"
+                : "bg-white/60 text-gray-700 hover:bg-white"
                 }`}
             >
               {t.label}
@@ -169,7 +169,7 @@ export default function OrderPage() {
                     </span>
                   </div>
                   <div className="text-right">
-                    <span className="text-gray-500 text-sm">Shipping: </span>
+                    <span className="text-gray-500 text-sm">Phí giao hàng: </span>
                     <span className="font-semibold text-[#B8860B]">
                       {order.shippingPrice?.toLocaleString("vi-VN", {
                         style: "currency",
@@ -191,10 +191,10 @@ export default function OrderPage() {
                           Trạng thái:
                           <span
                             className={`ml-1 font-semibold ${it.status === "Completed"
-                                ? "text-green-600"
-                                : it.status === "Canceled"
-                                  ? "text-red-500"
-                                  : "text-[#D97706]"
+                              ? "text-green-600"
+                              : it.status === "Canceled"
+                                ? "text-red-500"
+                                : "text-[#D97706]"
                               }`}
                           >
                             {translateStatus(it.status)}

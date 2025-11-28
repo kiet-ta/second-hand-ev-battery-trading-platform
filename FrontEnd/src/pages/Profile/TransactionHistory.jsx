@@ -37,12 +37,14 @@ export default function TransactionHistory() {
         "Seller-Registration": "Đăng ký Seller",
         Deposit: "Nạp tiền vào ví",
         Order_Purchase: "Mua sản phẩm",
+        Order_Revenue: "Bán sản phẩm",
     };
 
     const paymentTypeColors = {
         "Seller-Registration": "purple",
         Deposit: "blue",
         Order_Purchase: "orange",
+        Order_Revenue: "orange",
     };
 
     const paymentMethodText = {
@@ -72,13 +74,7 @@ export default function TransactionHistory() {
         fetchData();
     }, []);
 
-    //SEARCH
-    const handleSearch = (value) => {
-        if (!value) return setFiltered(data);
-        setFiltered(data.filter((t) =>
-            t.orderCode?.toString().toLowerCase().includes(value.toLowerCase())
-        ));
-    };
+
 
     //  FILTER STATUS
     const handleFilterStatus = (value) => {
@@ -115,6 +111,7 @@ export default function TransactionHistory() {
         );
 
     const getSign = (type) => {
+<<<<<<< HEAD
         const getSign = (record) => {
             const { userRole, paymentType } = record;
 
@@ -131,6 +128,11 @@ export default function TransactionHistory() {
             return "";
         };
 
+=======
+        if (type === "Deposit") return "+";
+        if (type === "Order_Revenue") return "+"
+        return "-";
+>>>>>>> f2cca983157fce678bda8cfe31423fa1f99720b6
     };
 
     //  CẤU HÌNH TABLE
@@ -139,8 +141,8 @@ export default function TransactionHistory() {
 
         {
             title: "Số tiền",
-            dataIndex: "totalAmount",
-            key: "totalAmount",
+            dataIndex: "amount",
+            key: "amount",
             render: (value, record) => {
                 const sign = getSign(record.paymentType);
                 const color = sign === "+" ? "green" : "red";
@@ -212,7 +214,7 @@ export default function TransactionHistory() {
 
             {/* BỘ LỌC */}
             <div className="flex gap-4 mb-4">
-                <Search placeholder="Tìm theo mã đơn hàng" onSearch={handleSearch} style={{ maxWidth: 300 }} />
+
 
                 <Select value={statusFilter} onChange={handleFilterStatus} style={{ width: 180 }}>
                     <Option value="all">Tất cả trạng thái</Option>

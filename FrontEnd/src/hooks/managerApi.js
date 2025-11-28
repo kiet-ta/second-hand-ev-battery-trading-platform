@@ -9,13 +9,13 @@ export const managerAPI = {
     },
 
     getRevenueByMonth: async () => {
-        const res = await fetch(`${BASE}manager-dashboard/revenue-by-week`);
+        const res = await fetch(`${BASE}manager-dashboard/revenue-by-month`);
         if (!res.ok) throw new Error("Không thể tải revenue");
         return await res.json();
     },
 
     getOrdersByMonth: async () => {
-        const res = await fetch(`${BASE}manager-dashboard/orders-by-week`);
+        const res = await fetch(`${BASE}manager-dashboard/orders-by-month`);
         if (!res.ok) throw new Error("Không thể tải orders");
         return await res.json();
     },

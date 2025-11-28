@@ -197,6 +197,9 @@ function AuctionDetailPage() {
     if (!auction) return;
     setIsProcessingBuyNow(true);
     try {
+      const allAddresses = await addressLocalApi.getAddressByUserId(LOGGED_IN_USER_ID);
+      const defaultAddress = (allAddresses || []).find(a => a.isDefault) || (allAddresses || [])[0];
+      if (!defaultAddress) return navigate("/profile/address");
       const orderItemPayload = {
         buyerId: LOGGED_IN_USER_ID,
         itemId: auction.itemId,
@@ -206,9 +209,7 @@ function AuctionDetailPage() {
       const createdOrderItem = await orderItemApi.postOrderItem(orderItemPayload);
       if (!createdOrderItem?.orderItemId) throw new Error("Không tạo được Order Item");
 
-      const allAddresses = await addressLocalApi.getAddressByUserId(LOGGED_IN_USER_ID);
-      const defaultAddress = (allAddresses || []).find(a => a.isDefault) || (allAddresses || [])[0];
-      if (!defaultAddress) return navigate("/profile/address");
+
 
       const checkoutData = {
         source: "buyNow",
