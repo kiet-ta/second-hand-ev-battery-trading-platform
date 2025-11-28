@@ -110,8 +110,6 @@ export default function TransactionHistory() {
             </div>
         );
 
-    const getSign = (type) => {
-<<<<<<< HEAD
         const getSign = (record) => {
             const { userRole, paymentType } = record;
 
@@ -127,13 +125,6 @@ export default function TransactionHistory() {
 
             return "";
         };
-
-=======
-        if (type === "Deposit") return "+";
-        if (type === "Order_Revenue") return "+"
-        return "-";
->>>>>>> f2cca983157fce678bda8cfe31423fa1f99720b6
-    };
 
     //  CẤU HÌNH TABLE
     const columns = [

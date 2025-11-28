@@ -168,7 +168,7 @@ public class WalletService : IWalletService
             {
                 UserId = request.UserId,
                 OrderCode = paymentOrderCode,
-                TotalAmount = -request.Amount,
+                TotalAmount = request.Amount,
                 Method = "Wallet",
                 Status = "Completed",
                 PaymentType = PaymentType.Order_Purchase.ToString(),
@@ -184,7 +184,7 @@ public class WalletService : IWalletService
                 UserId = request.UserId,
                 UserRole = request.UserRole,
                 PaymentId = newPayment.PaymentId,
-                Amount = -request.Amount,
+                Amount = request.Amount,
                 OrderId = request.Type == WalletTransactionType.Withdraw.ToString() ? request.OrderId : null,
                 ItemId = request.ItemId,
                 CreatedAt = DateTime.Now
@@ -298,7 +298,7 @@ public class WalletService : IWalletService
             {
                 UserId = sellerId,
                 OrderCode = paymentOrderCode,
-                TotalAmount = -amountToTransfer,
+                TotalAmount = amountToTransfer,
                 Method = "Wallet",
                 Status = "Completed",
                 PaymentType = sellerPaymentType,
@@ -312,7 +312,7 @@ public class WalletService : IWalletService
                 UserId = sellerId,
                 UserRole = UserRole.Seller.ToString(),
                 PaymentId = newPayment.PaymentId,
-                Amount = -amountToTransfer,
+                Amount = amountToTransfer,
                 CreatedAt = DateTime.Now
             };
             await _unitOfWork.PaymentDetails.CreatePaymentDetailAsync(sellerPaymentDetail);
@@ -441,7 +441,7 @@ public class WalletService : IWalletService
             {
                 UserId = sellerId,
                 OrderCode = paymentOrderCode,
-                TotalAmount = -amountToTransfer,
+                TotalAmount = amountToTransfer,
                 Method = "Wallet",
                 Status = "Completed",
                 PaymentType = sellerPaymentType,
@@ -455,7 +455,7 @@ public class WalletService : IWalletService
                 UserId = sellerId,
                 UserRole = UserRole.Seller.ToString(),
                 PaymentId = newPayment.PaymentId,
-                Amount = -amountToTransfer,
+                Amount = amountToTransfer,
                 CreatedAt = DateTime.Now
             };
             await _unitOfWork.PaymentDetails.CreatePaymentDetailAsync(sellerPaymentDetail);
