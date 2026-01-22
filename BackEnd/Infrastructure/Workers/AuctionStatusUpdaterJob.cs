@@ -1,4 +1,5 @@
-﻿using Application.IRepositories;
+﻿using Application.IHelpers;
+using Application.IRepositories;
 using Application.IServices;
 using Domain.Common.Constants;
 using Infrastructure.Data;
@@ -26,13 +27,13 @@ public class AuctionStatusUpdaterJob : BackgroundService
 
         while (!stoppingToken.IsCancellationRequested)
         {
-            var now = DateTime.Now;
+            using var scope = _serviceProvider.CreateScope();
+            var dateTimeProvider = scope.ServiceProvider.GetRequiredService<IDateTimeProvider>();
+            var now = dateTimeProvider.Now;
             _logger.LogInformation("AuctionStatusUpdaterJob running at: {time}", now);
 
             try
             {
-                using (var scope = _serviceProvider.CreateScope())
-                {
                     var auctionRepository = scope.ServiceProvider.GetRequiredService<IAuctionRepository>();
                     var finalizationService = scope.ServiceProvider.GetRequiredService<IAuctionFinalizationService>();
                     var context = scope.ServiceProvider.GetRequiredService<EvBatteryTradingContext>(); // DbContext to update status
@@ -71,7 +72,6 @@ public class AuctionStatusUpdaterJob : BackgroundService
                             // read log error but dont end job
                         }
                     }
-                }
             }
             catch (Exception ex)
             {

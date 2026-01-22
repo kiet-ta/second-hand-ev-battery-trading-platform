@@ -1,4 +1,5 @@
 ﻿using Application.DTOs.PaymentDtos;
+using Application.IHelpers;
 using Application.IRepositories;
 using Application.IRepositories.IBiddingRepositories;
 using Application.IRepositories.IChatRepositories;
@@ -11,6 +12,7 @@ using Application.Validations;
 using Domain.Entities;
 using FluentValidation;
 using Infrastructure.Data;
+using Infrastructure.Helpers;
 using Infrastructure.Repositories;
 using Infrastructure.Repositories.ChatRepositories;
 using Infrastructure.Repositories.ManageStaffRepositories;
@@ -22,6 +24,9 @@ public static class DependencyInjectionExtensions
 {
     public static IServiceCollection AddApplicationServices(this IServiceCollection services)
     {
+        //---Helpers
+        services.AddSingleton<IDateTimeProvider, DateTimeProvider>();
+        
         //---Services
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IItemService, ItemService>();

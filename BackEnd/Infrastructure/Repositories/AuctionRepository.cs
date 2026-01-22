@@ -1,5 +1,6 @@
 using Application.DTOs.AuctionDtos;
 using Application.DTOs.ItemDtos;
+using Application.IHelpers;
 using Application.IRepositories;
 using Domain.Common.Constants;
 using Domain.Entities;
@@ -11,8 +12,13 @@ namespace Infrastructure.Repositories;
 public class AuctionRepository : IAuctionRepository
 {
     private readonly EvBatteryTradingContext _context;
+    private readonly IDateTimeProvider _dateTimeProvider;
 
-    public AuctionRepository(EvBatteryTradingContext context) => _context = context;
+    public AuctionRepository(EvBatteryTradingContext context, IDateTimeProvider dateTimeProvider)
+    {
+        _context = context;
+        _dateTimeProvider = dateTimeProvider;
+    }
 
     public async Task<Auction?> GetByIdAsync(int auctionId) =>
         await _context.Auctions.FindAsync(auctionId);
@@ -55,7 +61,7 @@ public class AuctionRepository : IAuctionRepository
     }
     public async Task UpdateCurrentPriceAsync(Auction auction)
     {
-        auction.UpdatedAt = DateTime.Now;
+        auction.UpdatedAt = _dateTimeProvider.Now;
         _context.Auctions.Update(auction);
         await _context.SaveChangesAsync();
     }
@@ -63,7 +69,7 @@ public class AuctionRepository : IAuctionRepository
     public async Task UpdateStatusAsync(Auction auction, string newStatus)
     {
         auction.Status = newStatus;
-        auction.UpdatedAt = DateTime.Now;
+        auction.UpdatedAt = _dateTimeProvider.Now;
         _context.Auctions.Update(auction);
         await _context.SaveChangesAsync();
     }
@@ -74,7 +80,7 @@ public class AuctionRepository : IAuctionRepository
         if (auction != null)
         {
             auction.TotalBids = await _context.Bids.CountAsync(b => b.AuctionId == auctionId && b.Status != AuctionStatus.Cancelled.ToString());
-            auction.UpdatedAt = DateTime.Now;
+            auction.UpdatedAt = _dateTimeProvider.Now;
         }
     }
 
@@ -113,7 +119,7 @@ public class AuctionRepository : IAuctionRepository
         .Take(pageSize)
         .ToListAsync();
 
-        var now = DateTime.Now;
+        var now = _dateTimeProvider.Now;
         foreach (var a in result)
         {
             a.Status = now < a.StartTime ? AuctionStatus.Upcoming.ToString() :
@@ -156,11 +162,12 @@ public class AuctionRepository : IAuctionRepository
 
     public async Task<bool> UpdateCurrentPriceAsync(int auctionId, decimal newPrice)
     {
+        var now = _dateTimeProvider.Now;
         var affectedRows = await _context.Auctions
             .Where(a => a.AuctionId == auctionId)
             .ExecuteUpdateAsync(updates => updates
                 .SetProperty(a => a.CurrentPrice, newPrice)
-                .SetProperty(a => a.UpdatedAt, DateTime.Now)); //update timestamp
+                .SetProperty(a => a.UpdatedAt, now)); //update timestamp
 
         return affectedRows > 0;
     }

@@ -1,4 +1,5 @@
-﻿using Application.IRepositories;
+﻿using Application.IHelpers;
+using Application.IRepositories;
 using Application.IRepositories.IBiddingRepositories;
 using Application.IRepositories.IChatRepositories;
 using Application.IRepositories.IManageStaffRepositories;
@@ -48,11 +49,11 @@ public class UnitOfWork : IUnitOfWork
     public IReportRepository Reports{ get; }
     public IReviewRepository Reviews { get; }
     public ITransactionRepository Transactions { get; }
-    public UnitOfWork(EvBatteryTradingContext context, IChatRepository chatRepository, IUserModerationRepository userModerationRepository)
+    public UnitOfWork(EvBatteryTradingContext context, IChatRepository chatRepository, IUserModerationRepository userModerationRepository, IDateTimeProvider dateTimeProvider)
     {
         _context = context;
 
-        Auctions = new AuctionRepository(_context);
+        Auctions = new AuctionRepository(_context, dateTimeProvider);
         Bids = new BidRepository(_context);
         Wallets = new WalletRepository(_context);
         WalletTransactions = new WalletTransactionRepository(_context);

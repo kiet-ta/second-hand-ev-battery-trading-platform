@@ -1,6 +1,7 @@
 ﻿using Application.DTOs;
 using Application.DTOs.AuctionDtos;
 using Application.DTOs.ItemDtos;
+using Application.IHelpers;
 using Application.IRepositories;
 using Application.IRepositories.IBiddingRepositories;
 using Application.IServices;
@@ -17,17 +18,19 @@ public class AuctionService : IAuctionService
     private readonly IUnitOfWork _unitOfWork;
     private readonly ILogger<AuctionService> _logger;
     private readonly INotificationService _notificationService;
+    private readonly IDateTimeProvider _dateTimeProvider;
+
     public AuctionService(
         IUnitOfWork unitOfWork,
         INotificationService notificationService,
-        ILogger<AuctionService> logger)
+        ILogger<AuctionService> logger,
+        IDateTimeProvider dateTimeProvider)
     {
         _unitOfWork = unitOfWork;
         _logger = logger;
         _notificationService = notificationService;
+        _dateTimeProvider = dateTimeProvider;
     }
-
-    private DateTime now = DateTime.Now;
     public async Task<IEnumerable<BidderHistoryDto>> GetBidderHistoryAsync(int auctionId)
     {
         var auctionExists = await _unitOfWork.Auctions.GetByIdAsync(auctionId);
@@ -116,6 +119,7 @@ public class AuctionService : IAuctionService
         if (request.StartTime >= request.EndTime)
             throw new ArgumentException("Start time must be earlier than end time.");
 
+        var now = _dateTimeProvider.Now;
         var auction = new Auction
         {
             ItemId = request.ItemId,
@@ -123,10 +127,10 @@ public class AuctionService : IAuctionService
             CurrentPrice = null,
             StartTime = request.StartTime,
             EndTime = request.EndTime,
-            Status = DateTime.Now >= request.StartTime ? "ongoing" : "upcoming",
+            Status = now >= request.StartTime ? AuctionStatus.Ongoing.ToString() : AuctionStatus.Upcoming.ToString(),
             TotalBids = 0,
-            CreatedAt = DateTime.Now,
-            UpdatedAt = DateTime.Now
+            CreatedAt = now,
+            UpdatedAt = now
         };
 
         await _unitOfWork.Auctions.CreateAsync(auction);
@@ -147,14 +151,15 @@ public class AuctionService : IAuctionService
     public async Task<BidderHistoryDto> PlaceBidAsync(int auctionId, int userId, decimal bidAmount)
     {
         User user;
-        Bid? previousHighestBid = null; 
+        Bid? previousHighestBid = null;
+        var now = _dateTimeProvider.Now;
 
         await _unitOfWork.BeginTransactionAsync();
         try
         {
             var auction = await _unitOfWork.Auctions.GetByIdAsync(auctionId);
 
-            if (auction == null || auction.Status != "Ongoing" || now < auction.StartTime || now > auction.EndTime)
+            if (auction == null || auction.Status != AuctionStatus.Ongoing.ToString() || now < auction.StartTime || now > auction.EndTime)
             {
                 await _unitOfWork.RollbackTransactionAsync();
                 throw new InvalidOperationException("Auction is not active or has ended.");
@@ -294,12 +299,13 @@ public class AuctionService : IAuctionService
     }
     public async Task UpdateAuctionStatusesAsync()
     {
+        var now = _dateTimeProvider.Now;
         var upcomingAuctions = await _unitOfWork.Auctions.GetUpcomingAuctionsAsync();
 
         foreach (var auction in upcomingAuctions)
         {
-            if (auction.StartTime < now && auction.Status == "upcoming")
-                await _unitOfWork.Auctions.UpdateStatusAsync(auction, "ongoing");
+            if (auction.StartTime < now && auction.Status == AuctionStatus.Upcoming.ToString())
+                await _unitOfWork.Auctions.UpdateStatusAsync(auction, AuctionStatus.Ongoing.ToString());
         }
 
         // Update ongoing to ended
@@ -308,7 +314,7 @@ public class AuctionService : IAuctionService
         foreach (var auction in ongoingAuctions)
         {
             if (auction.EndTime < now)
-                await _unitOfWork.Auctions.UpdateStatusAsync(auction, "ended");
+                await _unitOfWork.Auctions.UpdateStatusAsync(auction, AuctionStatus.Ended.ToString());
         }
     }
 
@@ -370,14 +376,15 @@ public class AuctionService : IAuctionService
         if (auction == null)
             throw new KeyNotFoundException("Auction not found."); //404
 
+        var now = _dateTimeProvider.Now;
         string status;
 
         if (now < auction.StartTime)
-            status = "upcoming";
+            status = AuctionStatus.Upcoming.ToString();
         else if (now >= auction.StartTime && now < auction.EndTime)
-            status = "ongoing";
+            status = AuctionStatus.Ongoing.ToString();
         else
-            status = "ended";
+            status = AuctionStatus.Ended.ToString();
 
         return new AuctionStatusDto
         {
@@ -392,6 +399,7 @@ public class AuctionService : IAuctionService
     {
         var auctions = await _unitOfWork.Auctions.GetAllAsync(page, pageSize);
         var totalCount = await _unitOfWork.Auctions.GetTotalCountAsync();
+        var now = _dateTimeProvider.Now;
 
         foreach (var a in auctions)
         {

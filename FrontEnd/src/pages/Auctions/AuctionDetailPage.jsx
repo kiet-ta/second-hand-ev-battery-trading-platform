@@ -83,8 +83,9 @@ function AuctionDetailPage() {
       return;
     }
     // 1. Create the connection
+    const hubUrl = import.meta.env.VITE_SIGNALR_HUB_URL || `${import.meta.env.VITE_API_BASE_URL}/auctionHub`;
     const newConnection = new HubConnectionBuilder()
-      .withUrl("https://localhost:7272/auctionHub", {
+      .withUrl(hubUrl, {
         accessTokenFactory: () => token,
       }) // Make sure this URL is correct
       .withAutomaticReconnect()

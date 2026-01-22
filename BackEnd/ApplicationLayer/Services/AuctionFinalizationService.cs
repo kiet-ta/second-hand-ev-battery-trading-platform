@@ -1,4 +1,5 @@
 ﻿using Application.DTOs;
+using Application.IHelpers;
 using Application.IRepositories;
 using Application.IServices;
 using Domain.Common.Constants;
@@ -12,16 +13,17 @@ public class AuctionFinalizationService : IAuctionFinalizationService
     private readonly IUnitOfWork _unitOfWork;
     private readonly ILogger<AuctionFinalizationService> _logger;
     private readonly INotificationService _notificationService;
-    
+    private readonly IDateTimeProvider _dateTimeProvider;
 
     private const string AuctionSellerFeeCode = "AUCTION_SELLER_FEE"; // FIXME: mock value
     private const string AuctionNotificationType = "auction";
 
-    public AuctionFinalizationService(IUnitOfWork unitOfWork, ILogger<AuctionFinalizationService> logger, INotificationService notificationService)
+    public AuctionFinalizationService(IUnitOfWork unitOfWork, ILogger<AuctionFinalizationService> logger, INotificationService notificationService, IDateTimeProvider dateTimeProvider)
     {
         _unitOfWork = unitOfWork;
         _logger = logger;
         _notificationService = notificationService;
+        _dateTimeProvider = dateTimeProvider;
     }
 
     public async Task FinalizeAuctionAsync(int auctionId)
@@ -47,7 +49,7 @@ public class AuctionFinalizationService : IAuctionFinalizationService
                 return;
             }
             auction.Status =  AuctionStatus.Ended.ToString();
-            auction.UpdatedAt = DateTime.Now; 
+            auction.UpdatedAt = _dateTimeProvider.Now; 
             await _unitOfWork.Auctions.Update(auction); 
             _logger.LogInformation("Auction {AuctionId} status updated to 'ended' within transaction.", auctionId);
 
@@ -115,7 +117,7 @@ public class AuctionFinalizationService : IAuctionFinalizationService
             // --- Updadte Item Status và create Order ---
             var itemEntityToUpdate = itemWithSeller.Item; // get the seller's auction item
             itemEntityToUpdate.Status = ItemStatus.Sold.ToString();
-            itemEntityToUpdate.UpdatedAt = DateTime.Now;
+            itemEntityToUpdate.UpdatedAt = _dateTimeProvider.Now;
             _unitOfWork.Items.Update(itemEntityToUpdate); // Update Item entity
             _logger.LogInformation($"Updated Item {itemId} status to sold");
 
@@ -139,8 +141,8 @@ public class AuctionFinalizationService : IAuctionFinalizationService
                 BuyerId = winnerId,
                 AddressId = winnerAddress.AddressId, 
                 Status = OrderStatus.Pending.ToString(), 
-                CreatedAt = DateTime.Now,
-                UpdatedAt = DateTime.Now
+                CreatedAt = _dateTimeProvider.Now,
+                UpdatedAt = _dateTimeProvider.Now
             };
             await _unitOfWork.Orders.AddAsync(newOrder);
             await _unitOfWork.SaveChangesAsync(); // Save to get OrderId
@@ -151,7 +153,7 @@ public class AuctionFinalizationService : IAuctionFinalizationService
                 WalletId = winnerWallet.WalletId,
                 Amount = -winningAmount, 
                 Type = WalletTransactionType.Payment.ToString(),
-                CreatedAt = DateTime.Now,
+                CreatedAt = _dateTimeProvider.Now,
                 RefId = newOrder.OrderId,
                 AuctionId = auctionId,
                 OrderId = newOrder.OrderId
@@ -214,7 +216,7 @@ public class AuctionFinalizationService : IAuctionFinalizationService
                     WalletId = holdTransaction.WalletId,
                     Amount = amountToRelease, // Positive numbers
                     Type = WalletTransactionType.Released.ToString(),
-                    CreatedAt = DateTime.Now,
+                    CreatedAt = _dateTimeProvider.Now,
                     RefId = loserBid.BidId, // Link to losing bid
                     AuctionId = auctionId
                 };
