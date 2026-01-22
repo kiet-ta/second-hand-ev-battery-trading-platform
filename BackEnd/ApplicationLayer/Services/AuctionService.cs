@@ -261,6 +261,50 @@ public class AuctionService : IAuctionService
             await _unitOfWork.Auctions.UpdateCurrentPriceAsync(auctionId, bidAmount);
             await _unitOfWork.Auctions.UpdateTotalBidsAsync(auctionId);
 
+            // Check if bid reaches or exceeds BuyNow price - instant purchase
+            bool isBuyNowTriggered = auction.BuyNowPrice.HasValue && bidAmount >= auction.BuyNowPrice.Value;
+            
+            if (isBuyNowTriggered)
+            {
+                _logger.LogInformation("BuyNow triggered! Bid {BidAmount} >= BuyNowPrice {BuyNowPrice}. Finalizing auction {AuctionId} immediately.", 
+                    bidAmount, auction.BuyNowPrice.Value, auctionId);
+                
+                // Mark bid as winner immediately
+                await _unitOfWork.Bids.UpdateBidStatusAsync(newBid.BidId, BidStatus.Winner.ToString());
+                
+                // End auction immediately
+                auction.Status = AuctionStatus.Ended.ToString();
+                auction.EndTime = now; // End time is now
+                auction.UpdatedAt = now;
+                await _unitOfWork.Auctions.Update(auction);
+                
+                // Release funds for all other bidders (losers)
+                var loserBids = await _unitOfWork.Bids.GetAllLoserActiveOrOutbidBidsAsync(auctionId, userId);
+                foreach (var loserBid in loserBids)
+                {
+                    var loserHoldTransaction = await _unitOfWork.WalletTransactions.FindHoldTransactionByRefIdAsync(loserBid.BidId);
+                    if (loserHoldTransaction != null)
+                    {
+                        decimal amountToRelease = -loserHoldTransaction.Amount;
+                        await _unitOfWork.Wallets.UpdateBalanceAndHeldAsync(loserHoldTransaction.WalletId, amountToRelease, -amountToRelease);
+                        
+                        var releaseTransaction = new WalletTransaction
+                        {
+                            WalletId = loserHoldTransaction.WalletId,
+                            Amount = amountToRelease,
+                            Type = WalletTransactionType.Released.ToString(),
+                            CreatedAt = now,
+                            RefId = loserBid.BidId,
+                            AuctionId = auctionId
+                        };
+                        await _unitOfWork.WalletTransactions.CreateTransactionAsync(releaseTransaction);
+                        await _unitOfWork.Bids.UpdateBidStatusAsync(loserBid.BidId, BidStatus.Released.ToString());
+                        
+                        _logger.LogInformation("Released {Amount} to loser User {UserId} due to BuyNow trigger.", amountToRelease, loserBid.UserId);
+                    }
+                }
+            }
+
             var newBidHistory = new BidderHistoryDto
             {
                 UserId = userId,
